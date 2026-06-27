@@ -30,13 +30,13 @@ public class EventAgendaApiResource {
   @Path("/config")
   public Response config(@PathParam("eventId") String eventId) {
     if (eventService.getEvent(eventId) == null) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "event_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "event_not_found"))
+          .build();
     }
     AgendaProposalConfig config = agendaProposalConfigService.current();
     return Response.ok(
-            new AgendaConfigResponse(
-                config.proposalNoticeEnabled(),
-                AdminUtils.isAdmin(identity)))
+            new AgendaConfigResponse(config.proposalNoticeEnabled(), AdminUtils.isAdmin(identity)))
         .build();
   }
 
@@ -47,15 +47,22 @@ public class EventAgendaApiResource {
   public Response updateConfig(
       @PathParam("eventId") String eventId, AgendaConfigUpdateRequest request) {
     if (eventService.getEvent(eventId) == null) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "event_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "event_not_found"))
+          .build();
     }
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null || request.proposalNoticeEnabled() == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_config"))
+          .build();
     }
-    boolean enabled = agendaProposalConfigService.updateProposalNoticeEnabled(request.proposalNoticeEnabled());
+    boolean enabled =
+        agendaProposalConfigService.updateProposalNoticeEnabled(request.proposalNoticeEnabled());
     return Response.ok(new AgendaConfigResponse(enabled, true)).build();
   }
 
@@ -63,6 +70,5 @@ public class EventAgendaApiResource {
       @JsonProperty("proposal_notice_enabled") Boolean proposalNoticeEnabled) {}
 
   public record AgendaConfigResponse(
-      @JsonProperty("proposal_notice_enabled") boolean proposalNoticeEnabled,
-      boolean admin) {}
+      @JsonProperty("proposal_notice_enabled") boolean proposalNoticeEnabled, boolean admin) {}
 }

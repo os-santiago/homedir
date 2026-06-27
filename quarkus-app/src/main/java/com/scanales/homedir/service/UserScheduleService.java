@@ -1,7 +1,7 @@
 package com.scanales.homedir.service;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import com.scanales.homedir.reputation.ReputationEngineService;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;

@@ -15,25 +15,36 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class CfpFormOptionsService {
 
-  @ConfigProperty(name = "cfp.form.levels", defaultValue = "beginner|Beginner,intermediate|Intermediate,advanced|Advanced")
+  @ConfigProperty(
+      name = "cfp.form.levels",
+      defaultValue = "beginner|Beginner,intermediate|Intermediate,advanced|Advanced")
   String levelsRaw;
 
-  @ConfigProperty(name = "cfp.form.formats", defaultValue = "talk|Talk,lightning-talk|Lightning Talk,workshop|Workshop,panel|Panel")
+  @ConfigProperty(
+      name = "cfp.form.formats",
+      defaultValue = "talk|Talk,lightning-talk|Lightning Talk,workshop|Workshop,panel|Panel")
   String formatsRaw;
 
-  @ConfigProperty(name = "cfp.form.durations", defaultValue = "15|15 min,30|30 min,60|60 min,90|90 min")
+  @ConfigProperty(
+      name = "cfp.form.durations",
+      defaultValue = "15|15 min,30|30 min,60|60 min,90|90 min")
   String durationsRaw;
 
   @ConfigProperty(name = "cfp.form.languages", defaultValue = "en|English,es|Spanish")
   String languagesRaw;
 
-  @ConfigProperty(name = "cfp.form.tracks", defaultValue = "ai-agents-copilots|AI Agents & Copilots in Production,platform-engineering-idp|Platform Engineering & Internal Developer Platforms,cloud-native-security|Cloud Native Security & Supply Chain,developer-experience-innersource|Developer Experience & InnerSource,data-ai-platforms-llmops|Data/AI Platforms & LLMOps,devops|DevOps,cybersecurity-secops|Cybersecurity And SecOps,engineering-culture|Culture and Team Practices,success-cases|Success Cases")
+  @ConfigProperty(
+      name = "cfp.form.tracks",
+      defaultValue =
+          "ai-agents-copilots|AI Agents & Copilots in Production,platform-engineering-idp|Platform Engineering & Internal Developer Platforms,cloud-native-security|Cloud Native Security & Supply Chain,developer-experience-innersource|Developer Experience & InnerSource,data-ai-platforms-llmops|Data/AI Platforms & LLMOps,devops|DevOps,cybersecurity-secops|Cybersecurity And SecOps,engineering-culture|Culture and Team Practices,success-cases|Success Cases")
   String tracksRaw;
 
   @ConfigProperty(name = "cfp.form.tracks.max-items", defaultValue = "9")
   int tracksMaxItems;
 
-  @ConfigProperty(name = "cfp.form.duration-by-format", defaultValue = "talk=30,workshop=90,panel=60,lightning-talk=15")
+  @ConfigProperty(
+      name = "cfp.form.duration-by-format",
+      defaultValue = "talk=30,workshop=90,panel=60,lightning-talk=15")
   String durationByFormatRaw;
 
   private volatile CfpFormCatalog catalog;
@@ -102,7 +113,8 @@ public class CfpFormOptionsService {
     return mapped == null ? Optional.empty() : Optional.of(mapped);
   }
 
-  private static Optional<String> normalizeValue(String raw, List<CfpFormOption> options, boolean lowercase) {
+  private static Optional<String> normalizeValue(
+      String raw, List<CfpFormOption> options, boolean lowercase) {
     if (raw == null) {
       return Optional.empty();
     }
@@ -145,7 +157,11 @@ public class CfpFormOptionsService {
       languages = List.of(new CfpFormOption("en", "English"));
     }
     if (tracks.isEmpty()) {
-      tracks = List.of(new CfpFormOption("platform-engineering-idp", "Platform Engineering & Internal Developer Platforms"));
+      tracks =
+          List.of(
+              new CfpFormOption(
+                  "platform-engineering-idp",
+                  "Platform Engineering & Internal Developer Platforms"));
     }
 
     return new CfpFormCatalog(
@@ -167,7 +183,8 @@ public class CfpFormOptionsService {
     return Map.copyOf(mapping);
   }
 
-  private static List<CfpFormOption> parseOptions(String raw, boolean lowercaseValue, int maxItems) {
+  private static List<CfpFormOption> parseOptions(
+      String raw, boolean lowercaseValue, int maxItems) {
     if (raw == null || raw.isBlank()) {
       return List.of();
     }

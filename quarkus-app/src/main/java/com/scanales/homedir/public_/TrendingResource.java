@@ -23,19 +23,14 @@ public class TrendingResource {
   private static final Logger LOG = Logger.getLogger(TrendingResource.class);
   private static final int DEFAULT_COUNT = 3;
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  TrendingService trendingService;
+  @Inject TrendingService trendingService;
 
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance index(
-        List<TrendingRepo> repos,
-        String period,
-        int count,
-        String lastUpdated);
+        List<TrendingRepo> repos, String period, int count, String lastUpdated);
   }
 
   @GET

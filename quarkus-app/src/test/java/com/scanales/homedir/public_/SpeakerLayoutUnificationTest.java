@@ -19,11 +19,9 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class SpeakerLayoutUnificationTest {
 
-  @Inject
-  SpeakerService speakerService;
+  @Inject SpeakerService speakerService;
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
   private static final String EVENT_ID = "e-layout-unif";
   private static final String SPEAKER_ID = "s-layout-unif";

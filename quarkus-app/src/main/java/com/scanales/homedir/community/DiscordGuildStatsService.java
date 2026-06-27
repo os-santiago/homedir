@@ -53,7 +53,8 @@ public class DiscordGuildStatsService {
   @ConfigProperty(name = "community.board.discord.request-timeout", defaultValue = "PT5S")
   Duration requestTimeout;
 
-  private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(DEFAULT_TIMEOUT).build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(DEFAULT_TIMEOUT).build();
 
   private final AtomicReference<DiscordGuildSnapshot> snapshot =
       new AtomicReference<>(DiscordGuildSnapshot.disabled(null));
@@ -156,10 +157,7 @@ public class DiscordGuildStatsService {
               true));
       LOG.infov(
           "Discord board stats refreshed reason={0} source={1} members={2} online={3}",
-          reason,
-          result.sourceCode(),
-          result.memberCount(),
-          result.onlineCount());
+          reason, result.sourceCode(), result.memberCount(), result.onlineCount());
       return;
     }
 
@@ -169,8 +167,7 @@ public class DiscordGuildStatsService {
       snapshot.set(previous.withFailedAttempt(attemptedAt));
       LOG.warnv(
           "Discord board refresh failed reason={0}; keeping cached source={1}",
-          reason,
-          previous.sourceCode());
+          reason, previous.sourceCode());
       return;
     }
 
@@ -183,9 +180,7 @@ public class DiscordGuildStatsService {
     if (token != null) {
       Optional<DiscordFetchResult> botResult =
           fetchJson(
-              "https://discord.com/api/v10/guilds/"
-                  + url(guildId)
-                  + "?with_counts=true",
+              "https://discord.com/api/v10/guilds/" + url(guildId) + "?with_counts=true",
               "Bot " + token,
               "bot_api");
       if (botResult.isPresent()) {
@@ -195,17 +190,13 @@ public class DiscordGuildStatsService {
 
     Optional<DiscordFetchResult> previewResult =
         fetchJson(
-            "https://discord.com/api/v10/guilds/" + url(guildId) + "/preview",
-            null,
-            "preview_api");
+            "https://discord.com/api/v10/guilds/" + url(guildId) + "/preview", null, "preview_api");
     if (previewResult.isPresent()) {
       return Optional.of(enrichWithWidgetMembers(guildId, previewResult.get()));
     }
 
     return fetchJson(
-        "https://discord.com/api/guilds/" + url(guildId) + "/widget.json",
-        null,
-        "widget_api");
+        "https://discord.com/api/guilds/" + url(guildId) + "/widget.json", null, "widget_api");
   }
 
   private DiscordFetchResult enrichWithWidgetMembers(String guildId, DiscordFetchResult current) {
@@ -223,17 +214,20 @@ public class DiscordGuildStatsService {
     return current.withMemberSamples(widgetResult.get().memberSamples());
   }
 
-  private Optional<DiscordFetchResult> fetchJson(String url, String authorization, String sourceCode) {
+  private Optional<DiscordFetchResult> fetchJson(
+      String url, String authorization, String sourceCode) {
     try {
-      HttpRequest.Builder builder = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(effectiveRequestTimeout())
-          .header("Accept", "application/json")
-          .header("User-Agent", "homedir-community-board");
+      HttpRequest.Builder builder =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(effectiveRequestTimeout())
+              .header("Accept", "application/json")
+              .header("User-Agent", "homedir-community-board");
       if (authorization != null && !authorization.isBlank()) {
         builder.header("Authorization", authorization);
       }
-      HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
         LOG.debugv("Discord {0} request failed with status={1}", sourceCode, response.statusCode());
         return Optional.empty();
@@ -245,7 +239,8 @@ public class DiscordGuildStatsService {
       if (memberCount == null && onlineCount == null && memberSamples.isEmpty()) {
         return Optional.empty();
       }
-      return Optional.of(new DiscordFetchResult(memberCount, onlineCount, sourceCode, memberSamples));
+      return Optional.of(
+          new DiscordFetchResult(memberCount, onlineCount, sourceCode, memberSamples));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warnv("Discord {0} request interrupted", sourceCode);
@@ -311,7 +306,9 @@ public class DiscordGuildStatsService {
       if (normalizedId == null || displayName == null) {
         continue;
       }
-      out.add(new DiscordMemberSample(normalizedId, displayName, firstNonBlank(handle, displayName), avatarUrl));
+      out.add(
+          new DiscordMemberSample(
+              normalizedId, displayName, firstNonBlank(handle, displayName), avatarUrl));
     }
     return List.copyOf(out);
   }
@@ -386,7 +383,10 @@ public class DiscordGuildStatsService {
   }
 
   private record DiscordFetchResult(
-      Integer memberCount, Integer onlineCount, String sourceCode, List<DiscordMemberSample> memberSamples) {
+      Integer memberCount,
+      Integer onlineCount,
+      String sourceCode,
+      List<DiscordMemberSample> memberSamples) {
     DiscordFetchResult withMemberSamples(List<DiscordMemberSample> samples) {
       if (samples == null || samples.isEmpty()) {
         return this;
@@ -395,7 +395,8 @@ public class DiscordGuildStatsService {
     }
   }
 
-  public record DiscordMemberSample(String id, String displayName, String handle, String avatarUrl) {}
+  public record DiscordMemberSample(
+      String id, String displayName, String handle, String avatarUrl) {}
 
   public record DiscordGuildSnapshot(
       boolean integrationEnabled,
@@ -409,15 +410,18 @@ public class DiscordGuildStatsService {
       boolean lastAttemptSucceeded) {
 
     static DiscordGuildSnapshot disabled(Instant attempt) {
-      return new DiscordGuildSnapshot(false, false, null, null, "disabled", List.of(), null, attempt, false);
+      return new DiscordGuildSnapshot(
+          false, false, null, null, "disabled", List.of(), null, attempt, false);
     }
 
     static DiscordGuildSnapshot misconfigured(Instant attempt) {
-      return new DiscordGuildSnapshot(true, false, null, null, "misconfigured", List.of(), null, attempt, false);
+      return new DiscordGuildSnapshot(
+          true, false, null, null, "misconfigured", List.of(), null, attempt, false);
     }
 
     static DiscordGuildSnapshot unavailable(Instant attempt) {
-      return new DiscordGuildSnapshot(true, true, null, null, "unavailable", List.of(), null, attempt, false);
+      return new DiscordGuildSnapshot(
+          true, true, null, null, "unavailable", List.of(), null, attempt, false);
     }
 
     DiscordGuildSnapshot withFailedAttempt(Instant attempt) {

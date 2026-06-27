@@ -13,8 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 /** Tests loading and unloading historical user schedules. */
 public class UserScheduleHistoricalServiceTest {
 
-  @TempDir
-  Path tempDir;
+  @TempDir Path tempDir;
 
   static class TestCapacityService extends CapacityService {
     Mode mode = Mode.ADMITTING;

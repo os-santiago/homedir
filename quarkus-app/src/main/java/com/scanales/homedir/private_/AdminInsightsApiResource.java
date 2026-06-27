@@ -30,14 +30,12 @@ public class AdminInsightsApiResource {
       String initiativeId,
       String title,
       String definitionStartedAt,
-      Map<String, String> metadata) {
-  }
+      Map<String, String> metadata) {}
 
-  public record AppendEventRequest(String initiativeId, String type, Map<String, String> metadata) {
-  }
+  public record AppendEventRequest(
+      String initiativeId, String type, Map<String, String> metadata) {}
 
-  public record ErrorPayload(String error, String message) {
-  }
+  public record ErrorPayload(String error, String message) {}
 
   @Inject SecurityIdentity identity;
 
@@ -80,7 +78,9 @@ public class AdminInsightsApiResource {
     return Response.ok(csv, "text/csv; charset=UTF-8")
         .header(
             "Content-Disposition",
-            "attachment; filename=\"insights-initiatives-" + Instant.now().toEpochMilli() + ".csv\"")
+            "attachment; filename=\"insights-initiatives-"
+                + Instant.now().toEpochMilli()
+                + ".csv\"")
         .build();
   }
 
@@ -98,7 +98,10 @@ public class AdminInsightsApiResource {
     try {
       DevelopmentInsightsEvent event =
           insightsLedger.startInitiative(
-              request.initiativeId(), request.title(), request.definitionStartedAt(), request.metadata());
+              request.initiativeId(),
+              request.title(),
+              request.definitionStartedAt(),
+              request.metadata());
       return Response.status(Response.Status.CREATED).entity(event).build();
     } catch (IllegalArgumentException e) {
       return Response.status(Response.Status.BAD_REQUEST)

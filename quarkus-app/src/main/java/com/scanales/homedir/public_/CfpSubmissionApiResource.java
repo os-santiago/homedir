@@ -1,14 +1,14 @@
 package com.scanales.homedir.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.scanales.homedir.cfp.CfpPanelist;
-import com.scanales.homedir.cfp.CfpPanelistStatus;
-import com.scanales.homedir.cfp.CfpPresentationAsset;
-import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpConfigService;
 import com.scanales.homedir.cfp.CfpEventConfig;
 import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpInsightsService;
+import com.scanales.homedir.cfp.CfpPanelist;
+import com.scanales.homedir.cfp.CfpPanelistStatus;
+import com.scanales.homedir.cfp.CfpPresentationAsset;
+import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
 import com.scanales.homedir.eventops.EventOperationsService;
@@ -24,10 +24,8 @@ import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.PaginationGuardrails;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -46,13 +44,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.List;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 @Path("/api/events/{eventId}/cfp/submissions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -84,7 +84,9 @@ public class CfpSubmissionApiResource {
   public Response create(@PathParam("eventId") String eventId, CreateSubmissionRequest request) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     String primaryUserId = userIds.iterator().next();
     try {
@@ -122,7 +124,9 @@ public class CfpSubmissionApiResource {
               : Response.Status.BAD_REQUEST;
       return Response.status(status).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -140,7 +144,9 @@ public class CfpSubmissionApiResource {
       @QueryParam("offset") Integer offsetParam) {
     Set<String> userIds = resolveViewerUserIds(previewUserId);
     if (userIds.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
@@ -153,15 +159,22 @@ public class CfpSubmissionApiResource {
     int ownedTotal = cfpSubmissionService.countMineOwned(eventId, userIds);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new SubmissionListResponse(limit, offset, total, ownedTotal, hasMore, nextOffset, items)).build();
+    return Response.ok(
+            new SubmissionListResponse(
+                limit, offset, total, ownedTotal, hasMore, nextOffset, items))
+        .build();
   }
+
   @GET
   @Path("/config")
   public Response submissionConfig(@PathParam("eventId") String eventId) {
     try {
-      return Response.ok(toSubmissionLimitConfigResponse(eventId, AdminUtils.isAdmin(identity))).build();
+      return Response.ok(toSubmissionLimitConfigResponse(eventId, AdminUtils.isAdmin(identity)))
+          .build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -170,10 +183,13 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response eventSubmissionConfig(@PathParam("eventId") String eventId) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
-      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      CfpEventConfigService.ResolvedEventConfig resolved =
+          cfpEventConfigService.resolveForEvent(eventId);
       Optional<CfpEventConfig> override = cfpEventConfigService.findOverride(eventId);
       return Response.ok(
               new EventSubmissionConfigResponse(
@@ -183,7 +199,9 @@ public class CfpSubmissionApiResource {
                   toEventConfigView(resolved)))
           .build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -194,10 +212,14 @@ public class CfpSubmissionApiResource {
   public Response updateEventSubmissionConfig(
       @PathParam("eventId") String eventId, EventSubmissionConfigUpdateRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_config"))
+          .build();
     }
     try {
       CfpEventConfig override =
@@ -209,7 +231,8 @@ public class CfpSubmissionApiResource {
                   request.closesAt(),
                   request.maxPerUser(),
                   request.testingModeEnabled()));
-      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      CfpEventConfigService.ResolvedEventConfig resolved =
+          cfpEventConfigService.resolveForEvent(eventId);
       return Response.ok(
               new EventSubmissionConfigResponse(
                   resolved.eventId(),
@@ -218,7 +241,9 @@ public class CfpSubmissionApiResource {
                   toEventConfigView(resolved)))
           .build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -227,19 +252,22 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response clearEventSubmissionConfig(@PathParam("eventId") String eventId) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       boolean cleared = cfpEventConfigService.clearOverride(eventId);
-      CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+      CfpEventConfigService.ResolvedEventConfig resolved =
+          cfpEventConfigService.resolveForEvent(eventId);
       return Response.ok(
               new EventSubmissionConfigClearResponse(
-                  resolved.eventId(),
-                  cleared,
-                  toEventConfigView(resolved)))
+                  resolved.eventId(), cleared, toEventConfigView(resolved)))
           .build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -250,7 +278,9 @@ public class CfpSubmissionApiResource {
   public Response publishResults(
       @PathParam("eventId") String eventId, PublishResultsRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     try {
       CfpEventConfig config =
@@ -260,7 +290,8 @@ public class CfpSubmissionApiResource {
               request != null ? request.acceptedMessage() : null,
               request != null ? request.rejectedMessage() : null);
       List<CfpSubmission> submissions =
-          cfpSubmissionService.listByEventAll(eventId, Optional.empty(), CfpSubmissionService.SortOrder.UPDATED_DESC);
+          cfpSubmissionService.listByEventAll(
+              eventId, Optional.empty(), CfpSubmissionService.SortOrder.UPDATED_DESC);
       int acceptedPublished = 0;
       int rejectedPublished = 0;
       for (CfpSubmission submission : submissions) {
@@ -284,7 +315,9 @@ public class CfpSubmissionApiResource {
                   config.rejectedResultsMessage()))
           .build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -293,7 +326,9 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response storage() {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     PersistenceService.CfpStorageInfo info = persistenceService.cfpStorageInfo();
     return Response.ok(
@@ -336,7 +371,9 @@ public class CfpSubmissionApiResource {
       @QueryParam("dry_run") Boolean dryRunSnake,
       @QueryParam("dryRun") Boolean dryRunCamel) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     boolean dryRun = dryRunSnake != null ? dryRunSnake : (dryRunCamel != null ? dryRunCamel : true);
     PersistenceService.CfpStorageRepairReport report = persistenceService.repairCfpStorage(dryRun);
@@ -366,12 +403,16 @@ public class CfpSubmissionApiResource {
   public Response updateSubmissionConfig(
       @PathParam("eventId") String eventId, SubmissionLimitConfigUpdateRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Integer requestedLimit = request != null ? request.maxPerUser() : null;
     Boolean requestedTesting = request != null ? request.testingModeEnabled() : null;
     if (requestedLimit == null && requestedTesting == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_config")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_config"))
+          .build();
     }
     if (requestedLimit != null
         && (requestedLimit < CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT
@@ -388,30 +429,43 @@ public class CfpSubmissionApiResource {
     try {
       return Response.ok(toSubmissionLimitConfigResponse(eventId, true)).build();
     } catch (CfpEventConfigService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
+
   @DELETE
   @Path("/{id}")
   @Authenticated
   public Response deleteMine(@PathParam("eventId") String eventId, @PathParam("id") String id) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     boolean admin = AdminUtils.isAdmin(identity);
     if (!admin && !containsUserId(userIds, existing.get().proposerUserId())) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "owner_required"))
+          .build();
     }
     try {
       CfpSubmission deleted = cfpSubmissionService.delete(eventId, id);
-      return Response.ok(new SubmissionResponse(admin ? toAdminView(deleted) : toViewerView(deleted, userIds))).build();
+      return Response.ok(
+              new SubmissionResponse(admin ? toAdminView(deleted) : toViewerView(deleted, userIds)))
+          .build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
@@ -424,7 +478,9 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response stats(@PathParam("eventId") String eventId) {
     if (!canReviewCfp(eventId)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     CfpSubmissionService.EventStats stats = cfpSubmissionService.statsByEvent(eventId);
     return Response.ok(
@@ -451,15 +507,21 @@ public class CfpSubmissionApiResource {
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
     if (!canReviewCfp(eventId)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmissionStatus> statusFilter = parseStatusFilter(status);
     if (statusFilter == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     CfpSubmissionService.SortOrder sortOrder = parseSortOrder(sort);
     if (sortOrder == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_sort"))
+          .build();
     }
     int limit = normalizeLimit(limitParam);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
@@ -475,7 +537,9 @@ public class CfpSubmissionApiResource {
     int total = cfpSubmissionService.countByEvent(eventId, statusFilter, moderationFilter);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new SubmissionListResponse(limit, offset, total, total, hasMore, nextOffset, items)).build();
+    return Response.ok(
+            new SubmissionListResponse(limit, offset, total, total, hasMore, nextOffset, items))
+        .build();
   }
 
   @GET
@@ -484,11 +548,15 @@ public class CfpSubmissionApiResource {
   public Response getSubmissionDetail(
       @PathParam("eventId") String eventId, @PathParam("id") String id) {
     if (!canReviewCfp(eventId)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     CfpSubmission refreshed = safeRefreshPanelists(eventId, existing.get());
     return Response.ok(new SubmissionResponse(toAdminView(refreshed))).build();
@@ -506,15 +574,21 @@ public class CfpSubmissionApiResource {
       @QueryParam("title") String title,
       @QueryParam("track") String track) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmissionStatus> statusFilter = parseStatusFilter(status);
     if (statusFilter == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     CfpSubmissionService.SortOrder sortOrder = parseSortOrder(sort);
     if (sortOrder == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_sort")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_sort"))
+          .build();
     }
 
     CfpSubmissionService.ModerationFilter moderationFilter =
@@ -538,17 +612,23 @@ public class CfpSubmissionApiResource {
       @PathParam("id") String id,
       UpdateStatusRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmissionStatus> status =
         CfpSubmissionStatus.fromApi(request != null ? request.status() : null);
     if (status.isEmpty()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "invalid_status")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_status"))
+          .build();
     }
     try {
       Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
       if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-        return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(Map.of("error", "submission_not_found"))
+            .build();
       }
       CfpSubmission updated =
           cfpSubmissionService.updateStatus(
@@ -559,19 +639,26 @@ public class CfpSubmissionApiResource {
               request != null ? request.expectedUpdatedAt() : null);
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
-      if (status.get() == CfpSubmissionStatus.ACCEPTED && cfpSubmissionService.areResultsPublished(eventId)) {
+      if (status.get() == CfpSubmissionStatus.ACCEPTED
+          && cfpSubmissionService.areResultsPublished(eventId)) {
         updated = safeRefreshPanelists(eventId, updated);
         applyAcceptedPublicationSideEffects(updated);
       }
       cfpInsightsService.recordStatusChange(existing.get(), updated);
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CfpSubmissionService.InvalidTransitionException e) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
-          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+          "stale_submission".equals(e.getMessage())
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
       return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -589,10 +676,14 @@ public class CfpSubmissionApiResource {
       @PathParam("id") String id,
       UpdateRatingRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     if (request == null) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "rating_required")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "rating_required"))
+          .build();
     }
     try {
       CfpSubmission updated =
@@ -608,10 +699,14 @@ public class CfpSubmissionApiResource {
       cfpInsightsService.recordRatingUpdated(updated);
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
-          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+          "stale_submission".equals(e.getMessage())
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
       return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (IllegalStateException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
@@ -630,22 +725,31 @@ public class CfpSubmissionApiResource {
       UpdatePanelistsRequest request) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     boolean admin = AdminUtils.isAdmin(identity);
     if (!admin && !containsUserId(userIds, existing.get().proposerUserId())) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "owner_required"))
+          .build();
     }
     try {
       List<CfpSubmissionService.PanelistInput> panelists =
           request == null || request.panelists() == null
               ? List.of()
               : request.panelists().stream()
-                  .map(item -> new CfpSubmissionService.PanelistInput(item.name(), item.email(), item.userId()))
+                  .map(
+                      item ->
+                          new CfpSubmissionService.PanelistInput(
+                              item.name(), item.email(), item.userId()))
                   .toList();
       CfpSubmission updated =
           cfpSubmissionService.updatePanelists(
@@ -654,7 +758,8 @@ public class CfpSubmissionApiResource {
               panelists,
               currentUserId().orElse(existing.get().proposerUserId()),
               request != null ? request.expectedUpdatedAt() : null);
-      if (cfpSubmissionService.visibleStatus(updated) == CfpSubmissionStatus.ACCEPTED && updated.panelists() != null) {
+      if (cfpSubmissionService.visibleStatus(updated) == CfpSubmissionStatus.ACCEPTED
+          && updated.panelists() != null) {
         for (CfpPanelist panelist : updated.panelists()) {
           if (panelist == null || panelist.userId() == null || panelist.userId().isBlank()) {
             continue;
@@ -672,10 +777,14 @@ public class CfpSubmissionApiResource {
       return Response.ok(new SubmissionResponse(toViewerView(updated, userIds))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
-          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+          "stale_submission".equals(e.getMessage())
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
       return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -690,11 +799,15 @@ public class CfpSubmissionApiResource {
       @FormParam("expectedUpdatedAt") String expectedUpdatedAtRaw) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     boolean admin = AdminUtils.isAdmin(identity);
     boolean owner = containsUserId(userIds, existing.get().proposerUserId());
@@ -703,10 +816,14 @@ public class CfpSubmissionApiResource {
             && existing.get().panelists().stream()
                 .anyMatch(item -> item != null && containsUserId(userIds, item.userId()));
     if (!admin && !owner && !panelist) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "owner_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "owner_required"))
+          .build();
     }
     if (file == null || file.fileName() == null || file.fileName().isBlank()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "presentation_file_required")).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "presentation_file_required"))
+          .build();
     }
     try {
       StoredPresentation stored = storePresentationPdf(eventId, id, file);
@@ -730,10 +847,14 @@ public class CfpSubmissionApiResource {
       return Response.ok(new SubmissionResponse(toViewerView(updated, userIds))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
-          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+          "stale_submission".equals(e.getMessage())
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
       return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IOException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "presentation_storage_unavailable"))
@@ -750,11 +871,15 @@ public class CfpSubmissionApiResource {
       @PathParam("id") String id,
       UpdateDeliveryPlanRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     try {
       CfpSubmission updated =
@@ -767,10 +892,14 @@ public class CfpSubmissionApiResource {
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.ValidationException e) {
       Response.Status statusCode =
-          "stale_submission".equals(e.getMessage()) ? Response.Status.CONFLICT : Response.Status.BAD_REQUEST;
+          "stale_submission".equals(e.getMessage())
+              ? Response.Status.CONFLICT
+              : Response.Status.BAD_REQUEST;
       return Response.status(statusCode).entity(Map.of("error", e.getMessage())).build();
     } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -780,15 +909,23 @@ public class CfpSubmissionApiResource {
   public Response promoteAcceptedSubmission(
       @PathParam("eventId") String eventId, @PathParam("id") String id) {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
     if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "submission_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "submission_not_found"))
+          .build();
     }
     CfpSubmission submission = existing.get();
-    if (cfpSubmissionService.visibleStatus(submission) != CfpSubmissionStatus.ACCEPTED) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", "submission_not_accepted")).build();
+    CfpSubmissionStatus internalStatus =
+        submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
+    if (internalStatus != CfpSubmissionStatus.ACCEPTED) {
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", "submission_not_accepted"))
+          .build();
     }
 
     String speakerId = buildSpeakerId(submission);
@@ -838,7 +975,8 @@ public class CfpSubmissionApiResource {
         config.rejectedResultsMessage());
   }
 
-  private static EventSubmissionConfigView toEventConfigView(CfpEventConfigService.ResolvedEventConfig config) {
+  private static EventSubmissionConfigView toEventConfigView(
+      CfpEventConfigService.ResolvedEventConfig config) {
     return new EventSubmissionConfigView(
         config.acceptingSubmissions(),
         config.opensAt(),
@@ -853,8 +991,10 @@ public class CfpSubmissionApiResource {
         config.rejectedResultsMessage());
   }
 
-  private SubmissionLimitConfigResponse toSubmissionLimitConfigResponse(String eventId, boolean admin) {
-    CfpEventConfigService.ResolvedEventConfig resolved = cfpEventConfigService.resolveForEvent(eventId);
+  private SubmissionLimitConfigResponse toSubmissionLimitConfigResponse(
+      String eventId, boolean admin) {
+    CfpEventConfigService.ResolvedEventConfig resolved =
+        cfpEventConfigService.resolveForEvent(eventId);
     return new SubmissionLimitConfigResponse(
         resolved.maxSubmissionsPerUserPerEvent(),
         CfpSubmissionService.MIN_SUBMISSIONS_PER_USER_PER_EVENT,
@@ -876,7 +1016,8 @@ public class CfpSubmissionApiResource {
     return toView(submission, viewerUserIds, false);
   }
 
-  private SubmissionView toView(CfpSubmission submission, Set<String> viewerUserIds, boolean adminView) {
+  private SubmissionView toView(
+      CfpSubmission submission, Set<String> viewerUserIds, boolean adminView) {
     List<PanelistView> panelists =
         submission.panelists() == null
             ? List.of()
@@ -886,7 +1027,8 @@ public class CfpSubmissionApiResource {
             panelists.stream()
                 .filter(item -> CfpPanelistStatus.PENDING_LOGIN.apiValue().equals(item.status()))
                 .count();
-    PresentationAssetView presentationAsset = toPresentationAssetView(submission.presentationAsset());
+    PresentationAssetView presentationAsset =
+        toPresentationAssetView(submission.presentationAsset());
     String viewerRole = resolveViewerRole(submission, viewerUserIds);
     boolean canEdit = "owner".equals(viewerRole);
     CfpSubmissionStatus internalStatus =
@@ -968,7 +1110,8 @@ public class CfpSubmissionApiResource {
       return submission;
     }
     try {
-      CfpSubmission refreshed = cfpSubmissionService.refreshPanelistsLinkState(eventId, submission.id());
+      CfpSubmission refreshed =
+          cfpSubmissionService.refreshPanelistsLinkState(eventId, submission.id());
       if (cfpSubmissionService.visibleStatus(refreshed) == CfpSubmissionStatus.ACCEPTED
           && refreshed.panelists() != null) {
         for (CfpPanelist panelist : refreshed.panelists()) {
@@ -992,7 +1135,8 @@ public class CfpSubmissionApiResource {
 
   private PanelistView toPanelistView(CfpPanelist panelist) {
     if (panelist == null) {
-      return new PanelistView("", "", null, null, CfpPanelistStatus.PENDING_LOGIN.apiValue(), null, null);
+      return new PanelistView(
+          "", "", null, null, CfpPanelistStatus.PENDING_LOGIN.apiValue(), null, null);
     }
     return new PanelistView(
         panelist.id(),
@@ -1092,7 +1236,10 @@ public class CfpSubmissionApiResource {
   }
 
   private static CfpSubmissionService.SortOrder parseSortOrder(String sort) {
-    if (sort == null || sort.isBlank() || "created".equalsIgnoreCase(sort) || "recent".equalsIgnoreCase(sort)) {
+    if (sort == null
+        || sort.isBlank()
+        || "created".equalsIgnoreCase(sort)
+        || "recent".equalsIgnoreCase(sort)) {
       return CfpSubmissionService.SortOrder.CREATED_DESC;
     }
     if ("updated".equalsIgnoreCase(sort) || "latest_update".equalsIgnoreCase(sort)) {
@@ -1121,32 +1268,61 @@ public class CfpSubmissionApiResource {
               ? 0
               : (int)
                   item.panelists().stream()
-                      .filter(p -> p != null && CfpPanelistStatus.PENDING_LOGIN.apiValue().equals(p.status()))
+                      .filter(
+                          p ->
+                              p != null
+                                  && CfpPanelistStatus.PENDING_LOGIN.apiValue().equals(p.status()))
                       .count();
-      csv.append(csvValue(item.id())).append(',')
-          .append(csvValue(item.eventId())).append(',')
-          .append(csvValue(item.title())).append(',')
-          .append(csvValue(item.status() != null ? item.status().apiValue() : null)).append(',')
-          .append(csvValue(cfpSubmissionService.visibleStatus(item).apiValue())).append(',')
-          .append(csvValue(item.proposerUserId())).append(',')
-          .append(csvValue(item.proposerName())).append(',')
-          .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null)).append(',')
-          .append(csvValue(item.updatedAt() != null ? item.updatedAt().toString() : null)).append(',')
-          .append(csvValue(item.moderatedAt() != null ? item.moderatedAt().toString() : null)).append(',')
-          .append(csvValue(item.moderatedBy())).append(',')
-          .append(csvValue(item.level())).append(',')
-          .append(csvValue(item.format())).append(',')
-          .append(csvValue(item.durationMin())).append(',')
-          .append(csvValue(item.language())).append(',')
-          .append(csvValue(item.track())).append(',')
-          .append(csvValue(item.ratingTechnicalDetail())).append(',')
-          .append(csvValue(item.ratingNarrative())).append(',')
-          .append(csvValue(item.ratingContentImpact())).append(',')
-          .append(csvValue(weighted)).append(',')
-          .append(csvValue(panelistsCount)).append(',')
-          .append(csvValue(panelistsPending)).append(',')
-          .append(csvValue(item.presentationAsset() != null ? item.presentationAsset().fileName() : null)).append(',')
-          .append(csvValue(item.moderationNote())).append(',')
+      csv.append(csvValue(item.id()))
+          .append(',')
+          .append(csvValue(item.eventId()))
+          .append(',')
+          .append(csvValue(item.title()))
+          .append(',')
+          .append(csvValue(item.status() != null ? item.status().apiValue() : null))
+          .append(',')
+          .append(csvValue(cfpSubmissionService.visibleStatus(item).apiValue()))
+          .append(',')
+          .append(csvValue(item.proposerUserId()))
+          .append(',')
+          .append(csvValue(item.proposerName()))
+          .append(',')
+          .append(csvValue(item.createdAt() != null ? item.createdAt().toString() : null))
+          .append(',')
+          .append(csvValue(item.updatedAt() != null ? item.updatedAt().toString() : null))
+          .append(',')
+          .append(csvValue(item.moderatedAt() != null ? item.moderatedAt().toString() : null))
+          .append(',')
+          .append(csvValue(item.moderatedBy()))
+          .append(',')
+          .append(csvValue(item.level()))
+          .append(',')
+          .append(csvValue(item.format()))
+          .append(',')
+          .append(csvValue(item.durationMin()))
+          .append(',')
+          .append(csvValue(item.language()))
+          .append(',')
+          .append(csvValue(item.track()))
+          .append(',')
+          .append(csvValue(item.ratingTechnicalDetail()))
+          .append(',')
+          .append(csvValue(item.ratingNarrative()))
+          .append(',')
+          .append(csvValue(item.ratingContentImpact()))
+          .append(',')
+          .append(csvValue(weighted))
+          .append(',')
+          .append(csvValue(panelistsCount))
+          .append(',')
+          .append(csvValue(panelistsPending))
+          .append(',')
+          .append(
+              csvValue(
+                  item.presentationAsset() != null ? item.presentationAsset().fileName() : null))
+          .append(',')
+          .append(csvValue(item.moderationNote()))
+          .append(',')
           .append(csvValue(item.links() == null ? null : String.join(" | ", item.links())))
           .append('\n');
     }
@@ -1163,6 +1339,7 @@ public class CfpSubmissionApiResource {
     }
     return raw;
   }
+
   private static String storageDetail(IllegalStateException e) {
     if (e == null || e.getMessage() == null || e.getMessage().isBlank()) {
       return "unknown";
@@ -1175,11 +1352,14 @@ public class CfpSubmissionApiResource {
   }
 
   private void applyAcceptedPublicationSideEffects(CfpSubmission submission) {
-    if (submission == null || submission.proposerUserId() == null || submission.proposerUserId().isBlank()) {
+    if (submission == null
+        || submission.proposerUserId() == null
+        || submission.proposerUserId().isBlank()) {
       return;
     }
     if (!alreadyAwardedAccepted(submission.proposerUserId(), submission.id())) {
-      gamificationService.award(submission.proposerUserId(), GamificationActivity.CFP_ACCEPTED, submission.id());
+      gamificationService.award(
+          submission.proposerUserId(), GamificationActivity.CFP_ACCEPTED, submission.id());
       metrics.recordFunnelStep("cfp_approved");
     }
     userProfileService.activateSpeakerProfile(
@@ -1222,7 +1402,10 @@ public class CfpSubmissionApiResource {
     }
     return userProfileService
         .find(userId)
-        .map(profile -> profile.hasHistoryTitle(GamificationActivity.CFP_ACCEPTED.title() + " · " + submissionId))
+        .map(
+            profile ->
+                profile.hasHistoryTitle(
+                    GamificationActivity.CFP_ACCEPTED.title() + " · " + submissionId))
         .orElse(false);
   }
 
@@ -1231,7 +1414,9 @@ public class CfpSubmissionApiResource {
   }
 
   private static String buildTalkId(CfpSubmission submission) {
-    return sanitizeIdToken(submission.eventId(), 18) + "-cfp-" + sanitizeIdToken(submission.id(), 24);
+    return sanitizeIdToken(submission.eventId(), 18)
+        + "-cfp-"
+        + sanitizeIdToken(submission.id(), 24);
   }
 
   private static String buildSpeakerName(CfpSubmission submission) {
@@ -1315,8 +1500,8 @@ public class CfpSubmissionApiResource {
     return value.isBlank() ? null : value;
   }
 
-  private StoredPresentation storePresentationPdf(String eventId, String submissionId, FileUpload file)
-      throws IOException {
+  private StoredPresentation storePresentationPdf(
+      String eventId, String submissionId, FileUpload file) throws IOException {
     String safeEventId = sanitizeIdToken(eventId, 40);
     String safeSubmissionId = sanitizeIdToken(submissionId, 48);
     java.nio.file.Path uploadsRoot = resolveDataDir().resolve("uploads").resolve("cfp").normalize();
@@ -1341,7 +1526,8 @@ public class CfpSubmissionApiResource {
       throw new IOException("invalid_presentation_size");
     }
     String contentType = file.contentType();
-    String normalizedType = contentType != null ? contentType.toLowerCase(Locale.ROOT) : "application/pdf";
+    String normalizedType =
+        contentType != null ? contentType.toLowerCase(Locale.ROOT) : "application/pdf";
     if (!normalizedType.contains("pdf")) {
       throw new IOException("invalid_presentation_content_type");
     }
@@ -1410,7 +1596,8 @@ public class CfpSubmissionApiResource {
     }
   }
 
-  private record StoredPresentation(String fileName, String contentType, long sizeBytes, String storagePath) {}
+  private record StoredPresentation(
+      String fileName, String contentType, long sizeBytes, String storagePath) {}
 
   public record CreateSubmissionRequest(
       String title,
@@ -1425,9 +1612,7 @@ public class CfpSubmissionApiResource {
       List<String> links) {}
 
   public record UpdateStatusRequest(
-      String status,
-      String note,
-      @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
+      String status, String note, @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record PublishResultsRequest(
       @JsonProperty("accepted_message") String acceptedMessage,
@@ -1445,9 +1630,7 @@ public class CfpSubmissionApiResource {
       @JsonProperty("expected_updated_at") Instant expectedUpdatedAt) {}
 
   public record PanelistInputRequest(
-      String name,
-      String email,
-      @JsonProperty("user_id") String userId) {}
+      String name, String email, @JsonProperty("user_id") String userId) {}
 
   public record PromoteResponse(
       @JsonProperty("speaker_id") String speakerId,
@@ -1474,6 +1657,7 @@ public class CfpSubmissionApiResource {
       int rejected,
       int withdrawn,
       @JsonProperty("latest_updated_at") Instant latestUpdatedAt) {}
+
   public record SubmissionLimitConfigUpdateRequest(
       @JsonProperty("max_per_user") Integer maxPerUser,
       @JsonProperty("testing_mode_enabled") Boolean testingModeEnabled) {}

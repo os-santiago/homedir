@@ -19,18 +19,13 @@ import java.net.URI;
 @Path("/legacy-home")
 public class HomeResource {
 
-  @Inject
-  UsageMetricsService metrics;
+  @Inject UsageMetricsService metrics;
 
-  @Inject
-  Template index;
+  @Inject Template index;
 
-  @Inject
+  @Inject LandingService landingService;
 
-  LandingService landingService;
-
-  @Inject
-  com.scanales.homedir.service.UserSessionService userSessionService;
+  @Inject com.scanales.homedir.service.UserSessionService userSessionService;
 
   @GET
   @PermitAll

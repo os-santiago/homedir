@@ -36,8 +36,7 @@ public record EconomyStateSnapshot(
         continue;
       }
       sanitized.put(
-          entry.getKey(),
-          entry.getValue() == null ? List.of() : List.copyOf(entry.getValue()));
+          entry.getKey(), entry.getValue() == null ? List.of() : List.copyOf(entry.getValue()));
     }
     return Map.copyOf(sanitized);
   }

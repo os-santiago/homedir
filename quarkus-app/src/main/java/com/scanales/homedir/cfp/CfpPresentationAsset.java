@@ -10,4 +10,3 @@ public record CfpPresentationAsset(
     @JsonProperty("storage_path") String storagePath,
     @JsonProperty("uploaded_by_user_id") String uploadedByUserId,
     @JsonProperty("uploaded_at") Instant uploadedAt) {}
-

@@ -36,7 +36,8 @@ class CfpTimelinePlannerTest {
     assertTrue(openTimeline.activeStage().active());
 
     CfpTimelineView closedTimeline =
-        CfpTimelinePlanner.build(event, opensAt, closesAt, Locale.ENGLISH, afterClose).orElseThrow();
+        CfpTimelinePlanner.build(event, opensAt, closesAt, Locale.ENGLISH, afterClose)
+            .orElseThrow();
     assertFalse(closedTimeline.cfpWindowOpen());
     assertNotNull(closedTimeline.activeStage());
     assertEquals("evaluation", closedTimeline.activeStage().key());
@@ -67,8 +68,8 @@ class CfpTimelinePlannerTest {
     Instant duringFallbackWindow = LocalDate.of(2026, 7, 1).atStartOfDay(zone).toInstant();
 
     CfpTimelineView timeline =
-        CfpTimelinePlanner
-            .build(event, null, null, Locale.forLanguageTag("es"), duringFallbackWindow)
+        CfpTimelinePlanner.build(
+                event, null, null, Locale.forLanguageTag("es"), duringFallbackWindow)
             .orElseThrow();
 
     assertEquals(5, timeline.stages().size());

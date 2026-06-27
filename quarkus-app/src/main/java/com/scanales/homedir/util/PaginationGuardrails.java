@@ -39,9 +39,7 @@ public final class PaginationGuardrails {
     return Math.min(requested, safeMax);
   }
 
-  /**
-   * Clamp a history retrieval window to fixed steps (e.g. 10, 20, 30...) with a max cap.
-   */
+  /** Clamp a history retrieval window to fixed steps (e.g. 10, 20, 30...) with a max cap. */
   public static int clampWindowStep(
       Integer requestedWindow, int step, int defaultWindow, int maxWindow) {
     int safeStep = Math.max(1, step);

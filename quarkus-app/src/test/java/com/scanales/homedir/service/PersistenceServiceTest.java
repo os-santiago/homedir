@@ -9,18 +9,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.scanales.homedir.challenges.ChallengeProgress;
-import com.scanales.homedir.challenges.ChallengeStateSnapshot;
-import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignDraftState;
+import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.campaigns.CampaignWorkflowState;
-import com.scanales.homedir.community.CommunityLightningStateSnapshot;
-import com.scanales.homedir.community.CommunityLightningThread;
-import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
+import com.scanales.homedir.challenges.ChallengeProgress;
+import com.scanales.homedir.challenges.ChallengeStateSnapshot;
+import com.scanales.homedir.community.CommunityLightningStateSnapshot;
+import com.scanales.homedir.community.CommunityLightningThread;
 import com.scanales.homedir.model.Event;
+import com.scanales.homedir.reputation.ReputationGaObservationJournalSnapshot;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -283,7 +283,10 @@ public class PersistenceServiceTest {
             false,
             true,
             Map.of("discord", false, "bluesky", true),
-            Map.of("discord", new com.scanales.homedir.campaigns.CampaignGoLiveAck(true, Instant.parse("2026-03-19T13:20:00Z"), "sergio.canales.e@gmail.com")),
+            Map.of(
+                "discord",
+                new com.scanales.homedir.campaigns.CampaignGoLiveAck(
+                    true, Instant.parse("2026-03-19T13:20:00Z"), "sergio.canales.e@gmail.com")),
             "discord",
             Instant.parse("2026-03-19T13:30:00Z"),
             "sergio.canales.e@gmail.com",
@@ -316,7 +319,8 @@ public class PersistenceServiceTest {
   }
 
   @Test
-  void cfpStorageInfoReportsBackupValidationStatsWithoutIncrementingMismatchCounter() throws Exception {
+  void cfpStorageInfoReportsBackupValidationStatsWithoutIncrementingMismatchCounter()
+      throws Exception {
     service = newService();
 
     CfpSubmission submission = cfp("cfp-1", "Backup telemetry");
@@ -324,7 +328,8 @@ public class PersistenceServiceTest {
 
     Path primary = tempDir.resolve("cfp-submissions.json");
     var root = cfpJsonMapper().readTree(primary.toFile());
-    ((com.fasterxml.jackson.databind.node.ObjectNode) root).put("checksum_sha256", "bad-backup-checksum");
+    ((com.fasterxml.jackson.databind.node.ObjectNode) root)
+        .put("checksum_sha256", "bad-backup-checksum");
     Path backupsDir = tempDir.resolve("backups").resolve("cfp");
     Path invalidNewestBackup = backupsDir.resolve("cfp-submissions-99999999-999999-999.json");
     cfpJsonMapper().writeValue(invalidNewestBackup.toFile(), root);
@@ -349,7 +354,8 @@ public class PersistenceServiceTest {
     Path backupsDir = tempDir.resolve("backups").resolve("cfp");
 
     var missingChecksumRoot = cfpJsonMapper().readTree(primary.toFile());
-    ((com.fasterxml.jackson.databind.node.ObjectNode) missingChecksumRoot).remove("checksum_sha256");
+    ((com.fasterxml.jackson.databind.node.ObjectNode) missingChecksumRoot)
+        .remove("checksum_sha256");
     Path missingChecksumBackup = backupsDir.resolve("cfp-submissions-99999999-999998-001.json");
     cfpJsonMapper().writeValue(missingChecksumBackup.toFile(), missingChecksumRoot);
 
@@ -380,7 +386,9 @@ public class PersistenceServiceTest {
           stream.anyMatch(
               p ->
                   p.getFileName() != null
-                      && p.getFileName().toString().startsWith("cfp-submissions-99999999-999999-002.corrupt-"));
+                      && p.getFileName()
+                          .toString()
+                          .startsWith("cfp-submissions-99999999-999999-002.corrupt-"));
       assertTrue(quarantined);
     }
 
@@ -430,7 +438,8 @@ public class PersistenceServiceTest {
 
     Path primary = tempDir.resolve("cfp-submissions.json");
     assertTrue(Files.exists(primary));
-    Files.writeString(primary, "{corrupted-json", java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+    Files.writeString(
+        primary, "{corrupted-json", java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
 
     Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
     assertEquals(1, recovered.size());
@@ -457,10 +466,14 @@ public class PersistenceServiceTest {
     Path primary = tempDir.resolve("cfp-submissions.json");
     var envelope =
         Map.of(
-            "schema_version", 1,
-            "kind", "cfp_submissions",
-            "updated_at", "2026-02-17T00:00:00Z",
-            "submissions", Map.of(submission.id(), submission));
+            "schema_version",
+            1,
+            "kind",
+            "cfp_submissions",
+            "updated_at",
+            "2026-02-17T00:00:00Z",
+            "submissions",
+            Map.of(submission.id(), submission));
     cfpJsonMapper().writeValue(primary.toFile(), envelope);
 
     Map<String, CfpSubmission> loaded = service.loadCfpSubmissions();
@@ -538,7 +551,8 @@ public class PersistenceServiceTest {
 
     Path primary = tempDir.resolve("cfp-submissions.json");
     var root = cfpJsonMapper().readTree(primary.toFile());
-    ((com.fasterxml.jackson.databind.node.ObjectNode) root).put("checksum_sha256", "broken-checksum");
+    ((com.fasterxml.jackson.databind.node.ObjectNode) root)
+        .put("checksum_sha256", "broken-checksum");
     cfpJsonMapper().writeValue(primary.toFile(), root);
 
     Map<String, CfpSubmission> recovered = service.loadCfpSubmissions();
@@ -612,7 +626,8 @@ public class PersistenceServiceTest {
         null);
   }
 
-  private boolean waitUntil(BooleanSupplier condition, Duration timeout) throws InterruptedException {
+  private boolean waitUntil(BooleanSupplier condition, Duration timeout)
+      throws InterruptedException {
     long deadline = System.nanoTime() + timeout.toNanos();
     while (System.nanoTime() < deadline) {
       if (condition.getAsBoolean()) {

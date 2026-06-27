@@ -31,5 +31,4 @@ public record CfpSubmission(
     List<CfpPanelist> panelists,
     @JsonProperty("assigned_block") String assignedBlock,
     @JsonProperty("assigned_scenario") String assignedScenario,
-    @JsonProperty("presentation_asset") CfpPresentationAsset presentationAsset) {
-}
+    @JsonProperty("presentation_asset") CfpPresentationAsset presentationAsset) {}

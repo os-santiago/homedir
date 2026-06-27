@@ -1,7 +1,7 @@
 package com.scanales.homedir.public_;
 
-import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
@@ -54,7 +54,8 @@ public class EventScenarioResource {
                     .thenComparing(com.scanales.homedir.model.Talk::getStartTime))
             .toList();
     metrics.recordStageVisit(id, event.getTimezone(), headers, context);
-    return TemplateLocaleUtil.apply(ScenarioResource.Templates.detail(scenario, event, talks), localeCookie);
+    return TemplateLocaleUtil.apply(
+        ScenarioResource.Templates.detail(scenario, event, talks), localeCookie);
   }
 
   private java.util.Optional<String> currentUserId() {

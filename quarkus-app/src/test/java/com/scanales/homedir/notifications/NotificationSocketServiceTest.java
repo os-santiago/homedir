@@ -18,8 +18,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class NotificationSocketServiceTest {
 
-  @Inject
-  NotificationSocketService service;
+  @Inject NotificationSocketService service;
 
   @Test
   void emitsToCorrectUserAndLimitsConnections() {

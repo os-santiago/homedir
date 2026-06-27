@@ -17,5 +17,4 @@ public record LandingCharacterStats(
     int events,
     int projects,
     int connections,
-    int totalXp
-) {}
+    int totalXp) {}

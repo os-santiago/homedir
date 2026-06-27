@@ -49,8 +49,11 @@ class ReputationEngineServiceTest {
     assertFalse(reputationEngineService.trackEventAttended("alice@example.com", "talk-1"));
 
     assertTrue(reputationEngineService.trackContentPublished("alice@example.com", "thread-1"));
-    assertTrue(reputationEngineService.trackEventSpeaker("alice@example.com", "submission-1", "event-2026"));
-    assertTrue(reputationEngineService.trackEventSpeaker("bob@example.com", "submission-2", "event-2026"));
+    assertTrue(
+        reputationEngineService.trackEventSpeaker(
+            "alice@example.com", "submission-1", "event-2026"));
+    assertTrue(
+        reputationEngineService.trackEventSpeaker("bob@example.com", "submission-2", "event-2026"));
 
     persistenceService.flush();
     ReputationEngineService.EngineSnapshot snapshot = reputationEngineService.snapshot();

@@ -1,7 +1,7 @@
 package com.scanales.homedir.private_;
 
-import com.scanales.homedir.security.RedirectSanitizer;
 import com.scanales.homedir.model.GamificationActivity;
+import com.scanales.homedir.security.RedirectSanitizer;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;

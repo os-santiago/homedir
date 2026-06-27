@@ -83,13 +83,7 @@ public class InternalInsightsIngestResourceTest {
         .statusCode(202);
 
     Map<String, Object> appendRequest =
-        Map.of(
-            "initiativeId",
-            initiativeId,
-            "type",
-            "PR_OPENED",
-            "metadata",
-            Map.of("pr", "123"));
+        Map.of("initiativeId", initiativeId, "type", "PR_OPENED", "metadata", Map.of("pr", "123"));
     given()
         .contentType(MediaType.APPLICATION_JSON)
         .header("X-Insights-Key", INGEST_KEY)

@@ -18,6 +18,7 @@ public record CfpEventConfig(
     @JsonProperty("updated_at") Instant updatedAt) {
 
   public static CfpEventConfig defaults(String eventId) {
-    return new CfpEventConfig(eventId, true, null, null, null, null, null, null, null, null, Instant.now());
+    return new CfpEventConfig(
+        eventId, true, null, null, null, null, null, null, null, null, Instant.now());
   }
 }

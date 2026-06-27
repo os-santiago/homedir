@@ -37,12 +37,7 @@ public class EconomyApiResourceTest {
 
   @Test
   void walletRequiresAuth() {
-    given()
-        .accept("application/json")
-        .when()
-        .get("/api/economy/wallet")
-        .then()
-        .statusCode(401);
+    given().accept("application/json").when().get("/api/economy/wallet").then().statusCode(401);
   }
 
   @Test

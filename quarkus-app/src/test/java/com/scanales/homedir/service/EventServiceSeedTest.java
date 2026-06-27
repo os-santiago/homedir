@@ -1,9 +1,9 @@
 package com.scanales.homedir.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Talk;
@@ -27,10 +27,7 @@ public class EventServiceSeedTest {
   @Test
   void saveDevOpsDaysEventSeedsDraftAgendaWhenAgendaIsEmpty() {
     Event event =
-        new Event(
-            "devopsdays-santiago-2026",
-            "DevOpsDays Santiago 2026",
-            "Seed test event");
+        new Event("devopsdays-santiago-2026", "DevOpsDays Santiago 2026", "Seed test event");
     event.setDate(LocalDate.parse("2026-10-15"));
     eventService.saveEvent(event);
 
@@ -65,8 +62,7 @@ public class EventServiceSeedTest {
                         && t.getName().toLowerCase().contains("keynote")));
 
     assertTrue(
-        stored.getAgenda().stream()
-            .allMatch(t -> t.getDurationMinutes() == 30),
+        stored.getAgenda().stream().allMatch(t -> t.getDurationMinutes() == 30),
         "All main stage sessions should be 30 minutes");
 
     LocalTime day1LastEnd =

@@ -76,14 +76,11 @@ class PublicProfileReputationSummaryTest {
             "9102",
             Instant.parse("2026-03-01T00:00:00Z")));
     assertTrue(
-        reputationEngineService.trackVolunteerEngaged(
-            HELPER_USER_ID, "volunteer", "volunteer-r1"));
+        reputationEngineService.trackVolunteerEngaged(HELPER_USER_ID, "volunteer", "volunteer-r1"));
     assertTrue(
-        reputationEngineService.trackVolunteerEngaged(
-            HELPER_USER_ID, "volunteer", "volunteer-r2"));
+        reputationEngineService.trackVolunteerEngaged(HELPER_USER_ID, "volunteer", "volunteer-r2"));
     assertTrue(
-        reputationEngineService.trackVolunteerEngaged(
-            HELPER_USER_ID, "volunteer", "volunteer-r3"));
+        reputationEngineService.trackVolunteerEngaged(HELPER_USER_ID, "volunteer", "volunteer-r3"));
   }
 
   @Test
@@ -152,7 +149,9 @@ class PublicProfileReputationSummaryTest {
         .get("/u/helper-user")
         .then()
         .statusCode(200)
-        .body(containsString("Known for helping others and earning community trust through recognition."))
+        .body(
+            containsString(
+                "Known for helping others and earning community trust through recognition."))
         .body(containsString("Top 1 Helper this month"))
         .body(containsString("helper"));
   }

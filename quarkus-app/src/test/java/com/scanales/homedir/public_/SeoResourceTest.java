@@ -2,8 +2,8 @@ package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -26,24 +26,14 @@ public class SeoResourceTest {
 
   @Test
   void robotsTxtDoesNotContainHardcodedDomain() {
-    String body = given()
-        .when()
-        .get("/robots.txt")
-        .then()
-        .statusCode(200)
-        .extract().asString();
+    String body = given().when().get("/robots.txt").then().statusCode(200).extract().asString();
     assert !body.contains("homedir.opensourcesantiago.io")
         : "robots.txt should not contain hardcoded domain";
   }
 
   @Test
   void robotsTxtSitemapUrlReferencesCurrentHost() {
-    String body = given()
-        .when()
-        .get("/robots.txt")
-        .then()
-        .statusCode(200)
-        .extract().asString();
+    String body = given().when().get("/robots.txt").then().statusCode(200).extract().asString();
     assert body.contains("localhost") || body.contains("127.0.0.1")
         : "robots.txt sitemap URL should reference localhost in test env, got: " + body;
   }
@@ -63,12 +53,7 @@ public class SeoResourceTest {
 
   @Test
   void sitemapXmlDoesNotContainHardcodedDomain() {
-    String body = given()
-        .when()
-        .get("/sitemap.xml")
-        .then()
-        .statusCode(200)
-        .extract().asString();
+    String body = given().when().get("/sitemap.xml").then().statusCode(200).extract().asString();
     assert !body.contains("homedir.opensourcesantiago.io")
         : "sitemap.xml should not contain hardcoded domain";
   }

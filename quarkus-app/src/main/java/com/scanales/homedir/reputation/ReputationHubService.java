@@ -1,9 +1,9 @@
 package com.scanales.homedir.reputation;
 
 import com.scanales.homedir.model.UserProfile;
-import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.service.GithubService;
 import com.scanales.homedir.service.GithubService.GithubCoder;
+import com.scanales.homedir.service.UserProfileService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -63,7 +63,8 @@ public class ReputationHubService {
         out,
         "rising",
         "week",
-        firstEntry(leaderboard(snapshot.aggregatesByUser(), UserReputationAggregate::risingDelta, limit)));
+        firstEntry(
+            leaderboard(snapshot.aggregatesByUser(), UserReputationAggregate::risingDelta, limit)));
     return List.copyOf(out);
   }
 
@@ -95,24 +96,28 @@ public class ReputationHubService {
       return new GrowthGuidance("starter", "participation", 0L, 0L);
     }
     String role = ReputationProfileSummaryService.reputationRole(snapshot, viewerUserId, aggregate);
-    String focusDimension = aggregate.scoresByDimension() == null
-        ? "participation"
-        : aggregate.scoresByDimension().entrySet().stream()
-            .filter(entry -> entry.getValue() != null && entry.getValue() > 0L)
-            .sorted(
-                Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder())
-                    .thenComparing(Map.Entry::getKey))
-            .map(Map.Entry::getKey)
-            .map(ReputationProfileSummaryService::normalizeDimension)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse("participation");
-    return new GrowthGuidance(role, focusDimension, aggregate.monthlyScore(), aggregate.risingDelta());
+    String focusDimension =
+        aggregate.scoresByDimension() == null
+            ? "participation"
+            : aggregate.scoresByDimension().entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue() > 0L)
+                .sorted(
+                    Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry::getKey))
+                .map(Map.Entry::getKey)
+                .map(ReputationProfileSummaryService::normalizeDimension)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("participation");
+    return new GrowthGuidance(
+        role, focusDimension, aggregate.monthlyScore(), aggregate.risingDelta());
   }
 
   private List<CategoryLeaderboard> categoryLeaderboards(
       ReputationEngineService.EngineSnapshot snapshot, int limit) {
-    if (snapshot == null || snapshot.aggregatesByUser() == null || snapshot.aggregatesByUser().isEmpty()) {
+    if (snapshot == null
+        || snapshot.aggregatesByUser() == null
+        || snapshot.aggregatesByUser().isEmpty()) {
       return List.of();
     }
     java.util.ArrayList<CategoryLeaderboard> out = new java.util.ArrayList<>();
@@ -127,9 +132,7 @@ public class ReputationHubService {
         out,
         "helpers",
         leaderboard(
-            snapshot.aggregatesByUser(),
-            aggregate -> helperScore(snapshot, aggregate),
-            limit));
+            snapshot.aggregatesByUser(), aggregate -> helperScore(snapshot, aggregate), limit));
     addCategoryLeaderboard(
         out,
         "learners",
@@ -142,17 +145,23 @@ public class ReputationHubService {
     addCategoryLeaderboard(
         out,
         "coders",
-        codersLeaderboard(githubService == null ? List.of() : githubService.fetchHomeProjectCoders(), limit));
+        codersLeaderboard(
+            githubService == null ? List.of() : githubService.fetchHomeProjectCoders(), limit));
     addCategoryLeaderboard(
         out,
         "speakers",
-        leaderboard(snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit));
+        leaderboard(
+            snapshot.aggregatesByUser(), aggregate -> speakerScore(snapshot, aggregate), limit));
     return List.copyOf(out);
   }
 
   private static void addCategoryLeaderboard(
       List<CategoryLeaderboard> out, String categoryKey, List<LeaderboardEntry> entries) {
-    if (out == null || categoryKey == null || categoryKey.isBlank() || entries == null || entries.isEmpty()) {
+    if (out == null
+        || categoryKey == null
+        || categoryKey.isBlank()
+        || entries == null
+        || entries.isEmpty()) {
       return;
     }
     out.add(new CategoryLeaderboard(categoryKey, entries));
@@ -167,7 +176,9 @@ public class ReputationHubService {
     long volunteerSupport =
         snapshot.eventsById().values().stream()
             .filter(Objects::nonNull)
-            .filter(event -> aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
+            .filter(
+                event ->
+                    aggregate.userId() != null && aggregate.userId().equals(event.actorUserId()))
             .filter(event -> "volunteer_engaged".equals(event.eventType()))
             .mapToLong(ReputationEventRecord::weightBase)
             .sum();
@@ -257,7 +268,8 @@ public class ReputationHubService {
         .filter(this::isRecognitionEvent)
         .sorted(
             Comparator.comparing(
-                    ReputationEventRecord::createdAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    ReputationEventRecord::createdAt,
+                    Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(
                     Comparator.comparingInt(ReputationEventRecord::weightBase).reversed())
                 .thenComparing(
@@ -311,7 +323,8 @@ public class ReputationHubService {
     String handle = githubLogin != null ? "@" + githubLogin : null;
     String avatarUrl =
         firstNonBlank(
-            github != null ? github.avatarUrl() : null, discord != null ? discord.avatarUrl() : null);
+            github != null ? github.avatarUrl() : null,
+            discord != null ? discord.avatarUrl() : null);
     String profilePath = null;
     if (githubLogin != null) {
       profilePath = "/u/" + githubLogin;

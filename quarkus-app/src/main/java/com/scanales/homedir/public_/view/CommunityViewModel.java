@@ -34,7 +34,8 @@ public class CommunityViewModel {
 
     vm.recentActivity =
         List.of(
-            new CommunityActivity("scanalesespinoza", "opened pull request", "homedir", "2 hours ago"),
+            new CommunityActivity(
+                "scanalesespinoza", "opened pull request", "homedir", "2 hours ago"),
             new CommunityActivity("oss-member-1", "created issue", "homedir", "5 hours ago"),
             new CommunityActivity("oss-member-2", "pushed commits", "arkit8s", "1 day ago"));
 

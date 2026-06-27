@@ -20,47 +20,55 @@ import java.util.Locale.LanguageRange;
 @Priority(4500)
 public class ErrorPageExceptionMapper implements ExceptionMapper<WebApplicationException> {
 
-    @Inject
-    Engine engine;
+  @Inject Engine engine;
 
-    @Context
-    HttpHeaders headers;
+  @Context HttpHeaders headers;
 
-    @Override
-    public Response toResponse(WebApplicationException e) {
-        int statusCode = e.getResponse().getStatus();
-        String templateId = "errors/" + statusCode;
-        Template template = engine.getTemplate(templateId);
-        if (template == null) {
-            return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
-        }
-        Locale locale = resolveLocale();
-        String html;
-        try {
-            TemplateInstance instance = template.instance();
-            if (locale != null) {
-                instance.setAttribute(TemplateInstance.LOCALE, locale);
-            }
-            html = instance.render();
-        } catch (Exception ex) {
-            return Response.status(statusCode).entity("Error " + statusCode).type(MediaType.TEXT_PLAIN).build();
-        }
-        return Response.status(statusCode).entity(html).type(MediaType.TEXT_HTML).build();
+  @Override
+  public Response toResponse(WebApplicationException e) {
+    int statusCode = e.getResponse().getStatus();
+    String templateId = "errors/" + statusCode;
+    Template template = engine.getTemplate(templateId);
+    if (template == null) {
+      return Response.status(statusCode)
+          .entity("Error " + statusCode)
+          .type(MediaType.TEXT_PLAIN)
+          .build();
     }
-
-    private Locale resolveLocale() {
-        if (headers == null || headers.getAcceptableLanguages() == null
-            || headers.getAcceptableLanguages().isEmpty()) {
-            return null;
-        }
-        try {
-            List<LanguageRange> ranges = LanguageRange.parse(
-                headers.getAcceptableLanguages().stream()
-                    .map(Locale::toLanguageTag).reduce((a, b) -> a + "," + b).orElse("en"));
-            Locale best = Locale.lookup(ranges, List.of(Locale.ENGLISH, Locale.of("es")));
-            return best != null ? best : Locale.ENGLISH;
-        } catch (Exception ex) {
-            return null;
-        }
+    Locale locale = resolveLocale();
+    String html;
+    try {
+      TemplateInstance instance = template.instance();
+      if (locale != null) {
+        instance.setAttribute(TemplateInstance.LOCALE, locale);
+      }
+      html = instance.render();
+    } catch (Exception ex) {
+      return Response.status(statusCode)
+          .entity("Error " + statusCode)
+          .type(MediaType.TEXT_PLAIN)
+          .build();
     }
+    return Response.status(statusCode).entity(html).type(MediaType.TEXT_HTML).build();
+  }
+
+  private Locale resolveLocale() {
+    if (headers == null
+        || headers.getAcceptableLanguages() == null
+        || headers.getAcceptableLanguages().isEmpty()) {
+      return null;
+    }
+    try {
+      List<LanguageRange> ranges =
+          LanguageRange.parse(
+              headers.getAcceptableLanguages().stream()
+                  .map(Locale::toLanguageTag)
+                  .reduce((a, b) -> a + "," + b)
+                  .orElse("en"));
+      Locale best = Locale.lookup(ranges, List.of(Locale.ENGLISH, Locale.of("es")));
+      return best != null ? best : Locale.ENGLISH;
+    } catch (Exception ex) {
+      return null;
+    }
+  }
 }

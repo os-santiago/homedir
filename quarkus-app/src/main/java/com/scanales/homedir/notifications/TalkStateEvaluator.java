@@ -20,19 +20,14 @@ public class TalkStateEvaluator {
 
   private static final Logger LOG = Logger.getLogger(TalkStateEvaluator.class);
 
-  @Inject
-  UserScheduleService schedules;
-  @Inject
-  EventService events;
-  @Inject
-  NotificationService notifications;
-  @Inject
-  AppClock clock;
+  @Inject UserScheduleService schedules;
+  @Inject EventService events;
+  @Inject NotificationService notifications;
+  @Inject AppClock clock;
 
   @Scheduled(every = "{notifications.scheduler.interval}")
   void evaluate() {
-    if (!NotificationConfig.schedulerEnabled)
-      return;
+    if (!NotificationConfig.schedulerEnabled) return;
     Set<String> users = schedules.listUsers();
     for (String user : users) {
       for (String talkId : schedules.getTalksForUser(user)) {
@@ -47,14 +42,13 @@ public class TalkStateEvaluator {
 
   private void evaluateTalk(String user, String talkId) {
     TalkInfo info = events.findTalkInfo(talkId);
-    if (info == null)
-      return;
+    if (info == null) return;
     Talk talk = info.talk();
-    if (talk.getStartTime() == null || talk.getEndTime() == null)
-      return;
-    ZoneId zone = info.event() != null && info.event().getTimezone() != null
-        ? ZoneId.of(info.event().getTimezone())
-        : ZoneId.of("America/Santiago");
+    if (talk.getStartTime() == null || talk.getEndTime() == null) return;
+    ZoneId zone =
+        info.event() != null && info.event().getTimezone() != null
+            ? ZoneId.of(info.event().getTimezone())
+            : ZoneId.of("America/Santiago");
     ZonedDateTime now = clock.now(zone);
     ZonedDateTime start = now.with(talk.getStartTime());
     long diff = ChronoUnit.MINUTES.between(now, start);

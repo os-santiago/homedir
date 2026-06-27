@@ -31,7 +31,8 @@ class ReputationEventTaxonomyTest {
   @Test
   void taxonomyDefinitionsAreUniqueAndWeighted() {
     Set<String> eventTypes = new HashSet<>();
-    for (ReputationEventTaxonomy.EventDefinition definition : ReputationEventTaxonomy.definitions()) {
+    for (ReputationEventTaxonomy.EventDefinition definition :
+        ReputationEventTaxonomy.definitions()) {
       assertFalse(definition.eventType().isBlank());
       assertTrue(eventTypes.add(definition.eventType()));
       assertTrue(definition.baseWeight() > 0);

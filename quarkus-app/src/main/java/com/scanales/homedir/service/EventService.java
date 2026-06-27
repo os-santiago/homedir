@@ -50,18 +50,14 @@ public class EventService {
           "dod-2026-day2-tech-leadership-product-delivery");
 
   /**
-   * Global cache of events shared by all sessions. Using a static map ensures the
-   * same {@code
-   * Event} instance is returned for a given id, reducing memory usage and
-   * avoiding unnecessary
-   * object duplication. The ConcurrentHashMap provides lock-free reads and
-   * efficient updates for a
+   * Global cache of events shared by all sessions. Using a static map ensures the same {@code
+   * Event} instance is returned for a given id, reducing memory usage and avoiding unnecessary
+   * object duplication. The ConcurrentHashMap provides lock-free reads and efficient updates for a
    * high performance setup.
    */
   private static final Map<String, Event> events = new ConcurrentHashMap<>();
 
-  @Inject
-  PersistenceService persistence;
+  @Inject PersistenceService persistence;
 
   private static final Logger LOG = Logger.getLogger(EventService.class);
 
@@ -150,8 +146,7 @@ public class EventService {
   }
 
   /**
-   * Checks whether the given talk overlaps with an existing one in the same
-   * event, day and
+   * Checks whether the given talk overlaps with an existing one in the same event, day and
    * scenario.
    *
    * @return {@code true} if an overlap is detected
@@ -161,10 +156,8 @@ public class EventService {
   }
 
   /**
-   * Returns an existing talk that overlaps with the given one or {@code null} if
-   * none. Two talks
-   * overlap when they occur on the same day and scenario and their times
-   * intersect.
+   * Returns an existing talk that overlaps with the given one or {@code null} if none. Two talks
+   * overlap when they occur on the same day and scenario and their times intersect.
    */
   public Talk findOverlap(String eventId, Talk talk) {
     Event event = events.get(eventId);
@@ -175,10 +168,11 @@ public class EventService {
     java.time.LocalTime end = talk.getEndTime();
     return event.getAgenda().stream()
         .filter(
-            t -> !t.getId().equals(talk.getId())
-                && t.getDay() == talk.getDay()
-                && t.getLocation() != null
-                && t.getLocation().equals(talk.getLocation()))
+            t ->
+                !t.getId().equals(talk.getId())
+                    && t.getDay() == talk.getDay()
+                    && t.getLocation() != null
+                    && t.getLocation().equals(talk.getLocation()))
         .filter(
             t -> {
               java.time.LocalTime s = t.getStartTime();
@@ -208,10 +202,7 @@ public class EventService {
         .orElse(null);
   }
 
-  /**
-   * Returns the talk with the given id within the specified event or {@code null}
-   * if not found.
-   */
+  /** Returns the talk with the given id within the specified event or {@code null} if not found. */
   public Talk findTalk(String eventId, String talkId) {
     Event event = events.get(eventId);
     if (event == null) {
@@ -223,9 +214,7 @@ public class EventService {
         .orElse(null);
   }
 
-  /**
-   * Returns the event that contains the given scenario or {@code null} if none.
-   */
+  /** Returns the event that contains the given scenario or {@code null} if none. */
   public Event findEventByScenario(String scenarioId) {
     return events.values().stream()
         .filter(e -> e.getScenarios().stream().anyMatch(s -> s.getId().equals(scenarioId)))
@@ -249,10 +238,7 @@ public class EventService {
         .toList();
   }
 
-  /**
-   * Returns a {@link TalkInfo} containing the talk and its parent event or
-   * {@code null}.
-   */
+  /** Returns a {@link TalkInfo} containing the talk and its parent event or {@code null}. */
   public TalkInfo findTalkInfo(String talkId) {
     Talk talk = findTalk(talkId);
     if (talk == null) {
@@ -263,8 +249,7 @@ public class EventService {
   }
 
   /**
-   * Returns all talk instances matching the given id across all events. Useful
-   * when the same talk
+   * Returns all talk instances matching the given id across all events. Useful when the same talk
    * is scheduled multiple times.
    */
   public List<Talk> findTalkOccurrences(String talkId) {
@@ -278,10 +263,7 @@ public class EventService {
         .toList();
   }
 
-  /**
-   * Returns all instances of a talk within the specified event ordered by day and
-   * time.
-   */
+  /** Returns all instances of a talk within the specified event ordered by day and time. */
   public List<Talk> findTalkOccurrences(String eventId, String talkId) {
     Event event = events.get(eventId);
     if (event == null) {
@@ -297,10 +279,7 @@ public class EventService {
         .toList();
   }
 
-  /**
-   * Returns the list of talks scheduled in the given scenario ordered by day and
-   * time.
-   */
+  /** Returns the list of talks scheduled in the given scenario ordered by day and time. */
   public List<Talk> findTalksForScenario(String scenarioId) {
     return events.values().stream()
         .flatMap(e -> e.getAgenda().stream())
@@ -338,7 +317,9 @@ public class EventService {
   }
 
   private boolean ensureDevOpsDaysDraftAgenda(Event event) {
-    if (event == null || event.getId() == null || !DEVOPSDAYS_2026_ID.equalsIgnoreCase(event.getId())) {
+    if (event == null
+        || event.getId() == null
+        || !DEVOPSDAYS_2026_ID.equalsIgnoreCase(event.getId())) {
       return false;
     }
     boolean shouldSeed = event.getAgenda() == null || event.getAgenda().isEmpty();
@@ -707,7 +688,10 @@ public class EventService {
     LocalDate today = LocalDate.now();
     return events.values().stream()
         .filter(event -> isUpcoming(event, today))
-        .sorted(java.util.Comparator.comparing(EventService::startDate, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+        .sorted(
+            java.util.Comparator.comparing(
+                EventService::startDate,
+                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 

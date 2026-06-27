@@ -100,10 +100,14 @@ public class CommunityLightningService {
   @ConfigProperty(name = "community.lightning.daily-prompt.enabled", defaultValue = "true")
   boolean dailyPromptEnabled;
 
-  @ConfigProperty(name = "community.lightning.daily-prompt.seed-user-id", defaultValue = "homedir-daily")
+  @ConfigProperty(
+      name = "community.lightning.daily-prompt.seed-user-id",
+      defaultValue = "homedir-daily")
   String dailyPromptUserId;
 
-  @ConfigProperty(name = "community.lightning.daily-prompt.seed-user-name", defaultValue = "HomeDir Daily")
+  @ConfigProperty(
+      name = "community.lightning.daily-prompt.seed-user-name",
+      defaultValue = "HomeDir Daily")
   String dailyPromptUserName;
 
   private final Object stateLock = new Object();
@@ -278,7 +282,8 @@ public class CommunityLightningService {
     }
   }
 
-  public CreateThreadResult createThread(String userId, String userName, CreateThreadRequest request) {
+  public CreateThreadResult createThread(
+      String userId, String userName, CreateThreadRequest request) {
     synchronized (stateLock) {
       refreshFromDisk(false);
       String normalizedUserId = sanitizeUserId(userId);
@@ -610,11 +615,17 @@ public class CommunityLightningService {
         throw new ValidationException("invalid_reason");
       }
       return reportTarget(
-          normalizedUserId, sanitizeUserName(userName), "thread", thread.id(), thread.id(), safeReason);
+          normalizedUserId,
+          sanitizeUserName(userName),
+          "thread",
+          thread.id(),
+          thread.id(),
+          safeReason);
     }
   }
 
-  public ReportResult reportComment(String userId, String userName, String commentId, String reason) {
+  public ReportResult reportComment(
+      String userId, String userName, String commentId, String reason) {
     synchronized (stateLock) {
       refreshFromDisk(false);
       String normalizedUserId = sanitizeUserId(userId);
@@ -658,7 +669,8 @@ public class CommunityLightningService {
       Instant floor = cutoff != null ? cutoff : Instant.EPOCH;
       long count =
           threads.values().stream()
-              .filter(thread -> thread.publishedAt() != null && !thread.publishedAt().isBefore(floor))
+              .filter(
+                  thread -> thread.publishedAt() != null && !thread.publishedAt().isBefore(floor))
               .count();
       return count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count;
     }
@@ -702,14 +714,7 @@ public class CommunityLightningService {
     String reportId = UUID.randomUUID().toString();
     CommunityLightningReport report =
         new CommunityLightningReport(
-            reportId,
-            targetType,
-            targetId,
-            threadId,
-            userId,
-            userName,
-            reason,
-            now);
+            reportId, targetType, targetId, threadId, userId, userName, reason, now);
     reports.put(reportId, report);
     reportIndexByUserTarget.put(dedupeKey, reportId);
     incrementReportCounter(targetType, targetId, now);
@@ -907,7 +912,8 @@ public class CommunityLightningService {
     Instant floor = now.minus(1, ChronoUnit.MINUTES);
     trimAttempts(postWindowAttempts, floor);
     if (postWindowAttempts.size() >= serverPostsPerMinute) {
-      throw new RateLimitExceededException("server_post_minute_limit_reached", SERVER_LIMIT_MESSAGE);
+      throw new RateLimitExceededException(
+          "server_post_minute_limit_reached", SERVER_LIMIT_MESSAGE);
     }
     postWindowAttempts.addLast(new AttemptEntry("server", now));
   }
@@ -919,7 +925,8 @@ public class CommunityLightningService {
     Instant floor = now.minus(1, ChronoUnit.MINUTES);
     trimAttempts(commentWindowAttempts, floor);
     if (commentWindowAttempts.size() >= serverCommentsPerMinute) {
-      throw new RateLimitExceededException("server_comment_minute_limit_reached", SERVER_LIMIT_MESSAGE);
+      throw new RateLimitExceededException(
+          "server_comment_minute_limit_reached", SERVER_LIMIT_MESSAGE);
     }
     commentWindowAttempts.addLast(new AttemptEntry("server", now));
   }
@@ -934,8 +941,7 @@ public class CommunityLightningService {
     if (raidWindowAttempts.size() < raidAttemptThreshold) {
       return;
     }
-    long uniqueUsers =
-        raidWindowAttempts.stream().map(AttemptEntry::userId).distinct().count();
+    long uniqueUsers = raidWindowAttempts.stream().map(AttemptEntry::userId).distinct().count();
     if (uniqueUsers < raidUniqueUsersThreshold) {
       return;
     }
@@ -947,9 +953,7 @@ public class CommunityLightningService {
   private void emitRaidAlert(long uniqueUsers, int attempts) {
     LOG.warnf(
         "community_lightning_raid_detected unique_users=%d attempts=%d cooldown_until=%s",
-        uniqueUsers,
-        attempts,
-        raidCooldownUntil);
+        uniqueUsers, attempts, raidCooldownUntil);
     if (!globalNotificationService.isResolvable()) {
       return;
     }
@@ -998,13 +1002,15 @@ public class CommunityLightningService {
             .findAny()
             .isPresent();
     if (violated) {
-      throw new RateLimitExceededException("user_comment_rate_limit", "You can reply once per minute.");
+      throw new RateLimitExceededException(
+          "user_comment_rate_limit", "You can reply once per minute.");
     }
   }
 
   private CommunityLightningThread publishThread(CommunityLightningThread thread, Instant now) {
     Instant publishAt = now != null ? now : Instant.now();
-    nextPublishAt = publishAt.plus(publishInterval != null ? publishInterval : Duration.ofMinutes(1));
+    nextPublishAt =
+        publishAt.plus(publishInterval != null ? publishInterval : Duration.ofMinutes(1));
     return new CommunityLightningThread(
         thread.id(),
         thread.mode(),
@@ -1079,8 +1085,10 @@ public class CommunityLightningService {
     if (!force && mtime == lastKnownMtime) {
       return;
     }
-    Optional<CommunityLightningStateSnapshot> loaded = persistenceService.loadCommunityLightningState();
-    CommunityLightningStateSnapshot snapshot = loaded.orElseGet(CommunityLightningStateSnapshot::empty);
+    Optional<CommunityLightningStateSnapshot> loaded =
+        persistenceService.loadCommunityLightningState();
+    CommunityLightningStateSnapshot snapshot =
+        loaded.orElseGet(CommunityLightningStateSnapshot::empty);
     threads.clear();
     comments.clear();
     threadLikesByUser.clear();
@@ -1124,7 +1132,8 @@ public class CommunityLightningService {
             .filter(thread -> thread.publishedAt() == null)
             .sorted(
                 Comparator.comparing(
-                    CommunityLightningThread::createdAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                    CommunityLightningThread::createdAt,
+                    Comparator.nullsLast(Comparator.naturalOrder())))
             .toList();
     for (CommunityLightningThread thread : unpublished) {
       publishQueue.addLast(new QueuedThread(thread.id(), thread.createdAt()));
@@ -1224,7 +1233,9 @@ public class CommunityLightningService {
             MODE_SHARP_STATEMENT,
             prompt,
             prompt,
-            sanitizeUserId(dailyPromptUserId) != null ? sanitizeUserId(dailyPromptUserId) : "homedir-daily",
+            sanitizeUserId(dailyPromptUserId) != null
+                ? sanitizeUserId(dailyPromptUserId)
+                : "homedir-daily",
             sanitizeUserName(dailyPromptUserName),
             createdAt,
             publishAt,
@@ -1356,7 +1367,8 @@ public class CommunityLightningService {
 
   public record CommentResult(CommunityLightningThread thread, CommunityLightningComment comment) {}
 
-  public record LikeResult(CommunityLightningThread thread, CommunityLightningComment comment, boolean liked) {}
+  public record LikeResult(
+      CommunityLightningThread thread, CommunityLightningComment comment, boolean liked) {}
 
   public record ReportResult(
       String reportId, boolean duplicate, CommunityLightningReport report, int totalReports) {}

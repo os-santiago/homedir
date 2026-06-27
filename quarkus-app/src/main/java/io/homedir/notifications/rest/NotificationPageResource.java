@@ -35,9 +35,12 @@ public class NotificationPageResource {
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context HttpHeaders headers) {
     currentUserId()
-        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.NOTIFICATIONS_CENTER_VIEW));
+        .ifPresent(
+            userId ->
+                gamificationService.award(userId, GamificationActivity.NOTIFICATIONS_CENTER_VIEW));
     boolean authenticated = identity != null && !identity.isAnonymous();
-    String userName = authenticated && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
+    String userName =
+        authenticated && identity.getPrincipal() != null ? identity.getPrincipal().getName() : null;
     return TemplateLocaleUtil.apply(Templates.center(), localeCookie, headers)
         .data("activePage", "notifications")
         .data("noLoginModal", true)

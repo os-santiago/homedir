@@ -9,5 +9,4 @@ public record EconomyCatalogItem(
     String category,
     @JsonProperty("price_hcoin") int priceHcoin,
     boolean enabled,
-    @JsonProperty("max_per_user") int maxPerUser) {
-}
+    @JsonProperty("max_per_user") int maxPerUser) {}

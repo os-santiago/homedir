@@ -1,16 +1,16 @@
 package com.scanales.homedir.trending;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 public class TrendingServiceTest {
 
-  @Inject
-  TrendingService trendingService;
+  @Inject TrendingService trendingService;
 
   @Test
   public void testGetTrendingDaily() {

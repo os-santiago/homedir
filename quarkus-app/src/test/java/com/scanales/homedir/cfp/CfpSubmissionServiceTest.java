@@ -132,6 +132,7 @@ public class CfpSubmissionServiceTest {
                     java.util.List.of(),
                     java.util.List.of())));
   }
+
   @Test
   void statusTransitionUpdatesSubmission() {
     CfpSubmission created =
@@ -185,10 +186,14 @@ public class CfpSubmissionServiceTest {
                 java.util.List.of()));
 
     CfpSubmission first =
-        cfpSubmissionService.updateStatus(created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
+        cfpSubmissionService.updateStatus(
+            created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "triage");
     CfpSubmission updated =
         cfpSubmissionService.updateStatus(
-            created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "needs more details");
+            created.id(),
+            CfpSubmissionStatus.UNDER_REVIEW,
+            "admin@example.org",
+            "needs more details");
     CfpSubmission noChange =
         cfpSubmissionService.updateStatus(
             created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "   ");
@@ -314,9 +319,11 @@ public class CfpSubmissionServiceTest {
     cfpSubmissionService.updateStatus(
         created.id(), CfpSubmissionStatus.UNDER_REVIEW, "admin@example.org", "in review");
 
-    var pending = cfpSubmissionService.listByEvent(EVENT_ID, Optional.of(CfpSubmissionStatus.PENDING), 20, 0);
+    var pending =
+        cfpSubmissionService.listByEvent(EVENT_ID, Optional.of(CfpSubmissionStatus.PENDING), 20, 0);
     var inReview =
-        cfpSubmissionService.listByEvent(EVENT_ID, Optional.of(CfpSubmissionStatus.UNDER_REVIEW), 20, 0);
+        cfpSubmissionService.listByEvent(
+            EVENT_ID, Optional.of(CfpSubmissionStatus.UNDER_REVIEW), 20, 0);
 
     assertTrue(pending.isEmpty());
     assertEquals(1, inReview.size());
@@ -401,7 +408,9 @@ public class CfpSubmissionServiceTest {
     cfpSubmissionService.updatePanelists(
         EVENT_ID,
         submission.id(),
-        List.of(new CfpSubmissionService.PanelistInput("Panelist", "panelist@example.com", "panelist@example.com")),
+        List.of(
+            new CfpSubmissionService.PanelistInput(
+                "Panelist", "panelist@example.com", "panelist@example.com")),
         "owner@example.com",
         null);
 
@@ -436,11 +445,7 @@ public class CfpSubmissionServiceTest {
 
     CfpSubmission updated =
         cfpSubmissionService.updateDeliveryPlan(
-            EVENT_ID,
-            submission.id(),
-            "Day 1 / Morning",
-            "Main Stage",
-            submission.updatedAt());
+            EVENT_ID, submission.id(), "Day 1 / Morning", "Main Stage", submission.updatedAt());
 
     assertEquals("scheduled", cfpSubmissionService.deliveryStatus(updated));
     assertEquals(50, cfpSubmissionService.deliveryProgress(updated));
@@ -451,13 +456,7 @@ public class CfpSubmissionServiceTest {
   @Test
   void createAppliesEventSpecificMaxSubmissionsLimit() {
     cfpEventConfigService.upsert(
-        EVENT_ID,
-        new CfpEventConfigService.UpdateRequest(
-            true,
-            null,
-            null,
-            1,
-            null));
+        EVENT_ID, new CfpEventConfigService.UpdateRequest(true, null, null, 1, null));
 
     cfpSubmissionService.create(
         "member@example.com",
@@ -501,13 +500,7 @@ public class CfpSubmissionServiceTest {
   @Test
   void createRejectsSubmissionsWhenEventWindowIsClosed() {
     cfpEventConfigService.upsert(
-        EVENT_ID,
-        new CfpEventConfigService.UpdateRequest(
-            false,
-            null,
-            null,
-            null,
-            null));
+        EVENT_ID, new CfpEventConfigService.UpdateRequest(false, null, null, null, null));
 
     CfpSubmissionService.ValidationException exception =
         assertThrows(
@@ -762,13 +755,7 @@ public class CfpSubmissionServiceTest {
             CfpSubmissionService.ValidationException.class,
             () ->
                 cfpSubmissionService.updateRating(
-                    EVENT_ID,
-                    created.id(),
-                    5,
-                    5,
-                    5,
-                    "admin@example.org",
-                    expectedUpdatedAt));
+                    EVENT_ID, created.id(), 5, 5, 5, "admin@example.org", expectedUpdatedAt));
 
     assertEquals("stale_submission", exception.getMessage());
   }
@@ -814,11 +801,7 @@ public class CfpSubmissionServiceTest {
 
     var ordered =
         cfpSubmissionService.listByEvent(
-            EVENT_ID,
-            Optional.empty(),
-            CfpSubmissionService.SortOrder.SCORE_DESC,
-            20,
-            0);
+            EVENT_ID, Optional.empty(), CfpSubmissionService.SortOrder.SCORE_DESC, 20, 0);
 
     assertEquals(2, ordered.size());
     assertEquals(high.id(), ordered.get(0).id());
@@ -896,9 +879,10 @@ public class CfpSubmissionServiceTest {
     assertEquals(0, stats.countsByStatus().get(CfpSubmissionStatus.WITHDRAWN));
     assertNotNull(stats.latestUpdatedAt());
 
-    Instant maxUpdatedAt = Stream.of(pending.updatedAt(), underReview.updatedAt(), accepted.updatedAt())
-        .max(Instant::compareTo)
-        .orElse(null);
+    Instant maxUpdatedAt =
+        Stream.of(pending.updatedAt(), underReview.updatedAt(), accepted.updatedAt())
+            .max(Instant::compareTo)
+            .orElse(null);
     assertEquals(maxUpdatedAt, stats.latestUpdatedAt());
   }
 
@@ -922,7 +906,10 @@ public class CfpSubmissionServiceTest {
                 List.of()));
     accepted =
         cfpSubmissionService.updateStatus(
-            accepted.id(), CfpSubmissionStatus.ACCEPTED, "admin@example.org", "accepted internally");
+            accepted.id(),
+            CfpSubmissionStatus.ACCEPTED,
+            "admin@example.org",
+            "accepted internally");
 
     CfpSubmission rejected =
         cfpSubmissionService.create(
@@ -942,7 +929,10 @@ public class CfpSubmissionServiceTest {
                 List.of()));
     rejected =
         cfpSubmissionService.updateStatus(
-            rejected.id(), CfpSubmissionStatus.REJECTED, "admin@example.org", "rejected internally");
+            rejected.id(),
+            CfpSubmissionStatus.REJECTED,
+            "admin@example.org",
+            "rejected internally");
 
     assertEquals(CfpSubmissionStatus.UNDER_REVIEW, cfpSubmissionService.visibleStatus(accepted));
     assertEquals(CfpSubmissionStatus.UNDER_REVIEW, cfpSubmissionService.visibleStatus(rejected));

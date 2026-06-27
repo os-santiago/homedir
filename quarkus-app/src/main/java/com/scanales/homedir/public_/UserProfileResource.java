@@ -14,8 +14,7 @@ import jakarta.ws.rs.core.Response;
 @PermitAll
 public class UserProfileResource {
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
   public static class UserProfile {
     public boolean authenticated;
@@ -33,8 +32,7 @@ public class UserProfileResource {
     public int connections;
   }
 
-  @Inject
-  com.scanales.homedir.service.CommunityService communityService;
+  @Inject com.scanales.homedir.service.CommunityService communityService;
 
   @GET
   public Response me() {
@@ -64,8 +62,8 @@ public class UserProfileResource {
     profile.avatarUrl = null;
 
     // Fetch real member data from CommunityService (os-santiago)
-    java.util.Optional<com.scanales.homedir.model.CommunityMember> memberOpt = communityService
-        .findByUserId(profile.userId);
+    java.util.Optional<com.scanales.homedir.model.CommunityMember> memberOpt =
+        communityService.findByUserId(profile.userId);
 
     // Also try by GitHub login if available in profile (via UserProfileService -
     // which we need to inject if we want full link)
@@ -73,7 +71,8 @@ public class UserProfileResource {
 
     if (memberOpt.isPresent()) {
       com.scanales.homedir.model.CommunityMember member = memberOpt.get();
-      profile.displayName = member.getDisplayName() != null ? member.getDisplayName() : profile.displayName;
+      profile.displayName =
+          member.getDisplayName() != null ? member.getDisplayName() : profile.displayName;
       profile.avatarUrl = member.getAvatarUrl();
 
       // Map Role/Activity to Gamification Stats
@@ -84,7 +83,8 @@ public class UserProfileResource {
       boolean isAdmin = "administrador".equalsIgnoreCase(member.getRole());
       profile.level = isAdmin ? 10 : 5; // Admins level 10, Members level 5
       profile.experience = isAdmin ? 1000 : 500;
-      profile.contributions = isAdmin ? 50 : 10; // Placeholder until we have real contribution metrics
+      profile.contributions =
+          isAdmin ? 50 : 10; // Placeholder until we have real contribution metrics
       profile.questsCompleted = isAdmin ? 20 : 5;
       profile.eventsAttended = 5; // Default for members
       profile.projectsHosted = isAdmin ? 5 : 0;

@@ -28,10 +28,10 @@ public class BusinessObservabilityService {
     UsageMetricsService.ObservabilityWindow window = usageMetricsService.observabilityWindow(hours);
     DevelopmentInsightsStatus insights = insightsLedgerService.status();
     long activeModules = window.modules().stream().filter(row -> row.total() > 0L).count();
-    HeatRow hottestModule =
-        window.modules().stream().findFirst().map(this::toHeatRow).orElse(null);
+    HeatRow hottestModule = window.modules().stream().findFirst().map(this::toHeatRow).orElse(null);
     List<HeatRow> heatmap = window.modules().stream().map(this::toHeatRow).toList();
-    List<ActivityRow> hotActions = window.actions().stream().limit(8).map(this::toActionRow).toList();
+    List<ActivityRow> hotActions =
+        window.actions().stream().limit(8).map(this::toActionRow).toList();
     List<FrictionRow> frictionWatch = buildFrictionWatch(window);
     DeliveryPulse deliveryPulse = buildDeliveryPulse(insights);
     return new DashboardSnapshot(

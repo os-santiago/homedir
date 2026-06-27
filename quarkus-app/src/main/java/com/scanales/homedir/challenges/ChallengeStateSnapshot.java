@@ -21,7 +21,8 @@ public record ChallengeStateSnapshot(
     return new ChallengeStateSnapshot(SCHEMA_VERSION, Instant.now(), Map.of());
   }
 
-  private static Map<String, List<ChallengeProgress>> sanitize(Map<String, List<ChallengeProgress>> raw) {
+  private static Map<String, List<ChallengeProgress>> sanitize(
+      Map<String, List<ChallengeProgress>> raw) {
     if (raw == null || raw.isEmpty()) {
       return Map.of();
     }

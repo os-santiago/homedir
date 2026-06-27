@@ -9,5 +9,4 @@ public record EconomyInventoryItem(
     String category,
     int quantity,
     @JsonProperty("first_acquired_at") Instant firstAcquiredAt,
-    @JsonProperty("last_acquired_at") Instant lastAcquiredAt) {
-}
+    @JsonProperty("last_acquired_at") Instant lastAcquiredAt) {}

@@ -41,10 +41,12 @@ public class EconomyApiResource {
     Optional<String> userId = currentUserId();
     if (userId.isPresent()) {
       List<EconomyService.CatalogOffer> items = economyService.listCatalogForUser(userId.get());
-      return Response.ok(Map.of("items", items, "count", items.size(), "personalized", true)).build();
+      return Response.ok(Map.of("items", items, "count", items.size(), "personalized", true))
+          .build();
     }
     List<EconomyCatalogItem> items = economyService.listCatalog();
-    return Response.ok(Map.of("items", items, "count", items.size(), "personalized", false)).build();
+    return Response.ok(Map.of("items", items, "count", items.size(), "personalized", false))
+        .build();
   }
 
   @GET
@@ -53,13 +55,17 @@ public class EconomyApiResource {
   public Response wallet() {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       EconomyWallet wallet = economyService.getWallet(userId.get());
       return Response.ok(Map.of("wallet", wallet)).build();
     } catch (EconomyService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -67,11 +73,12 @@ public class EconomyApiResource {
   @Path("/inventory")
   @Authenticated
   public Response inventory(
-      @QueryParam("limit") Integer limitParam,
-      @QueryParam("offset") Integer offsetParam) {
+      @QueryParam("limit") Integer limitParam, @QueryParam("offset") Integer offsetParam) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       int limit = PaginationGuardrails.clampLimit(limitParam, DEFAULT_LIMIT, MAX_LIMIT);
@@ -79,7 +86,9 @@ public class EconomyApiResource {
       List<EconomyInventoryItem> items = economyService.listInventory(userId.get(), limit, offset);
       return Response.ok(new InventoryResponse(limit, offset, items)).build();
     } catch (EconomyService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -87,26 +96,26 @@ public class EconomyApiResource {
   @Path("/transactions")
   @Authenticated
   public Response transactions(
-      @QueryParam("limit") Integer limitParam,
-      @QueryParam("offset") Integer offsetParam) {
+      @QueryParam("limit") Integer limitParam, @QueryParam("offset") Integer offsetParam) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       int limit = PaginationGuardrails.clampLimit(limitParam, DEFAULT_LIMIT, MAX_LIMIT);
       int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
-      EconomyService.TransactionPage page = economyService.listTransactions(userId.get(), limit, offset);
+      EconomyService.TransactionPage page =
+          economyService.listTransactions(userId.get(), limit, offset);
       return Response.ok(
-          new TransactionsResponse(
-              page.limit(),
-              page.offset(),
-              page.total(),
-              page.partial(),
-              page.items()))
+              new TransactionsResponse(
+                  page.limit(), page.offset(), page.total(), page.partial(), page.items()))
           .build();
     } catch (EconomyService.ValidationException e) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     }
   }
 
@@ -117,7 +126,9 @@ public class EconomyApiResource {
   public Response purchase(PurchaseRequest request) {
     Optional<String> userId = currentUserId();
     if (userId.isEmpty()) {
-      return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
+      return Response.status(Response.Status.UNAUTHORIZED)
+          .entity(Map.of("error", "user_not_authenticated"))
+          .build();
     }
     try {
       String itemId = request != null ? request.itemId() : null;
@@ -125,7 +136,9 @@ public class EconomyApiResource {
       metrics.recordFunnelStep("economy_purchase");
       return Response.ok(Map.of("purchase", result)).build();
     } catch (EconomyService.ValidationException e) {
-      return Response.status(Response.Status.CONFLICT).entity(Map.of("error", e.getMessage())).build();
+      return Response.status(Response.Status.CONFLICT)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (EconomyService.CapacityException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "economy_capacity_guardrail", "detail", e.getMessage()))
@@ -138,7 +151,9 @@ public class EconomyApiResource {
   @Authenticated
   public Response stats() {
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     return Response.ok(Map.of("economy", economyService.metrics())).build();
   }
@@ -162,17 +177,10 @@ public class EconomyApiResource {
     return Optional.empty();
   }
 
-  public record PurchaseRequest(String itemId) {
-  }
+  public record PurchaseRequest(String itemId) {}
 
-  public record InventoryResponse(int limit, int offset, List<EconomyInventoryItem> items) {
-  }
+  public record InventoryResponse(int limit, int offset, List<EconomyInventoryItem> items) {}
 
   public record TransactionsResponse(
-      int limit,
-      int offset,
-      long total,
-      boolean partial,
-      List<EconomyTransaction> items) {
-  }
+      int limit, int offset, long total, boolean partial, List<EconomyTransaction> items) {}
 }

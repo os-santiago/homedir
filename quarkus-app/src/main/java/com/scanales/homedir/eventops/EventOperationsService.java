@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -72,7 +71,8 @@ public class EventOperationsService {
       if (normalizedEventId == null || normalizedUserId == null || role == null) {
         return Optional.empty();
       }
-      return Optional.ofNullable(staffAssignments.get(staffAssignmentId(normalizedEventId, normalizedUserId, role)));
+      return Optional.ofNullable(
+          staffAssignments.get(staffAssignmentId(normalizedEventId, normalizedUserId, role)));
     }
   }
 
@@ -122,16 +122,14 @@ public class EventOperationsService {
   public EventStaffAssignment upsertVolunteerSelection(
       String eventId, String userId, String userName, boolean selected) {
     return upsertStaff(
-        eventId,
-        userId,
-        userName,
-        EventStaffRole.VOLUNTEER,
-        "volunteer_selection",
-        selected);
+        eventId, userId, userName, EventStaffRole.VOLUNTEER, "volunteer_selection", selected);
   }
 
   public boolean hasStaffRole(
-      String eventId, Set<String> userIds, Set<EventStaffRole> allowedRoles, boolean requireActive) {
+      String eventId,
+      Set<String> userIds,
+      Set<EventStaffRole> allowedRoles,
+      boolean requireActive) {
     synchronized (lock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeEventId(eventId);
@@ -300,7 +298,9 @@ public class EventOperationsService {
       String visibility = visibilityFilter.map(EventActivityVisibility::apiValue).orElse(null);
       return activities.values().stream()
           .filter(item -> normalizedEventId.equals(item.eventId()))
-          .filter(item -> visibility == null || visibility.equals(sanitizeVisibility(item.visibility())))
+          .filter(
+              item ->
+                  visibility == null || visibility.equals(sanitizeVisibility(item.visibility())))
           .sorted(
               Comparator.comparing(
                       EventSpaceActivity::startAt, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -367,7 +367,9 @@ public class EventOperationsService {
   }
 
   public EventRunSheetView buildRunSheet(
-      String eventId, Optional<EventActivityVisibility> visibilityFilter, boolean includeInactiveStaff) {
+      String eventId,
+      Optional<EventActivityVisibility> visibilityFilter,
+      boolean includeInactiveStaff) {
     synchronized (lock) {
       refreshFromDisk(false);
       String normalizedEventId = sanitizeEventId(eventId);
@@ -426,40 +428,48 @@ public class EventOperationsService {
     spaceShifts.clear();
     activities.clear();
     if (snapshot.staffAssignments() != null) {
-      snapshot.staffAssignments().forEach(
-          (id, item) -> {
-            if (id == null || id.isBlank() || item == null) {
-              return;
-            }
-            staffAssignments.put(id, item);
-          });
+      snapshot
+          .staffAssignments()
+          .forEach(
+              (id, item) -> {
+                if (id == null || id.isBlank() || item == null) {
+                  return;
+                }
+                staffAssignments.put(id, item);
+              });
     }
     if (snapshot.spaces() != null) {
-      snapshot.spaces().forEach(
-          (id, item) -> {
-            if (id == null || id.isBlank() || item == null) {
-              return;
-            }
-            spaces.put(id, item);
-          });
+      snapshot
+          .spaces()
+          .forEach(
+              (id, item) -> {
+                if (id == null || id.isBlank() || item == null) {
+                  return;
+                }
+                spaces.put(id, item);
+              });
     }
     if (snapshot.spaceShifts() != null) {
-      snapshot.spaceShifts().forEach(
-          (id, item) -> {
-            if (id == null || id.isBlank() || item == null) {
-              return;
-            }
-            spaceShifts.put(id, item);
-          });
+      snapshot
+          .spaceShifts()
+          .forEach(
+              (id, item) -> {
+                if (id == null || id.isBlank() || item == null) {
+                  return;
+                }
+                spaceShifts.put(id, item);
+              });
     }
     if (snapshot.activities() != null) {
-      snapshot.activities().forEach(
-          (id, item) -> {
-            if (id == null || id.isBlank() || item == null) {
-              return;
-            }
-            activities.put(id, item);
-          });
+      snapshot
+          .activities()
+          .forEach(
+              (id, item) -> {
+                if (id == null || id.isBlank() || item == null) {
+                  return;
+                }
+                activities.put(id, item);
+              });
     }
     lastKnownMtime = mtime;
   }
@@ -548,9 +558,7 @@ public class EventOperationsService {
     if (raw == null || raw.isBlank()) {
       return EventActivityVisibility.STAFF.apiValue();
     }
-    return EventActivityVisibility.fromApi(raw)
-        .orElse(EventActivityVisibility.STAFF)
-        .apiValue();
+    return EventActivityVisibility.fromApi(raw).orElse(EventActivityVisibility.STAFF).apiValue();
   }
 
   public record EventRunSheetView(

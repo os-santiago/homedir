@@ -37,7 +37,8 @@ public class ReputationWebVitalsHistoryService {
             "hub", computeStability(hubHistory),
             "how", computeStability(howHistory));
     long latestCapturedAtMillis = last == null ? 0L : last.capturedAtMillis();
-    return new TrendWindow(snapshots.size(), trends, stability, snapshotRecorded, latestCapturedAtMillis);
+    return new TrendWindow(
+        snapshots.size(), trends, stability, snapshotRecorded, latestCapturedAtMillis);
   }
 
   private List<RouteTrend> trendHistory(String route) {
@@ -146,7 +147,8 @@ public class ReputationWebVitalsHistoryService {
     } else {
       status = "stable";
     }
-    return new RouteTrend(samplesDelta, lcpPoorDelta, lcpNeedsDelta, inpPoorDelta, inpNeedsDelta, status);
+    return new RouteTrend(
+        samplesDelta, lcpPoorDelta, lcpNeedsDelta, inpPoorDelta, inpNeedsDelta, status);
   }
 
   private long delta(Map<String, Long> current, Map<String, Long> previous, String key) {

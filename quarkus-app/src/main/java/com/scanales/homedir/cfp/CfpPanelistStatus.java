@@ -30,4 +30,3 @@ public enum CfpPanelistStatus {
     return Optional.empty();
   }
 }
-

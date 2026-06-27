@@ -2,7 +2,6 @@ package com.scanales.homedir.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scanales.homedir.util.SecurityUtils;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -37,11 +36,9 @@ public class GithubService {
   private static final int MAX_CONTRIBUTORS = 10;
   private static final int MAX_CODERS = 10;
 
-  @Inject
-  ObjectMapper objectMapper;
+  @Inject ObjectMapper objectMapper;
 
-  @Inject
-  Config config;
+  @Inject Config config;
 
   @Inject
   @ConfigProperty(name = "home.project.github.repo-owner", defaultValue = "os-santiago")
@@ -59,9 +56,8 @@ public class GithubService {
   @ConfigProperty(name = "home.project.github.retry-interval", defaultValue = "PT15M")
   Duration contributorsRetryInterval;
 
-  private final HttpClient httpClient = HttpClient.newBuilder()
-      .connectTimeout(REQUEST_TIMEOUT)
-      .build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(REQUEST_TIMEOUT).build();
   private final AtomicReference<ContributorsCacheSnapshot> contributorsCache =
       new AtomicReference<>(ContributorsCacheSnapshot.empty());
   private final AtomicReference<CodersCacheSnapshot> codersCache =
@@ -104,43 +100,50 @@ public class GithubService {
   }
 
   public String exchangeCode(String code) throws IOException, InterruptedException {
-    HttpRequest tokenRequest = HttpRequest.newBuilder()
-        .uri(URI.create("https://github.com/login/oauth/access_token"))
-        .timeout(REQUEST_TIMEOUT)
-        .header("Accept", "application/json")
-        .POST(
-            HttpRequest.BodyPublishers.ofString(
-                "client_id="
-                    + url(getGithubClientId())
-                    + "&client_secret="
-                    + url(getGithubClientSecret())
-                    + "&code="
-                    + url(code)))
-        .build();
-    HttpResponse<String> tokenResponse = httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+    if (code == null || code.isBlank()) {
+      throw new IOException("GitHub authorization code missing");
+    }
+    HttpRequest tokenRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://github.com/login/oauth/access_token"))
+            .timeout(REQUEST_TIMEOUT)
+            .header("Accept", "application/json")
+            .POST(
+                HttpRequest.BodyPublishers.ofString(
+                    "client_id="
+                        + url(getGithubClientId())
+                        + "&client_secret="
+                        + url(getGithubClientSecret())
+                        + "&code="
+                        + url(code)))
+            .build();
+    HttpResponse<String> tokenResponse =
+        httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     if (tokenResponse.statusCode() >= 400) {
-      LOG.warnf("GitHub token exchange failed: %s", SecurityUtils.redactSensitiveData(tokenResponse.body()));
+      LOG.warnf("GitHub token exchange failed: status=%d", tokenResponse.statusCode());
       throw new IOException("GitHub token exchange failed");
     }
     JsonNode tokenJson = objectMapper.readTree(tokenResponse.body());
     String accessToken = tokenJson.path("access_token").asText();
     if (accessToken == null || accessToken.isBlank()) {
-      LOG.warnf("GitHub token missing access_token field: %s", SecurityUtils.redactSensitiveData(tokenResponse.body()));
+      LOG.warn("GitHub token missing access_token field");
       throw new IOException("GitHub token missing access_token");
     }
     return accessToken;
   }
 
   public GithubProfile fetchUser(String accessToken) throws IOException, InterruptedException {
-    HttpRequest meRequest = HttpRequest.newBuilder()
-        .uri(URI.create("https://api.github.com/user"))
-        .timeout(REQUEST_TIMEOUT)
-        .header("Accept", "application/json")
-        .header("Authorization", "Bearer " + accessToken)
-        .build();
-    HttpResponse<String> meResponse = httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
+    HttpRequest meRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://api.github.com/user"))
+            .timeout(REQUEST_TIMEOUT)
+            .header("Accept", "application/json")
+            .header("Authorization", "Bearer " + accessToken)
+            .build();
+    HttpResponse<String> meResponse =
+        httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
     if (meResponse.statusCode() >= 400) {
-      LOG.warnf("GitHub user fetch failed: %s", meResponse.body());
+      LOG.warnf("GitHub user fetch failed: status=%d", meResponse.statusCode());
       throw new IOException("GitHub user fetch failed");
     }
     JsonNode userJson = objectMapper.readTree(meResponse.body());
@@ -166,27 +169,31 @@ public class GithubService {
     }
     try {
       String githubToken = getGithubApiToken();
-      HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-          .uri(
-              URI.create(
-                  "https://api.github.com/repos/"
-                      + owner
-                      + "/"
-                      + repo
-                      + "/contributors?per_page="
-                      + MAX_CONTRIBUTORS))
-          .timeout(REQUEST_TIMEOUT)
-          .header("Accept", "application/vnd.github+json")
-          .header("X-GitHub-Api-Version", "2022-11-28")
-          .header("User-Agent", "homedir-service");
+      HttpRequest.Builder requestBuilder =
+          HttpRequest.newBuilder()
+              .uri(
+                  URI.create(
+                      "https://api.github.com/repos/"
+                          + owner
+                          + "/"
+                          + repo
+                          + "/contributors?per_page="
+                          + MAX_CONTRIBUTORS))
+              .timeout(REQUEST_TIMEOUT)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .header("User-Agent", "homedir-service");
       if (!githubToken.isBlank()) {
         requestBuilder.header("Authorization", "Bearer " + githubToken);
       }
       HttpRequest request = requestBuilder.build();
 
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
-        LOG.warnf("GitHub contributors fetch failed status=%d body=%s", response.statusCode(), response.body());
+        LOG.warnf(
+            "GitHub contributors fetch failed status=%d body=%s",
+            response.statusCode(), response.body());
         return List.of();
       }
 
@@ -200,11 +207,12 @@ public class GithubService {
         if (login.isBlank()) {
           continue;
         }
-        contributors.add(new GithubContributor(
-            login,
-            node.path("avatar_url").asText(),
-            node.path("html_url").asText(),
-            node.path("contributions").asInt()));
+        contributors.add(
+            new GithubContributor(
+                login,
+                node.path("avatar_url").asText(),
+                node.path("html_url").asText(),
+                node.path("contributions").asInt()));
       }
       return contributors;
     } catch (InterruptedException e) {
@@ -246,7 +254,8 @@ public class GithubService {
 
   private void refreshHomeProjectContributors(String reason) {
     Instant startedAt = Instant.now();
-    List<GithubContributor> loaded = loadContributorsFromGithub(homeProjectRepoOwner, homeProjectRepoName);
+    List<GithubContributor> loaded =
+        loadContributorsFromGithub(homeProjectRepoOwner, homeProjectRepoName);
     long durationMs = Duration.between(startedAt, Instant.now()).toMillis();
     ContributorsCacheSnapshot previous = contributorsCache.get();
     Instant attemptedAt = Instant.now();
@@ -256,34 +265,19 @@ public class GithubService {
           loadHomeProjectCodersFromGithub(homeProjectRepoOwner, homeProjectRepoName, loaded);
       contributorsCache.set(
           new ContributorsCacheSnapshot(
-              List.copyOf(loaded),
-              attemptedAt,
-              attemptedAt,
-              durationMs,
-              true));
+              List.copyOf(loaded), attemptedAt, attemptedAt, durationMs, true));
       codersCache.set(
-          new CodersCacheSnapshot(
-              List.copyOf(coders),
-              attemptedAt,
-              attemptedAt,
-              durationMs,
-              true));
+          new CodersCacheSnapshot(List.copyOf(coders), attemptedAt, attemptedAt, durationMs, true));
       LOG.infov(
           "GitHub contributors cache refreshed reason={0} contributors={1} durationMs={2}",
-          reason,
-          loaded.size(),
-          durationMs);
+          reason, loaded.size(), durationMs);
       return;
     }
 
     if (!previous.contributors().isEmpty()) {
       contributorsCache.set(
           new ContributorsCacheSnapshot(
-              previous.contributors(),
-              previous.loadedAt(),
-              attemptedAt,
-              durationMs,
-              false));
+              previous.contributors(), previous.loadedAt(), attemptedAt, durationMs, false));
       codersCache.set(
           new CodersCacheSnapshot(
               codersCache.get().coders(),
@@ -293,31 +287,26 @@ public class GithubService {
               false));
       LOG.warnv(
           "GitHub contributors refresh returned empty reason={0}; keeping cached contributors={1}",
-          reason,
-          previous.contributors().size());
+          reason, previous.contributors().size());
       return;
     }
 
     contributorsCache.set(
         new ContributorsCacheSnapshot(
-            List.of(),
-            previous.loadedAt(),
-            attemptedAt,
-            durationMs,
-            false));
+            List.of(), previous.loadedAt(), attemptedAt, durationMs, false));
     codersCache.set(
         new CodersCacheSnapshot(
-            List.of(),
-            codersCache.get().loadedAt(),
-            attemptedAt,
-            durationMs,
-            false));
+            List.of(), codersCache.get().loadedAt(), attemptedAt, durationMs, false));
     LOG.warnv("GitHub contributors cache is empty after refresh reason={0}", reason);
   }
 
   List<GithubCoder> loadHomeProjectCodersFromGithub(
       String owner, String repo, List<GithubContributor> contributors) {
-    if (owner == null || owner.isBlank() || repo == null || repo.isBlank() || contributors == null) {
+    if (owner == null
+        || owner.isBlank()
+        || repo == null
+        || repo.isBlank()
+        || contributors == null) {
       return List.of();
     }
     List<GithubCoder> coders = new ArrayList<>();
@@ -368,17 +357,16 @@ public class GithubService {
     }
     try {
       String query = "repo:" + owner + "/" + repo + " author:" + login + " is:" + type;
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(
-              URI.create(
-                  "https://api.github.com/search/issues?q="
-                      + url(query)
-                      + "&per_page=1"))
-          .timeout(REQUEST_TIMEOUT)
-          .header("Accept", "application/vnd.github+json")
-          .header("X-GitHub-Api-Version", "2022-11-28")
-          .header("User-Agent", "homedir-service")
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(
+                  URI.create(
+                      "https://api.github.com/search/issues?q=" + url(query) + "&per_page=1"))
+              .timeout(REQUEST_TIMEOUT)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .header("User-Agent", "homedir-service")
+              .build();
       String githubToken = getGithubApiToken();
       HttpRequest authorizedRequest =
           githubToken.isBlank()
@@ -390,7 +378,8 @@ public class GithubService {
                   .header("User-Agent", "homedir-service")
                   .header("Authorization", "Bearer " + githubToken)
                   .build();
-      HttpResponse<String> response = httpClient.send(authorizedRequest, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(authorizedRequest, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
         LOG.warnf(
             "GitHub search count failed status=%d owner=%s repo=%s login=%s type=%s body=%s",
@@ -401,16 +390,26 @@ public class GithubService {
       return Math.max(0, json.path("total_count").asInt(0));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOG.warnf("GitHub search count interrupted owner=%s repo=%s login=%s type=%s", owner, repo, login, type);
+      LOG.warnf(
+          "GitHub search count interrupted owner=%s repo=%s login=%s type=%s",
+          owner, repo, login, type);
       return 0;
     } catch (Exception e) {
-      LOG.warnf(e, "GitHub search count failed owner=%s repo=%s login=%s type=%s", owner, repo, login, type);
+      LOG.warnf(
+          e,
+          "GitHub search count failed owner=%s repo=%s login=%s type=%s",
+          owner,
+          repo,
+          login,
+          type);
       return 0;
     }
   }
 
   private Duration effectiveCacheTtl() {
-    if (contributorsCacheTtl == null || contributorsCacheTtl.isNegative() || contributorsCacheTtl.isZero()) {
+    if (contributorsCacheTtl == null
+        || contributorsCacheTtl.isNegative()
+        || contributorsCacheTtl.isZero()) {
       return DEFAULT_CONTRIBUTORS_CACHE_TTL;
     }
     return contributorsCacheTtl;
@@ -426,7 +425,8 @@ public class GithubService {
   }
 
   private boolean shouldRefresh(ContributorsCacheSnapshot snapshot, Instant now) {
-    if (snapshot.loadedAt() != null && now.isBefore(snapshot.loadedAt().plus(effectiveCacheTtl()))) {
+    if (snapshot.loadedAt() != null
+        && now.isBefore(snapshot.loadedAt().plus(effectiveCacheTtl()))) {
       return false;
     }
     if (snapshot.lastAttemptAt() == null) {
@@ -451,11 +451,11 @@ public class GithubService {
     return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
-  public record GithubProfile(String login, String htmlUrl, String avatarUrl, String id, String email) {
-  }
+  public record GithubProfile(
+      String login, String htmlUrl, String avatarUrl, String id, String email) {}
 
-  public record GithubContributor(String login, String avatarUrl, String htmlUrl, int contributions) {
-  }
+  public record GithubContributor(
+      String login, String avatarUrl, String htmlUrl, int contributions) {}
 
   public record GithubCoder(
       String login,
@@ -464,8 +464,7 @@ public class GithubService {
       int commits,
       int issues,
       int pullRequests,
-      int score) {
-  }
+      int score) {}
 
   private record ContributorsCacheSnapshot(
       List<GithubContributor> contributors,

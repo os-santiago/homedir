@@ -1,10 +1,10 @@
 package com.scanales.homedir.public_;
 
 import com.scanales.homedir.challenges.ChallengeService;
-import com.scanales.homedir.community.CommunityContentItem;
-import com.scanales.homedir.community.CommunityContentService;
 import com.scanales.homedir.community.CommunityBoardService;
 import com.scanales.homedir.community.CommunityBoardSummary;
+import com.scanales.homedir.community.CommunityContentItem;
+import com.scanales.homedir.community.CommunityContentService;
 import com.scanales.homedir.community.CommunityLightningService;
 import com.scanales.homedir.community.CommunityVoteService;
 import com.scanales.homedir.economy.EconomyService;
@@ -53,50 +53,35 @@ public class PublicPagesResource {
 
   private static final Logger LOG = Logger.getLogger(PublicPagesResource.class);
 
-  @Inject
-  Template home;
+  @Inject Template home;
 
-  @Inject
-  Template events;
+  @Inject Template events;
 
-  @Inject
-  SecurityIdentity identity;
+  @Inject SecurityIdentity identity;
 
-  @Inject
-  UserSessionService userSessionService;
+  @Inject UserSessionService userSessionService;
 
-  @Inject
-  GithubService githubService;
+  @Inject GithubService githubService;
 
-  @Inject
-  EventService eventService;
+  @Inject EventService eventService;
 
-  @Inject
-  CommunityContentService communityContentService;
+  @Inject CommunityContentService communityContentService;
 
-  @Inject
-  CommunityBoardService communityBoardService;
+  @Inject CommunityBoardService communityBoardService;
 
-  @Inject
-  CommunityLightningService communityLightningService;
+  @Inject CommunityLightningService communityLightningService;
 
-  @Inject
-  CommunityVoteService communityVoteService;
+  @Inject CommunityVoteService communityVoteService;
 
-  @Inject
-  EconomyService economyService;
+  @Inject EconomyService economyService;
 
-  @Inject
-  GamificationService gamificationService;
+  @Inject GamificationService gamificationService;
 
-  @Inject
-  UserProfileService userProfileService;
+  @Inject UserProfileService userProfileService;
 
-  @Inject
-  NotificationService notificationService;
+  @Inject NotificationService notificationService;
 
-  @Inject
-  ChallengeService challengeService;
+  @Inject ChallengeService challengeService;
 
   @GET
   public TemplateInstance home(
@@ -105,7 +90,8 @@ public class PublicPagesResource {
     String resolvedLocale = TemplateLocaleUtil.resolve(localeCookie, headers);
     var currentUserId = currentUserId();
     var currentSession = userSessionService.getCurrentSession();
-    currentUserId.ifPresent(userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
+    currentUserId.ifPresent(
+        userId -> gamificationService.award(userId, GamificationActivity.HOME_VIEW));
     List<GithubContributor> contributors = githubService.fetchHomeProjectContributors();
     List<GithubContributor> projectHighlights = contributors.stream().limit(6).toList();
     int contributionTotal = contributors.stream().mapToInt(GithubContributor::contributions).sum();
@@ -150,10 +136,13 @@ public class PublicPagesResource {
             .orElse(false);
     int homeStarterRemainingXp =
         starterXpRemaining(homeAccountHasGithub, homeAccountHasDiscord, homeStarterHasVote);
-    int homeStarterRemainingHcoin = economyService.previewGamificationReward(homeStarterRemainingXp);
+    int homeStarterRemainingHcoin =
+        economyService.previewGamificationReward(homeStarterRemainingXp);
     int homeLinkedSignals = 1 + (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0);
     int homeStarterCompleted =
-        (homeAccountHasGithub ? 1 : 0) + (homeAccountHasDiscord ? 1 : 0) + (homeStarterHasVote ? 1 : 0);
+        (homeAccountHasGithub ? 1 : 0)
+            + (homeAccountHasDiscord ? 1 : 0)
+            + (homeStarterHasVote ? 1 : 0);
     long homeWalletBalance =
         currentUserId.map(economyService::getWallet).map(EconomyWallet::balanceHcoin).orElse(0L);
     int homeInventoryCount =
@@ -165,13 +154,18 @@ public class PublicPagesResource {
             .orElse(new NotificationService.NotificationPage(List.of(), null, 0L));
     int homeUnreadNotifications = toIntSafely(homeNotificationPage.unreadCount());
     List<HomeNotificationPreview> homeNotificationPreview =
-        homeNotificationPage.items().stream().limit(2).map(this::toHomeNotificationPreview).toList();
+        homeNotificationPage.items().stream()
+            .limit(2)
+            .map(this::toHomeNotificationPreview)
+            .toList();
     List<HomeClassProgress> homeClassProgress =
         buildHomeClassProgress(currentProfile.orElse(null), currentSession.currentXp());
     HomeClassProgress homeDominantClass =
         homeClassProgress.stream()
             .filter(progress -> progress.xp() > 0)
-            .max(Comparator.comparingInt(HomeClassProgress::xp).thenComparing(HomeClassProgress::value))
+            .max(
+                Comparator.comparingInt(HomeClassProgress::xp)
+                    .thenComparing(HomeClassProgress::value))
             .orElse(null);
     List<EconomyService.CatalogOffer> homeCatalogOffers =
         currentUserId.map(economyService::listCatalogForUser).orElse(List.of());
@@ -192,19 +186,18 @@ public class PublicPagesResource {
     HomeRewardSpotlight homeRewardSpotlight =
         chooseRewardSpotlight(homeCatalogOffers, homeWalletBalance);
     List<HomeChallengeCard> homeChallengeCards =
-        currentUserId
-            .map(challengeService::listProgressForUser)
-            .orElse(List.of())
-            .stream()
+        currentUserId.map(challengeService::listProgressForUser).orElse(List.of()).stream()
             .map(card -> toHomeChallengeCard(card, homeChallengesCopy))
             .toList();
-    int homeChallengesCompleted = (int) homeChallengeCards.stream().filter(HomeChallengeCard::completed).count();
+    int homeChallengesCompleted =
+        (int) homeChallengeCards.stream().filter(HomeChallengeCard::completed).count();
     int homeChallengesInProgress =
         (int)
             homeChallengeCards.stream()
                 .filter(card -> !card.completed() && card.completedSteps() > 0)
                 .count();
-    int homeChallengesReady = Math.max(0, homeChallengeCards.size() - homeChallengesCompleted - homeChallengesInProgress);
+    int homeChallengesReady =
+        Math.max(0, homeChallengeCards.size() - homeChallengesCompleted - homeChallengesInProgress);
     List<HomeChallengeTrend> homeTrendingChallenges =
         challengeService.trendingChallenges(Duration.ofDays(7), 3).stream()
             .map(trend -> toHomeChallengeTrend(trend, homeChallengesCopy, homeChallengeLoopCopy))
@@ -213,7 +206,14 @@ public class PublicPagesResource {
         currentUserId
             .map(challengeService::leaderboardForUser)
             .map(rank -> toHomeChallengeLeaderboard(rank, homeChallengeLoopCopy))
-            .orElse(new HomeChallengeLeaderboard(0, 0, 0, null, homeChallengeLoopCopy.leaderboardEmptyTitle(), homeChallengeLoopCopy.leaderboardEmptyDesc()));
+            .orElse(
+                new HomeChallengeLeaderboard(
+                    0,
+                    0,
+                    0,
+                    null,
+                    homeChallengeLoopCopy.leaderboardEmptyTitle(),
+                    homeChallengeLoopCopy.leaderboardEmptyDesc()));
 
     if (contributors.isEmpty()) {
       LOG.debug("No contributors available for home page.");
@@ -329,7 +329,9 @@ public class PublicPagesResource {
   public TemplateInstance events(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
+    currentUserId()
+        .ifPresent(
+            userId -> gamificationService.award(userId, GamificationActivity.EVENT_DIRECTORY_VIEW));
     List<Event> upcoming = eventService.listUpcomingEvents().stream().limit(10).toList();
     List<Event> past = eventService.listPastEvents().stream().limit(10).toList();
     return withLayoutData(
@@ -392,7 +394,9 @@ public class PublicPagesResource {
     }
     String id = item.id() == null ? "" : item.id().toLowerCase(Locale.ROOT);
     String source = item.source() == null ? "" : item.source().trim().toLowerCase(Locale.ROOT);
-    return id.startsWith("submission-") || "community member".equals(source) || "member".equals(source);
+    return id.startsWith("submission-")
+        || "community member".equals(source)
+        || "member".equals(source);
   }
 
   private int toIntSafely(long value) {
@@ -430,8 +434,11 @@ public class PublicPagesResource {
     }
     QuestClass dominant =
         xpMap.entrySet().stream()
-            .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0)
-            .max(Map.Entry.<QuestClass, Integer>comparingByValue().thenComparing(entry -> entry.getKey().name()))
+            .filter(
+                entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0)
+            .max(
+                Map.Entry.<QuestClass, Integer>comparingByValue()
+                    .thenComparing(entry -> entry.getKey().name()))
             .map(Map.Entry::getKey)
             .orElse(null);
     final int totalXp = total;
@@ -463,7 +470,8 @@ public class PublicPagesResource {
       return null;
     }
     Comparator<EconomyService.CatalogOffer> unlockedComparator =
-        Comparator.comparingInt(EconomyService.CatalogOffer::priceHcoin).thenComparing(EconomyService.CatalogOffer::id);
+        Comparator.comparingInt(EconomyService.CatalogOffer::priceHcoin)
+            .thenComparing(EconomyService.CatalogOffer::id);
     Optional<EconomyService.CatalogOffer> affordable =
         withStock.stream()
             .filter(offer -> offer.unlocked() && offer.priceHcoin() <= walletBalance)
@@ -487,7 +495,8 @@ public class PublicPagesResource {
         .orElse(null);
   }
 
-  private HomeRewardSpotlight toRewardSpotlight(EconomyService.CatalogOffer offer, long walletBalance) {
+  private HomeRewardSpotlight toRewardSpotlight(
+      EconomyService.CatalogOffer offer, long walletBalance) {
     String requiredClassName = null;
     if (offer.requiredClass() != null) {
       QuestClass questClass = QuestClass.fromValue(offer.requiredClass());
@@ -524,10 +533,7 @@ public class PublicPagesResource {
     int completedSteps = Math.max(0, Math.min(card.completedSteps(), totalSteps));
     int progressPercent =
         totalSteps <= 0 ? 0 : (int) Math.round((completedSteps * 100.0d) / (double) totalSteps);
-    String state =
-        card.completed()
-            ? "completed"
-            : completedSteps > 0 ? "in_progress" : "ready";
+    String state = card.completed() ? "completed" : completedSteps > 0 ? "in_progress" : "ready";
     String statusLabel =
         switch (state) {
           case "completed" -> copy.statusCompleted();
@@ -548,12 +554,7 @@ public class PublicPagesResource {
         challengeCta(card.id(), copy),
         statusLabel,
         formatNamed(copy.rewardHcoinPattern(), "reward", Math.max(0, card.rewardHcoin())),
-        formatNamed(
-            copy.progressStepsPattern(),
-            "completed",
-            completedSteps,
-            "total",
-            totalSteps));
+        formatNamed(copy.progressStepsPattern(), "completed", completedSteps, "total", totalSteps));
   }
 
   private HomeChallengeTrend toHomeChallengeTrend(
@@ -572,19 +573,15 @@ public class PublicPagesResource {
       ChallengeService.ChallengeLeaderboard leaderboard, HomeChallengeLoopCopy copy) {
     if (leaderboard == null || leaderboard.rank() <= 0 || leaderboard.completedChallenges() <= 0) {
       return new HomeChallengeLeaderboard(
-          0,
-          0,
-          0,
-          null,
-          copy.leaderboardEmptyTitle(),
-          copy.leaderboardEmptyDesc());
+          0, 0, 0, null, copy.leaderboardEmptyTitle(), copy.leaderboardEmptyDesc());
     }
     return new HomeChallengeLeaderboard(
         leaderboard.rank(),
         leaderboard.activeMembers(),
         leaderboard.completedChallenges(),
         formatNamed(copy.leaderboardRankPattern(), "rank", leaderboard.rank()),
-        formatNamed(copy.leaderboardSummaryPattern(), "completed", leaderboard.completedChallenges()),
+        formatNamed(
+            copy.leaderboardSummaryPattern(), "completed", leaderboard.completedChallenges()),
         formatNamed(copy.leaderboardPopulationPattern(), "active", leaderboard.activeMembers()));
   }
 
@@ -642,8 +639,7 @@ public class PublicPagesResource {
 
   private ResourceBundle localizedChallengeBundle(String localeCode) {
     String normalized = localeCode == null ? "" : localeCode.trim().toLowerCase(Locale.ROOT);
-    Locale bundleLocale =
-        normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
+    Locale bundleLocale = normalized.startsWith("es") ? Locale.forLanguageTag("es") : Locale.ROOT;
     return ResourceBundle.getBundle("i18n", bundleLocale);
   }
 

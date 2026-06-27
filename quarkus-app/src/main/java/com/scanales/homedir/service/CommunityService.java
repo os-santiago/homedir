@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class CommunityService {
 
-  @Inject
-  CommunitySyncService sync;
+  @Inject CommunitySyncService sync;
 
   public List<CommunityMember> listMembers() {
     return sync.fetchMembers();
@@ -26,12 +25,13 @@ public class CommunityService {
     String q = query.toLowerCase(Locale.ROOT).trim();
     return all.stream()
         .filter(
-            m -> (m.getDisplayName() != null
-                && m.getDisplayName().toLowerCase(Locale.ROOT).contains(q))
-                || (m.getGithub() != null
-                    && m.getGithub().toLowerCase(Locale.ROOT).contains(q))
-                || (m.getSkills() != null
-                    && m.getSkills().stream().anyMatch(s -> s.toLowerCase(Locale.ROOT).contains(q))))
+            m ->
+                (m.getDisplayName() != null
+                        && m.getDisplayName().toLowerCase(Locale.ROOT).contains(q))
+                    || (m.getGithub() != null && m.getGithub().toLowerCase(Locale.ROOT).contains(q))
+                    || (m.getSkills() != null
+                        && m.getSkills().stream()
+                            .anyMatch(s -> s.toLowerCase(Locale.ROOT).contains(q))))
         .collect(Collectors.toList());
   }
 

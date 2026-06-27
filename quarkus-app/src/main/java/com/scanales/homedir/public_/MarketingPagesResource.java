@@ -5,7 +5,6 @@ import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.vertx.ext.web.RoutingContext;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -14,6 +13,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/")
 @PermitAll
@@ -40,7 +40,8 @@ public class MarketingPagesResource {
   @Path("/docs")
   public TemplateInstance docs(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
-      @Context HttpHeaders headers, @Context RoutingContext context) {
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
     metrics.recordPageView("/docs", headers, context);
     if (uiV2Enabled) {
       return TemplateLocaleUtil.apply(Templates.docs(), localeCookie);
@@ -53,7 +54,8 @@ public class MarketingPagesResource {
   @Path("/contacto")
   public TemplateInstance contacto(
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
-      @Context HttpHeaders headers, @Context RoutingContext context) {
+      @Context HttpHeaders headers,
+      @Context RoutingContext context) {
     metrics.recordPageView("/contacto", headers, context);
     if (uiV2Enabled) {
       return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
@@ -75,8 +77,7 @@ public class MarketingPagesResource {
   @GET
   @Path("/politica-de-privacidad")
   public TemplateInstance privacyPolicyEs(
-      @Context HttpHeaders headers,
-      @Context RoutingContext context) {
+      @Context HttpHeaders headers, @Context RoutingContext context) {
     metrics.recordPageView("/politica-de-privacidad", headers, context);
     return TemplateLocaleUtil.apply(Templates.privacy(), "es");
   }
@@ -94,8 +95,7 @@ public class MarketingPagesResource {
   @GET
   @Path("/condiciones-del-servicio")
   public TemplateInstance termsOfServiceEs(
-      @Context HttpHeaders headers,
-      @Context RoutingContext context) {
+      @Context HttpHeaders headers, @Context RoutingContext context) {
     metrics.recordPageView("/condiciones-del-servicio", headers, context);
     return TemplateLocaleUtil.apply(Templates.terms(), "es");
   }

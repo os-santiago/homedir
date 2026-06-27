@@ -16,14 +16,10 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class TalkStateEvaluatorTest {
 
-  @Inject
-  TalkStateEvaluator evaluator;
-  @Inject
-  NotificationService notifications;
-  @Inject
-  EventService events;
-  @Inject
-  UserScheduleService schedules;
+  @Inject TalkStateEvaluator evaluator;
+  @Inject NotificationService notifications;
+  @Inject EventService events;
+  @Inject UserScheduleService schedules;
 
   @BeforeEach
   void setup() {

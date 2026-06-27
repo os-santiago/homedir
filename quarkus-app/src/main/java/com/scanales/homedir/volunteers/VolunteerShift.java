@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 /**
- * Represents a 2-hour shift segment for volunteer coverage during an event.
- * Each shift has a specific day index, start/end times, and capacity.
+ * Represents a 2-hour shift segment for volunteer coverage during an event. Each shift has a
+ * specific day index, start/end times, and capacity.
  */
 public record VolunteerShift(
     String id,

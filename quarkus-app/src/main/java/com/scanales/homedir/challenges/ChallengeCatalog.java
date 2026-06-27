@@ -38,8 +38,7 @@ public final class ChallengeCatalog {
 
   private static final Map<String, ChallengeDefinition> BY_ID = byId(DEFINITIONS);
 
-  private ChallengeCatalog() {
-  }
+  private ChallengeCatalog() {}
 
   public static List<ChallengeDefinition> definitions() {
     return DEFINITIONS;

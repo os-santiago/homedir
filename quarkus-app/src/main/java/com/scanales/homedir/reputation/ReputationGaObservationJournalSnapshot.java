@@ -49,7 +49,8 @@ public record ReputationGaObservationJournalSnapshot(
         "");
   }
 
-  public ReputationGaObservationJournalSnapshot withWeeklyCycleObserved(boolean observed, String actor) {
+  public ReputationGaObservationJournalSnapshot withWeeklyCycleObserved(
+      boolean observed, String actor) {
     return new ReputationGaObservationJournalSnapshot(
         SCHEMA_VERSION,
         Instant.now(),
@@ -68,7 +69,8 @@ public record ReputationGaObservationJournalSnapshot(
         releaseWindowTwoObservedBy);
   }
 
-  public ReputationGaObservationJournalSnapshot withMonthlyCycleObserved(boolean observed, String actor) {
+  public ReputationGaObservationJournalSnapshot withMonthlyCycleObserved(
+      boolean observed, String actor) {
     return new ReputationGaObservationJournalSnapshot(
         SCHEMA_VERSION,
         Instant.now(),

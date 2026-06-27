@@ -13,23 +13,15 @@ import java.util.Optional;
 
 public final class CfpTimelinePlanner {
 
-  private CfpTimelinePlanner() {
-  }
+  private CfpTimelinePlanner() {}
 
   public static Optional<CfpTimelineView> build(
-      Event event,
-      Instant cfpOpensAt,
-      Instant cfpClosesAt,
-      Locale locale) {
+      Event event, Instant cfpOpensAt, Instant cfpClosesAt, Locale locale) {
     return build(event, cfpOpensAt, cfpClosesAt, locale, Instant.now());
   }
 
   static Optional<CfpTimelineView> build(
-      Event event,
-      Instant cfpOpensAt,
-      Instant cfpClosesAt,
-      Locale locale,
-      Instant now) {
+      Event event, Instant cfpOpensAt, Instant cfpClosesAt, Locale locale, Instant now) {
     if (event == null || event.getDate() == null) {
       return Optional.empty();
     }
@@ -98,39 +90,41 @@ public final class CfpTimelinePlanner {
       presentationsDeadline = resultsDate;
     }
 
-    LocalDate nowDate = ZonedDateTime.ofInstant(now != null ? now : Instant.now(), zone).toLocalDate();
+    LocalDate nowDate =
+        ZonedDateTime.ofInstant(now != null ? now : Instant.now(), zone).toLocalDate();
 
-    List<CfpTimelineStageView> stages = List.of(
-        new CfpTimelineStageView(
-            "cfp",
-            spanDays(cfpOpen, cfpClose),
-            formatWithoutYear(cfpOpen, safeLocale),
-            formatWithoutYear(cfpClose, safeLocale),
-            isActive(nowDate, cfpOpen, cfpClose)),
-        new CfpTimelineStageView(
-            "evaluation",
-            spanDays(evaluationStart, evaluationEnd),
-            formatWithoutYear(evaluationStart, safeLocale),
-            formatWithoutYear(evaluationEnd, safeLocale),
-            isActive(nowDate, evaluationStart, evaluationEnd)),
-        new CfpTimelineStageView(
-            "results",
-            spanDays(resultsDate, resultsDate),
-            formatWithoutYear(resultsDate, safeLocale),
-            formatWithoutYear(resultsDate, safeLocale),
-            isActive(nowDate, resultsDate, resultsDate)),
-        new CfpTimelineStageView(
-            "presentations",
-            spanDays(resultsDate, presentationsDeadline),
-            formatWithoutYear(resultsDate, safeLocale),
-            formatWithoutYear(presentationsDeadline, safeLocale),
-            isActive(nowDate, resultsDate, presentationsDeadline)),
-        new CfpTimelineStageView(
-            "event",
-            spanDays(eventStart, eventEnd),
-            formatWithoutYear(eventStart, safeLocale),
-            formatWithoutYear(eventEnd, safeLocale),
-            isActive(nowDate, eventStart, eventEnd)));
+    List<CfpTimelineStageView> stages =
+        List.of(
+            new CfpTimelineStageView(
+                "cfp",
+                spanDays(cfpOpen, cfpClose),
+                formatWithoutYear(cfpOpen, safeLocale),
+                formatWithoutYear(cfpClose, safeLocale),
+                isActive(nowDate, cfpOpen, cfpClose)),
+            new CfpTimelineStageView(
+                "evaluation",
+                spanDays(evaluationStart, evaluationEnd),
+                formatWithoutYear(evaluationStart, safeLocale),
+                formatWithoutYear(evaluationEnd, safeLocale),
+                isActive(nowDate, evaluationStart, evaluationEnd)),
+            new CfpTimelineStageView(
+                "results",
+                spanDays(resultsDate, resultsDate),
+                formatWithoutYear(resultsDate, safeLocale),
+                formatWithoutYear(resultsDate, safeLocale),
+                isActive(nowDate, resultsDate, resultsDate)),
+            new CfpTimelineStageView(
+                "presentations",
+                spanDays(resultsDate, presentationsDeadline),
+                formatWithoutYear(resultsDate, safeLocale),
+                formatWithoutYear(presentationsDeadline, safeLocale),
+                isActive(nowDate, resultsDate, presentationsDeadline)),
+            new CfpTimelineStageView(
+                "event",
+                spanDays(eventStart, eventEnd),
+                formatWithoutYear(eventStart, safeLocale),
+                formatWithoutYear(eventEnd, safeLocale),
+                isActive(nowDate, eventStart, eventEnd)));
 
     CfpTimelineStageView activeStage =
         stages.stream().filter(CfpTimelineStageView::active).findFirst().orElse(null);

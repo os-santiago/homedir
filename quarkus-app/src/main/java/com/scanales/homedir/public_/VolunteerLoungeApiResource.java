@@ -1,9 +1,9 @@
 package com.scanales.homedir.public_;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.eventops.EventOperationsService;
 import com.scanales.homedir.eventops.EventStaffRole;
+import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
@@ -11,10 +11,10 @@ import com.scanales.homedir.util.PaginationGuardrails;
 import com.scanales.homedir.volunteers.VolunteerApplication;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
+import com.scanales.homedir.volunteers.VolunteerInsightsService;
 import com.scanales.homedir.volunteers.VolunteerLoungeMessage;
 import com.scanales.homedir.volunteers.VolunteerLoungeMessageType;
 import com.scanales.homedir.volunteers.VolunteerLoungeService;
-import com.scanales.homedir.volunteers.VolunteerInsightsService;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -72,16 +72,21 @@ public class VolunteerLoungeApiResource {
     int limit = PaginationGuardrails.clampLimit(limitParam, DEFAULT_LIMIT, MAX_LIMIT);
     int offset = PaginationGuardrails.clampOffset(offsetParam, MAX_OFFSET);
     List<VolunteerLoungeItem> items =
-        volunteerLoungeService.listByEvent(eventId, limit, offset).stream().map(this::toItem).toList();
+        volunteerLoungeService.listByEvent(eventId, limit, offset).stream()
+            .map(this::toItem)
+            .toList();
     int total = volunteerLoungeService.countByEvent(eventId);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new VolunteerLoungeListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
+    return Response.ok(
+            new VolunteerLoungeListResponse(limit, offset, total, hasMore, nextOffset, items))
+        .build();
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response create(@PathParam("eventId") String eventId, CreateVolunteerLoungeRequest request) {
+  public Response create(
+      @PathParam("eventId") String eventId, CreateVolunteerLoungeRequest request) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED)
@@ -151,10 +156,14 @@ public class VolunteerLoungeApiResource {
             .stream()
             .map(this::toItem)
             .toList();
-    int total = volunteerLoungeService.countByEventAndType(eventId, VolunteerLoungeMessageType.ANNOUNCEMENT);
+    int total =
+        volunteerLoungeService.countByEventAndType(
+            eventId, VolunteerLoungeMessageType.ANNOUNCEMENT);
     boolean hasMore = offset + items.size() < total;
     Integer nextOffset = hasMore ? offset + items.size() : null;
-    return Response.ok(new VolunteerLoungeListResponse(limit, offset, total, hasMore, nextOffset, items)).build();
+    return Response.ok(
+            new VolunteerLoungeListResponse(limit, offset, total, hasMore, nextOffset, items))
+        .build();
   }
 
   @POST
@@ -169,7 +178,9 @@ public class VolunteerLoungeApiResource {
           .build();
     }
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     String primaryUserId = userIds.iterator().next();
     try {
@@ -199,7 +210,8 @@ public class VolunteerLoungeApiResource {
 
   @DELETE
   @Path("/announcements/{id}")
-  public Response deleteAnnouncement(@PathParam("eventId") String eventId, @PathParam("id") String id) {
+  public Response deleteAnnouncement(
+      @PathParam("eventId") String eventId, @PathParam("id") String id) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED)
@@ -207,11 +219,15 @@ public class VolunteerLoungeApiResource {
           .build();
     }
     if (!AdminUtils.isAdmin(identity)) {
-      return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "admin_required")).build();
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
     }
     boolean deleted = volunteerLoungeService.delete(eventId, id);
     if (!deleted) {
-      return Response.status(Response.Status.NOT_FOUND).entity(Map.of("error", "announcement_not_found")).build();
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "announcement_not_found"))
+          .build();
     }
     metrics.recordFunnelStep("volunteer.lounge.announcement.delete");
     return Response.noContent().build();
@@ -238,7 +254,8 @@ public class VolunteerLoungeApiResource {
       return true;
     }
     for (String userId : userIds) {
-      Optional<VolunteerApplication> app = volunteerApplicationService.findByEventAndUser(eventId, userId);
+      Optional<VolunteerApplication> app =
+          volunteerApplicationService.findByEventAndUser(eventId, userId);
       if (app.isPresent() && app.get().status() == VolunteerApplicationStatus.SELECTED) {
         return true;
       }
@@ -293,7 +310,8 @@ public class VolunteerLoungeApiResource {
     target.add(raw.trim().toLowerCase(Locale.ROOT));
   }
 
-  public record CreateVolunteerLoungeRequest(String body, @JsonProperty("parent_id") String parentId) {}
+  public record CreateVolunteerLoungeRequest(
+      String body, @JsonProperty("parent_id") String parentId) {}
 
   public record CreateVolunteerLoungeAnnouncementRequest(String body) {}
 

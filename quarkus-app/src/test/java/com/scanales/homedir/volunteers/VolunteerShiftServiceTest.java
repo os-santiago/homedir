@@ -8,7 +8,6 @@ import com.scanales.homedir.service.PersistenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,8 +142,7 @@ class VolunteerShiftServiceTest {
     assertThrows(
         VolunteerShiftService.ValidationException.class,
         () ->
-            service.setAvailability(
-                "test-event-5", "user@example.com", "Test User", tooFewShifts),
+            service.setAvailability("test-event-5", "user@example.com", "Test User", tooFewShifts),
         "Should reject less than 2 segments per day");
   }
 
@@ -162,8 +160,7 @@ class VolunteerShiftServiceTest {
     assertThrows(
         VolunteerShiftService.ValidationException.class,
         () ->
-            service.setAvailability(
-                "test-event-6", "user@example.com", "Test User", tooManyShifts),
+            service.setAvailability("test-event-6", "user@example.com", "Test User", tooManyShifts),
         "Should reject more than 4 segments per day");
   }
 
@@ -187,8 +184,7 @@ class VolunteerShiftServiceTest {
             shifts.get(7).id());
 
     VolunteerAvailability availability =
-        service.setAvailability(
-            "test-event-7", "user@example.com", "Test User", validMultiDay);
+        service.setAvailability("test-event-7", "user@example.com", "Test User", validMultiDay);
 
     assertNotNull(availability);
     assertEquals(5, availability.selectedShiftIds().size());

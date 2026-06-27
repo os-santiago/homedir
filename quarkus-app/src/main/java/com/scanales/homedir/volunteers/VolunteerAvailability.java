@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Tracks a volunteer's selected availability for shifts within an event.
- * Enforces business rules: minimum 2 segments per day, maximum 4 segments per day.
+ * Tracks a volunteer's selected availability for shifts within an event. Enforces business rules:
+ * minimum 2 segments per day, maximum 4 segments per day.
  */
 public record VolunteerAvailability(
     String id,

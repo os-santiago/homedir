@@ -15,7 +15,8 @@ public class ProfileReadinessService {
 
   public Readiness evaluate(UserProfile profile, String displayName, String avatarUrl) {
     List<String> missingFields = new ArrayList<>();
-    UserProfile.SpeakerProfile speakerProfile = profile != null ? profile.getSpeakerProfile() : null;
+    UserProfile.SpeakerProfile speakerProfile =
+        profile != null ? profile.getSpeakerProfile() : null;
 
     if (isBlank(displayName)) {
       missingFields.add(FIELD_NAME);

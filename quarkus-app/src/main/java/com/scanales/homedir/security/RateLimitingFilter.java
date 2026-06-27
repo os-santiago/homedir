@@ -25,11 +25,8 @@ import org.jboss.logging.Logger;
 /**
  * Simple per-IP rate limiter for auth/public/API endpoints.
  *
- * <p>
- * Uses a fixed window counter per bucket (auth/logout/api) and per client key
- * (first
- * X-Forwarded-For IP or "unknown"). Defaults are conservative and can be tuned
- * via config.
+ * <p>Uses a fixed window counter per bucket (auth/logout/api) and per client key (first
+ * X-Forwarded-For IP or "unknown"). Defaults are conservative and can be tuned via config.
  */
 @Provider
 @ApplicationScoped
@@ -41,6 +38,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private static final Set<String> AUTH_PATHS = Set.of("/login", "/auth", "/j_security_check");
   private static final Set<String> LOGOUT_PATHS = Set.of("/logout");
+  private static final Set<String> HIGH_TRAFFIC_PUBLIC_API_PATHS =
+      Set.of("/api/content", "/api/trending");
   private static final String COMMUNITY_CONTENT_API_PREFIX = "/api/community/content";
   private static final Set<String> SKIP_PATHS = Set.of("/", "/health", "/metrics");
   private static final Pattern STATIC_PATTERN = Pattern.compile("^/(css|js|images|static|img)/.*");
@@ -89,9 +88,7 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   int communityContentApiWriteLimit;
 
   @Inject
-  @ConfigProperty(
-      name = "rate.limit.api.community-content.adaptive.enabled",
-      defaultValue = "true")
+  @ConfigProperty(name = "rate.limit.api.community-content.adaptive.enabled", defaultValue = "true")
   boolean communityContentAdaptiveEnabled;
 
   @Inject
@@ -114,8 +111,6 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   @ConfigProperty(name = "rate.limit.cleanup-ttl-minutes", defaultValue = "5")
   int cleanupTtlMinutes;
-
-
 
   @Inject
   @ConfigProperty(
@@ -157,14 +152,15 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     long now = System.currentTimeMillis();
 
     int effectiveLimit = effectiveLimit(bucket, clientKey, ctx, now);
-    Counter c = counters.compute(
-        bucket.key(clientKey),
-        (k, v) -> {
-          if (v == null || now - v.windowStartMs >= bucket.windowMs) {
-            return new Counter(now, 1);
-          }
-          return new Counter(v.windowStartMs, v.count + 1);
-        });
+    Counter c =
+        counters.compute(
+            bucket.key(clientKey),
+            (k, v) -> {
+              if (v == null || now - v.windowStartMs >= bucket.windowMs) {
+                return new Counter(now, 1);
+              }
+              return new Counter(v.windowStartMs, v.count + 1);
+            });
 
     maybeCleanupCounters(now);
 
@@ -226,14 +222,16 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   }
 
   private Bucket resolveBucket(String path, String method) {
-    String normalizedMethod = method == null || method.isBlank() ? "GET" : method.trim().toUpperCase();
+    String normalizedMethod =
+        method == null || method.isBlank() ? "GET" : method.trim().toUpperCase();
     if (LOGOUT_PATHS.contains(path)) {
       return new Bucket("logout", logoutLimit, windowSeconds);
     }
     if (AUTH_PATHS.contains(path)) {
       return new Bucket("auth", authLimit, windowSeconds);
     }
-    if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)) {
+    if (path.startsWith(COMMUNITY_CONTENT_API_PREFIX)
+        || HIGH_TRAFFIC_PUBLIC_API_PATHS.contains(path)) {
       int communityLimit =
           "GET".equals(normalizedMethod)
               ? Math.max(communityContentApiLimit, communityContentApiReadLimit)
@@ -263,7 +261,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
   }
 
   private boolean isTrustedProxy() {
-    if (trustedProxies == null || trustedProxies.isBlank() || "none".equals(trustedProxies)) return false;
+    if (trustedProxies == null || trustedProxies.isBlank() || "none".equals(trustedProxies))
+      return false;
     return true;
   }
 
@@ -300,7 +299,8 @@ public class RateLimitingFilter implements ContainerRequestFilter {
     if (!"api-community-content".equals(bucket.name) || !communityContentAdaptiveEnabled) {
       return bucket.limit;
     }
-    if (communityContentAdaptivePerFingerprintBonus <= 0 || communityContentAdaptiveMaxLimit <= bucket.limit) {
+    if (communityContentAdaptivePerFingerprintBonus <= 0
+        || communityContentAdaptiveMaxLimit <= bucket.limit) {
       return bucket.limit;
     }
 
@@ -323,9 +323,14 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
     int distinctFingerprints = state.fingerprints.size();
     int bonusUnits =
-        Math.max(0, Math.min(distinctFingerprints - 1, Math.max(0, communityContentAdaptiveMaxFingerprints - 1)));
+        Math.max(
+            0,
+            Math.min(
+                distinctFingerprints - 1,
+                Math.max(0, communityContentAdaptiveMaxFingerprints - 1)));
     int adaptiveLimit = bucket.limit + (bonusUnits * communityContentAdaptivePerFingerprintBonus);
-    int effectiveLimit = Math.min(Math.max(bucket.limit, adaptiveLimit), communityContentAdaptiveMaxLimit);
+    int effectiveLimit =
+        Math.min(Math.max(bucket.limit, adaptiveLimit), communityContentAdaptiveMaxLimit);
     if (effectiveLimit > bucket.limit) {
       adaptiveLimitApplied.incrementAndGet();
     }
@@ -334,12 +339,18 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private String extractCommunityContentFingerprint(ContainerRequestContext ctx) {
     String sessionCookie =
-        extractCookieValue(ctx.getHeaderString(HttpHeaders.COOKIE), "q_session", "JSESSIONID", "session", "connect.sid");
+        extractCookieValue(
+            ctx.getHeaderString(HttpHeaders.COOKIE),
+            "q_session",
+            "JSESSIONID",
+            "session",
+            "connect.sid");
     String userAgent = nullToEmpty(ctx.getHeaderString(HttpHeaders.USER_AGENT));
     String acceptLanguage = nullToEmpty(ctx.getHeaderString(HttpHeaders.ACCEPT_LANGUAGE));
     String accept = nullToEmpty(ctx.getHeaderString(HttpHeaders.ACCEPT));
     String method = nullToEmpty(ctx.getMethod());
-    String fingerprintMaterial = sessionCookie + "|" + userAgent + "|" + acceptLanguage + "|" + accept + "|" + method;
+    String fingerprintMaterial =
+        sessionCookie + "|" + userAgent + "|" + acceptLanguage + "|" + accept + "|" + method;
     return Integer.toHexString(Objects.hash(fingerprintMaterial));
   }
 
@@ -368,10 +379,13 @@ public class RateLimitingFilter implements ContainerRequestFilter {
 
   private void maybeCleanupCounters(long now) {
     if (counters.size() > maxCounterEntries) {
-      counters.entrySet().removeIf(e -> {
-        Counter c = e.getValue();
-        return now - c.windowStartMs > Duration.ofMinutes(cleanupTtlMinutes).toMillis();
-      });
+      counters
+          .entrySet()
+          .removeIf(
+              e -> {
+                Counter c = e.getValue();
+                return now - c.windowStartMs > Duration.ofMinutes(cleanupTtlMinutes).toMillis();
+              });
     }
   }
 
@@ -381,7 +395,9 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       return;
     }
     long staleAfterMs = Math.max(windowMs * 2L, Duration.ofMinutes(5).toMillis());
-    communityContentFingerprintWindows.entrySet().removeIf(entry -> now - entry.getValue().windowStartMs >= staleAfterMs);
+    communityContentFingerprintWindows
+        .entrySet()
+        .removeIf(entry -> now - entry.getValue().windowStartMs >= staleAfterMs);
   }
 
   private static String nullToEmpty(String value) {
@@ -415,6 +431,5 @@ public class RateLimitingFilter implements ContainerRequestFilter {
       long totalChecked,
       long totalThrottled,
       Map<String, Long> checkedByBucket,
-      Map<String, Long> throttledByBucket) {
-  }
+      Map<String, Long> throttledByBucket) {}
 }

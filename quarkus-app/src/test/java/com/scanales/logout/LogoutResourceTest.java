@@ -10,20 +10,22 @@ public class LogoutResourceTest {
 
   @Test
   public void logoutRedirectsAndClearsCookie() {
-    var response = given()
-        .redirects()
-        .follow(false)
-        .when()
-        .get("/logout")
-        .then()
-        .statusCode(303)
-        .header("Location", "/")
-        .extract()
-        .response();
+    var response =
+        given()
+            .redirects()
+            .follow(false)
+            .when()
+            .get("/logout")
+            .then()
+            .statusCode(303)
+            .header("Location", "/")
+            .extract()
+            .response();
 
     // Verify that at least one Set-Cookie header clears the q_session cookie
     var cookies = response.getHeaders().getValues("Set-Cookie");
-    var hasQSessionClear = cookies.stream().anyMatch(c -> c.contains("q_session=") && c.contains("Max-Age=0"));
+    var hasQSessionClear =
+        cookies.stream().anyMatch(c -> c.contains("q_session=") && c.contains("Max-Age=0"));
     var hasSecure = cookies.stream().anyMatch(c -> c.contains("Secure"));
 
     org.junit.jupiter.api.Assertions.assertTrue(

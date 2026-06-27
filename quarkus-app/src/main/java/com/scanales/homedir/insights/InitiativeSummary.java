@@ -16,5 +16,4 @@ public record InitiativeSummary(
     Long leadHoursToProduction,
     Instant lastEventAt,
     String lastEventType,
-    long totalEvents) {
-}
+    long totalEvents) {}

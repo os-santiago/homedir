@@ -46,7 +46,9 @@ class CommunityContentServiceTest {
         """);
     Files.writeString(
         contentDir.resolve(CommunityContentService.MANAGED_SEED_MANIFEST),
-        String.join(System.lineSeparator(), indexedFiles) + System.lineSeparator() + "legacy-managed.yml");
+        String.join(System.lineSeparator(), indexedFiles)
+            + System.lineSeparator()
+            + "legacy-managed.yml");
 
     CommunityContentService.SeedSyncResult secondSync =
         CommunityContentService.syncBundledSeedContent(contentDir, classLoader);

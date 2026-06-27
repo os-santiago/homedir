@@ -38,7 +38,8 @@ public class CampaignMastodonPublisherService {
   @ConfigProperty(name = "campaigns.publish.mastodon.min-interval", defaultValue = "PT15M")
   Duration minInterval;
 
-  private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
   public CampaignPublisherStatus status() {
     return new CampaignPublisherStatus(
@@ -70,8 +71,7 @@ public class CampaignMastodonPublisherService {
     }
 
     try {
-      String endpoint =
-          CampaignPublishMessageSupport.normalizeBaseUrl(baseUrl.orElse(""), "");
+      String endpoint = CampaignPublishMessageSupport.normalizeBaseUrl(baseUrl.orElse(""), "");
       String message =
           CampaignPublishMessageSupport.truncate(
               CampaignPublishMessageSupport.messageFor(draft, CHANNEL), 450);
@@ -83,12 +83,11 @@ public class CampaignMastodonPublisherService {
               .header("Authorization", "Bearer " + accessToken.orElseThrow().trim())
               .POST(
                   HttpRequest.BodyPublishers.ofString(
-                      "{\"status\":\""
-                          + CampaignPublishMessageSupport.escapeJson(message)
-                          + "\"}",
+                      "{\"status\":\"" + CampaignPublishMessageSupport.escapeJson(message) + "\"}",
                       StandardCharsets.UTF_8))
               .build();
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 200 && response.statusCode() < 300) {
         return CampaignPublishResult.published(CHANNEL, Instant.now(), "published_mastodon");
       }

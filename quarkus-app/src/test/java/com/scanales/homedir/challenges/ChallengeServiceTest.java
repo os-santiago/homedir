@@ -59,7 +59,9 @@ class ChallengeServiceTest {
 
     List<EconomyTransaction> transactions = economyService.listTransactions(userId, 100, 0).items();
     long challengeRewards =
-        transactions.stream().filter(tx -> "challenge:community-scout".equals(tx.reference())).count();
+        transactions.stream()
+            .filter(tx -> "challenge:community-scout".equals(tx.reference()))
+            .count();
     assertEquals(1, challengeRewards);
     EconomyTransaction reward =
         transactions.stream()
@@ -84,12 +86,18 @@ class ChallengeServiceTest {
         userId,
         "Identity User",
         userId,
-        new UserProfile.GithubAccount("identity-user", "https://github.com/identity-user", null, "gh-1", Instant.now()));
+        new UserProfile.GithubAccount(
+            "identity-user", "https://github.com/identity-user", null, "gh-1", Instant.now()));
     userProfileService.linkDiscord(
         userId,
         "Identity User",
         userId,
-        new UserProfile.DiscordAccount("discord-1", "identity-user", "https://discord.com/users/discord-1", null, Instant.now()));
+        new UserProfile.DiscordAccount(
+            "discord-1",
+            "identity-user",
+            "https://discord.com/users/discord-1",
+            null,
+            Instant.now()));
 
     ChallengeService.ChallengeProgressCard card =
         challengeService.listProgressForUser(userId).stream()

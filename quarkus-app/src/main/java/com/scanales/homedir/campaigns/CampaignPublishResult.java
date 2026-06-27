@@ -3,13 +3,10 @@ package com.scanales.homedir.campaigns;
 import java.time.Instant;
 
 public record CampaignPublishResult(
-    boolean published,
-    boolean skipped,
-    String channel,
-    Instant publishedAt,
-    String outcome) {
+    boolean published, boolean skipped, String channel, Instant publishedAt, String outcome) {
 
-  public static CampaignPublishResult published(String channel, Instant publishedAt, String outcome) {
+  public static CampaignPublishResult published(
+      String channel, Instant publishedAt, String outcome) {
     return new CampaignPublishResult(true, false, channel, publishedAt, outcome);
   }
 

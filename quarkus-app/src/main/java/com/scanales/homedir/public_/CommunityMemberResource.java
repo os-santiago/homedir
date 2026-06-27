@@ -31,10 +31,13 @@ public class CommunityMemberResource {
   @GET
   @Path("/{group}/{id}")
   @PermitAll
-  public Response profileRedirect(@PathParam("group") String groupPath, @PathParam("id") String id) {
+  public Response profileRedirect(
+      @PathParam("group") String groupPath, @PathParam("id") String id) {
     metrics.recordFunnelStep("board_profile_open");
     currentUserId()
-        .ifPresent(userId -> gamificationService.award(userId, GamificationActivity.BOARD_PROFILE_OPEN, id));
+        .ifPresent(
+            userId ->
+                gamificationService.award(userId, GamificationActivity.BOARD_PROFILE_OPEN, id));
     Optional<CommunityBoardGroup> groupOpt = CommunityBoardGroup.fromPath(groupPath);
     if (groupOpt.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).build();
@@ -53,7 +56,8 @@ public class CommunityMemberResource {
 
   private String profileLinkFor(CommunityBoardGroup group, CommunityBoardMemberView member) {
     if (group == CommunityBoardGroup.DISCORD_USERS) {
-      Optional<com.scanales.homedir.model.UserProfile> profileOpt = userProfileService.findByDiscordId(member.id());
+      Optional<com.scanales.homedir.model.UserProfile> profileOpt =
+          userProfileService.findByDiscordId(member.id());
       if (profileOpt.isPresent()) {
         String canonical = canonicalProfilePath(profileOpt.get());
         if (canonical != null) {
@@ -70,18 +74,22 @@ public class CommunityMemberResource {
         && member.handle().length() > 1) {
       return "/u/" + member.handle().substring(1);
     }
-    if (group == CommunityBoardGroup.HOMEDIR_USERS && member.id() != null && member.id().startsWith("hd-")) {
+    if (group == CommunityBoardGroup.HOMEDIR_USERS
+        && member.id() != null
+        && member.id().startsWith("hd-")) {
       return "/u/" + member.id();
     }
     return "/comunidad/board/" + group.path() + "?member=" + member.id();
   }
 
   private String canonicalProfilePath(com.scanales.homedir.model.UserProfile profile) {
-    String githubLogin = normalizeId(profile.getGithub() != null ? profile.getGithub().login() : null);
+    String githubLogin =
+        normalizeId(profile.getGithub() != null ? profile.getGithub().login() : null);
     if (githubLogin != null) {
       return "/u/" + urlEncode(githubLogin);
     }
-    String homedirId = homedirMemberId(firstNonBlank(profile.getUserId(), profile.getEmail()), null);
+    String homedirId =
+        homedirMemberId(firstNonBlank(profile.getUserId(), profile.getEmail()), null);
     if (homedirId == null) {
       return null;
     }

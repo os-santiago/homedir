@@ -35,7 +35,9 @@ public class CampaignBlueskyPublisherService {
   @ConfigProperty(name = "campaigns.publish.bluesky.app-password")
   Optional<String> appPassword;
 
-  @ConfigProperty(name = "campaigns.publish.bluesky.service-endpoint", defaultValue = "https://bsky.social")
+  @ConfigProperty(
+      name = "campaigns.publish.bluesky.service-endpoint",
+      defaultValue = "https://bsky.social")
   String serviceEndpoint;
 
   @ConfigProperty(name = "campaigns.publish.bluesky.timeout", defaultValue = "PT5S")
@@ -46,7 +48,8 @@ public class CampaignBlueskyPublisherService {
 
   @Inject ObjectMapper objectMapper;
 
-  private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+  private final HttpClient httpClient =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
   public CampaignPublisherStatus status() {
     return new CampaignPublisherStatus(
@@ -90,7 +93,8 @@ public class CampaignBlueskyPublisherService {
                       "{\"identifier\":\""
                           + CampaignPublishMessageSupport.escapeJson(handle.orElseThrow().trim())
                           + "\",\"password\":\""
-                          + CampaignPublishMessageSupport.escapeJson(appPassword.orElseThrow().trim())
+                          + CampaignPublishMessageSupport.escapeJson(
+                              appPassword.orElseThrow().trim())
                           + "\"}",
                       StandardCharsets.UTF_8))
               .build();

@@ -50,12 +50,7 @@ public class VolunteerEventConfigService {
       Instant closesAt = override != null ? override.closesAt() : null;
       boolean currentlyOpen = isCurrentlyOpen(accepting, opensAt, closesAt, Instant.now());
       return new ResolvedEventConfig(
-          normalizedEventId,
-          override != null,
-          accepting,
-          opensAt,
-          closesAt,
-          currentlyOpen);
+          normalizedEventId, override != null, accepting, opensAt, closesAt, currentlyOpen);
     }
   }
 
