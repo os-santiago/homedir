@@ -78,7 +78,9 @@ public class EventCfpPageTest {
   }
 
   @Test
-  @TestSecurity(user = "admin@example.com", roles = {"admin"})
+  @TestSecurity(
+      user = "admin@example.com",
+      roles = {"admin"})
   public void cfpPreviewModeShowsReadOnlyBannerAndProfileLink() {
     Event event = new Event(EVENT_ID, "CFP Event", "desc");
     eventService.saveEvent(event);

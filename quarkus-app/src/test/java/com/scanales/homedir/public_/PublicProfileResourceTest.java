@@ -295,7 +295,9 @@ public class PublicProfileResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin@example.com", roles = {"admin"})
+  @TestSecurity(
+      user = "admin@example.com",
+      roles = {"admin"})
   void previewProfileCanOpenAnyUserById() {
     given()
         .header("Accept-Language", "en")

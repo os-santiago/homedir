@@ -103,7 +103,9 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
-  @TestSecurity(user = "admin@example.com", roles = {"admin"})
+  @TestSecurity(
+      user = "admin@example.com",
+      roles = {"admin"})
   void adminCanPreviewAnotherUsersSubmissions() {
     cfpSubmissionService.create(
         "speaker@example.com",
@@ -124,7 +126,10 @@ public class CfpSubmissionApiResourceTest {
     given()
         .accept("application/json")
         .when()
-        .get("/api/events/" + EVENT_ID + "/cfp/submissions/mine?preview_user_id=speaker@example.com&limit=10&offset=0")
+        .get(
+            "/api/events/"
+                + EVENT_ID
+                + "/cfp/submissions/mine?preview_user_id=speaker@example.com&limit=10&offset=0")
         .then()
         .statusCode(200)
         .body("total", equalTo(1))
