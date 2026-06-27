@@ -21,6 +21,11 @@
         <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
+    <div class="cfp-preview-tools">
+      <input id="cfpPreviewUserId" type="text" class="form-input cfp-preview-input" placeholder="preview user id / email" autocomplete="off">
+      <button id="cfpPreviewCfpBtn" type="button" class="btn btn-secondary">View as user</button>
+      <a id="cfpPreviewProfileLink" href="#" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Open profile</a>
+    </div>
   </div>
 </section>
 
@@ -51,6 +56,24 @@
 <style>
   .admin-nav-strip {
     gap: 0.45rem;
+  }
+
+  .cfp-preview-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.9rem;
+  }
+
+  .cfp-preview-input {
+    min-width: min(320px, 100%);
+    flex: 1 1 18rem;
+  }
+
+  .cfp-preview-tools .is-disabled {
+    pointer-events: none;
+    opacity: 0.55;
   }
 
   .cfp-detail-layout {
@@ -238,6 +261,9 @@
     const shell = document.getElementById("cfpDetailShell");
     const feedback = document.getElementById("cfpDetailFeedback");
     const backToOverviewLink = document.getElementById("cfpBackToOverviewLink");
+    const previewUserInput = document.getElementById("cfpPreviewUserId");
+    const previewCfpBtn = document.getElementById("cfpPreviewCfpBtn");
+    const previewProfileLink = document.getElementById("cfpPreviewProfileLink");
     const actionModal = document.getElementById("cfpActionModal");
     const actionModalBody = document.getElementById("cfpActionModalBody");
     const prevBtn = document.getElementById("cfpPrevBtn");
@@ -246,6 +272,42 @@
     let actionModalTimer = null;
     let submissionList = [];
     let currentSubmissionIndex = -1;
+
+    function normalizePreviewUserId(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function buildPreviewUrls(userId) {
+      const normalized = normalizePreviewUserId(userId);
+      if (!normalized) {
+        return { cfpUrl: null, profileUrl: null };
+      }
+      const params = new URLSearchParams(window.location.search);
+      params.set("preview_user_id", normalized);
+      const query = params.toString();
+      return {
+        cfpUrl: "/event/" + encodeURIComponent(eventId) + "/cfp" + (query ? "?" + query : ""),
+        profileUrl: "/u/preview?preview_user_id=" + encodeURIComponent(normalized)
+      };
+    }
+
+    function syncPreviewLinks(userId) {
+      const normalized = normalizePreviewUserId(userId);
+      if (previewUserInput && normalized && !previewUserInput.value.trim()) {
+        previewUserInput.value = normalized;
+      }
+      const effectiveUserId =
+        normalized || normalizePreviewUserId(previewUserInput ? previewUserInput.value : "");
+      const urls = buildPreviewUrls(effectiveUserId);
+      if (previewCfpBtn) {
+        previewCfpBtn.disabled = !urls.cfpUrl;
+      }
+      if (previewProfileLink) {
+        previewProfileLink.href = urls.profileUrl || "#";
+        previewProfileLink.setAttribute("aria-disabled", urls.profileUrl ? "false" : "true");
+        previewProfileLink.classList.toggle("is-disabled", !urls.profileUrl);
+      }
+    }
 
     const i18n = {
       loading: "{i18n:events_cfp_admin_detail_loading}",
@@ -538,6 +600,7 @@
 
     function renderDetail(item) {
       currentItem = item;
+      syncPreviewLinks(item && item.proposer_user_id ? item.proposer_user_id : null);
       const status = item.status || "pending";
       syncBackToOverviewLink(status);
       const statusText = statusLabel[status] || status;
@@ -863,6 +926,19 @@
     }
     if (nextBtn) {
       nextBtn.addEventListener("click", () => navigateTo("next"));
+    }
+    if (previewUserInput) {
+      previewUserInput.addEventListener("input", () => syncPreviewLinks(previewUserInput.value));
+      previewUserInput.addEventListener("change", () => syncPreviewLinks(previewUserInput.value));
+      syncPreviewLinks(previewUserInput.value);
+    }
+    if (previewCfpBtn) {
+      previewCfpBtn.addEventListener("click", () => {
+        const urls = buildPreviewUrls(previewUserInput ? previewUserInput.value : "");
+        if (urls.cfpUrl) {
+          window.location.href = urls.cfpUrl;
+        }
+      });
     }
 
     syncBackToOverviewLink(null);

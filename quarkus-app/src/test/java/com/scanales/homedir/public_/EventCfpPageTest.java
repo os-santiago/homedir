@@ -78,6 +78,26 @@ public class EventCfpPageTest {
   }
 
   @Test
+  @TestSecurity(
+      user = "admin@example.com",
+      roles = {"admin"})
+  public void cfpPreviewModeShowsReadOnlyBannerAndProfileLink() {
+    Event event = new Event(EVENT_ID, "CFP Event", "desc");
+    eventService.saveEvent(event);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/event/" + EVENT_ID + "/cfp?preview_user_id=locked.user@example.com")
+        .then()
+        .statusCode(200)
+        .body(containsString("User preview"))
+        .body(containsString("preview_user_id=locked.user@example.com"))
+        .body(containsString("Open speaker profile"))
+        .body(not(containsString("id=\"cfpForm\"")));
+  }
+
+  @Test
   public void cfpTimelineUsesSpanishWhenLocaleCookieIsSpanish() {
     Event event = new Event(EVENT_ID, "CFP Event", "desc");
     event.setDate(java.time.LocalDate.of(2026, 9, 8));

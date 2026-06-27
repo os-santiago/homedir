@@ -103,6 +103,42 @@ public class CfpSubmissionApiResourceTest {
   }
 
   @Test
+  @TestSecurity(
+      user = "admin@example.com",
+      roles = {"admin"})
+  void adminCanPreviewAnotherUsersSubmissions() {
+    cfpSubmissionService.create(
+        "speaker@example.com",
+        "Speaker Preview",
+        new CfpSubmissionService.CreateRequest(
+            EVENT_ID,
+            "Preview CFP Talk",
+            "Preview summary.",
+            "Preview abstract.",
+            "beginner",
+            "talk",
+            30,
+            "en",
+            "platform-engineering-idp",
+            List.of("preview"),
+            List.of("https://example.org/preview")));
+
+    given()
+        .accept("application/json")
+        .when()
+        .get(
+            "/api/events/"
+                + EVENT_ID
+                + "/cfp/submissions/mine?preview_user_id=speaker@example.com&limit=10&offset=0")
+        .then()
+        .statusCode(200)
+        .body("total", equalTo(1))
+        .body("items", hasSize(1))
+        .body("items[0].title", equalTo("Preview CFP Talk"))
+        .body("items[0].proposer_user_id", equalTo("speaker@example.com"));
+  }
+
+  @Test
   @TestSecurity(user = "member@example.com")
   void createSubmissionWritesAutomaticInsightsInitiative() {
     given()
