@@ -32,6 +32,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
@@ -116,10 +117,14 @@ public class EventResource {
   public TemplateInstance cfp(
       @PathParam("id") String id,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @QueryParam("preview_user_id") String previewUserId,
       @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers,
       @jakarta.ws.rs.core.Context io.vertx.ext.web.RoutingContext context) {
     metrics.recordPageView("/event/cfp", headers, context);
-    currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
+    boolean previewMode = previewUserId != null && !previewUserId.isBlank() && AdminUtils.canViewAdminBackoffice(identity);
+    if (!previewMode) {
+      currentUserId().ifPresent(userId -> gamificationService.award(userId, GamificationActivity.AGENDA_VIEW, id + ":cfp"));
+    }
     Event event = eventService.getEvent(id);
     CfpTimelineView cfpTimeline = null;
     if (event != null) {
@@ -136,6 +141,8 @@ public class EventResource {
         cfpTimeline = null;
       }
     }
+    String normalizedPreviewUserId =
+        previewMode ? previewUserId.trim().toLowerCase(java.util.Locale.ROOT) : null;
     return withLayoutData(
             Templates.cfp(
                 event,
@@ -145,7 +152,9 @@ public class EventResource {
             "eventos",
             localeCookie,
             headers)
-        .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled());
+        .data("cfpTestingModeEnabled", cfpConfigService != null && cfpConfigService.isTestingModeEnabled())
+        .data("cfpPreviewMode", previewMode)
+        .data("cfpPreviewUserId", normalizedPreviewUserId);
   }
 
   @GET

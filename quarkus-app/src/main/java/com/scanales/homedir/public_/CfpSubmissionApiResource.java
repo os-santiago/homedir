@@ -135,9 +135,10 @@ public class CfpSubmissionApiResource {
   @Authenticated
   public Response mine(
       @PathParam("eventId") String eventId,
+      @QueryParam("preview_user_id") String previewUserId,
       @QueryParam("limit") Integer limitParam,
       @QueryParam("offset") Integer offsetParam) {
-    Set<String> userIds = currentUserIds();
+    Set<String> userIds = resolveViewerUserIds(previewUserId);
     if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED).entity(Map.of("error", "user_not_authenticated")).build();
     }
@@ -1033,6 +1034,17 @@ public class CfpSubmissionApiResource {
     addNormalizedUserId(ids, AdminUtils.getClaim(identity, "email"));
     addNormalizedUserId(ids, AdminUtils.getClaim(identity, "sub"));
     return ids.isEmpty() ? Set.of() : Collections.unmodifiableSet(ids);
+  }
+
+  private Set<String> resolveViewerUserIds(String previewUserId) {
+    String normalizedPreview = normalizeUserId(previewUserId);
+    if (normalizedPreview == null) {
+      return currentUserIds();
+    }
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
+      return currentUserIds();
+    }
+    return Set.of(normalizedPreview);
   }
 
   private static void addNormalizedUserId(Set<String> target, String raw) {

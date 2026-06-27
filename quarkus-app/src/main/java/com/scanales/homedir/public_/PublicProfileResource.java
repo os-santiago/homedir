@@ -102,24 +102,32 @@ public class PublicProfileResource {
     @Produces(MediaType.TEXT_HTML)
     public Response getPublicProfile(
         @PathParam("username") String username,
+        @jakarta.ws.rs.QueryParam("preview_user_id") String previewUserId,
         @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
         @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
         String requested = normalizeId(username);
-        if (requested == null) {
+        boolean previewMode =
+            previewUserId != null
+                && !previewUserId.isBlank()
+                && AdminUtils.canViewAdminBackoffice(identity);
+        if (requested == null && !previewMode) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Optional<ResolvedPublicProfile> resolvedOpt = resolveProfile(requested);
+        Optional<ResolvedPublicProfile> resolvedOpt =
+            previewMode ? resolveProfileByUserId(previewUserId) : resolveProfile(requested);
         if (resolvedOpt.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         String resolvedLocaleCode = TemplateLocaleUtil.resolve(localeCookie, headers);
         ResolvedPublicProfile resolved = resolvedOpt.get();
         metrics.recordFunnelStep("profile.public.open");
-        currentUserId()
-            .ifPresent(
-                viewer -> gamificationService.award(
-                    viewer, GamificationActivity.PUBLIC_PROFILE_VIEW, resolved.canonicalUsername()));
+        if (!previewMode) {
+            currentUserId()
+                .ifPresent(
+                    viewer -> gamificationService.award(
+                        viewer, GamificationActivity.PUBLIC_PROFILE_VIEW, resolved.canonicalUsername()));
+        }
 
         QuestProfile questProfile = questService.getProfile(resolved.userId(), 5);
         UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
@@ -214,6 +222,8 @@ public class PublicProfileResource {
                 .data("participationHistory", participationHistory)
                 .data("completedChallenges", completedChallenges)
                 .data("reputationSummary", reputationSummary)
+                .data("previewMode", previewMode)
+                .data("previewUserId", previewMode ? normalizeId(previewUserId) : null)
                 .data("ogTitle", resolved.displayName() + " - Homedir Profile")
                 .data("ogDescription", "Check out @" + resolved.canonicalUsername() + " and their community activity.")
                 .data(
@@ -515,6 +525,82 @@ public class PublicProfileResource {
             member.getBadges() == null ? List.of() : member.getBadges()));
     }
 
+    private Optional<ResolvedPublicProfile> resolveProfileByUserId(String userId) {
+        String normalized = normalizeId(userId);
+        if (normalized == null) {
+            return Optional.empty();
+        }
+        Optional<UserProfile> profileOpt = userProfileService.find(normalized);
+        if (profileOpt.isPresent()) {
+            Optional<ResolvedPublicProfile> resolved = resolveResolvedProfile(profileOpt.get(), normalized);
+            if (resolved.isPresent()) {
+                return resolved;
+            }
+        }
+        Optional<CommunityMember> memberOpt = communityService.findByUserId(normalized);
+        if (memberOpt.isPresent()) {
+            CommunityMember member = memberOpt.get();
+            String githubLogin = normalizeId(member.getGithub());
+            String canonical = firstNonBlank(githubLogin, normalized);
+            String userIdResolved = firstNonBlank(member.getUserId(), normalized, canonical);
+            return Optional.of(new ResolvedPublicProfile(
+                canonical,
+                userIdResolved,
+                firstNonBlank(member.getDisplayName(), canonical),
+                member.getAvatarUrl(),
+                githubLogin,
+                firstNonBlank(member.getProfileUrl(), githubLogin != null ? "https://github.com/" + githubLogin : null),
+                null,
+                null,
+                homedirMemberId(member.getUserId(), null),
+                member.getBadges() == null ? List.of() : member.getBadges()));
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ResolvedPublicProfile> resolveResolvedProfile(UserProfile profile, String fallbackCanonicalUsername) {
+        if (profile == null) {
+            return Optional.empty();
+        }
+        String githubLogin = normalizeId(profile.getGithub() != null ? profile.getGithub().login() : null);
+        String homedirId = homedirMemberId(firstNonBlank(profile.getUserId(), profile.getEmail()), null);
+        String canonicalUsername = firstNonBlank(githubLogin, homedirId, fallbackCanonicalUsername);
+        String userId = firstNonBlank(profile.getUserId(), profile.getEmail(), canonicalUsername);
+        String displayName = firstNonBlank(
+            profile.getName(),
+            usernameFromEmail(profile.getEmail()),
+            githubLogin,
+            canonicalUsername);
+        String avatarUrl = firstNonBlank(
+            profile.getGithub() != null ? profile.getGithub().avatarUrl() : null,
+            profile.getDiscord() != null ? profile.getDiscord().avatarUrl() : null);
+        String githubProfileUrl = firstNonBlank(
+            profile.getGithub() != null ? profile.getGithub().profileUrl() : null,
+            githubLogin != null ? "https://github.com/" + githubLogin : null);
+        String discordId = normalizeId(profile.getDiscord() != null ? profile.getDiscord().id() : null);
+        String discordProfileUrl = firstNonBlank(
+            profile.getDiscord() != null ? profile.getDiscord().profileUrl() : null,
+            discordId != null ? "https://discord.com/users/" + discordId : null);
+        String discordHandle = firstNonBlank(
+            profile.getDiscord() != null ? profile.getDiscord().handle() : null,
+            discordId);
+        List<String> badges = communityService.findByUserId(userId).map(CommunityMember::getBadges).orElse(List.of());
+        if (badges == null) {
+            badges = List.of();
+        }
+        return Optional.of(new ResolvedPublicProfile(
+            canonicalUsername,
+            userId,
+            displayName,
+            avatarUrl,
+            githubLogin,
+            githubProfileUrl,
+            discordHandle,
+            discordProfileUrl,
+            homedirId,
+            badges));
+    }
+
     private Optional<ResolvedPublicProfile> resolveFromUserProfiles(String requestedUsername) {
         for (UserProfile profile : userProfileService.allProfiles().values()) {
             if (profile == null) {
@@ -527,43 +613,10 @@ public class PublicProfileResource {
             if (!matchesGithub && !matchesHomedir) {
                 continue;
             }
-
-            String canonicalUsername = firstNonBlank(githubLogin, homedirId, requestedUsername);
-            String userId = firstNonBlank(profile.getUserId(), profile.getEmail(), canonicalUsername);
-            String displayName = firstNonBlank(
-                profile.getName(),
-                usernameFromEmail(profile.getEmail()),
-                githubLogin,
-                canonicalUsername);
-            String avatarUrl = firstNonBlank(
-                profile.getGithub() != null ? profile.getGithub().avatarUrl() : null,
-                profile.getDiscord() != null ? profile.getDiscord().avatarUrl() : null);
-            String githubProfileUrl = firstNonBlank(
-                profile.getGithub() != null ? profile.getGithub().profileUrl() : null,
-                githubLogin != null ? "https://github.com/" + githubLogin : null);
-            String discordId = normalizeId(profile.getDiscord() != null ? profile.getDiscord().id() : null);
-            String discordProfileUrl = firstNonBlank(
-                profile.getDiscord() != null ? profile.getDiscord().profileUrl() : null,
-                discordId != null ? "https://discord.com/users/" + discordId : null);
-            String discordHandle = firstNonBlank(
-                profile.getDiscord() != null ? profile.getDiscord().handle() : null,
-                discordId);
-            List<String> badges = communityService.findByUserId(userId).map(CommunityMember::getBadges).orElse(List.of());
-            if (badges == null) {
-                badges = List.of();
+            Optional<ResolvedPublicProfile> resolved = resolveResolvedProfile(profile, requestedUsername);
+            if (resolved.isPresent()) {
+                return resolved;
             }
-
-            return Optional.of(new ResolvedPublicProfile(
-                canonicalUsername,
-                userId,
-                displayName,
-                avatarUrl,
-                githubLogin,
-                githubProfileUrl,
-                discordHandle,
-                discordProfileUrl,
-                homedirId,
-                badges));
         }
         return Optional.empty();
     }

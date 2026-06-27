@@ -19,6 +19,7 @@ import com.scanales.homedir.volunteers.VolunteerApplication;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -286,6 +287,20 @@ public class PublicProfileResourceTest {
         .body(containsString("Selected CFP and volunteer highlights are hidden until the profile is complete."))
         .body(not(containsString("Locked CFP Talk")))
         .body(not(containsString("Public Volunteer Event")));
+  }
+
+  @Test
+  @TestSecurity(user = "admin@example.com", roles = {"admin"})
+  void previewProfileCanOpenAnyUserById() {
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/u/preview?preview_user_id=locked.user@example.com")
+        .then()
+        .statusCode(200)
+        .body(containsString("User preview"))
+        .body(containsString("locked.user@example.com"))
+        .body(containsString("Locked User"));
   }
 
   private static String homedirMemberId(String identitySeed) {
