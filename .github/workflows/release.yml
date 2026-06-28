@@ -466,11 +466,18 @@ jobs:
             echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy (up to 9 min)."
           fi
           health_reached=false
+          deployed=""
           for attempt in $(seq 1 "$attempts"); do
-            if curl -fsS "$url" >/dev/null; then
+            if curl -fsS --connect-timeout 5 --max-time 10 "$url" >/dev/null; then
               echo "healthcheck passed: $url"
               health_reached=true
-              break
+              deployed="$(curl -fsS --connect-timeout 5 --max-time 10 "$page_url" | grep -oE 'HomeDir v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
+              if [ "${deployed}" = "HomeDir v${EXPECTED_VERSION}" ]; then
+                echo "Live runtime reports: ${deployed}"
+                echo "Live version matches release ${EXPECTED_VERSION}."
+                exit 0
+              fi
+              echo "Version not ready yet: live=${deployed:-unknown}, expected=HomeDir v${EXPECTED_VERSION}"
             fi
             sleep 10
           done
@@ -482,21 +489,8 @@ jobs:
           # Catch silent deploys: when "Deploy to VPS via SSH" runs with
           # continue-on-error above, a failed deploy leaves the OLD container
           # answering /q/health green while the new release never promoted.
-          # Verify the live runtime renders the released version, so a drift
-          # surfaces as a red workflow instead of a green-passing stale deploy.
-          origin="$(printf '%s' "$url" | sed -E 's#^(https?://[^/]+).*#\1#')"
-          page_url="${origin}/"
-          deployed="$(curl -fsS "$page_url" | grep -oE 'HomeDir v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
-          if [ -z "${deployed}" ]; then
-            echo "::error::Could not detect HomeDir version badge on ${page_url}" >&2
-            exit 1
-          fi
-          echo "Live runtime reports: ${deployed}"
-          if [ "${deployed}" != "HomeDir v${EXPECTED_VERSION}" ]; then
-            echo "::error::Version drift: live=${deployed}, expected=HomeDir v${EXPECTED_VERSION}. The new release image did not become the running container; check homedir-update.sh and homedir-auto-deploy.timer on the VPS." >&2
-            exit 1
-          fi
-          echo "Live version matches release ${EXPECTED_VERSION}."
+          echo "::error::Version drift: live=${deployed:-unknown}, expected=HomeDir v${EXPECTED_VERSION}. The new release image did not become the running container; check homedir-update.sh and homedir-auto-deploy.timer on the VPS." >&2
+          exit 1
 
       - name: Emit insights ingest events (production release)
         if: ${{ success() && steps.deploy_config.outputs.enabled == 'true' }}
