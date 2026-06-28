@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: [ main ]
     types: [opened, reopened, synchronize, ready_for_review]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
   workflow_dispatch:
 
 permissions:
@@ -116,3 +113,40 @@ jobs:
       - name: Dependency analysis
         working-directory: quarkus-app
         run: ./mvnw dependency:analyze -B -q
+
+  quality-summary:
+    name: Quality Summary
+    needs: [style, static, arch, tests_cov, deps]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize quality gates
+        run: |
+          gate_ok() {
+            case "$1" in
+              success|skipped) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          echo "### PR Quality Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Gate | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| style | ${{ needs.style.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| static | ${{ needs.static.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| arch | ${{ needs.arch.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| tests_cov | ${{ needs.tests_cov.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| deps | ${{ needs.deps.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if ! gate_ok "${{ needs.style.result }}" || \
+             ! gate_ok "${{ needs.static.result }}" || \
+             ! gate_ok "${{ needs.arch.result }}" || \
+             ! gate_ok "${{ needs.tests_cov.result }}" || \
+             ! gate_ok "${{ needs.deps.result }}"; then
+            echo "**Result:** FAILED - One or more PR quality checks did not pass" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "**Result:** PASSED - All PR quality checks passed" >> "$GITHUB_STEP_SUMMARY"
