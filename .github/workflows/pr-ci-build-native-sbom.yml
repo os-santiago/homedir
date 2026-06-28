@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: [ main ]
     types: [opened, reopened, synchronize, ready_for_review]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
   workflow_dispatch:
 
 permissions:
@@ -43,3 +40,25 @@ jobs:
           name: sbom-${{ github.sha }}
           path: quarkus-app/target/bom.json
           retention-days: 30
+
+  ci-summary:
+    name: CI Summary
+    needs: [sbom]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize CI gates
+        run: |
+          echo "### PR CI Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Gate | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| sbom | ${{ needs.sbom.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ needs.sbom.result }}" != "success" ]; then
+            echo "**Result:** FAILED - SBOM generation did not pass" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "**Result:** PASSED - SBOM generation passed" >> "$GITHUB_STEP_SUMMARY"
