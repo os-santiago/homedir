@@ -462,8 +462,8 @@ jobs:
           url="${HEALTHCHECK_URL:-https://homedir.opensourcesantiago.io/q/health}"
           attempts=18
           if [ "${DEPLOY_SSH_OUTCOME:-success}" != "success" ]; then
-            attempts=36
-            echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy."
+            attempts=54
+            echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy (up to 9 min)."
           fi
           health_reached=false
           for attempt in $(seq 1 "$attempts"); do
