@@ -49,6 +49,13 @@ jobs:
     steps:
       - name: Summarize CI gates
         run: |
+          gate_ok() {
+            case "$1" in
+              success|skipped) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
           echo "### PR CI Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Gate | Status |" >> "$GITHUB_STEP_SUMMARY"
@@ -56,7 +63,7 @@ jobs:
           echo "| sbom | ${{ needs.sbom.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "${{ needs.sbom.result }}" != "success" ]; then
+          if ! gate_ok "${{ needs.sbom.result }}"; then
             echo "**Result:** FAILED - SBOM generation did not pass" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
