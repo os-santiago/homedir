@@ -122,6 +122,13 @@ jobs:
     steps:
       - name: Summarize quality gates
         run: |
+          gate_ok() {
+            case "$1" in
+              success|skipped) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
           echo "### PR Quality Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Gate | Status |" >> "$GITHUB_STEP_SUMMARY"
@@ -133,11 +140,11 @@ jobs:
           echo "| deps | ${{ needs.deps.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "${{ needs.style.result }}" != "success" ] || \
-             [ "${{ needs.static.result }}" != "success" ] || \
-             [ "${{ needs.arch.result }}" != "success" ] || \
-             [ "${{ needs.tests_cov.result }}" != "success" ] || \
-             [ "${{ needs.deps.result }}" != "success" ]; then
+          if ! gate_ok "${{ needs.style.result }}" || \
+             ! gate_ok "${{ needs.static.result }}" || \
+             ! gate_ok "${{ needs.arch.result }}" || \
+             ! gate_ok "${{ needs.tests_cov.result }}" || \
+             ! gate_ok "${{ needs.deps.result }}"; then
             echo "**Result:** FAILED - One or more PR quality checks did not pass" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
