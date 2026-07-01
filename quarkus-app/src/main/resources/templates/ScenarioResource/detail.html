@@ -57,27 +57,26 @@
 {#body}
 {#if scenario}
 <section class="scenario-ultra-shell">
-  <header class="page-header">
-    <div class="section-header">
-      {#if event}
-      <p class="section-subtitle">
-        <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
-      </p>
-      {/if}
-      <h1 class="public-title">{scenario.name}</h1>
-    </div>
+  {#include fragments/page-header}
+  {#if event}
+  <p class="section-subtitle">
+    <a href="/event/{event.id}" class="hd-link">← {i18n:events_scenario_back_to_event(event.title)}</a>
+  </p>
+  {/if}
+  <h1 class="public-title">{scenario.name}</h1>
+  {#footer}
+  {#if scenario.location}
+  <p class="section-subtitle">
+    <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
+    {scenario.location}
+  </p>
+  {/if}
 
-    {#if scenario.location}
-    <p class="section-subtitle">
-      <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
-      {scenario.location}
-    </p>
-    {/if}
-
-    {#if scenario.features}
-    <p class="section-subtitle">{scenario.features}</p>
-    {/if}
-  </header>
+  {#if scenario.features}
+  <p class="section-subtitle">{scenario.features}</p>
+  {/if}
+  {/footer}
+  {/include}
 
   <section class="page-grid">
     <article class="section-card scenario-shell-card scenario-full-width">
