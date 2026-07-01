@@ -256,19 +256,10 @@
   border: none;
 }
 
-.notifications-bell:focus {
-  outline: none;
-  border: none;
-  background: none;
-}
-
-.notifications-bell .icon-bell::before {
-  content: "\1F514";
-  /* bell emoji */
-}
-
-.notifications-bell .icon-bell {
-  font-size: 1.25rem;
+.notifications-bell:focus-visible {
+  outline: 2px solid var(--color-accent, #60a5fa);
+  outline-offset: 2px;
+  border-radius: 50%;
 }
 
 .notifications-bell .badge {
@@ -285,8 +276,16 @@
   text-align: center;
 }
 
-.notifications-bell .badge.hidden {
-  display: none;
+#notif-badge.badge-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
 }
 
 .notifications-bell:hover,
@@ -296,5 +295,4 @@
   border: none;
   opacity: 1;
   border-bottom-color: transparent;
-  outline: none;
 }

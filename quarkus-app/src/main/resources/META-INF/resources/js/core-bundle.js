@@ -1277,10 +1277,10 @@ if (typeof module !== 'undefined' && module.exports) {
     if (!badge) return;
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
-      badge.classList.remove('hidden');
+      badge.classList.remove('badge-hidden');
     } else {
       badge.textContent = '0';
-      badge.classList.add('hidden');
+      badge.classList.add('badge-hidden');
     }
   }
 
