@@ -94,22 +94,20 @@
 {#body}
 {#if event}
 <section class="volunteers-selected-page-shell">
-<header class="page-header">
-  <div class="section-header">
-    <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← {#if resolvedLocaleCode == 'es'}Volver al evento{#else}Back to event{/if}</a>
-    </p>
-    <p class="section-subtitle">{#if resolvedLocaleCode == 'es'}Voluntarios{#else}Volunteers{/if}</p>
-    <h1 class="public-title">{event.title} · {#if resolvedLocaleCode == 'es'}Voluntarios Seleccionados{#else}Selected Volunteers{/if}</h1>
-    <p class="section-subtitle">
-      {#if resolvedLocaleCode == 'es'}
-      Conoce al equipo de voluntarios seleccionado para {event.title}. Estas personas dedicarán su tiempo y energía para hacer de este evento una experiencia memorable.
-      {#else}
-      Meet the volunteer team selected for {event.title}. These individuals will dedicate their time and energy to make this event a memorable experience.
-      {/if}
-    </p>
-  </div>
-</header>
+{#include fragments/page-header}
+<p class="section-subtitle">
+  <a href="/event/{event.id}" class="hd-link">← {#if resolvedLocaleCode == 'es'}Volver al evento{#else}Back to event{/if}</a>
+</p>
+<p class="section-subtitle">{#if resolvedLocaleCode == 'es'}Voluntarios{#else}Volunteers{/if}</p>
+<h1 class="public-title">{event.title} · {#if resolvedLocaleCode == 'es'}Voluntarios Seleccionados{#else}Selected Volunteers{/if}</h1>
+<p class="section-subtitle">
+  {#if resolvedLocaleCode == 'es'}
+  Conoce al equipo de voluntarios seleccionado para {event.title}. Estas personas dedicarán su tiempo y energía para hacer de este evento una experiencia memorable.
+  {#else}
+  Meet the volunteer team selected for {event.title}. These individuals will dedicate their time and energy to make this event a memorable experience.
+  {/if}
+</p>
+{/include}
 
 <div class="volunteers-grid">
   {#for volunteer in selectedVolunteers}

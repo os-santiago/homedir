@@ -51,20 +51,20 @@
 {#body}
 {#if talk}
 <section class="talk-ultra-shell">
-  <header class="page-header">
-    <div class="section-header">
-      {#if event}
-      <p class="section-subtitle">
-        <a href="/event/{event.id}" class="hd-link">← {event.title}</a>
-        {#if talk.location}<span> · <a href="/event/{event.id}/scenario/{talk.location}" class="hd-link">{event.getScenarioName(talk.location)}</a></span>{/if}
-      </p>
-      {/if}
-      <h1 class="public-title">{talk.name ?: i18n.talk_title_default}</h1>
-    </div>
-    {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
-    <p class="section-subtitle">{i18n:talk_preparing_message}</p>
-    {/if}
-  </header>
+  {#include fragments/page-header}
+  {#if event}
+  <p class="section-subtitle">
+    <a href="/event/{event.id}" class="hd-link">← {event.title}</a>
+    {#if talk.location}<span> · <a href="/event/{event.id}/scenario/{talk.location}" class="hd-link">{event.getScenarioName(talk.location)}</a></span>{/if}
+  </p>
+  {/if}
+  <h1 class="public-title">{talk.name ?: i18n.talk_title_default}</h1>
+  {#footer}
+  {#if !talk.description || talk.speakers.isEmpty() || !talk.location || !talk.startTime || !event}
+  <p class="section-subtitle">{i18n:talk_preparing_message}</p>
+  {/if}
+  {/footer}
+  {/include}
 
   <section class="page-grid">
     <article class="section-card talk-shell-card talk-full-width">

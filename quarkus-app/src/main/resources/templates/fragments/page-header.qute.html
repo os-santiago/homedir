@@ -1,0 +1,8 @@
+{@ String extraClass = ""}
+{@ String sectionHeaderClass = ""}
+<header class="page-header{#if extraClass != ""} {extraClass}{/if}">
+  <div class="section-header{#if sectionHeaderClass != ""} {sectionHeaderClass}{/if}">
+    {#insert}{/insert}
+  </div>
+  {#insert footer}{/insert}
+</header>
