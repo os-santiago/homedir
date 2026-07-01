@@ -105,16 +105,15 @@
 
 {#body}
 {#if event}
-<header class="page-header">
-  <div class="section-header">
-    <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← {i18n:events_cfp_back_to_event}</a>
-    </p>
-    <p class="section-subtitle">{i18n:events_cfp_eyebrow}</p>
-    <h1 class="public-title">{event.title} CFP</h1>
-    <p class="section-subtitle">{i18n:events_cfp_heading}</p>
-  </div>
-  <p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
+{#include fragments/page-header}
+<p class="section-subtitle">
+  <a href="/event/{event.id}" class="hd-link">← {i18n:events_cfp_back_to_event}</a>
+</p>
+<p class="section-subtitle">{i18n:events_cfp_eyebrow}</p>
+<h1 class="public-title">{event.title} CFP</h1>
+<p class="section-subtitle">{i18n:events_cfp_heading}</p>
+{#footer}
+<p class="section-subtitle">{i18n:events_cfp_intro(event.title)}</p>
   {#if cfpPreviewMode}
   <div class="cfp-preview-banner" role="note">
     <div>
@@ -170,7 +169,8 @@
     </div>
   </div>
   {/if}
-</header>
+{/footer}
+{/include}
 
 {#if cfpTimeline}
 <section class="section-card cfp-journey-card cfp-journey-top" aria-label="{i18n:events_cfp_timeline_title}">

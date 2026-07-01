@@ -87,7 +87,7 @@
       </div>
 
       {#if talks.isEmpty()}
-      <p class="hd-empty-callout">{i18n:events_scenario_no_talks}</p>
+      {#include fragments/empty-state message=i18n:events_scenario_no_talks /}
       {#else}
       <div class="scenario-talk-grid">
         {#for t in talks}
