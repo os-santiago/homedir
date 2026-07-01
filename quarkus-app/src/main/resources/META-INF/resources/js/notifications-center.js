@@ -171,6 +171,11 @@
     selectAllBtn.textContent = allChecked ? i18n.deselectAll : i18n.selectAll;
   }
 
+  function focusDeleteAll() {
+    const delAll = document.getElementById('deleteAll');
+    if (delAll) delAll.focus();
+  }
+
   // Delegación robusta (usa closest)
   document.addEventListener('click', (e) => {
     // Filtros
@@ -272,13 +277,19 @@
       selected.clear();
       render();
       updateSelectAllBtn();
-      if (confirmDlg) confirmDlg.close();
+      if (confirmDlg) {
+        confirmDlg.close();
+        focusDeleteAll();
+      }
       e.preventDefault();
       return;
     }
 
     if (e.target.closest('#cancelDeleteAllBtn')) {
-      if (confirmDlg) confirmDlg.close();
+      if (confirmDlg) {
+        confirmDlg.close();
+        focusDeleteAll();
+      }
       e.preventDefault();
       return;
     }

@@ -60,12 +60,13 @@
   </div>
 
   <dialog id="confirmDeleteAll" class="section-body"
-    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;">
-    <h2 class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
-    <p class="mb-4">{i18n:notifications_center_confirm_desc}</p>
+    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;"
+    aria-labelledby="confirmDeleteAllTitle" aria-describedby="confirmDeleteAllDesc" aria-modal="true">
+    <h2 id="confirmDeleteAllTitle" class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
+    <p id="confirmDeleteAllDesc" class="mb-4">{i18n:notifications_center_confirm_desc}</p>
     <div class="actions flex gap-4 justify-end">
       <button class="btn-danger" id="confirmDeleteAllBtn">{i18n:notifications_center_confirm_btn}</button>
-      <button class="btn-primary" id="cancelDeleteAllBtn">{i18n:notifications_center_cancel_btn}</button>
+      <button class="btn-primary" id="cancelDeleteAllBtn" autofocus>{i18n:notifications_center_cancel_btn}</button>
     </div>
   </dialog>
 
