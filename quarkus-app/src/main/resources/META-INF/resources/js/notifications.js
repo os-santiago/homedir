@@ -49,8 +49,7 @@
       toast.className = 'ef-toast';
       toast.setAttribute('data-id', vm.id);
       toast.setAttribute('tabindex', '0');
-      toast.setAttribute('role', 'status');
-      toast.setAttribute('aria-live', 'polite');
+      toast.setAttribute('role', vm.urgent ? 'alert' : 'status');
       toast.addEventListener('keydown', e => { if (e.key === 'Escape') { this.close(vm.id); } });
       const title = document.createElement('div');
       title.className = 'ef-toast__title';
@@ -125,10 +124,10 @@
     if (!badge) return;
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
-      badge.classList.remove('hidden');
+      badge.classList.remove('badge-hidden');
     } else {
       badge.textContent = '0';
-      badge.classList.add('hidden');
+      badge.classList.add('badge-hidden');
     }
   }
 
@@ -155,6 +154,7 @@
         id: id,
         title: dto.title || dto.type,
         message: dto.message || '',
+        urgent: dto.urgent === true,
         url: (dto.talkId && dto.category !== 'break') ? ('/talks/' + dto.talkId) : null,
         centerUrl: dto.id ? ('/notifications/center#' + dto.id) : '/notifications/center'
       };

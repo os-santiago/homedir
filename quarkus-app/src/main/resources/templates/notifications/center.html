@@ -30,12 +30,12 @@
   <div class="page-grid section-grid-full">
     <div class="section-body flex flex-col" style="min-height: 400px;">
       <div class="hd-tabs quest-tabs mb-6">
-        <div class="quest-tabs-links" style="border: none !important;">
+        <div class="quest-tabs-links" role="group" style="border: none !important;">
           <button class="hd-tab active btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="all">{i18n:notifications_center_filter_all}</button>
+            style="background: transparent; border: none !important;" aria-pressed="true" aria-controls="notif-list" data-filter="all">{i18n:notifications_center_filter_all}</button>
           <span class="quest-tab-separator">|</span>
           <button class="hd-tab btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="unread">{i18n:notifications_center_filter_unread}</button>
+            style="background: transparent; border: none !important;" aria-pressed="false" aria-controls="notif-list" data-filter="unread">{i18n:notifications_center_filter_unread}</button>
         </div>
         <div class="actions-right ml-auto flex gap-2">
           <button class="btn-primary btn-sm" id="selectAll">{i18n:notifications_center_action_select_all}</button>
@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <div id="notif-list" aria-live="polite" aria-atomic="false"></div>
+      <div id="notif-list" aria-live="polite"></div>
       <div id="empty" class="hidden">
         <span class="material-symbols-outlined">notifications_off</span>
         <p>{i18n:notifications_center_empty}</p>
@@ -59,12 +59,13 @@
   </div>
 
   <dialog id="confirmDeleteAll" class="section-body"
-    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;">
-    <h2 class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
-    <p class="mb-4">{i18n:notifications_center_confirm_desc}</p>
+    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;"
+    aria-labelledby="confirmDeleteAllTitle" aria-describedby="confirmDeleteAllDesc">
+    <h2 id="confirmDeleteAllTitle" class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
+    <p id="confirmDeleteAllDesc" class="mb-4">{i18n:notifications_center_confirm_desc}</p>
     <div class="actions flex gap-4 justify-end">
       <button class="btn-danger" id="confirmDeleteAllBtn">{i18n:notifications_center_confirm_btn}</button>
-      <button class="btn-primary" id="cancelDeleteAllBtn">{i18n:notifications_center_cancel_btn}</button>
+      <button class="btn-primary" id="cancelDeleteAllBtn" autofocus>{i18n:notifications_center_cancel_btn}</button>
     </div>
   </dialog>
 
