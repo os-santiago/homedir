@@ -183,7 +183,7 @@
     if (filterBtn) {
       currentFilter = filterBtn.getAttribute('data-filter');
       document.querySelectorAll('[data-filter]').forEach(btn => {
-        btn.setAttribute('aria-selected', btn.dataset.filter === currentFilter ? 'true' : 'false');
+        btn.setAttribute('aria-pressed', btn.dataset.filter === currentFilter ? 'true' : 'false');
       });
       render();
       return;

@@ -1180,13 +1180,7 @@ if (typeof module !== 'undefined' && module.exports) {
       vm.node = this.render(vm);
       this.visible.push(vm);
       this.metric('shown');
-      requestAnimationFrame(() => {
-        this.container.appendChild(vm.node);
-        if (vm.urgent) {
-          const firstAction = vm.node.querySelector('.ef-toast__actions button, .ef-toast__actions a');
-          if (firstAction) firstAction.focus();
-        }
-      });
+      requestAnimationFrame(() => this.container.appendChild(vm.node));
       vm.timer = this.startTimer(vm);
     }
     startTimer(vm) {
