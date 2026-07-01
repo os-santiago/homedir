@@ -177,6 +177,9 @@
     const filterBtn = e.target.closest('[data-filter]');
     if (filterBtn) {
       currentFilter = filterBtn.getAttribute('data-filter');
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.setAttribute('aria-selected', btn.dataset.filter === currentFilter ? 'true' : 'false');
+      });
       render();
       return;
     }
