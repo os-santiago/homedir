@@ -36,6 +36,10 @@
   transform: translateY(20px);
 }
 
+.ef-toast[role="alert"] {
+  border-left: 3px solid var(--color-accent, #60a5fa);
+}
+
 .ef-toast__title {
   font-weight: bold;
 }

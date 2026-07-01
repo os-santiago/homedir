@@ -1180,7 +1180,13 @@ if (typeof module !== 'undefined' && module.exports) {
       vm.node = this.render(vm);
       this.visible.push(vm);
       this.metric('shown');
-      requestAnimationFrame(() => this.container.appendChild(vm.node));
+      requestAnimationFrame(() => {
+        this.container.appendChild(vm.node);
+        if (vm.urgent) {
+          const firstAction = vm.node.querySelector('.ef-toast__actions button, .ef-toast__actions a');
+          if (firstAction) firstAction.focus();
+        }
+      });
       vm.timer = this.startTimer(vm);
     }
     startTimer(vm) {
@@ -1201,8 +1207,7 @@ if (typeof module !== 'undefined' && module.exports) {
       toast.className = 'ef-toast';
       toast.setAttribute('data-id', vm.id);
       toast.setAttribute('tabindex', '0');
-      toast.setAttribute('role', 'status');
-      toast.setAttribute('aria-live', 'polite');
+      toast.setAttribute('role', vm.urgent ? 'alert' : 'status');
       toast.addEventListener('keydown', e => { if (e.key === 'Escape') { this.close(vm.id); } });
       const title = document.createElement('div');
       title.className = 'ef-toast__title';
@@ -1307,6 +1312,7 @@ if (typeof module !== 'undefined' && module.exports) {
         id: id,
         title: dto.title || dto.type,
         message: dto.message || '',
+        urgent: dto.urgent === true,
         url: (dto.talkId && dto.category !== 'break') ? ('/talks/' + dto.talkId) : null,
         centerUrl: dto.id ? ('/notifications/center#' + dto.id) : '/notifications/center'
       };
