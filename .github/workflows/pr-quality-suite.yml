@@ -1,4 +1,4 @@
-name: PR Quality — Suite
+name: PR Quality - Suite
 
 on:
   pull_request:
