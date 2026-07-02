@@ -113,22 +113,14 @@
 {#body}
 {#if event}
 <section class="cfp-selected-page-shell">
-<header class="page-header">
-  <div class="section-header">
-    <p class="section-subtitle">
-      <a href="/event/{event.id}" class="hd-link">← {#if resolvedLocaleCode == 'es'}Volver al evento{#else}Back to event{/if}</a>
-    </p>
-    <p class="section-subtitle">{#if resolvedLocaleCode == 'es'}Call for Papers{#else}Call for Papers{/if}</p>
-    <h1 class="public-title">{event.title} · {#if resolvedLocaleCode == 'es'}Speakers Seleccionados{#else}Selected Speakers{/if}</h1>
-    <p class="section-subtitle">
-      {#if resolvedLocaleCode == 'es'}
-      Conoce a los speakers seleccionados para {event.title}. Estas son las charlas que formarán parte de la agenda del evento.
-      {#else}
-      Meet the selected speakers for {event.title}. These are the talks that will be part of the event agenda.
-      {/if}
-    </p>
-  </div>
-</header>
+{#include fragments/page-header}
+<p class="section-subtitle">
+  <a href="/event/{event.id}" class="hd-link">← {i18n:events_cfp_back_to_event}</a>
+</p>
+<p class="section-subtitle">{i18n:events_cfp_selected_eyebrow}</p>
+<h1 class="public-title">{event.title} · {i18n:events_cfp_selected_title_suffix}</h1>
+<p class="section-subtitle">{i18n:events_cfp_selected_intro(event.title)}</p>
+{/include}
 
 <div class="speakers-grid">
   {#for submission in selectedSubmissions}

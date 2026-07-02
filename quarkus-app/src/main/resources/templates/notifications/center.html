@@ -18,14 +18,12 @@
   data-i18n-sample-event="{i18n:notifications_center_js_sample_event}"
   data-i18n-sample-community="{i18n:notifications_center_js_sample_community}"
   data-i18n-sample-project="{i18n:notifications_center_js_sample_project}">
-  <div class="page-header">
-    <div class="section-header">
-      <h1 class="page-title">{i18n:notifications_center_title}</h1>
-      <p class="section-subtitle">
-        {i18n:notifications_center_subtitle}
-      </p>
-    </div>
-  </div>
+  {#include fragments/page-header}
+  <h1 class="page-title">{i18n:notifications_center_title}</h1>
+  <p class="section-subtitle">
+    {i18n:notifications_center_subtitle}
+  </p>
+  {/include}
 
   <div class="page-grid section-grid-full">
     <div class="section-body flex flex-col" style="min-height: 400px;">
@@ -47,13 +45,14 @@
 
       <div id="notif-list" aria-live="polite" aria-atomic="false"></div>
       <div id="empty" class="hidden">
-        <span class="material-symbols-outlined">notifications_off</span>
-        <p>{i18n:notifications_center_empty}</p>
-        <p class="notifications-empty-hint">{i18n:notifications_center_empty_hint}</p>
+        {#include fragments/empty-state message=i18n:notifications_center_empty icon="notifications_off" hint=i18n:notifications_center_empty_hint hintClass="notifications-empty-hint"}
+        {#actions}
         <div class="notifications-empty-actions">
           <a href="/eventos" class="btn-primary">{i18n:notifications_center_empty_cta_events}</a>
           <a href="/comunidad/board" class="btn-primary">{i18n:notifications_center_empty_cta_board}</a>
         </div>
+        {/actions}
+        {/include}
       </div>
     </div>
   </div>

@@ -1,0 +1,8 @@
+{@ String message}
+{@ String icon = ""}
+{@ String hint = ""}
+{@ String hintClass = ""}
+{#if icon != ""}<span class="material-symbols-outlined" aria-hidden="true">{icon}</span>{/if}
+<p class="hd-empty-callout">{message}</p>
+{#if hint != ""}<p class="{hintClass}">{hint}</p>{/if}
+{#insert actions}{/insert}
