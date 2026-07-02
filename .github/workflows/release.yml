@@ -460,6 +460,8 @@ jobs:
         run: |
           set -euo pipefail
           url="${HEALTHCHECK_URL:-https://homedir.opensourcesantiago.io/q/health}"
+          origin="$(printf '%s' "$url" | sed -E 's#^(https?://[^/]+).*#\1#')"
+          page_url="${origin}/"
           attempts=18
           if [ "${DEPLOY_SSH_OUTCOME:-success}" != "success" ]; then
             attempts=54
