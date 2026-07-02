@@ -903,6 +903,16 @@ public interface AppMessages {
       "Share your talk idea for {eventTitle}. The organizing team will review it for the agenda.")
   String events_cfp_intro(String eventTitle);
 
+  @Message("Call for Papers")
+  String events_cfp_selected_eyebrow();
+
+  @Message("Selected Speakers")
+  String events_cfp_selected_title_suffix();
+
+  @Message(
+      "Meet the selected speakers for {eventTitle}. These are the talks that will be part of the event agenda.")
+  String events_cfp_selected_intro(String eventTitle);
+
   @Message("Proposal form")
   String events_cfp_submit_title();
 
