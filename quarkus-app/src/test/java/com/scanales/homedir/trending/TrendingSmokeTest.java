@@ -7,25 +7,21 @@ import io.restassured.RestAssured;
 import org.junit.jupiter.api.Test;
 
 /**
- * Quick smoke test to check if the trending page actually renders repos.
- * Debugging helper: shows the actual page output when repos are (or aren't) available.
+ * Quick smoke test to check if the trending page actually renders repos. Debugging helper: shows
+ * the actual page output when repos are (or aren't) available.
  */
 @QuarkusTest
 public class TrendingSmokeTest {
 
   @Test
   public void checkTrendingPageContent() {
-    String body = RestAssured.given()
-        .when()
-        .get("/trending")
-        .then()
-        .statusCode(200)
-        .extract()
-        .asString();
+    String body =
+        RestAssured.given().when().get("/trending").then().statusCode(200).extract().asString();
 
     // Always present: page structure
     assertTrue(body.contains("Trending Repositories"), "should have heading");
-    assertTrue(body.contains("period=daily") || body.contains("period=weekly"),
+    assertTrue(
+        body.contains("period=daily") || body.contains("period=weekly"),
         "should have period links: " + body.substring(0, Math.min(200, body.length())));
 
     // Check for count selector - only present when repos are available

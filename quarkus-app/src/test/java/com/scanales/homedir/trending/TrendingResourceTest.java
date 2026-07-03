@@ -58,13 +58,7 @@ public class TrendingResourceTest {
   @ParameterizedTest(name = "count selector appears on {1}")
   @MethodSource("trendingPageParams")
   public void testCountSelectorStructure(String path, String description) {
-    String body = RestAssured.given()
-        .when()
-        .get(path)
-        .then()
-        .statusCode(200)
-        .extract()
-        .asString();
+    String body = RestAssured.given().when().get(path).then().statusCode(200).extract().asString();
 
     // The count selector links should always be in the page
     // (they may be inside or outside the if-empty block depending on data)
@@ -75,7 +69,11 @@ public class TrendingResourceTest {
 
     // All three count options should appear together or not at all
     assert hasCount1 == hasCount5 && hasCount5 == hasCount10
-        : "count selector options must appear together; got 1=" + hasCount1
-          + " 5=" + hasCount5 + " 10=" + hasCount10;
+        : "count selector options must appear together; got 1="
+            + hasCount1
+            + " 5="
+            + hasCount5
+            + " 10="
+            + hasCount10;
   }
 }

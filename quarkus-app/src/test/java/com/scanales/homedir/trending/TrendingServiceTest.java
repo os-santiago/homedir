@@ -23,8 +23,12 @@ public class TrendingServiceTest {
 
   @BeforeEach
   void loadFixture() throws IOException, URISyntaxException {
-    URI uri = Objects.requireNonNull(
-        getClass().getClassLoader().getResource("fixtures/trending/github-trending-daily.html")).toURI();
+    URI uri =
+        Objects.requireNonNull(
+                getClass()
+                    .getClassLoader()
+                    .getResource("fixtures/trending/github-trending-daily.html"))
+            .toURI();
     fixtureHtml = Files.readString(Path.of(uri));
   }
 
@@ -83,7 +87,9 @@ public class TrendingServiceTest {
     TrendingRepo first = repos.get(0);
     assertEquals("react", first.name());
     assertEquals("facebook", first.owner());
-    assertEquals("A declarative, efficient, and flexible JavaScript library for building user interfaces.", first.description());
+    assertEquals(
+        "A declarative, efficient, and flexible JavaScript library for building user interfaces.",
+        first.description());
     assertEquals(45678, first.stars());
     assertEquals("JavaScript", first.language());
     assertEquals("https://github.com/facebook/react", first.url());
@@ -94,7 +100,8 @@ public class TrendingServiceTest {
     List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
 
     // "hdl-lang" article has no itemprop="programmingLanguage" span
-    TrendingRepo hdl = repos.stream().filter(r -> r.name().equals("hdl-lang")).findFirst().orElseThrow();
+    TrendingRepo hdl =
+        repos.stream().filter(r -> r.name().equals("hdl-lang")).findFirst().orElseThrow();
     assertEquals("hdl", hdl.owner());
     assertEquals("", hdl.language(), "should default to empty string when no language span");
   }
@@ -104,7 +111,8 @@ public class TrendingServiceTest {
     List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
 
     // "goname" article has no description p tag
-    TrendingRepo goname = repos.stream().filter(r -> r.name().equals("goname")).findFirst().orElseThrow();
+    TrendingRepo goname =
+        repos.stream().filter(r -> r.name().equals("goname")).findFirst().orElseThrow();
     assertEquals("", goname.description(), "should default to empty string when no description");
     assertEquals("Go", goname.language());
   }
@@ -112,9 +120,9 @@ public class TrendingServiceTest {
   @Test
   public void testParseHtmlHandlesBoxRowWithCompoundClass() {
     // Add a compound class variant to verify regex handles Box-row--focus-gray etc.
-    String compound = fixtureHtml.replace(
-        "<article class=\"Box-row\">",
-        "<article class=\"Box-row Box-row--focus-gray\">");
+    String compound =
+        fixtureHtml.replace(
+            "<article class=\"Box-row\">", "<article class=\"Box-row Box-row--focus-gray\">");
     List<TrendingRepo> repos = trendingService.parseHtml(compound);
     assertEquals(5, repos.size(), "should parse Box-row with compound class");
   }
