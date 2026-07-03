@@ -113,29 +113,28 @@
 {#body}
 {#if event}
 <section class="event-theme-shell">
-<header class="page-header">
-  <div class="section-header">
-    <p class="section-subtitle">
-        <a href="/eventos" class="hd-link">← {i18n:events_detail_back_to_events}</a>
-        {#if event.isOngoing()} · <span class="badge info">{i18n:events_detail_badge_ongoing}</span>{/if}
-    </p>
-    <h1 class="public-title">{event.title}</h1>
-  </div>
-  
+{#include fragments/page-header}
+<p class="section-subtitle">
+    <a href="/eventos" class="hd-link">← {i18n:events_detail_back_to_events}</a>
+    {#if event.isOngoing()} · <span class="badge info">{i18n:events_detail_badge_ongoing}</span>{/if}
+</p>
+<h1 class="public-title">{event.title}</h1>
+{#footer}
   {#if event.formattedDate}
   <p class="section-subtitle">
     <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">calendar_month</span>
     {event.formattedDate} | {event.startTimeStr} – {event.endTimeStr} {i18n:events_detail_hours_suffix}{#if event.timezone} ({event.timezone}){/if}
   </p>
   {/if}
-  
+
   {#if app:validUrl(event.mapUrl)}
   <p class="section-subtitle">
       <span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 1.2em;">location_on</span>
       <a href="{event.mapUrl}" target="_blank" rel="noopener" class="hd-link">{i18n:events_detail_view_map}</a>
   </p>
   {/if}
-</header>
+{/footer}
+{/include}
 
 <div class="page-grid">
     <!-- Main Info Column -->

@@ -1,0 +1,8 @@
+{@ String currentLabel}
+{@ String currentHref = ""}
+<span>{i18n:nav_home}</span> /
+{#if currentHref != ""}
+<a href="{currentHref}">{currentLabel}</a>
+{#else}
+<strong>{currentLabel}</strong>
+{/if}

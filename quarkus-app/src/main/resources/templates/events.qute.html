@@ -1,35 +1,34 @@
-{#include layout/main activePage="eventos" noLoginModal=true}
+{#include layout/main activePage="eventos" noLoginModal=true showBreadcrumbs=true}
 {#title}{i18n:events_title}{/title}
+{#breadcrumbs}{#include fragments/breadcrumbs currentLabel=i18n:nav_events /}{/breadcrumbs}
 {#body}
-<nav class="breadcrumbs"><span>{i18n:nav_home}</span> / <strong>{i18n:nav_events}</strong></nav>
 
+{#include fragments/page-header extraClass="events-page-header" sectionHeaderClass="hd-section-heading"}
+<p class="section-subtitle">{i18n:events_subtitle}</p>
+<h1>{i18n:events_hero_title}</h1>
+{#footer}
+<p class="section-subtitle">{i18n:events_hero_desc}</p>
 
-<header class="page-header events-page-header">
-  <div class="section-header hd-section-heading">
-    <p class="section-subtitle">{i18n:events_subtitle}</p>
-    <h1>{i18n:events_hero_title}</h1>
+<div class="main-sections events-stats-container">
+  <div class="section-card">
+    <p class="eyebrow">{i18n:events_card_upcoming}</p>
+    <h2>{upcomingCount}</h2>
+    <p>{i18n:events_card_upcoming_desc}</p>
   </div>
-  <p class="section-subtitle">{i18n:events_hero_desc}</p>
-
-  <div class="main-sections events-stats-container">
-    <div class="section-card">
-      <p class="eyebrow">{i18n:events_card_upcoming}</p>
-      <h2>{upcomingCount}</h2>
-      <p>{i18n:events_card_upcoming_desc}</p>
-    </div>
-    <div class="section-card">
-      <p class="eyebrow">{i18n:events_card_past}</p>
-      <h2>{pastCount}</h2>
-      <p>{i18n:events_card_past_desc}</p>
-    </div>
-    <div class="section-card">
-      <p class="eyebrow">{i18n:events_card_today}</p>
-      <h2>{today}</h2>
-      <p>{i18n:events_card_today_desc}</p>
-    </div>
-
+  <div class="section-card">
+    <p class="eyebrow">{i18n:events_card_past}</p>
+    <h2>{pastCount}</h2>
+    <p>{i18n:events_card_past_desc}</p>
   </div>
-</header>
+  <div class="section-card">
+    <p class="eyebrow">{i18n:events_card_today}</p>
+    <h2>{today}</h2>
+    <p>{i18n:events_card_today_desc}</p>
+  </div>
+
+</div>
+{/footer}
+{/include}
 
 <section class="page-grid">
   <div class="section-header events-full-width hd-section-heading">
@@ -39,11 +38,14 @@
 
   {#if upcomingEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n:events_empty_upcoming}</p>
+    {#include fragments/empty-state message=i18n:events_empty_upcoming}
+    {#actions}
     <div class="home-project-actions-row">
       <a href="#past-events" class="btn-primary">{i18n:events_empty_upcoming_cta_history}</a>
       <a href="/comunidad" class="btn-primary">{i18n:events_empty_upcoming_cta_community}</a>
     </div>
+    {/actions}
+    {/include}
   </div>
   {#else}
   <div class="events-grid events-full-width">
@@ -72,10 +74,13 @@
 
   {#if pastEvents.isEmpty()}
   <div class="section-card events-full-width">
-    <p class="hd-empty-callout">{i18n:events_empty_past}</p>
+    {#include fragments/empty-state message=i18n:events_empty_past}
+    {#actions}
     <div class="home-project-actions-row">
       <a href="/comunidad/picks" class="btn-primary">{i18n:events_empty_past_cta_picks}</a>
     </div>
+    {/actions}
+    {/include}
   </div>
   {#else}
   <div class="events-list events-full-width">
