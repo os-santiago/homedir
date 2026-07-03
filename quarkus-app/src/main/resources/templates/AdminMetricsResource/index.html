@@ -258,7 +258,7 @@
 </div>
 <script nonce="{app:cspNonce}">
   document.getElementById('resetMetricsForm')?.addEventListener('submit', (event) => {
-    if (!window.confirm('¿Borrar datos?')) {
+    if (!window.confirm('{i18n:admin_metrics_reset_confirm}')) {
       event.preventDefault();
     }
   });

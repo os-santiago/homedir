@@ -5264,6 +5264,9 @@ public interface AppMessages {
   @Message("Review usage and funnel conversion by module.")
   String admin_hub_action_metrics_desc();
 
+  @Message("Delete data?")
+  String admin_metrics_reset_confirm();
+
   @Message("Insights")
   String admin_hub_action_insights_title();
 
