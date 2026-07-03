@@ -37,8 +37,6 @@ public class CspReportResource {
 
   /** Visible for test. Strips every query string; CSP reports don't need params for debugging. */
   static String sanitize(String body) {
-    return body
-        .replaceAll("(?i)\\?[^\\s\"]+", "?[redacted]")
-        .replaceAll("[\\r\\n\\p{Cntrl}]", " ");
+    return body.replaceAll("(?i)\\?[^\\s\"]+", "?[redacted]").replaceAll("[\\r\\n\\p{Cntrl}]", " ");
   }
 }
