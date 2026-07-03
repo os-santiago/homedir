@@ -9,6 +9,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -21,7 +22,10 @@ import org.jboss.logging.Logger;
 public class TrendingResource {
 
   private static final Logger LOG = Logger.getLogger(TrendingResource.class);
-  private static final int DEFAULT_COUNT = 3;
+  private static final int DEFAULT_COUNT = 1;
+
+  @ConfigProperty(name = "trending.max-count", defaultValue = "10")
+  int maxCount;
 
   @Inject SecurityIdentity identity;
 
@@ -64,7 +68,7 @@ public class TrendingResource {
     if (count == null) {
       return DEFAULT_COUNT;
     }
-    return Math.max(1, Math.min(count, 10));
+    return Math.max(1, Math.min(count, maxCount));
   }
 
   private String formatLastUpdated(List<TrendingRepo> repos) {
