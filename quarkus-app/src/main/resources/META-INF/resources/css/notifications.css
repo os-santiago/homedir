@@ -273,6 +273,26 @@
   border: 0;
 }
 
+/* Notification center filter buttons */
+.notif-filter-btn {
+  background: transparent;
+  border: none !important;
+  outline: none;
+}
+
+.notif-section-body {
+  min-height: 400px;
+}
+
+#confirmDeleteAll {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  z-index: 100;
+}
+
 /* Bell in navigation bar */
 .notifications-bell {
   position: relative;
