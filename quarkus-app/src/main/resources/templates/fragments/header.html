@@ -61,7 +61,7 @@
           {/if}
           <span class="user-name">
             {#if userSession.questClass}
-            <span title="{userSession.questClass.displayName}" class="user-class-icon">
+            <span title="{userSession.questClass.displayName}" class="user-class-icon" aria-hidden="true">
               {#switch userSession.questClass.toString()}
               {#case 'ENGINEER'}<span class="material-symbols-outlined">engineering</span>{/case}
               {#case 'SCIENTIST'}<span class="material-symbols-outlined">science</span>{/case}
