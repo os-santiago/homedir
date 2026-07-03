@@ -26,14 +26,14 @@
   {/include}
 
   <div class="page-grid section-grid-full">
-    <div class="section-body flex flex-col" style="min-height: 400px;">
+    <div class="section-body flex flex-col notif-section-body">
       <div class="hd-tabs quest-tabs mb-6">
-        <div class="quest-tabs-links" style="border: none !important;">
-          <button class="hd-tab active btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="all">{i18n:notifications_center_filter_all}</button>
+        <div class="quest-tabs-links">
+          <button class="hd-tab active btn-link-filter notif-filter-btn"
+            data-filter="all">{i18n:notifications_center_filter_all}</button>
           <span class="quest-tab-separator">|</span>
-          <button class="hd-tab btn-link-filter bg-transparent border-0 cursor-pointer text-base"
-            style="background: transparent; border: none !important; outline: none;" data-filter="unread">{i18n:notifications_center_filter_unread}</button>
+          <button class="hd-tab btn-link-filter notif-filter-btn"
+            data-filter="unread">{i18n:notifications_center_filter_unread}</button>
         </div>
         <div class="actions-right ml-auto flex gap-2">
           <button class="btn-primary btn-sm" id="selectAll">{i18n:notifications_center_action_select_all}</button>
@@ -57,8 +57,7 @@
     </div>
   </div>
 
-  <dialog id="confirmDeleteAll" class="section-body"
-    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 100;">
+  <dialog id="confirmDeleteAll" class="section-body">
     <h2 class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
     <p class="mb-4">{i18n:notifications_center_confirm_desc}</p>
     <div class="actions flex gap-4 justify-end">
