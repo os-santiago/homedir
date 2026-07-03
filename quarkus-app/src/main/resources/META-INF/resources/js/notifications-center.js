@@ -103,7 +103,9 @@
       const checked = selected.has(n.id) ? 'checked' : '';
       const readLabel = n.readAt ? i18n.toggleMarkUnread : i18n.toggleMarkRead;
       const chip = chipFor(n);
-      const url = n.targetUrl || (n.talkId ? `/talks/${encodeURIComponent(n.talkId)}` : '/notifications/center');
+      let url = n.targetUrl;
+      if (url && !isValidUrl(url)) url = null;
+      url = url || (n.talkId ? `/talks/${encodeURIComponent(n.talkId)}` : '/notifications/center');
       const linkLabel = n.talkId ? i18n.linkViewTalk : i18n.linkOpen;
 
       div.innerHTML = `
@@ -161,7 +163,14 @@
     }[m]));
   }
   function escapeAttr(s) {
-    return String(s).replace(/"/g, '&quot;');
+    return escapeHtml(s);
+  }
+
+  function isValidUrl(str) {
+    try {
+      const url = new URL(str, window.location.origin);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch { return false; }
   }
 
   function updateSelectAllBtn() {
