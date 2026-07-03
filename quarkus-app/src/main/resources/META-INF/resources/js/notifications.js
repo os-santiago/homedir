@@ -137,7 +137,7 @@
     try {
       const raw = localStorage.getItem(UNREAD_KEY);
       unread = raw ? parseInt(raw, 10) : 0;
-    } catch (_) { unread = 0; }
+    } catch (e) { console.warn('notifications: failed to read unread count', e); unread = 0; }
     renderBadge();
   }
   window.updateUnreadFromLocal = updateUnreadFromLocal;

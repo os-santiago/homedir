@@ -39,25 +39,28 @@
   // Utilidades de almacenamiento
   function getAll() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-    catch { return []; }
+    catch (e) { console.warn('notifications-center: failed to read storage', e); return []; }
   }
   function saveAll(arr) {
-    // recorta a las últimas 1000 por seguridad
-    localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000)));
-    syncUnread(arr);
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000)));
+      syncUnread(arr);
+    } catch (e) { console.warn('notifications-center: failed to save storage', e); }
   }
 
   function syncUnread(arr) {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(startOfDay);
-    endOfDay.setDate(endOfDay.getDate() + 1);
-    const unread = arr.filter(n => {
-      const ts = n.createdAt || 0;
-      return !n.dismissedAt && !n.readAt && ts >= startOfDay.getTime() && ts < endOfDay.getTime();
-    }).length;
-    localStorage.setItem(UNREAD_KEY, String(unread));
-    document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
+    try {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      const unread = arr.filter(n => {
+        const ts = n.createdAt || 0;
+        return !n.dismissedAt && !n.readAt && ts >= startOfDay.getTime() && ts < endOfDay.getTime();
+      }).length;
+      localStorage.setItem(UNREAD_KEY, String(unread));
+      document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
+    } catch (e) { console.warn('notifications-center: failed to sync unread', e); }
   }
 
   function fmt(ts) {
