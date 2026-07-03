@@ -151,13 +151,13 @@ What it automates:
 
 ## Autonomous SDLC service account
 
-The autonomous SDLC runtime (GitHub Actions self-hosted runner that performs automated SDLC tasks such as dependency updates, security patching, and release automation) runs on this VPS under the dedicated non-root `homedir-sdlc` service account. This account:
-- Owns the runner working directory and all workspace files.
-- Runs the GitHub Actions self-hosted runner as a systemd service (`github-runner.service` or similar).
-- Has no sudo privileges and no access to `/etc/homedir.env` or `/etc/homedir-secrets`.
-- Cannot access the application container, nginx config, or systemd units outside its own runner service.
-- Is restricted to its home directory and the runner's `_work` directory via systemd `RestrictPaths` / `ReadWritePaths` sandboxing.
-- Pulls container images from Quay/GHCR using the runner's own credentials; it does not have access to the production `homedir.env` or deployment SSH keys.
-- The production deployment (container restart, nginx reload, systemd unit management) is performed exclusively by the GitHub Actions release workflow over SSH using the `DEPLOY_SSH_*` secrets, not by the SDLC runner account.
+The autonomous SDLC runtime (GitHub Actions self-hosted runner that performs automated SDLC tasks such as dependency updates, security patching, and release automation) should be provisioned under a dedicated non-root `homedir-sdlc` service account. The service account should:
+- Own only the runner working directory and its workspace files.
+- Run the GitHub Actions self-hosted runner under its own systemd service.
+- Avoid sudo privileges and avoid access to `/etc/homedir.env`, `/etc/homedir-secrets`, deployment SSH keys, application containers, nginx configuration, and unrelated systemd units.
+- Be restricted to the minimum required filesystem paths for the runner workspace and state.
+- Pull container images from Quay/GHCR using runner-specific credentials rather than production runtime secrets.
 
-This separation ensures that autonomous SDLC automation (dependency updates, security scans, release preparation) runs with least privilege and cannot affect the running production service or access production secrets.
+The production deployment (container restart, nginx reload, systemd unit management) is performed exclusively by the GitHub Actions release workflow over SSH using the `DEPLOY_SSH_*` secrets, not by the SDLC runner account.
+
+This separation model keeps autonomous SDLC automation (dependency updates, security scans, release preparation) independent from production deployment authority and production secrets.
