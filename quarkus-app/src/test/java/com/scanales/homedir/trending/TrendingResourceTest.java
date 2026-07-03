@@ -63,9 +63,9 @@ public class TrendingResourceTest {
     // The count selector links should always be in the page
     // (they may be inside or outside the if-empty block depending on data)
     // Show more links reference count=1, count=5, count=10
-    boolean hasCount1 = body.contains("count=1");
-    boolean hasCount5 = body.contains("count=5");
-    boolean hasCount10 = body.contains("count=10");
+    boolean hasCount1 = hasCountLink(body, 1);
+    boolean hasCount5 = hasCountLink(body, 5);
+    boolean hasCount10 = hasCountLink(body, 10);
 
     // All three count options should appear together or not at all
     assertTrue(
@@ -76,5 +76,10 @@ public class TrendingResourceTest {
             + hasCount5
             + " 10="
             + hasCount10);
+  }
+
+  private static boolean hasCountLink(String body, int count) {
+    String token = "count=" + count;
+    return body.contains(token + "\"") || body.contains(token + "&");
   }
 }
