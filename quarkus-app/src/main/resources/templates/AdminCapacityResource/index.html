@@ -126,7 +126,7 @@
     </div>
   </div>
 </div>
-<script>
+<script nonce="{app:cspNonce}">
   function copyState() {
     const text = `Modo: {status.mode}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
     navigator.clipboard.writeText(text);
