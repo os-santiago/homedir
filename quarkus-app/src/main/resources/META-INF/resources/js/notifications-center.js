@@ -4,22 +4,22 @@
     return;
   }
 
-  const i18n = {
-    toggleMarkRead: root.dataset.i18nToggleMarkRead || 'Mark as read',
-    toggleMarkUnread: root.dataset.i18nToggleMarkUnread || 'Mark as unread',
-    linkViewTalk: root.dataset.i18nLinkViewTalk || 'View talk',
-    linkOpen: root.dataset.i18nLinkOpen || 'Open',
-    defaultTitle: root.dataset.i18nDefaultTitle || 'Notification',
-    catEvent: root.dataset.i18nCatEvent || 'Event',
-    catTalk: root.dataset.i18nCatTalk || 'Talk',
-    catBreak: root.dataset.i18nCatBreak || 'Break',
-    catAnnouncement: root.dataset.i18nCatAnnouncement || 'Announcement',
-    selectAll: root.dataset.i18nSelectAll || 'Select all',
-    deselectAll: root.dataset.i18nDeselectAll || 'Deselect all',
-    sampleTitle: root.dataset.i18nSampleTitle || 'What you will see here',
-    sampleEvent: root.dataset.i18nSampleEvent || 'New event or agenda update is published.',
-    sampleCommunity: root.dataset.i18nSampleCommunity || 'A community pick you follow receives traction.',
-    sampleProject: root.dataset.i18nSampleProject || 'Important project release and delivery updates.'
+  const i18n = window.__NOTIF_I18N__ || {
+    toggleMarkRead: 'Mark as read',
+    toggleMarkUnread: 'Mark as unread',
+    linkViewTalk: 'View talk',
+    linkOpen: 'Open',
+    defaultTitle: 'Notification',
+    catEvent: 'Event',
+    catTalk: 'Talk',
+    catBreak: 'Break',
+    catAnnouncement: 'Announcement',
+    selectAll: 'Select all',
+    deselectAll: 'Deselect all',
+    sampleTitle: 'What you will see here',
+    sampleEvent: 'New event or agenda update is published.',
+    sampleCommunity: 'A community pick you follow receives traction.',
+    sampleProject: 'Important project release and delivery updates.'
   };
 
   const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
