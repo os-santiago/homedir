@@ -221,7 +221,7 @@
         </table>
       </div>
       <div class="admin-shell-actions" style="margin-top: 1rem;">
-        <form method="post" action="/private/admin/metrics/reset" onsubmit="return confirm('¿Borrar datos?');">
+        <form id="resetMetricsForm" method="post" action="/private/admin/metrics/reset">
                 {#include fragments/csrf-token.html /}
           <button type="submit" class="btn btn-danger">Reset data</button>
         </form>
@@ -256,5 +256,12 @@
     </section>
   </div>
 </div>
+<script nonce="{app:cspNonce}">
+  document.getElementById('resetMetricsForm')?.addEventListener('submit', (event) => {
+    if (!window.confirm('¿Borrar datos?')) {
+      event.preventDefault();
+    }
+  });
+</script>
 {/body}
 {/include}

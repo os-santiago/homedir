@@ -81,17 +81,17 @@ public class CspHeaderTest {
         "{\"csp-report\":{\"document-uri\":\"https://host/path?session=secret123&token=xyz\"}}";
     String out = CspReportResource.sanitize(body);
     // Query-string PII (session/token) must never reach logs verbatim.
-    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("secret123")));
-    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("xyz")));
-    org.hamcrest.MatcherAssert.assertThat(out, containsString("?[redacted]"));
+    MatcherAssert.assertThat(out, not(containsString("secret123")));
+    MatcherAssert.assertThat(out, not(containsString("xyz")));
+    MatcherAssert.assertThat(out, containsString("?[redacted]"));
   }
 
   @Test
   public void reportSanitizesControlCharacters() {
     String out = CspReportResource.sanitize("first line\r\nsecond\tline");
-    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\r")));
-    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\n")));
-    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\t")));
-    org.hamcrest.MatcherAssert.assertThat(out, containsString("first line  second line"));
+    MatcherAssert.assertThat(out, not(containsString("\r")));
+    MatcherAssert.assertThat(out, not(containsString("\n")));
+    MatcherAssert.assertThat(out, not(containsString("\t")));
+    MatcherAssert.assertThat(out, containsString("first line  second line"));
   }
 }

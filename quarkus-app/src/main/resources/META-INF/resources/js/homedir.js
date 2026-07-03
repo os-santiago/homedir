@@ -585,6 +585,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  document.querySelectorAll('[data-user-menu-toggle]').forEach((button) => {
+    button.addEventListener('click', toggleUserMenu);
+  });
   // onConfigChange(defaultConfig);
   // Close user menu when clicking outside
   document.addEventListener('click', (e) => {

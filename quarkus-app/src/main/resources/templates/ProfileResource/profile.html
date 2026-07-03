@@ -195,7 +195,7 @@
                         rel="noopener noreferrer">
                         <span class="material-symbols-outlined">open_in_new</span> {i18n:btn_view_profile}
                     </a>
-                    <button class="hd-btn hd-btn-secondary" onclick="shareProfile('{publicProfileHandle}')">
+                    <button class="hd-btn hd-btn-secondary" type="button" data-share-profile-handle="{publicProfileHandle}">
                         <span class="material-symbols-outlined">share</span> {i18n:btn_share_profile}
                     </button>
                 </div>
@@ -1122,6 +1122,9 @@
             });
         }
     }
+    document.querySelectorAll('[data-share-profile-handle]').forEach((button) => {
+        button.addEventListener('click', () => shareProfile(button.dataset.shareProfileHandle));
+    });
     (function () {
         document.querySelectorAll('.js-progress-fill').forEach((bar) => {
             const raw = Number.parseFloat(bar.dataset.progress || '0');

@@ -121,7 +121,7 @@
         </tbody>
       </table>
       <div style="margin-top: 1rem;">
-        <button class="btn btn-secondary" type="button" onclick="copyState()">Copiar estado</button>
+        <button id="copyCapacityState" class="btn btn-secondary" type="button">Copiar estado</button>
       </div>
     </div>
   </div>
@@ -131,6 +131,7 @@
     const text = `Modo: {status.mode}\nMemoria usada: {status.memoryPercent}%\nDisco libre: {status.diskFreePercent}%\nLecturas: {reads.memory}\nCola escrituras: {writes.depth}/{writes.max}`;
     navigator.clipboard.writeText(text);
   }
+  document.getElementById('copyCapacityState')?.addEventListener('click', copyState);
 </script>
 {/body}
 {/include}

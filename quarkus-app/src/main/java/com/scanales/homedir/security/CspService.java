@@ -14,9 +14,9 @@ public class CspService {
   // ponytail: 16 bytes -> ~22 base64url chars; unique enough per request, no DB needed.
   private static final SecureRandom RNG = new SecureRandom();
 
-  private String nonce;
+  private volatile String nonce;
 
-  public String getNonce() {
+  public synchronized String getNonce() {
     if (nonce == null) {
       byte[] bytes = new byte[16];
       RNG.nextBytes(bytes);
