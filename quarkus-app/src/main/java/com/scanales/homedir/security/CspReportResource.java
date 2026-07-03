@@ -22,7 +22,7 @@ public class CspReportResource {
   private static final int MAX_LOG = 512;
 
   @POST
-  @Consumes(MediaType.APPLICATION_JSON)
+  @Consumes({MediaType.APPLICATION_JSON, "application/csp-report", "application/reports+json"})
   public Response report(String body) {
     // Browsers POST a {"csp-report": {...}} envelope.
     if (body == null || body.isBlank()) {
@@ -37,6 +37,8 @@ public class CspReportResource {
 
   /** Visible for test. Strips every query string; CSP reports don't need params for debugging. */
   static String sanitize(String body) {
-    return body.replaceAll("(?i)\\?[^\\s\"]+", "?[redacted]");
+    return body
+        .replaceAll("(?i)\\?[^\\s\"]+", "?[redacted]")
+        .replaceAll("[\\r\\n\\p{Cntrl}]", " ");
   }
 }

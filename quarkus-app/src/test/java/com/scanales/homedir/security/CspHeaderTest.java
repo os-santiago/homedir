@@ -1,11 +1,16 @@
 package com.scanales.homedir.security;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.hamcrest.Matchers.*;
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Verifies the Content-Security-Policy header (issue #1029): header presence on HTML, nonce
@@ -55,11 +60,15 @@ public class CspHeaderTest {
     MatcherAssert.assertThat(h1, not(equalTo(h2)));
   }
 
-  @Test
-  public void reportEndpointReturns204() {
+  @ParameterizedTest
+  @ValueSource(strings = {"application/json", "application/csp-report", "application/reports+json"})
+  public void reportEndpointReturns204(String contentType) {
     given()
+        .config(
+            RestAssured.config()
+                .encoderConfig(encoderConfig().encodeContentTypeAs(contentType, ContentType.TEXT)))
         .when()
-        .contentType("application/json")
+        .contentType(contentType)
         .body("{\"csp-report\":{\"document-uri\":\"https://example.test/\"}}")
         .post("/csp-report")
         .then()
@@ -75,5 +84,14 @@ public class CspHeaderTest {
     org.hamcrest.MatcherAssert.assertThat(out, not(containsString("secret123")));
     org.hamcrest.MatcherAssert.assertThat(out, not(containsString("xyz")));
     org.hamcrest.MatcherAssert.assertThat(out, containsString("?[redacted]"));
+  }
+
+  @Test
+  public void reportSanitizesControlCharacters() {
+    String out = CspReportResource.sanitize("first line\r\nsecond\tline");
+    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\r")));
+    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\n")));
+    org.hamcrest.MatcherAssert.assertThat(out, not(containsString("\t")));
+    org.hamcrest.MatcherAssert.assertThat(out, containsString("first line  second line"));
   }
 }
