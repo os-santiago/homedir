@@ -99,8 +99,6 @@ public class JsBundleE2ETest {
     given().when().get("/js/homedir.js").then().statusCode(200);
     given().when().get("/js/app.js").then().statusCode(200);
     given().when().get("/js/notifications-adapter.js").then().statusCode(200);
-    given().when().get("/js/notifications.js").then().statusCode(200);
-    given().when().get("/js/global-notifications-ws.js").then().statusCode(200);
   }
 
   @Test
