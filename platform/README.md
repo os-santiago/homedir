@@ -148,3 +148,16 @@ What it automates:
 - Run `/usr/local/bin/homedir-security-hardening.sh audit` periodically and after each DR recovery.
 - Rotate internal runtime secrets periodically (monthly or after incident):
   - `/usr/local/bin/homedir-secrets-rotate.sh --restart-services`
+
+## Autonomous SDLC service account
+
+The autonomous SDLC runtime (GitHub Actions self-hosted runner that performs automated SDLC tasks such as dependency updates, security patching, and release automation) should be provisioned under a dedicated non-root `homedir-sdlc` service account. The service account should:
+- Own only the runner working directory and its workspace files.
+- Run the GitHub Actions self-hosted runner under its own systemd service.
+- Avoid sudo privileges and avoid access to `/etc/homedir.env`, `/etc/homedir-secrets`, deployment SSH keys, application containers, nginx configuration, and unrelated systemd units.
+- Be restricted to the minimum required filesystem paths for the runner workspace and state.
+- Pull container images from Quay/GHCR using runner-specific credentials rather than production runtime secrets.
+
+The production deployment (container restart, nginx reload, systemd unit management) is performed exclusively by the GitHub Actions release workflow over SSH using the `DEPLOY_SSH_*` secrets, not by the SDLC runner account.
+
+This separation model keeps autonomous SDLC automation (dependency updates, security scans, release preparation) independent from production deployment authority and production secrets.
