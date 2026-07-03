@@ -456,22 +456,42 @@ jobs:
         if: ${{ steps.deploy_config.outputs.enabled == 'true' }}
         env:
           DEPLOY_SSH_OUTCOME: ${{ steps.deploy_ssh.outcome }}
+          EXPECTED_VERSION: ${{ steps.release_meta.outputs.new_version }}
         run: |
           set -euo pipefail
           url="${HEALTHCHECK_URL:-https://homedir.opensourcesantiago.io/q/health}"
+          origin="$(printf '%s' "$url" | sed -E 's#^(https?://[^/]+).*#\1#')"
+          page_url="${origin}/"
           attempts=18
           if [ "${DEPLOY_SSH_OUTCOME:-success}" != "success" ]; then
-            attempts=36
-            echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy."
+            attempts=54
+            echo "::warning::SSH deploy did not complete successfully; waiting longer for VPS fallback auto-deploy (up to 9 min)."
           fi
+          health_reached=false
+          deployed=""
           for attempt in $(seq 1 "$attempts"); do
-            if curl -fsS "$url" >/dev/null; then
+            if curl -fsS --connect-timeout 5 --max-time 10 "$url" >/dev/null; then
               echo "healthcheck passed: $url"
-              exit 0
+              health_reached=true
+              deployed="$(curl -fsS --connect-timeout 5 --max-time 10 "$page_url" | grep -oE 'HomeDir v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
+              if [ "${deployed}" = "HomeDir v${EXPECTED_VERSION}" ]; then
+                echo "Live runtime reports: ${deployed}"
+                echo "Live version matches release ${EXPECTED_VERSION}."
+                exit 0
+              fi
+              echo "Version not ready yet: live=${deployed:-unknown}, expected=HomeDir v${EXPECTED_VERSION}"
             fi
             sleep 10
           done
-          echo "healthcheck failed: $url" >&2
+          if [ "$health_reached" != "true" ]; then
+            echo "healthcheck failed: $url" >&2
+            exit 1
+          fi
+
+          # Catch silent deploys: when "Deploy to VPS via SSH" runs with
+          # continue-on-error above, a failed deploy leaves the OLD container
+          # answering /q/health green while the new release never promoted.
+          echo "::error::Version drift: live=${deployed:-unknown}, expected=HomeDir v${EXPECTED_VERSION}. The new release image did not become the running container; check homedir-update.sh and homedir-auto-deploy.timer on the VPS." >&2
           exit 1
 
       - name: Emit insights ingest events (production release)
