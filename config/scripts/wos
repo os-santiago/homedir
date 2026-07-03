@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# WOS (Workspace OS) CLI helper
+# Usage: wos <command> [args]
+
+set -euo pipefail
+
+QUEUE_PATH="$HOME/.workspace-os/agent_queue.jsonl"
+
+cmd="${1:-help}"
+shift 2>/dev/null || true
+
+case "$cmd" in
+  queue|q)
+    tail -20 "$QUEUE_PATH" | python -m json.tool --no-ensure-ascii 2>/dev/null || tail -20 "$QUEUE_PATH"
+    ;;
+  queue-all|qa)
+    cat "$QUEUE_PATH" | python -m json.tool --no-ensure-ascii 2>/dev/null || cat "$QUEUE_PATH"
+    ;;
+  stats|s)
+    python3 <<'PYEOF'
+import json, os
+queue = os.path.expanduser('~/.workspace-os/agent_queue.jsonl')
+with open(queue) as f:
+    entries = [json.loads(l) for l in f if l.strip()]
+total = len(entries)
+states = {}
+agents = {}
+for e in entries:
+    s = e.get('state', 'unknown')
+    a = e.get('agent', 'unknown')
+    states[s] = states.get(s, 0) + 1
+    agents[a] = agents.get(a, 0) + 1
+print(f'Total: {total}')
+print(f'States: {states}')
+print(f'Agents: {agents}')
+PYEOF
+    ;;
+  enqueue|e)
+    agent="${1:?Usage: wos enqueue <agent> <prompt> [issue_number]}"
+    prompt="${2:?Usage: wos enqueue <agent> <prompt> [issue_number]}"
+    issue="${3:-null}"
+    python3 <<PYEOF
+import json, os
+from datetime import datetime, timezone
+queue_path = os.path.expanduser('~/.workspace-os/agent_queue.jsonl')
+last_id = 0
+if os.path.exists(queue_path):
+    with open(queue_path) as f:
+        for line in f:
+            if line.strip():
+                try:
+                    entry = json.loads(line)
+                    tid = entry.get('task_id', '')
+                    if tid.startswith('cycle-work-'):
+                        num = int(tid.split('-')[2])
+                        last_id = max(last_id, num)
+                except: pass
+entry = {
+    'task_id': f'cycle-work-{last_id + 1}-manual',
+    'agent': '$agent',
+    'workspace': 'homedir',
+    'prompt': '$prompt',
+    'state': 'queued',
+    'queued_at': datetime.now(timezone.utc).isoformat(),
+    'started_at': None,
+    'completed_at': None,
+    'duration_seconds': None,
+    'returncode': None,
+    'error': None,
+    'metadata': {
+        'work_item_number': last_id + 1,
+        'role': 'manual',
+        'issue_number': $issue
+    }
+}
+with open(queue_path, 'a') as f:
+    f.write(json.dumps(entry) + '\n')
+print(f'Enqueued task {entry["task_id"]} for agent {entry["agent"]}')
+PYEOF
+    ;;
+  help|h|*)
+    echo "WOS CLI - Workspace OS helper"
+    echo ""
+    echo "Commands:"
+    echo "  queue, q           Show last 20 queue entries"
+    echo "  queue-all, qa      Show full queue"
+    echo "  stats, s           Show queue statistics"
+    echo "  enqueue, e         Enqueue a new task: wos enqueue <agent> <prompt> [issue_number]"
+    echo "  help, h            Show this help"
+    ;;
+esac
