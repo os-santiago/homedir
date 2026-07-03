@@ -32,6 +32,9 @@
   const confirmDlg = document.getElementById('confirmDeleteAll');
   const actionsRight = document.querySelector('.actions-right');
 
+  // Restaurar foco al cerrar el diálogo (Escape, click fuera, etc.)
+  if (confirmDlg) confirmDlg.addEventListener('close', focusDeleteAll);
+
   // Estado de selección en memoria (se preserva entre renders)
   const selected = new Set();
   let currentFilter = 'all';
@@ -184,6 +187,7 @@
       currentFilter = filterBtn.getAttribute('data-filter');
       document.querySelectorAll('[data-filter]').forEach(btn => {
         btn.setAttribute('aria-pressed', btn.dataset.filter === currentFilter ? 'true' : 'false');
+        btn.classList.toggle('active', btn.dataset.filter === currentFilter);
       });
       render();
       return;
