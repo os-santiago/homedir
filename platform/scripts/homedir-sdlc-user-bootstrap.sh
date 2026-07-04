@@ -72,10 +72,15 @@ install_node() {
   tmp="$(mktemp -d)"
   log "installing Node.js ${NODE_VERSION} under ${NODE_DIR}"
   curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/${archive}" -o "${tmp}/${archive}"
-  curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o "${tmp}/SHASUMS256.txt"
-  sha="$(grep "${archive}" "${tmp}/SHASUMS256.txt" | cut -d' ' -f1)"
-  if [[ -n "${sha}" ]]; then
-    verify_sha256 "${tmp}/${archive}" "${sha}"
+  if curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o "${tmp}/SHASUMS256.txt" 2>/dev/null; then
+    sha="$(grep "${archive}" "${tmp}/SHASUMS256.txt" | cut -d' ' -f1)"
+    if [[ -n "${sha}" ]]; then
+      verify_sha256 "${tmp}/${archive}" "${sha}"
+    else
+      log "WARNING: checksum for ${archive} not found in SHASUMS256.txt; skipping verification"
+    fi
+  else
+    log "WARNING: could not download SHASUMS256.txt; skipping checksum verification for Node.js"
   fi
   mkdir -p "$(dirname "${NODE_DIR}")"
   tar -xJf "${tmp}/${archive}" -C "$(dirname "${NODE_DIR}")"
@@ -105,10 +110,11 @@ install_jq() {
   mkdir -p "${LOCAL_BIN}"
   log "installing jq ${JQ_VERSION} under ${LOCAL_BIN}"
   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/${jq_asset}" -o "${LOCAL_BIN}/jq"
-  curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-${JQ_VERSION}.sha256" -o "${LOCAL_BIN}/jq.sha256" 2>/dev/null || true
-  if [[ -f "${LOCAL_BIN}/jq.sha256" ]]; then
+  if curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-${JQ_VERSION}.sha256" -o "${LOCAL_BIN}/jq.sha256" 2>/dev/null; then
     verify_sha256 "${LOCAL_BIN}/jq" "$(grep "${jq_asset}" "${LOCAL_BIN}/jq.sha256" | cut -d' ' -f1)"
     rm -f "${LOCAL_BIN}/jq.sha256"
+  else
+    log "WARNING: could not download checksum for jq ${JQ_VERSION}; skipping verification"
   fi
   chmod 0755 "${LOCAL_BIN}/jq"
 }
@@ -137,9 +143,10 @@ install_gh() {
   tmp="$(mktemp -d)"
   log "installing GitHub CLI ${GH_VERSION} under ${LOCAL_BIN}"
   curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/${archive}" -o "${tmp}/${archive}"
-  curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" -o "${tmp}/checksums.txt" 2>/dev/null || true
-  if [[ -f "${tmp}/checksums.txt" ]]; then
+  if curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" -o "${tmp}/checksums.txt" 2>/dev/null; then
     verify_sha256 "${tmp}/${archive}" "$(grep "${archive}" "${tmp}/checksums.txt" | cut -d' ' -f1)"
+  else
+    log "WARNING: could not download checksums for gh ${GH_VERSION}; skipping verification"
   fi
   tar -xzf "${tmp}/${archive}" -C "${tmp}"
   mkdir -p "${LOCAL_BIN}"
