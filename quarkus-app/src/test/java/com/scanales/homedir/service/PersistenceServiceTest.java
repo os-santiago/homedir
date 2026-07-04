@@ -80,6 +80,32 @@ public class PersistenceServiceTest {
   }
 
   @Test
+  void missingUserScheduleUsesSpecificPersistenceLabelAndStartsEmpty() {
+    service = newService();
+
+    int year = 2026;
+    Path scheduleFile = tempDir.resolve("user-schedule-" + year + ".json");
+
+    assertFalse(Files.exists(scheduleFile));
+    assertEquals("user-schedule-2026.json", service.logFileLabel(scheduleFile));
+    assertTrue(service.loadUserSchedules(year).isEmpty());
+  }
+
+  @Test
+  void knownStateFilesUseSpecificPersistenceLabels() {
+    service = newService();
+
+    assertEquals(
+        "reputation-ga-observation-journal.json",
+        service.logFileLabel(tempDir.resolve("reputation-ga-observation-journal.json")));
+    assertEquals(
+        "campaign-state.json", service.logFileLabel(tempDir.resolve("campaign-state.json")));
+    assertEquals(
+        "campaign-operations-state.json",
+        service.logFileLabel(tempDir.resolve("campaign-operations-state.json")));
+  }
+
+  @Test
   void flushDrainsDebouncedPendingWrites() {
     service = newService();
     service.writeCoalesceWindowMs = 5_000L;

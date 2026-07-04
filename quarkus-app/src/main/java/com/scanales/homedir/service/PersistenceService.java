@@ -2196,7 +2196,11 @@ public class PersistenceService {
 
   private <T> Map<String, T> read(Path file, TypeReference<Map<String, T>> type) {
     if (!Files.exists(file)) {
-      LOG.infof("No persistence file %s found - starting empty", logFileLabel(file));
+      if (isOptionalEmptyPersistenceFile(file)) {
+        LOG.debugf("No persistence file %s found - starting empty", logFileLabel(file));
+      } else {
+        LOG.infof("No persistence file %s found - starting empty", logFileLabel(file));
+      }
       return new ConcurrentHashMap<>();
     }
     try {
@@ -2209,7 +2213,7 @@ public class PersistenceService {
     }
   }
 
-  private String logFileLabel(Path file) {
+  String logFileLabel(Path file) {
     if (file == null) {
       return "unknown-file";
     }
@@ -2233,6 +2237,15 @@ public class PersistenceService {
     }
     if (file.equals(reputationStateFile)) {
       return "reputation-state.json";
+    }
+    if (file.equals(reputationGaObservationJournalFile)) {
+      return "reputation-ga-observation-journal.json";
+    }
+    if (file.equals(campaignStateFile)) {
+      return "campaign-state.json";
+    }
+    if (file.equals(campaignOperationsStateFile)) {
+      return "campaign-operations-state.json";
     }
     if (file.equals(communitySubmissionsFile)) {
       return "community-submissions.json";
@@ -2273,7 +2286,22 @@ public class PersistenceService {
     if (file.equals(cfpWalFile)) {
       return "cfp-submissions.wal";
     }
+    if (isUserScheduleFile(file)) {
+      return file.getFileName().toString();
+    }
     return "data-file";
+  }
+
+  private boolean isOptionalEmptyPersistenceFile(Path file) {
+    return isUserScheduleFile(file);
+  }
+
+  private boolean isUserScheduleFile(Path file) {
+    if (file == null || file.getFileName() == null) {
+      return false;
+    }
+    String name = file.getFileName().toString();
+    return name.startsWith(SCHEDULE_FILE_PREFIX) && name.endsWith(SCHEDULE_FILE_SUFFIX);
   }
 
   private void checkDiskSpace() {
