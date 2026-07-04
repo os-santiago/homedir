@@ -28,12 +28,94 @@ GIT_USER_EMAIL="${HOMEDIR_SDLC_GIT_USER_EMAIL:-homedir-sdlc@users.noreply.github
 SCC_BIN="${SCC_BIN:-/usr/local/bin/scc}"
 LOCK_FILE="${STATE_DIR}/worker.lock"
 ISSUE_STATE_DIR="${STATE_DIR}/issues"
+HEARTBEAT_FILE="${HOMEDIR_SDLC_HEARTBEAT_FILE:-${STATE_DIR}/heartbeat.json}"
+ALERTS_ENABLED="${HOMEDIR_SDLC_ALERTS_ENABLED:-false}"
+ALERT_WEBHOOK_URL="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL:-}"
+ALERT_WEBHOOK_URL_FILE="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE:-}"
+ALERT_TIMEOUT_SECONDS="${HOMEDIR_SDLC_ALERT_TIMEOUT_SECONDS:-10}"
 
 mkdir -p "${STATE_DIR}" "${ISSUE_STATE_DIR}" "$(dirname "${LOGFILE}")"
 touch "${LOGFILE}"
 
 log() {
   printf '%s [homedir-sdlc-worker] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "${LOGFILE}" >&2
+}
+
+resolve_alert_webhook_url() {
+  if [[ -n "${ALERT_WEBHOOK_URL}" ]]; then
+    printf '%s' "${ALERT_WEBHOOK_URL}"
+    return 0
+  fi
+  if [[ -n "${ALERT_WEBHOOK_URL_FILE}" && -r "${ALERT_WEBHOOK_URL_FILE}" ]]; then
+    head -n1 "${ALERT_WEBHOOK_URL_FILE}"
+  fi
+}
+
+alert() {
+  local severity="$1"
+  local title="$2"
+  local message="$3"
+  local webhook_url
+
+  if [[ "${ALERTS_ENABLED}" != "true" ]]; then
+    return 0
+  fi
+
+  webhook_url="$(resolve_alert_webhook_url)"
+  if [[ -z "${webhook_url}" ]]; then
+    log "alerts enabled but no webhook URL is configured"
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    log "alerts enabled but python3 is unavailable"
+    return 0
+  fi
+
+  python3 - "$webhook_url" "$severity" "$title" "$message" "$ALERT_TIMEOUT_SECONDS" <<'PY'
+import json
+import sys
+import urllib.request
+
+url, severity, title, message, timeout = sys.argv[1:6]
+payload = {
+    "username": "homedir-sdlc",
+    "embeds": [{
+        "title": f"{severity}: {title}",
+        "description": message,
+        "color": 15105570 if severity == "WARN" else 15158332 if severity == "FAIL" else 5763719,
+    }],
+}
+request = urllib.request.Request(
+    url,
+    data=json.dumps(payload).encode("utf-8"),
+    headers={"Content-Type": "application/json"},
+    method="POST",
+)
+try:
+    with urllib.request.urlopen(request, timeout=int(timeout)) as response:
+        response.read()
+except Exception as exc:
+    print(f"alert delivery failed: {exc}", file=sys.stderr)
+PY
+}
+
+write_heartbeat() {
+  local status="$1"
+  local detail="$2"
+  mkdir -p "$(dirname "${HEARTBEAT_FILE}")"
+  if ! command -v jq >/dev/null 2>&1; then
+    printf '{"repo":"%s","status":"%s","detail":"%s","updated_at":"%s"}\n' \
+      "${REPO}" "${status}" "${detail}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      > "${HEARTBEAT_FILE}"
+    return 0
+  fi
+  jq -n \
+    --arg repo "${REPO}" \
+    --arg status "${status}" \
+    --arg detail "${detail}" \
+    --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{repo: $repo, status: $status, detail: $detail, updated_at: $updated_at}' \
+    > "${HEARTBEAT_FILE}"
 }
 
 require_cmd() {
@@ -87,6 +169,7 @@ mark_needs_human() {
   add_label "${issue}" "${NEEDS_HUMAN_LABEL}"
   remove_label "${issue}" "${RUNNING_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC paused: ${reason}"
+  alert WARN "Issue #${issue} needs human review" "${reason}"
 }
 
 mark_failed() {
@@ -95,6 +178,7 @@ mark_failed() {
   add_label "${issue}" "${FAILED_LABEL}"
   remove_label "${issue}" "${RUNNING_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
+  alert FAIL "Issue #${issue} failed" "${reason}"
 }
 
 write_issue_state() {
@@ -181,6 +265,7 @@ enable_auto_merge_for_state() {
   else
     add_label "${issue}" "${NEEDS_HUMAN_LABEL}"
     comment_issue "${issue}" "Autonomous SDLC could not enable normal auto-merge for ${pr_url}. Repository rules still apply; no admin bypass was used."
+    alert WARN "Issue #${issue} auto-merge blocked" "Could not enable normal auto-merge for ${pr_url}. Repository rules still apply; no admin bypass was used."
   fi
 }
 
@@ -227,6 +312,7 @@ reconcile_completed_issue() {
     add_label "${number}" "${NEEDS_HUMAN_LABEL}"
     comment_issue "${number}" "Autonomous SDLC merge completed, but release verification failed for PR #${pr_number}: ${release_message} ${release_url}"
     log "issue #${number} release verification failed for PR #${pr_number}"
+    alert FAIL "Issue #${number} release failed" "PR #${pr_number}: ${release_message} ${release_url}"
     return 0
   fi
 
@@ -238,25 +324,41 @@ reconcile_completed_issue() {
   remove_label "${number}" "${TRIGGER_LABEL}"
   comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
   log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
+  alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
 }
 
 reconcile_completed_issues() {
-  local issues_json
+  local issues_json issue_json label
 
-  issues_json="$(gh issue list \
-    --repo "${REPO}" \
-    --state closed \
-    --label "${PR_LABEL}" \
-    --limit 50 \
-    --json number,labels)"
+  issues_json="$(
+    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${NEEDS_HUMAN_LABEL}" "${TRIGGER_LABEL}"; do
+      gh issue list \
+        --repo "${REPO}" \
+        --state closed \
+        --label "${label}" \
+        --limit 100 \
+        --json number,labels
+    done | jq -s 'add | unique_by(.number)'
+  )"
 
-  if [[ "${issues_json}" == "[]" ]]; then
-    return 0
+  if [[ "${issues_json}" != "[]" ]]; then
+    jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+      if issue_has_label "$(jq -c '[.labels[].name]' <<<"${issue_json}")" "${PR_LABEL}"; then
+        reconcile_completed_issue "${issue_json}"
+      else
+        local number labels
+        number="$(jq -r '.number' <<<"${issue_json}")"
+        labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+        if issue_has_label "${labels}" "${MERGED_LABEL}"; then
+          continue
+        fi
+        log "closed issue #${number} has autonomous labels but no ${PR_LABEL}; cleaning terminal labels"
+        remove_label "${number}" "${RUNNING_LABEL}"
+        remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
+        remove_label "${number}" "${TRIGGER_LABEL}"
+      fi
+    done
   fi
-
-  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
-    reconcile_completed_issue "${issue_json}"
-  done
 }
 
 prepare_workdir() {
@@ -305,6 +407,7 @@ run_issue() {
   branch="scc/issue-${number}-${slug}"
 
   log "claiming issue #${number}: ${title}"
+  write_heartbeat "running" "claiming issue #${number}"
   add_label "${number}" "${RUNNING_LABEL}"
   comment_issue "${number}" "Autonomous SDLC claimed this issue. Branch: \`${branch}\`. The worker will obey repository rules and will not use admin bypass."
 
@@ -338,6 +441,7 @@ EOF
 )"
 
   log "running SCC for issue #${number}"
+  write_heartbeat "running" "SCC running for issue #${number}"
   if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
     log "SCC failed for issue #${number}"
     mark_failed "${number}" "SCC exited non-zero. Check ${LOGFILE} on the runner."
@@ -414,9 +518,11 @@ PRBODY
   else
     comment_issue "${number}" "Auto-merge is disabled for the autonomous SDLC. PR remains governed by normal review and branch protection."
   fi
+  write_heartbeat "ok" "opened PR for issue #${number}"
 }
 
 main() {
+  write_heartbeat "starting" "worker starting"
   require_cmd gh
   require_cmd git
   require_cmd jq
@@ -426,14 +532,17 @@ main() {
   exec 9>"${LOCK_FILE}"
   if ! flock -n 9; then
     log "another worker instance is already running"
+    write_heartbeat "skipped" "another worker instance is already running"
     exit 0
   fi
 
   log "reconciling completed autonomous SDLC issues"
+  write_heartbeat "running" "reconciling completed issues"
   reconcile_completed_issues
   reconcile_open_prs
 
   log "checking eligible issues in ${REPO}"
+  write_heartbeat "running" "checking eligible issues"
   mapfile -t issues < <(
     gh issue list \
       --repo "${REPO}" \
@@ -445,12 +554,14 @@ main() {
 
   if [[ "${#issues[@]}" -eq 0 || -z "${issues[0]:-}" || "${issues[0]}" == "[]" ]]; then
     log "no eligible issues found"
+    write_heartbeat "ok" "no eligible issues found"
     exit 0
   fi
 
   jq -c '.[]' <<<"${issues[0]}" | while IFS= read -r issue_json; do
     run_issue "${issue_json}"
   done
+  write_heartbeat "ok" "cycle complete"
 }
 
 main "$@"

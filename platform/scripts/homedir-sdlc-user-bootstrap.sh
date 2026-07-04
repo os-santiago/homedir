@@ -144,9 +144,15 @@ HOMEDIR_SDLC_MERGED_LABEL=scc-merged
 HOMEDIR_SDLC_WORKDIR=${WORKDIR}
 HOMEDIR_SDLC_STATE_DIR=${STATE_DIR}
 HOMEDIR_SDLC_LOGFILE=${LOG_DIR}/worker.log
+HOMEDIR_SDLC_HEARTBEAT_FILE=${STATE_DIR}/heartbeat.json
+HOMEDIR_SDLC_HEARTBEAT_MAX_AGE_SECONDS=900
 HOMEDIR_SDLC_MAX_ISSUES_PER_RUN=1
 HOMEDIR_SDLC_ENABLE_AUTOMERGE=false
 SCC_BIN=${LOCAL_BIN}/scc
+HOMEDIR_SDLC_WORKER_BIN=${LOCAL_BIN}/homedir-sdlc-worker.sh
+HOMEDIR_SDLC_OPENCLAW_LOGFILE=${LOG_DIR}/openclaw-listener.log
+HOMEDIR_SDLC_ALERTS_ENABLED=false
+HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE=
 EOF
   chmod 0600 "${env_file}"
 }
@@ -169,6 +175,8 @@ EOF
 install_worker() {
   mkdir -p "${LOCAL_BIN}" "${SYSTEMD_USER_DIR}"
   install -m 0755 "${HOMEDIR_PLATFORM_DIR}/platform/scripts/homedir-sdlc-worker.sh" "${LOCAL_BIN}/homedir-sdlc-worker.sh"
+  install -m 0755 "${HOMEDIR_PLATFORM_DIR}/platform/scripts/homedir-sdlc-openclaw-listener.sh" "${LOCAL_BIN}/homedir-sdlc-openclaw-listener.sh"
+  install -m 0755 "${HOMEDIR_PLATFORM_DIR}/platform/scripts/homedir-sdlc-status.sh" "${LOCAL_BIN}/homedir-sdlc-status.sh"
   install -m 0644 "${HOMEDIR_PLATFORM_DIR}/platform/systemd/user/homedir-sdlc-worker.service" "${SYSTEMD_USER_DIR}/homedir-sdlc-worker.service"
   install -m 0644 "${HOMEDIR_PLATFORM_DIR}/platform/systemd/user/homedir-sdlc-worker.timer" "${SYSTEMD_USER_DIR}/homedir-sdlc-worker.timer"
 }
