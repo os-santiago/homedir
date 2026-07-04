@@ -4,6 +4,12 @@
 set -euo pipefail
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
+TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
+RUNNING_LABEL="${HOMEDIR_SDLC_RUNNING_LABEL:-scc-running}"
+PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
+FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
+NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
+MERGED_LABEL="${HOMEDIR_SDLC_MERGED_LABEL:-scc-merged}"
 GH_BIN="${GH_BIN:-${HOME}/.local/bin/gh}"
 
 if [[ ! -x "${GH_BIN}" ]]; then
@@ -22,11 +28,11 @@ ensure_label() {
   fi
 }
 
-ensure_label "ready-to-implement" "0E8A16" "Approved trigger for autonomous SCC implementation"
-ensure_label "scc-running" "FBCA04" "Autonomous SCC worker has claimed this issue"
-ensure_label "scc-pr-open" "1D76DB" "Autonomous SCC worker opened a pull request"
-ensure_label "scc-failed" "D73A4A" "Autonomous SCC worker failed and needs inspection"
-ensure_label "needs-human" "B60205" "Human decision or intervention required"
-ensure_label "scc-merged" "5319E7" "Autonomous SCC PR merged or completed"
+ensure_label "${TRIGGER_LABEL}" "0E8A16" "Approved trigger for autonomous SCC implementation"
+ensure_label "${RUNNING_LABEL}" "FBCA04" "Autonomous SCC worker has claimed this issue"
+ensure_label "${PR_LABEL}" "1D76DB" "Autonomous SCC worker opened a pull request"
+ensure_label "${FAILED_LABEL}" "D73A4A" "Autonomous SCC worker failed and needs inspection"
+ensure_label "${NEEDS_HUMAN_LABEL}" "B60205" "Human decision or intervention required"
+ensure_label "${MERGED_LABEL}" "5319E7" "Autonomous SCC PR merged or completed"
 
 echo "Autonomous SDLC labels ensured for ${REPO}"

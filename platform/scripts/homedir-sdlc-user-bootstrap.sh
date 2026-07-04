@@ -48,7 +48,18 @@ clone_or_update() {
   log "updating ${dest} to ${ref}"
   git -C "${dest}" fetch origin "${ref}" --tags
   git -C "${dest}" checkout "${ref}"
-  git -C "${dest}" pull --ff-only origin "${ref}" || true
+  git -C "${dest}" pull --ff-only origin "${ref}"
+}
+
+verify_sha256() {
+  local file="$1"
+  local expected="$2"
+  local actual
+  actual="$(sha256sum "${file}" | cut -d' ' -f1)"
+  if [[ "${actual}" != "${expected}" ]]; then
+    echo "SHA256 mismatch for ${file}: expected ${expected}, got ${actual}" >&2
+    exit 1
+  fi
 }
 
 install_node() {
@@ -56,11 +67,16 @@ install_node() {
     return 0
   fi
 
-  local archive tmp
+  local archive tmp sha
   archive="node-v${NODE_VERSION}-linux-x64.tar.xz"
   tmp="$(mktemp -d)"
   log "installing Node.js ${NODE_VERSION} under ${NODE_DIR}"
   curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/${archive}" -o "${tmp}/${archive}"
+  curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o "${tmp}/SHASUMS256.txt"
+  sha="$(grep "${archive}" "${tmp}/SHASUMS256.txt" | cut -d' ' -f1)"
+  if [[ -n "${sha}" ]]; then
+    verify_sha256 "${tmp}/${archive}" "${sha}"
+  fi
   mkdir -p "$(dirname "${NODE_DIR}")"
   tar -xJf "${tmp}/${archive}" -C "$(dirname "${NODE_DIR}")"
   rm -rf "${tmp}"
@@ -89,6 +105,11 @@ install_jq() {
   mkdir -p "${LOCAL_BIN}"
   log "installing jq ${JQ_VERSION} under ${LOCAL_BIN}"
   curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/${jq_asset}" -o "${LOCAL_BIN}/jq"
+  curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-${JQ_VERSION}.sha256" -o "${LOCAL_BIN}/jq.sha256" 2>/dev/null || true
+  if [[ -f "${LOCAL_BIN}/jq.sha256" ]]; then
+    verify_sha256 "${LOCAL_BIN}/jq" "$(grep "${jq_asset}" "${LOCAL_BIN}/jq.sha256" | cut -d' ' -f1)"
+    rm -f "${LOCAL_BIN}/jq.sha256"
+  fi
   chmod 0755 "${LOCAL_BIN}/jq"
 }
 
@@ -116,6 +137,10 @@ install_gh() {
   tmp="$(mktemp -d)"
   log "installing GitHub CLI ${GH_VERSION} under ${LOCAL_BIN}"
   curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/${archive}" -o "${tmp}/${archive}"
+  curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" -o "${tmp}/checksums.txt" 2>/dev/null || true
+  if [[ -f "${tmp}/checksums.txt" ]]; then
+    verify_sha256 "${tmp}/${archive}" "$(grep "${archive}" "${tmp}/checksums.txt" | cut -d' ' -f1)"
+  fi
   tar -xzf "${tmp}/${archive}" -C "${tmp}"
   mkdir -p "${LOCAL_BIN}"
   install -m 0755 "${tmp}/gh_${GH_VERSION}_${gh_arch}/bin/gh" "${LOCAL_BIN}/gh"
@@ -153,6 +178,11 @@ HOMEDIR_SDLC_WORKER_BIN=${LOCAL_BIN}/homedir-sdlc-worker.sh
 HOMEDIR_SDLC_OPENCLAW_LOGFILE=${LOG_DIR}/openclaw-listener.log
 HOMEDIR_SDLC_ALERTS_ENABLED=false
 HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE=
+
+# WARNING: Do not place GitHub tokens or secrets directly in this file.
+# Prefer gh auth login, systemd credentials, or a secret manager.
+# If you must use GH_TOKEN, set it in a separate secure EnvironmentFile
+# with mode 0600 and ensure it is excluded from backups.
 EOF
   chmod 0600 "${env_file}"
 }

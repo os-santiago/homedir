@@ -71,12 +71,14 @@ alert() {
     return 0
   fi
 
-  python3 - "$webhook_url" "$severity" "$title" "$message" "$ALERT_TIMEOUT_SECONDS" <<'PY'
+  ALERT_WEBHOOK_URL_RESOLVED="$webhook_url" python3 - "$severity" "$title" "$message" "$ALERT_TIMEOUT_SECONDS" <<'PY'
 import json
+import os
 import sys
 import urllib.request
 
-url, severity, title, message, timeout = sys.argv[1:6]
+severity, title, message, timeout = sys.argv[1:5]
+url = os.environ["ALERT_WEBHOOK_URL_RESOLVED"]
 payload = {
     "username": "homedir-sdlc",
     "embeds": [{
@@ -102,11 +104,14 @@ PY
 write_heartbeat() {
   local status="$1"
   local detail="$2"
+  local tmp_file
   mkdir -p "$(dirname "${HEARTBEAT_FILE}")"
+  tmp_file="$(mktemp "${HEARTBEAT_FILE}.XXXXXX")"
   if ! command -v jq >/dev/null 2>&1; then
     printf '{"repo":"%s","status":"%s","detail":"%s","updated_at":"%s"}\n' \
       "${REPO}" "${status}" "${detail}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-      > "${HEARTBEAT_FILE}"
+      > "${tmp_file}"
+    mv -f "${tmp_file}" "${HEARTBEAT_FILE}"
     return 0
   fi
   jq -n \
@@ -115,7 +120,8 @@ write_heartbeat() {
     --arg detail "${detail}" \
     --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     '{repo: $repo, status: $status, detail: $detail, updated_at: $updated_at}' \
-    > "${HEARTBEAT_FILE}"
+    > "${tmp_file}"
+  mv -f "${tmp_file}" "${HEARTBEAT_FILE}"
 }
 
 require_cmd() {
@@ -235,6 +241,25 @@ release_status_for_pr() {
   fi
 }
 
+try_enable_auto_merge() {
+  local issue="$1"
+  local branch="$2"
+  local pr_number="${3:-}"
+  local pr_url="${4:-}"
+
+  if [[ "${ENABLE_AUTOMERGE}" != "true" ]]; then
+    return 1
+  fi
+
+  if gh pr merge "${branch}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
+    log "enabled normal auto-merge for issue #${issue} (branch=${branch} pr=#${pr_number})"
+    return 0
+  fi
+
+  log "auto-merge not available for issue #${issue} (branch=${branch} pr=#${pr_number})"
+  return 1
+}
+
 enable_auto_merge_for_state() {
   local state_file="$1"
   local issue pr_number branch pr_json pr_state auto_merge pr_url
@@ -256,13 +281,11 @@ enable_auto_merge_for_state() {
   auto_merge="$(jq -r '.autoMergeRequest != null' <<<"${pr_json}")"
   pr_url="$(jq -r '.url' <<<"${pr_json}")"
 
-  if [[ "${pr_state}" != "OPEN" || "${auto_merge}" == "true" || "${ENABLE_AUTOMERGE}" != "true" ]]; then
+  if [[ "${pr_state}" != "OPEN" || "${auto_merge}" == "true" ]]; then
     return 0
   fi
 
-  if gh pr merge "${branch}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
-    log "enabled normal auto-merge for issue #${issue} PR #${pr_number}"
-  else
+  if ! try_enable_auto_merge "${issue}" "${branch}" "${pr_number}" "${pr_url}"; then
     add_label "${issue}" "${NEEDS_HUMAN_LABEL}"
     comment_issue "${issue}" "Autonomous SDLC could not enable normal auto-merge for ${pr_url}. Repository rules still apply; no admin bypass was used."
     alert WARN "Issue #${issue} auto-merge blocked" "Could not enable normal auto-merge for ${pr_url}. Repository rules still apply; no admin bypass was used."
@@ -331,7 +354,7 @@ reconcile_completed_issues() {
   local issues_json issue_json label
 
   issues_json="$(
-    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${NEEDS_HUMAN_LABEL}" "${TRIGGER_LABEL}"; do
+    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
       gh issue list \
         --repo "${REPO}" \
         --state closed \
@@ -354,6 +377,7 @@ reconcile_completed_issues() {
         fi
         log "closed issue #${number} has autonomous labels but no ${PR_LABEL}; cleaning terminal labels"
         remove_label "${number}" "${RUNNING_LABEL}"
+        remove_label "${number}" "${FAILED_LABEL}"
         remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
         remove_label "${number}" "${TRIGGER_LABEL}"
       fi
@@ -475,11 +499,14 @@ EOF
     fi
   fi
 
-  git -C "${WORKDIR}" push -u origin "${branch}"
+  if ! git -C "${WORKDIR}" push -u origin "${branch}" 2>/dev/null; then
+    mark_failed "${number}" "Git push failed for branch ${branch}."
+    return 0
+  fi
 
   pr_url="$(gh pr view "${branch}" --repo "${REPO}" --template '{{.url}}' 2>/dev/null || true)"
   if [[ -z "${pr_url}" ]]; then
-    pr_url="$(gh pr create \
+    if ! pr_url="$(gh pr create \
       --repo "${REPO}" \
       --base main \
       --head "${branch}" \
@@ -500,7 +527,10 @@ ${validation_summary}
 
 Closes #${number}
 PRBODY
-)")"
+)" 2>/dev/null)"; then
+      mark_failed "${number}" "GitHub PR creation failed for branch ${branch}."
+      return 0
+    fi
   fi
 
   add_label "${number}" "${PR_LABEL}"
@@ -508,15 +538,10 @@ PRBODY
   write_issue_state "${number}" "${branch}" "${pr_url}"
   comment_issue "${number}" "Autonomous SDLC opened PR: ${pr_url}"
 
-  if [[ "${ENABLE_AUTOMERGE}" == "true" ]]; then
-    if gh pr merge "${branch}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
-      log "enabled normal auto-merge for issue #${number}"
-      comment_issue "${number}" "Normal GitHub auto-merge was enabled for ${pr_url}. Required checks and reviews still apply."
-    else
-      mark_needs_human "${number}" "Could not enable normal auto-merge. Required checks, review policy, or repository settings may be blocking."
-    fi
+  if try_enable_auto_merge "${number}" "${branch}" "" "${pr_url}"; then
+    comment_issue "${number}" "Normal GitHub auto-merge was enabled for ${pr_url}. Required checks and reviews still apply."
   else
-    comment_issue "${number}" "Auto-merge is disabled for the autonomous SDLC. PR remains governed by normal review and branch protection."
+    comment_issue "${number}" "Auto-merge is disabled or not available for the autonomous SDLC. PR remains governed by normal review and branch protection."
   fi
   write_heartbeat "ok" "opened PR for issue #${number}"
 }
