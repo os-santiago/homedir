@@ -15,9 +15,13 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-dr-recover.sh` – one-command disaster recovery orchestrator for a pre-provisioned VM.
 - `scripts/homedir-dr-restore.py` – safe archive extractor used by DR recovery (blocks path traversal/symlinks).
 - `scripts/homedir-secrets-rotate.sh` – rotates internal runtime secrets with backup + optional service restart.
+- `scripts/homedir-sdlc-bootstrap.sh` – server-side bootstrap that installs/repairs the autonomous SDLC runner without depending on a workstation.
+- `scripts/homedir-sdlc-user-bootstrap.sh` – user-owned server-side bootstrap for SSH accounts without passwordless root/sudo.
+- `scripts/homedir-sdlc-worker.sh` – optional issue-driven SCC worker for autonomous PR creation under repository rules.
 - `systemd/homedir-webhook.service` – runs the optional webhook listener.
 - `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
 - `systemd/homedir-cfp-traffic-guard.service` / `systemd/homedir-cfp-traffic-guard.timer` – periodic CFP route resilience monitoring.
+- `systemd/homedir-sdlc-worker.service` / `systemd/homedir-sdlc-worker.timer` – optional autonomous SDLC worker timer.
 - `systemd/homedir-update.service` / `systemd/homedir-update.timer` – optional manual/timer runner; keep disabled unless you set a tag.
 - `nginx/homedir.conf`, `nginx/int.conf` – HTTPS reverse proxies with a maintenance page for 502/503/504.
 - `nginx/snippets/homedir-incident-guard.conf` – lock-file based emergency shield to force maintenance mode during incidents.
@@ -148,6 +152,8 @@ What it automates:
 - Run `/usr/local/bin/homedir-security-hardening.sh audit` periodically and after each DR recovery.
 - Rotate internal runtime secrets periodically (monthly or after incident):
   - `/usr/local/bin/homedir-secrets-rotate.sh --restart-services`
+- Autonomous SDLC is governed by `docs/en/development/autonomous-sdlc.md`: it may create branches and PRs, but it must not bypass branch protection, reviews, required checks, repository rulesets, or secret controls.
+- The autonomous SDLC must run from the VPS. A workstation may SSH in to trigger bootstrap, but normal operation must not depend on WSL, PowerShell, local paths, or local credentials.
 
 ## Autonomous SDLC service account
 

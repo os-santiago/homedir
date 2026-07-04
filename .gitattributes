@@ -1,0 +1,6 @@
+*.md text eol=lf
+*.sh text eol=lf
+.gitattributes text eol=lf
+platform/systemd/** text eol=lf
+platform/ansible/** text eol=lf
+platform/env*.example text eol=lf

@@ -1,0 +1,14 @@
+[Unit]
+Description=HomeDir autonomous SDLC SCC worker (user)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/homedir-sdlc/env
+ExecStart=%h/.local/bin/homedir-sdlc-worker.sh
+Nice=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target
