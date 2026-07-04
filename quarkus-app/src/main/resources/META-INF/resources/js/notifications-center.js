@@ -198,7 +198,7 @@
     const filterBtn = e.target.closest('[data-filter]');
     if (filterBtn) {
       currentFilter = filterBtn.getAttribute('data-filter');
-      document.querySelectorAll('[data-filter]').forEach(btn => {
+      root.querySelectorAll('[data-filter]').forEach(btn => {
         const isActive = btn.dataset.filter === currentFilter;
         btn.setAttribute('aria-pressed', String(isActive));
         btn.classList.toggle('active', isActive);
