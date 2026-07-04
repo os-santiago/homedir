@@ -45,7 +45,11 @@
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(-1000)));
       syncUnread(arr);
-    } catch (e) { console.warn('notifications-center: failed to save storage', e); }
+      return true;
+    } catch (e) {
+      console.warn('notifications-center: failed to save storage', e);
+      return false;
+    }
   }
 
   function syncUnread(arr) {
@@ -60,7 +64,11 @@
       }).length;
       localStorage.setItem(UNREAD_KEY, String(unread));
       document.dispatchEvent(new CustomEvent('ef:notifs:changed'));
-    } catch (e) { console.warn('notifications-center: failed to sync unread', e); }
+      return true;
+    } catch (e) {
+      console.warn('notifications-center: failed to sync unread', e);
+      return false;
+    }
   }
 
   function fmt(ts) {
@@ -202,7 +210,7 @@
       if (n && !n.dismissedAt) {
         if (n.readAt) delete n.readAt;
         else n.readAt = Date.now();
-        saveAll(all);
+        if (!saveAll(all)) console.warn('notifications-center: failed to persist toggle read for', id);
         render();
       }
       e.preventDefault();
@@ -228,7 +236,7 @@
       for (const n of all) {
         if (selected.has(String(n.id)) && !n.dismissedAt) n.dismissedAt = now;
       }
-      saveAll(all);
+      if (!saveAll(all)) console.warn('notifications-center: failed to persist delete selected');
       selected.clear();
       render();
       updateSelectAllBtn();
@@ -243,7 +251,7 @@
       for (const n of all) {
         if (!n.dismissedAt && !n.readAt) n.readAt = now;
       }
-      saveAll(all);
+      if (!saveAll(all)) console.warn('notifications-center: failed to persist mark all read');
       render();
       updateSelectAllBtn();
       e.preventDefault();
@@ -277,7 +285,7 @@
       for (const n of all) {
         if (!n.dismissedAt) n.dismissedAt = now;
       }
-      saveAll(all);
+      if (!saveAll(all)) console.warn('notifications-center: failed to persist delete all');
       selected.clear();
       render();
       updateSelectAllBtn();
@@ -310,7 +318,7 @@
     // dedupe por id
     if (!all.some(x => x.id === dto.id)) {
       all.push(dto);
-      saveAll(all);
+      if (!saveAll(all)) console.warn('notifications-center: failed to persist incoming notification', dto.id);
       render();
     }
   };
