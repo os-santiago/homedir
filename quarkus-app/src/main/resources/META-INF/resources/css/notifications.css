@@ -262,6 +262,11 @@
   background: none;
 }
 
+.notifications-bell:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .notifications-bell .icon-bell::before {
   content: "\1F514";
   /* bell emoji */
