@@ -154,11 +154,15 @@
 
     - name: Install SDLC worker script
       ansible.builtin.copy:
-        src: ../../scripts/homedir-sdlc-worker.sh
-        dest: "{{ homedir_sdlc_local_bin }}/homedir-sdlc-worker.sh"
+        src: "../../scripts/{{ item }}"
+        dest: "{{ homedir_sdlc_local_bin }}/{{ item }}"
         owner: "{{ homedir_sdlc_user }}"
         group: "{{ homedir_sdlc_group }}"
         mode: "0755"
+      loop:
+        - homedir-sdlc-worker.sh
+        - homedir-sdlc-openclaw-listener.sh
+        - homedir-sdlc-status.sh
 
     - name: Install SDLC environment example when env is absent
       ansible.builtin.copy:

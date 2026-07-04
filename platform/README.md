@@ -18,6 +18,8 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-sdlc-bootstrap.sh` – server-side bootstrap that installs/repairs the autonomous SDLC runner without depending on a workstation.
 - `scripts/homedir-sdlc-user-bootstrap.sh` – user-owned server-side bootstrap for SSH accounts without passwordless root/sudo.
 - `scripts/homedir-sdlc-worker.sh` – optional issue-driven SCC worker for autonomous PR creation under repository rules.
+- `scripts/homedir-sdlc-openclaw-listener.sh` – OpenClaw/GitHub issue-event adapter that wakes the worker for eligible `ready-to-implement` issues.
+- `scripts/homedir-sdlc-status.sh` – JSON health probe for worker heartbeat, timer state, and eligible issue backlog.
 - `systemd/homedir-webhook.service` – runs the optional webhook listener.
 - `systemd/homedir-auto-deploy.service` / `systemd/homedir-auto-deploy.timer` – periodic fallback auto-deploy from Quay.
 - `systemd/homedir-cfp-traffic-guard.service` / `systemd/homedir-cfp-traffic-guard.timer` – periodic CFP route resilience monitoring.
@@ -154,6 +156,8 @@ What it automates:
   - `/usr/local/bin/homedir-secrets-rotate.sh --restart-services`
 - Autonomous SDLC is governed by `docs/en/development/autonomous-sdlc.md`: it may create branches and PRs, but it must not bypass branch protection, reviews, required checks, repository rulesets, or secret controls.
 - The autonomous SDLC must run from the VPS. A workstation may SSH in to trigger bootstrap, but normal operation must not depend on WSL, PowerShell, local paths, or local credentials.
+- OpenClaw can invoke `homedir-sdlc-openclaw-listener.sh` with the GitHub issue event payload. The polling timer remains enabled as a reconciliation fallback.
+- Monitor the runner with `homedir-sdlc-status.sh`; a stale heartbeat or inactive user timer should page the operator before issues pile up.
 
 ## Autonomous SDLC service account
 

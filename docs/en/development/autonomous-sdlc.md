@@ -29,6 +29,19 @@ An issue is eligible only when all conditions are true:
 OpenClaw may act as the event listener. The worker may also poll GitHub as a
 fallback. Both paths must apply the same eligibility rules.
 
+For event-driven operation, configure OpenClaw to pass GitHub issue event
+payloads to:
+
+```bash
+/home/homedir-sdlc/.local/bin/homedir-sdlc-openclaw-listener.sh <payload.json>
+```
+
+The listener only wakes the worker when the event belongs to this repository,
+the issue is open, the author is `scanalesespinoza`, and the issue has the
+`ready-to-implement` label. The worker remains the only component that claims,
+branches, runs SCC, opens PRs, and reconciles releases. Keep
+`homedir-sdlc-worker.timer` enabled as a fallback and reconciliation loop.
+
 ## Lifecycle Labels
 
 Use these labels for automation state:
@@ -160,6 +173,108 @@ Move to `needs-human` when:
 Move to `scc-failed` only for execution failures that do not need clarification,
 such as missing tools, provider errors, or repository checkout failures.
 
+The worker also reconciles closed issues that still carry automation lifecycle
+labels. If a human or another compliant flow closes an issue, the worker removes
+temporary automation labels instead of leaving stale `needs-human`,
+`scc-running`, or `ready-to-implement` state behind.
+
+## Observability
+
+The runner writes:
+
+- Worker log: `/home/homedir-sdlc/.local/state/homedir-sdlc/logs/worker.log`
+- OpenClaw listener log: `/home/homedir-sdlc/.local/state/homedir-sdlc/logs/openclaw-listener.log`
+- Heartbeat JSON: `/home/homedir-sdlc/.local/state/homedir-sdlc/heartbeat.json`
+- Issue state files: `/home/homedir-sdlc/.local/state/homedir-sdlc/issues/`
+
+Use the status probe for monitors and manual diagnosis:
+
+```bash
+sudo -iu homedir-sdlc /home/homedir-sdlc/.local/bin/homedir-sdlc-status.sh
+```
+
+The probe exits non-zero when the heartbeat is stale or the user timer is not
+active. Set `HOMEDIR_SDLC_HEARTBEAT_MAX_AGE_SECONDS` to tune the threshold.
+
+Optional alerting uses a Discord-compatible webhook:
+
+```bash
+HOMEDIR_SDLC_ALERTS_ENABLED=true
+HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE=/home/homedir-sdlc/.config/homedir-sdlc/alert-webhook-url
+```
+
+Alerts are best-effort and must not block the SDLC. Alert on SCC execution
+failure, blocked auto-merge, production release failure, stale heartbeat, and
+issues moved to `needs-human`.
+
+## Operations Runbook
+
+Check service health:
+
+```bash
+wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
+  'sudo -iu homedir-sdlc systemctl --user status homedir-sdlc-worker.timer homedir-sdlc-worker.service'
+```
+
+Check worker status:
+
+```bash
+wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
+  'sudo -iu homedir-sdlc /home/homedir-sdlc/.local/bin/homedir-sdlc-status.sh'
+```
+
+Tail SDLC logs:
+
+```bash
+wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
+  'sudo -iu homedir-sdlc tail -200 /home/homedir-sdlc/.local/state/homedir-sdlc/logs/worker.log'
+```
+
+Trigger a manual reconciliation cycle:
+
+```bash
+wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
+  'sudo -iu homedir-sdlc systemctl --user start homedir-sdlc-worker.service'
+```
+
+Validate the production runtime after an autonomous merge:
+
+```bash
+wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
+  'curl -fsS http://127.0.0.1:8080/q/health && podman ps --filter name=homedir'
+```
+
+Canary test:
+
+1. Create a small documentation-only issue authored by `scanalesespinoza`.
+2. Add `ready-to-implement`.
+3. Confirm the worker claims it, opens a branch and PR, respects checks, and
+   waits for normal repository rules.
+4. After merge, confirm `Production Release` succeeds and the worker marks the
+   issue `scc-merged`.
+
+Recovery:
+
+1. Confirm GitHub CLI auth under `homedir-sdlc`: `gh auth status`.
+2. Confirm SCC runs under `homedir-sdlc`: `scc --help`.
+3. Restart the timer: `systemctl --user restart homedir-sdlc-worker.timer`.
+4. If the worktree is corrupt, stop the timer, remove only the worker worktree
+   under `/home/homedir-sdlc/.local/share/homedir-sdlc/worktrees/homedir`, then
+   start the timer. The next cycle reclones from GitHub.
+5. If an issue is incorrectly stuck, remove only lifecycle labels after reading
+   the issue comments and worker log.
+
+Credential rotation:
+
+1. Revoke the old shared token.
+2. Prefer a GitHub App installation token or a fine-grained token scoped only to
+   the HomeDir repository permissions required by `gh issue`, `gh pr`, and
+   branch pushes.
+3. Install the replacement secret on the server under the `homedir-sdlc`
+   account using `gh auth login` or a mode-0600 environment/credential file.
+4. Run `gh auth status`, start a worker cycle, and verify no token values appear
+   in logs.
+
 ## Audit Trail
 
 Every cycle must leave:
@@ -168,8 +283,8 @@ Every cycle must leave:
 - Branch name tied to issue number.
 - PR body with `Closes #<issue>`.
 - Conventional commit or squash title.
-- Worker logs under `/var/log/homedir-sdlc-worker.log`.
-- State under `/var/lib/homedir-sdlc`.
+- Worker logs under `/home/homedir-sdlc/.local/state/homedir-sdlc/logs/worker.log`.
+- State under `/home/homedir-sdlc/.local/state/homedir-sdlc`.
 
 ## Deployment Boundary
 
