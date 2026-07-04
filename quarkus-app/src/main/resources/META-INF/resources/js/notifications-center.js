@@ -4,7 +4,7 @@
     return;
   }
 
-  const i18n = window.__NOTIF_I18N__ || {
+  const I18N_DEFAULTS = {
     toggleMarkRead: 'Mark as read',
     toggleMarkUnread: 'Mark as unread',
     linkViewTalk: 'View talk',
@@ -21,6 +21,7 @@
     sampleCommunity: 'A community pick you follow receives traction.',
     sampleProject: 'Important project release and delivery updates.'
   };
+  const i18n = Object.assign({}, I18N_DEFAULTS, window.__NOTIF_I18N__);
 
   const LS_KEY = 'ef_global_notifs'; // array de notifs [{id, title, message, createdAt, readAt?, dismissedAt?, targetUrl?}]
   const UNREAD_KEY = 'ef_global_unread_count';
