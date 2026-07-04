@@ -246,6 +246,10 @@ wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
 
 Canary test:
 
+The SCC v0.4.0 canary validates that the autonomous worker:
+- Keeps scope strictly on the assigned issue (issue focus).
+- Correctly handles the current working directory for tool execution.
+
 1. Create a small documentation-only issue authored by `scanalesespinoza`.
 2. Add `ready-to-implement`.
 3. Confirm the worker claims it, opens a branch and PR, respects checks, and
