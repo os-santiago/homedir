@@ -1,0 +1,213 @@
+---
+- name: Provision HomeDir autonomous SDLC runner
+  hosts: homedir_sdlc
+  become: true
+  vars:
+    homedir_sdlc_user: "homedir-sdlc"
+    homedir_sdlc_group: "homedir-sdlc"
+    homedir_sdlc_home: "/home/homedir-sdlc"
+    sc_agent_repo: "https://github.com/os-santiago/sc-agent-cli.git"
+    sc_agent_dir: "/home/homedir-sdlc/.local/share/sc-agent-cli"
+    homedir_platform_dir: "/home/homedir-sdlc/.local/share/homedir-platform"
+    homedir_sdlc_dir: "/home/homedir-sdlc/.local/share/homedir-sdlc"
+    homedir_sdlc_state_dir: "/home/homedir-sdlc/.local/state/homedir-sdlc"
+    homedir_sdlc_env_file: "/home/homedir-sdlc/.config/homedir-sdlc/env"
+    homedir_sdlc_local_bin: "/home/homedir-sdlc/.local/bin"
+    homedir_sdlc_user_systemd_dir: "/home/homedir-sdlc/.config/systemd/user"
+  tasks:
+    - name: Install package repository prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - python3
+        state: present
+        update_cache: true
+
+    - name: Ensure apt keyring directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Download NodeSource signing key
+      ansible.builtin.get_url:
+        url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+        dest: /etc/apt/keyrings/nodesource.asc
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Convert NodeSource signing key
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg /etc/apt/keyrings/nodesource.asc
+        creates: /etc/apt/keyrings/nodesource.gpg
+
+    - name: Add NodeSource Node.js 20 repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main"
+        filename: nodesource
+        state: present
+
+    - name: Download GitHub CLI signing key
+      ansible.builtin.get_url:
+        url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+        dest: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Add GitHub CLI repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        filename: github-cli
+        state: present
+
+    - name: Install runner packages
+      ansible.builtin.apt:
+        name:
+          - git
+          - gh
+          - jq
+          - nodejs
+          - python3
+        state: present
+        update_cache: true
+
+    - name: Ensure SDLC runtime group exists
+      ansible.builtin.group:
+        name: "{{ homedir_sdlc_group }}"
+        system: true
+        state: present
+
+    - name: Ensure SDLC runtime user exists
+      ansible.builtin.user:
+        name: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        home: "{{ homedir_sdlc_home }}"
+        create_home: true
+        shell: /usr/sbin/nologin
+        system: true
+        state: present
+
+    - name: Read SDLC runtime user account facts
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ homedir_sdlc_user }}"
+
+    - name: Ensure runner directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0755"
+      loop:
+        - "{{ homedir_platform_dir }}"
+        - "{{ homedir_sdlc_local_bin }}"
+        - "{{ homedir_sdlc_home }}/.config/homedir-sdlc"
+        - "{{ homedir_sdlc_user_systemd_dir }}"
+        - "{{ homedir_sdlc_dir }}"
+        - "{{ homedir_sdlc_dir }}/worktrees"
+        - "{{ homedir_sdlc_state_dir }}"
+        - "{{ homedir_sdlc_state_dir }}/logs"
+
+    - name: Clone or update sc-agent-cli
+      ansible.builtin.git:
+        repo: "{{ sc_agent_repo }}"
+        dest: "{{ sc_agent_dir }}"
+        version: main
+        update: true
+      become_user: "{{ homedir_sdlc_user }}"
+      environment:
+        HOME: "{{ homedir_sdlc_home }}"
+
+    - name: Install SCC dependencies
+      ansible.builtin.command: npm ci
+      args:
+        chdir: "{{ sc_agent_dir }}"
+        creates: "{{ sc_agent_dir }}/node_modules"
+      become_user: "{{ homedir_sdlc_user }}"
+      environment:
+        HOME: "{{ homedir_sdlc_home }}"
+
+    - name: Build SCC
+      ansible.builtin.command: npm run build
+      args:
+        chdir: "{{ sc_agent_dir }}"
+      become_user: "{{ homedir_sdlc_user }}"
+      environment:
+        HOME: "{{ homedir_sdlc_home }}"
+
+    - name: Install SCC wrapper
+      ansible.builtin.copy:
+        dest: "{{ homedir_sdlc_local_bin }}/scc"
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          exec node {{ sc_agent_dir }}/bin/sc.js "$@"
+
+    - name: Install SDLC worker script
+      ansible.builtin.copy:
+        src: ../../scripts/homedir-sdlc-worker.sh
+        dest: "{{ homedir_sdlc_local_bin }}/homedir-sdlc-worker.sh"
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0755"
+
+    - name: Install SDLC environment example when env is absent
+      ansible.builtin.copy:
+        src: ../../env.sdlc.example
+        dest: "{{ homedir_sdlc_env_file }}"
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0600"
+        force: false
+
+    - name: Install user systemd units
+      ansible.builtin.copy:
+        src: "../../systemd/user/{{ item }}"
+        dest: "{{ homedir_sdlc_user_systemd_dir }}/{{ item }}"
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0644"
+      loop:
+        - homedir-sdlc-worker.service
+        - homedir-sdlc-worker.timer
+
+    - name: Enable linger for SDLC runtime user
+      ansible.builtin.command:
+        cmd: "loginctl enable-linger {{ homedir_sdlc_user }}"
+        creates: "/var/lib/systemd/linger/{{ homedir_sdlc_user }}"
+
+    - name: Ensure user timer wants directory exists
+      ansible.builtin.file:
+        path: "{{ homedir_sdlc_user_systemd_dir }}/timers.target.wants"
+        state: directory
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+        mode: "0755"
+
+    - name: Enable user SDLC worker timer
+      ansible.builtin.file:
+        src: "../homedir-sdlc-worker.timer"
+        dest: "{{ homedir_sdlc_user_systemd_dir }}/timers.target.wants/homedir-sdlc-worker.timer"
+        state: link
+        owner: "{{ homedir_sdlc_user }}"
+        group: "{{ homedir_sdlc_group }}"
+
+    - name: Start user SDLC worker timer when user manager is available
+      ansible.builtin.command:
+        cmd: "runuser -u {{ homedir_sdlc_user }} -- env HOME={{ homedir_sdlc_home }} XDG_RUNTIME_DIR=/run/user/{{ ansible_facts.getent_passwd[homedir_sdlc_user][1] }} PATH={{ homedir_sdlc_local_bin }}:/usr/bin:/bin systemctl --user enable --now homedir-sdlc-worker.timer"
+      register: homedir_sdlc_timer_start
+      changed_when: homedir_sdlc_timer_start.rc == 0
+      failed_when: false
+
+    - name: Print post-install note
+      ansible.builtin.debug:
+        msg: "Configure gh auth and SCC provider credentials under {{ homedir_sdlc_user }} before expecting autonomous work."
