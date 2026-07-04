@@ -1,0 +1,24 @@
+[Unit]
+Description=Webhook listener for GitHub issue and PR events
+After=network.target
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/homedir.env
+ExecStart=/usr/bin/python3 /usr/local/bin/homedir-github-webhook.py
+Restart=always
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+# The SDLC hook drops privileges to homedir-sdlc and must access that user's
+# scripts, env file, worktrees, and state directory under /home/homedir-sdlc.
+ProtectHome=no
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+User=root
+
+[Install]
+WantedBy=multi-user.target
