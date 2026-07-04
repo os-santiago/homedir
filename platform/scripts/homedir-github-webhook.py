@@ -11,7 +11,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
@@ -39,6 +39,8 @@ SDLC_HOOK_LABEL = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_LABEL", "ready-to-imp
 SDLC_HOOK_AUTHOR = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_AUTHOR", "scanalesespinoza").strip() or "scanalesespinoza"
 SDLC_HOOK_COMMAND = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_COMMAND", "").strip()
 SDLC_HOOK_TIMEOUT_SECONDS = int(os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_TIMEOUT_SECONDS", "20"))
+ALERT_TIMEOUT_SECONDS = int(os.environ.get("GITHUB_WEBHOOK_ALERT_TIMEOUT_SECONDS", "10"))
+OPENCLAW_HOOK_TIMEOUT_SECONDS = int(os.environ.get("OPENCLAW_GITHUB_MONITOR_TIMEOUT_SECONDS", "10"))
 DISCORD_TARGET = os.environ.get("GITHUB_WEBHOOK_DISCORD_TARGET", "community").strip().casefold() or "community"
 TARGET_BRANCH = os.environ.get("GITHUB_WEBHOOK_TARGET_BRANCH", "main").strip().casefold() or "main"
 WOS_REVIEW_LABEL = os.environ.get("GITHUB_WEBHOOK_WOS_REVIEW_LABEL", "wos-review").strip().casefold() or "wos-review"
@@ -482,6 +484,12 @@ def run_alert(target: str, event: GitHubEvent) -> None:
             check=False,
             capture_output=True,
             text=True,
+            timeout=ALERT_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        log_line(
+            f"alert script timeout target={target} event={event.event} "
+            f"repo={event.repo} timeout={ALERT_TIMEOUT_SECONDS}s"
         )
     except Exception as exc:  # noqa: BLE001
         log_line(f"alert script failed target={target} event={event.event} repo={event.repo} error={exc}")
@@ -521,12 +529,18 @@ def run_openclaw_hook(event: GitHubEvent, payload: dict[str, object]) -> None:
             capture_output=True,
             text=True,
             env=env,
+            timeout=OPENCLAW_HOOK_TIMEOUT_SECONDS,
         )
         stdout = (completed.stdout or "").strip()
         stderr = (completed.stderr or "").strip()
         log_line(
             f"openclaw hook event={event.event} action={event.action} repo={event.repo} "
             f"exit={completed.returncode} stdout={stdout} stderr={stderr}"
+        )
+    except subprocess.TimeoutExpired:
+        log_line(
+            f"openclaw hook timeout event={event.event} repo={event.repo} "
+            f"timeout={OPENCLAW_HOOK_TIMEOUT_SECONDS}s"
         )
     except Exception as exc:  # noqa: BLE001
         log_line(f"openclaw hook failed event={event.event} repo={event.repo} error={exc}")
@@ -666,7 +680,25 @@ class Handler(BaseHTTPRequestHandler):
         log_line(f"status served remote={safe_remote(self)}")
 
     def do_POST(self):
-        length = int(self.headers.get("content-length", 0))
+        raw_length = (self.headers.get("content-length") or "").strip()
+        try:
+            length = int(raw_length)
+        except ValueError:
+            self.send_response(400)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"invalid content-length\n")
+            log_line(f"rejected invalid content-length remote={safe_remote(self)} value={raw_length!r}")
+            return
+
+        if length <= 0:
+            self.send_response(400)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"empty payload\n")
+            log_line(f"rejected empty payload remote={safe_remote(self)} bytes={length}")
+            return
+
         if length > MAX_BODY_BYTES:
             self.send_response(413)
             self.send_header("Content-Type", "text/plain")
@@ -734,7 +766,7 @@ def main():
         log_line("WARNING: signature required but GITHUB_WEBHOOK_SHARED_SECRET is not set")
     if not WEBHOOK_STATUS_TOKEN:
         log_line("WARNING: GITHUB_WEBHOOK_STATUS_TOKEN is not set; GET status endpoint is disabled")
-    server = HTTPServer((BIND_ADDRESS, PORT), Handler)
+    server = ThreadingHTTPServer((BIND_ADDRESS, PORT), Handler)
     log_line(f"github webhook server starting on {BIND_ADDRESS}:{PORT}")
     server.serve_forever()
 

@@ -3,20 +3,12 @@
 
 set -euo pipefail
 
-DEFAULT_ENV_FILE="/etc/homedir-sdlc.env"
-if [[ ! -f "${DEFAULT_ENV_FILE}" && -f "${HOME:-/home/homedir-sdlc}/.config/homedir-sdlc/env" ]]; then
-  DEFAULT_ENV_FILE="${HOME:-/home/homedir-sdlc}/.config/homedir-sdlc/env"
-fi
-ENV_FILE="${HOMEDIR_SDLC_ENV_FILE:-${DEFAULT_ENV_FILE}}"
-if [[ -f "${ENV_FILE}" ]]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
+if [[ -r "${ENV_LIB}" ]]; then
   # shellcheck disable=SC1090
-  source "${ENV_FILE}"
-fi
-if [[ -z "${XDG_RUNTIME_DIR:-}" && -d "/run/user/$(id -u)" ]]; then
-  export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-fi
-if [[ -n "${XDG_RUNTIME_DIR:-}" && -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -S "${XDG_RUNTIME_DIR}/bus" ]]; then
-  export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+  source "${ENV_LIB}"
+  homedir_sdlc_runtime_load
 fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
@@ -50,15 +42,12 @@ else
   healthy=false
 fi
 
-service_state="unknown"
-timer_state="unknown"
-if systemctl --user is-active homedir-sdlc-worker.timer >/dev/null 2>&1 \
-  || systemctl --user is-active homedir-sdlc-worker.service >/dev/null 2>&1; then
-  service_state="$(systemctl --user is-active homedir-sdlc-worker.service 2>/dev/null || true)"
-  timer_state="$(systemctl --user is-active homedir-sdlc-worker.timer 2>/dev/null || true)"
-  if [[ "${timer_state}" != "active" ]]; then
-    healthy=false
-  fi
+service_state="$(systemctl --user is-active homedir-sdlc-worker.service 2>/dev/null || true)"
+timer_state="$(systemctl --user is-active homedir-sdlc-worker.timer 2>/dev/null || true)"
+service_state="${service_state:-unknown}"
+timer_state="${timer_state:-unknown}"
+if [[ "${timer_state}" != "active" ]]; then
+  healthy=false
 fi
 
 eligible_issues_json="[]"

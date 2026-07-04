@@ -3,20 +3,12 @@
 
 set -euo pipefail
 
-DEFAULT_ENV_FILE="/etc/homedir-sdlc.env"
-if [[ ! -f "${DEFAULT_ENV_FILE}" && -f "${HOME:-/home/homedir-sdlc}/.config/homedir-sdlc/env" ]]; then
-  DEFAULT_ENV_FILE="${HOME:-/home/homedir-sdlc}/.config/homedir-sdlc/env"
-fi
-ENV_FILE="${HOMEDIR_SDLC_ENV_FILE:-${DEFAULT_ENV_FILE}}"
-if [[ -f "${ENV_FILE}" ]]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
+if [[ -r "${ENV_LIB}" ]]; then
   # shellcheck disable=SC1090
-  source "${ENV_FILE}"
-fi
-if [[ -z "${XDG_RUNTIME_DIR:-}" && -d "/run/user/$(id -u)" ]]; then
-  export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-fi
-if [[ -n "${XDG_RUNTIME_DIR:-}" && -z "${DBUS_SESSION_BUS_ADDRESS:-}" && -S "${XDG_RUNTIME_DIR}/bus" ]]; then
-  export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+  source "${ENV_LIB}"
+  homedir_sdlc_runtime_load
 fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
@@ -89,7 +81,7 @@ if [[ "${has_trigger}" != "true" ]]; then
 fi
 
 log "triggering worker for issue #${issue_number}"
-if systemctl --user start homedir-sdlc-worker.service >/dev/null 2>&1; then
+if systemctl --user start --no-block homedir-sdlc-worker.service >/dev/null 2>&1; then
   log "started homedir-sdlc-worker.service"
 else
   nohup "${WORKER_BIN}" >>"${LOGFILE}" 2>&1 &

@@ -159,7 +159,7 @@ What it automates:
 - Autonomous SDLC is governed by `docs/en/development/autonomous-sdlc.md`: it may create branches and PRs, but it must not bypass branch protection, reviews, required checks, repository rulesets, or secret controls.
 - The autonomous SDLC must run from the VPS. A workstation may SSH in to trigger bootstrap, but normal operation must not depend on WSL, PowerShell, local paths, or local credentials.
 - OpenClaw can invoke `homedir-sdlc-openclaw-listener.sh` with the GitHub issue event payload. The polling timer remains enabled as a reconciliation fallback.
-- The GitHub webhook can wake the SDLC immediately when an open issue from `scanalesespinoza` receives `ready-to-implement`. Set `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` in `/etc/homedir.env` so the root-owned webhook drops privileges with `runuser -u homedir-sdlc` before invoking `homedir-sdlc-openclaw-listener.sh`.
+- The GitHub webhook can wake the SDLC immediately when an open issue from `scanalesespinoza` receives `ready-to-implement`. Run `homedir-github-webhook.service` as `homedir-sdlc` and set `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` in `/etc/homedir.env` to invoke `homedir-sdlc-openclaw-listener.sh` directly from that account.
 - Monitor the runner with `homedir-sdlc-status.sh`; a stale heartbeat or inactive user timer should page the operator before issues pile up.
 
 ## Autonomous SDLC service account
