@@ -479,6 +479,7 @@ import re
 issue = os.environ.get("ISSUE_BODY", "")
 pr = os.environ.get("PR_BODY", "")
 gaps = []
+specific_items = []
 
 coverage_match = re.search(r"(?ims)^##\s+Issue Coverage\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
 coverage = coverage_match.group(1).strip() if coverage_match else ""
@@ -490,6 +491,10 @@ elif re.search(r"(?m)^\s*[-*]\s+\[\s\]", coverage):
 else:
     coverage_items = re.findall(r"(?m)^\s*[-*]\s+\[[xX]\]\s+(.+?)\s*$", coverage)
     generic_patterns = [
+        r"^addresses issue #[0-9]+:",
+        r"^map concrete code changes to issue #[0-9]+:",
+        r"^map each acceptance criterion",
+        r"^list any known uncovered requirement",
         r"^implements the requested issue scope",
         r"^maps acceptance criteria and technical observations",
         r"^leaves no known issue requirement",
@@ -506,7 +511,11 @@ has_acceptance = bool(
     re.search(r"(?im)acceptance criteria|criterios de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", issue)
     or re.search(r"(?m)^\s*[-*]\s+\[\s\]", issue)
 )
-if has_acceptance and not re.search(r"(?im)acceptance criteria|criterios de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", pr):
+acceptance_items = [
+    item for item in specific_items
+    if re.search(r"(?im)acceptance criteria|acceptance criterion|criterios de aceptaci[o\u00f3]n|criterio de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", item)
+]
+if has_acceptance and not acceptance_items:
     gaps.append("Issue has explicit acceptance criteria, but PR body does not map them.")
 
 validation_match = re.search(r"(?ims)^##\s+Validation\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
@@ -1098,10 +1107,9 @@ ${validation_summary}
 
 ## Issue Coverage
 
-- [x] Addresses issue #${number}: ${title}
-- [x] Implements the requested issue scope for #${number}.
-- [x] Maps acceptance criteria and technical observations from the issue body to the PR changes.
-- [x] Leaves no known issue requirement intentionally uncovered.
+- [ ] Map concrete code changes to issue #${number}: ${title}
+- [ ] Map each acceptance criterion, or explain why none applies.
+- [ ] List any known uncovered requirement, or state that none is known with evidence.
 
 ## Governance
 
