@@ -56,6 +56,10 @@ Use these labels for automation state:
 | `scc-queued` | Authorized issue admitted to the AI SDLC execution queue |
 | `scc-running` | The SCC worker has claimed the issue |
 | `scc-pr-open` | A pull request was opened for the issue |
+| `scc-waiting-checks` | The PR is waiting for CI, CodeRabbit, or branch-protection feedback |
+| `scc-failing-checks` | One or more PR checks failed and the worker will attempt SCC remediation |
+| `scc-under-review` | The PR has actionable review feedback or is in an automated remediation cycle |
+| `scc-approved` | Checks passed and no actionable automated review feedback remains |
 | `scc-merged` | The PR was merged and the `Production Release` workflow succeeded |
 | `scc-failed` | Automation failed after allowed retries |
 | `needs-human` | A repository rule, unclear requirement, security concern, or repeated failure requires human action |
@@ -76,9 +80,20 @@ implementation unless `ready-to-implement` is admitted into `scc-queued`.
 7. Require a PR branch and pull request, never a direct push to `main`.
 8. Run local validation appropriate to the change.
 9. Push the branch and create/update a PR with `Closes #<issue>`.
-10. Enable normal auto-merge only when repository protection allows it.
-11. Monitor CI and release workflows.
-12. Remove `scc-queued`, comment the result, and update lifecycle labels.
+10. Mark the issue `scc-waiting-checks` while CI and review feedback run.
+11. Every worker cycle, reconcile PR state:
+    - failed checks move the issue to `scc-failing-checks` and `scc-under-review`;
+    - actionable review feedback moves the issue to `scc-under-review`;
+    - SCC is re-run on the existing PR branch with the failing checks and review
+      context;
+    - successful remediation commits are pushed back to the same PR branch.
+12. Repeat remediation until checks and actionable review feedback are clear, or
+    until `HOMEDIR_SDLC_MAX_REMEDIATION_ATTEMPTS` is reached.
+13. Mark the issue `scc-approved` and enable normal auto-merge only when
+    repository protection allows it.
+14. Monitor release workflows after merge.
+15. Remove transient lifecycle labels, comment the result, and update terminal
+    lifecycle labels.
 
 ## Server Ownership
 
@@ -87,6 +102,7 @@ The VPS is the system of record for autonomous execution:
 - Runtime user: `homedir-sdlc`
 - Runtime repo checkout: `/home/homedir-sdlc/.local/share/homedir-sdlc/worktrees/homedir`
 - Worker state: `/home/homedir-sdlc/.local/state/homedir-sdlc`
+- Successful run summaries: `/home/homedir-sdlc/.local/state/homedir-sdlc/run-summaries`
 - Worker logs: `/home/homedir-sdlc/.local/state/homedir-sdlc/logs/worker.log`
 - SCC install: `/home/homedir-sdlc/.local/share/sc-agent-cli`
 - SCC wrapper: `/home/homedir-sdlc/.local/bin/scc`

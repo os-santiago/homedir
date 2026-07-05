@@ -17,6 +17,10 @@ UNAUTHORIZED_LABEL="${HOMEDIR_SDLC_UNAUTHORIZED_LABEL:-scc-rejected:unauthorized
 AUTHORIZED_LABELERS="${HOMEDIR_SDLC_AUTHORIZED_LABELERS:-scanalesespinoza}"
 RUNNING_LABEL="${HOMEDIR_SDLC_RUNNING_LABEL:-scc-running}"
 PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
+WAITING_CHECKS_LABEL="${HOMEDIR_SDLC_WAITING_CHECKS_LABEL:-scc-waiting-checks}"
+FAILING_CHECKS_LABEL="${HOMEDIR_SDLC_FAILING_CHECKS_LABEL:-scc-failing-checks}"
+UNDER_REVIEW_LABEL="${HOMEDIR_SDLC_UNDER_REVIEW_LABEL:-scc-under-review}"
+APPROVED_LABEL="${HOMEDIR_SDLC_APPROVED_LABEL:-scc-approved}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
 NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
 MERGED_LABEL="${HOMEDIR_SDLC_MERGED_LABEL:-scc-merged}"
@@ -31,13 +35,15 @@ GIT_USER_EMAIL="${HOMEDIR_SDLC_GIT_USER_EMAIL:-homedir-sdlc@users.noreply.github
 SCC_BIN="${SCC_BIN:-/usr/local/bin/scc}"
 LOCK_FILE="${STATE_DIR}/worker.lock"
 ISSUE_STATE_DIR="${STATE_DIR}/issues"
+RUN_SUMMARY_DIR="${STATE_DIR}/run-summaries"
 HEARTBEAT_FILE="${HOMEDIR_SDLC_HEARTBEAT_FILE:-${STATE_DIR}/heartbeat.json}"
+MAX_REMEDIATION_ATTEMPTS="${HOMEDIR_SDLC_MAX_REMEDIATION_ATTEMPTS:-5}"
 ALERTS_ENABLED="${HOMEDIR_SDLC_ALERTS_ENABLED:-false}"
 ALERT_WEBHOOK_URL="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL:-}"
 ALERT_WEBHOOK_URL_FILE="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE:-}"
 ALERT_TIMEOUT_SECONDS="${HOMEDIR_SDLC_ALERT_TIMEOUT_SECONDS:-10}"
 
-mkdir -p "${STATE_DIR}" "${ISSUE_STATE_DIR}" "$(dirname "${LOGFILE}")"
+mkdir -p "${STATE_DIR}" "${ISSUE_STATE_DIR}" "${RUN_SUMMARY_DIR}" "$(dirname "${LOGFILE}")"
 touch "${LOGFILE}"
 
 log() {
@@ -179,6 +185,29 @@ remove_label() {
   gh issue edit "${issue}" --repo "${REPO}" --remove-label "${label}" >/dev/null 2>&1 || true
 }
 
+set_flow_labels() {
+  local issue="$1"
+  shift
+  local wanted label
+  wanted=" $* "
+
+  for label in \
+    "${QUEUE_LABEL}" \
+    "${RUNNING_LABEL}" \
+    "${WAITING_CHECKS_LABEL}" \
+    "${FAILING_CHECKS_LABEL}" \
+    "${UNDER_REVIEW_LABEL}" \
+    "${APPROVED_LABEL}" \
+    "${FAILED_LABEL}" \
+    "${NEEDS_HUMAN_LABEL}"; do
+    if [[ "${wanted}" == *" ${label} "* ]]; then
+      add_label "${issue}" "${label}"
+    else
+      remove_label "${issue}" "${label}"
+    fi
+  done
+}
+
 comment_issue() {
   local issue="$1"
   local body="$2"
@@ -192,6 +221,10 @@ mark_needs_human() {
   remove_label "${issue}" "${RUNNING_LABEL}"
   remove_label "${issue}" "${QUEUE_LABEL}"
   remove_label "${issue}" "${TRIGGER_LABEL}"
+  remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC paused: ${reason}"
   alert WARN "Issue #${issue} needs human review" "${reason}"
 }
@@ -203,6 +236,10 @@ mark_failed() {
   remove_label "${issue}" "${RUNNING_LABEL}"
   remove_label "${issue}" "${QUEUE_LABEL}"
   remove_label "${issue}" "${TRIGGER_LABEL}"
+  remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
   alert FAIL "Issue #${issue} failed" "${reason}"
 }
@@ -270,6 +307,10 @@ reconcile_admission_requests() {
     if issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
       || issue_has_label "${labels}" "${PR_LABEL}" \
+      || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
+      || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
+      || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+      || issue_has_label "${labels}" "${APPROVED_LABEL}" \
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
@@ -300,6 +341,225 @@ write_issue_state() {
     --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     '{issue: ($issue|tonumber), branch: $branch, pr_url: $pr_url, pr_number: ($pr_number|tonumber?), updated_at: $updated_at}' \
     > "${ISSUE_STATE_DIR}/issue-${issue}.json"
+}
+
+update_issue_state() {
+  local issue="$1"
+  local jq_filter="$2"
+  local state_file="${ISSUE_STATE_DIR}/issue-${issue}.json"
+  local tmp_file
+
+  if [[ ! -f "${state_file}" ]]; then
+    return 0
+  fi
+
+  tmp_file="$(mktemp "${state_file}.XXXXXX")"
+  jq \
+    --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "${jq_filter} | .updated_at = \$updated_at" \
+    "${state_file}" > "${tmp_file}"
+  mv -f "${tmp_file}" "${state_file}"
+}
+
+append_run_summary() {
+  local issue="$1"
+  local event="$2"
+  local pr_number="$3"
+  local branch="$4"
+  local summary="$5"
+  local file="${RUN_SUMMARY_DIR}/issue-${issue}.jsonl"
+
+  jq -n \
+    --arg repo "${REPO}" \
+    --arg issue "${issue}" \
+    --arg event "${event}" \
+    --arg pr_number "${pr_number}" \
+    --arg branch "${branch}" \
+    --arg summary "${summary}" \
+    --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{
+      repo: $repo,
+      issue: ($issue|tonumber),
+      event: $event,
+      pr_number: (if $pr_number == "" then null else ($pr_number|tonumber) end),
+      branch: $branch,
+      summary: $summary,
+      created_at: $created_at
+    }' >> "${file}"
+}
+
+pr_checks_state() {
+  local pr_json="$1"
+  jq -r '
+    def check_name: (.name // .context // "unknown");
+    def check_status: (.status // .state // "");
+    def check_conclusion: (.conclusion // .state // "");
+    def is_failure:
+      (check_conclusion | ascii_downcase) as $c
+      | ($c == "failure" or $c == "error" or $c == "timed_out" or $c == "cancelled");
+    def is_pending:
+      (check_status | ascii_downcase) as $s
+      | (check_conclusion | ascii_downcase) as $c
+      | ($s == "queued" or $s == "in_progress" or $s == "pending" or $c == "");
+    {
+      failing: [
+        (.statusCheckRollup // [])[]
+        | select(is_failure)
+        | {name: check_name, conclusion: check_conclusion, url: (.detailsUrl // .targetUrl // "")}
+      ],
+      pending: [
+        (.statusCheckRollup // [])[]
+        | select(is_pending)
+        | {name: check_name, status: check_status, url: (.detailsUrl // .targetUrl // "")}
+      ],
+      successful: [
+        (.statusCheckRollup // [])[]
+        | select((check_conclusion | ascii_downcase) == "success")
+        | {name: check_name, url: (.detailsUrl // .targetUrl // "")}
+      ]
+    }
+  ' <<<"${pr_json}"
+}
+
+review_state() {
+  local pr_json="$1"
+  jq -r '
+    def actionable_count:
+      (try ((.body // "") | capture("Actionable comments posted: (?<n>[0-9]+)").n | tonumber) catch 0);
+    {
+      review_decision: (.reviewDecision // ""),
+      actionable_reviews: [
+        (.latestReviews // [])[]
+        | select((.state // "") == "CHANGES_REQUESTED" or actionable_count > 0)
+        | {
+            author: (.author.login // "unknown"),
+            state: (.state // ""),
+            actionable: actionable_count,
+            body: ((.body // "") | gsub("\r"; "") | split("\n") | map(select(length > 0)) | .[0:120] | join("\n"))
+          }
+      ]
+    }
+  ' <<<"${pr_json}"
+}
+
+build_remediation_prompt() {
+  local issue="$1"
+  local title="$2"
+  local branch="$3"
+  local pr_url="$4"
+  local checks_json="$5"
+  local reviews_json="$6"
+  local trigger="$7"
+
+  cat <<EOF
+Continue the autonomous SDLC remediation for ${REPO} issue #${issue}.
+
+Issue title:
+${title}
+
+PR:
+${pr_url}
+
+Branch:
+${branch}
+
+Reason for this remediation cycle:
+${trigger}
+
+Failing or pending check context:
+$(jq -r '.' <<<"${checks_json}")
+
+Review context:
+$(jq -r '.' <<<"${reviews_json}")
+
+Rules:
+- Stay on branch ${branch}; never push directly to main.
+- Fix only the failing checks or actionable review feedback shown above.
+- Keep the change minimal and within the issue/PR scope.
+- Run the smallest meaningful validation you can.
+- Do not use --admin.
+- Do not bypass branch protection, required checks, reviews, repository rulesets, or secrets.
+- Leave files changed but do not force-push unless necessary; the worker will commit and push.
+- If the feedback is unsafe, ambiguous, or cannot be fixed with code, stop after leaving a clear note in the working tree or PR context.
+EOF
+}
+
+run_scc_on_existing_pr() {
+  local issue="$1"
+  local title="$2"
+  local branch="$3"
+  local pr_number="$4"
+  local pr_url="$5"
+  local checks_json="$6"
+  local reviews_json="$7"
+  local trigger="$8"
+  local prompt validation_summary attempts
+
+  attempts="$(jq -r '.remediation_attempts // 0' "${ISSUE_STATE_DIR}/issue-${issue}.json" 2>/dev/null || echo 0)"
+  if [[ "${attempts}" -ge "${MAX_REMEDIATION_ATTEMPTS}" ]]; then
+    mark_needs_human "${issue}" "Autonomous remediation reached ${MAX_REMEDIATION_ATTEMPTS} attempts for PR #${pr_number}."
+    return 0
+  fi
+
+  log "running SCC remediation for issue #${issue} PR #${pr_number}: ${trigger}"
+  write_heartbeat "running" "SCC remediation for issue #${issue}"
+  set_flow_labels "${issue}" "${PR_LABEL}" "${RUNNING_LABEL}" "${UNDER_REVIEW_LABEL}"
+
+  prepare_workdir
+  git -C "${WORKDIR}" checkout -B "${branch}" "origin/${branch}"
+
+  prompt="$(build_remediation_prompt "${issue}" "${title}" "${branch}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}")"
+  if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
+    mark_failed "${issue}" "SCC remediation exited non-zero for PR #${pr_number}. Check ${LOGFILE} on the runner."
+    return 0
+  fi
+
+  if [[ "$(git -C "${WORKDIR}" branch --show-current)" == "main" ]]; then
+    mark_needs_human "${issue}" "SCC remediation ended on main. Refusing to continue."
+    return 0
+  fi
+
+  if [[ -z "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
+    update_issue_state "${issue}" '.remediation_attempts = ((.remediation_attempts // 0) + 1) | .last_remediation_noop_at = $updated_at'
+    attempts="$((attempts + 1))"
+    if [[ "${attempts}" -ge "${MAX_REMEDIATION_ATTEMPTS}" ]]; then
+      mark_needs_human "${issue}" "SCC remediation for PR #${pr_number} produced no changes after ${attempts} attempts."
+    else
+      set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+      append_run_summary "${issue}" "remediation-noop" "${pr_number}" "${branch}" "SCC remediation produced no changes for ${trigger}; attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}."
+      comment_issue "${issue}" "Autonomous SDLC remediation produced no changes for PR #${pr_number}. Attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}; state remains \`${UNDER_REVIEW_LABEL}\`."
+    fi
+    return 0
+  fi
+
+  git -C "${WORKDIR}" add -A
+  git -C "${WORKDIR}" commit -m "fix(sdlc): remediate issue #${issue} PR checks" -m "PR #${pr_number}"
+
+  validation_summary="Not run by worker"
+  if [[ -n "${VALIDATION_COMMAND}" ]]; then
+    log "running validation for issue #${issue} remediation: ${VALIDATION_COMMAND}"
+    if (cd "${WORKDIR}" && bash -lc "${VALIDATION_COMMAND}"); then
+      validation_summary="\`${VALIDATION_COMMAND}\` passed"
+    else
+      mark_failed "${issue}" "Validation command failed during remediation: \`${VALIDATION_COMMAND}\`."
+      return 0
+    fi
+  fi
+
+  if ! git -C "${WORKDIR}" push origin "${branch}" 2>/dev/null; then
+    git -C "${WORKDIR}" fetch origin "${branch}" >/dev/null 2>&1 || true
+    if git -C "${WORKDIR}" merge-base --is-ancestor HEAD "origin/${branch}" >/dev/null 2>&1; then
+      log "push for issue #${issue} reported failure, but origin/${branch} already contains local remediation"
+    else
+      mark_failed "${issue}" "Git push failed during remediation for branch ${branch}."
+      return 0
+    fi
+  fi
+
+  update_issue_state "${issue}" '.remediation_attempts = ((.remediation_attempts // 0) + 1) | .last_remediation_at = $updated_at'
+  set_flow_labels "${issue}" "${PR_LABEL}" "${WAITING_CHECKS_LABEL}"
+  append_run_summary "${issue}" "remediation-pushed" "${pr_number}" "${branch}" "Remediation pushed for ${trigger}. Validation: ${validation_summary}"
+  comment_issue "${issue}" "Autonomous SDLC remediation pushed to PR #${pr_number}. State: \`${WAITING_CHECKS_LABEL}\`. Validation: ${validation_summary}"
 }
 
 release_status_for_pr() {
@@ -390,11 +650,84 @@ enable_auto_merge_for_state() {
   fi
 }
 
+reconcile_pr_state() {
+  local state_file="$1"
+  local issue pr_number branch pr_json pr_state pr_url pr_title pr_sha is_draft checks_json reviews_json
+  local failing_count pending_count success_count actionable_count trigger approved_sha
+
+  issue="$(jq -r '.issue' "${state_file}")"
+  pr_number="$(jq -r '.pr_number // ""' "${state_file}")"
+  branch="$(jq -r '.branch' "${state_file}")"
+
+  if [[ -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+    return 0
+  fi
+
+  pr_json="$(gh pr view "${pr_number}" \
+    --repo "${REPO}" \
+    --json number,title,state,isDraft,url,headRefName,headRefOid,mergeStateStatus,mergeable,reviewDecision,latestReviews,statusCheckRollup,autoMergeRequest \
+    2>/dev/null || true)"
+  if [[ -z "${pr_json}" ]]; then
+    return 0
+  fi
+
+  pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
+  pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+  pr_title="$(jq -r '.title // ""' <<<"${pr_json}")"
+  pr_sha="$(jq -r '.headRefOid // ""' <<<"${pr_json}")"
+  is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
+  checks_json="$(pr_checks_state "${pr_json}")"
+  reviews_json="$(review_state "${pr_json}")"
+  failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
+  pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
+  success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
+  actionable_count="$(jq -r '.actionable_reviews | length' <<<"${reviews_json}")"
+
+  if [[ "${pr_state}" != "OPEN" ]]; then
+    return 0
+  fi
+
+  if [[ "${failing_count}" -gt 0 ]]; then
+    trigger="failing checks on PR #${pr_number}"
+    set_flow_labels "${issue}" "${PR_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}"
+    update_issue_state "${issue}" '.last_pr_state = "failing-checks" | .last_checked_at = $updated_at'
+    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    return 0
+  fi
+
+  if [[ "${pending_count}" -gt 0 || "${success_count}" -eq 0 || "${is_draft}" == "true" ]]; then
+    set_flow_labels "${issue}" "${PR_LABEL}" "${WAITING_CHECKS_LABEL}"
+    update_issue_state "${issue}" '.last_pr_state = "waiting-checks" | .last_checked_at = $updated_at'
+    log "issue #${issue} PR #${pr_number} waiting for checks/review"
+    return 0
+  fi
+
+  if [[ "${actionable_count}" -gt 0 ]]; then
+    trigger="actionable review feedback on PR #${pr_number}"
+    set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+    update_issue_state "${issue}" '.last_pr_state = "under-review" | .last_checked_at = $updated_at'
+    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    return 0
+  fi
+
+  set_flow_labels "${issue}" "${PR_LABEL}" "${APPROVED_LABEL}"
+  approved_sha="$(jq -r '.approved_sha // ""' "${state_file}")"
+  if [[ "${approved_sha}" != "${pr_sha}" ]]; then
+    append_run_summary "${issue}" "approved" "${pr_number}" "${branch}" "All checks passed and no actionable review feedback remains for ${pr_url}."
+    APPROVED_SHA="${pr_sha}" update_issue_state "${issue}" '.last_pr_state = "approved" | .approved_sha = env.APPROVED_SHA | .approved_at = $updated_at'
+    comment_issue "${issue}" "Autonomous SDLC approved PR #${pr_number}: all checks passed and no actionable review feedback remains. Normal auto-merge remains governed by repository rules."
+  else
+    update_issue_state "${issue}" '.last_pr_state = "approved" | .last_checked_at = $updated_at'
+  fi
+
+  enable_auto_merge_for_state "${state_file}"
+}
+
 reconcile_open_prs() {
   local state_file
 
   while IFS= read -r state_file; do
-    enable_auto_merge_for_state "${state_file}"
+    reconcile_pr_state "${state_file}"
   done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
 }
 
@@ -440,10 +773,15 @@ reconcile_completed_issue() {
   add_label "${number}" "${MERGED_LABEL}"
   remove_label "${number}" "${PR_LABEL}"
   remove_label "${number}" "${RUNNING_LABEL}"
+  remove_label "${number}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${number}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${number}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${number}" "${APPROVED_LABEL}"
   remove_label "${number}" "${FAILED_LABEL}"
   remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
   remove_label "${number}" "${TRIGGER_LABEL}"
   remove_label "${number}" "${QUEUE_LABEL}"
+  append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged and production release verification succeeded. ${release_url}"
   comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
   log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
   alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
@@ -453,7 +791,7 @@ reconcile_completed_issues() {
   local issues_json issue_json label
 
   issues_json="$(
-    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
+    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${WAITING_CHECKS_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}" "${APPROVED_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
       gh issue list \
         --repo "${REPO}" \
         --state closed \
@@ -476,6 +814,10 @@ reconcile_completed_issues() {
         fi
         log "closed issue #${number} has autonomous labels but no ${PR_LABEL}; cleaning terminal labels"
         remove_label "${number}" "${RUNNING_LABEL}"
+        remove_label "${number}" "${WAITING_CHECKS_LABEL}"
+        remove_label "${number}" "${FAILING_CHECKS_LABEL}"
+        remove_label "${number}" "${UNDER_REVIEW_LABEL}"
+        remove_label "${number}" "${APPROVED_LABEL}"
         remove_label "${number}" "${FAILED_LABEL}"
         remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
         remove_label "${number}" "${TRIGGER_LABEL}"
@@ -501,7 +843,7 @@ prepare_workdir() {
 
 run_issue() {
   local issue_json="$1"
-  local number title labels body url branch slug prompt pr_url validation_summary existing_pr_json existing_pr_number existing_pr_url
+  local number title labels body url branch slug prompt pr_url pr_number validation_summary existing_pr_json existing_pr_number existing_pr_url
 
   number="$(jq -r '.number' <<<"${issue_json}")"
   title="$(jq -r '.title' <<<"${issue_json}")"
@@ -511,6 +853,10 @@ run_issue() {
 
   if issue_has_label "${labels}" "${RUNNING_LABEL}" \
     || issue_has_label "${labels}" "${PR_LABEL}" \
+    || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
+    || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
+    || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+    || issue_has_label "${labels}" "${APPROVED_LABEL}" \
     || issue_has_label "${labels}" "${FAILED_LABEL}" \
     || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
     || issue_has_label "${labels}" "${MERGED_LABEL}"; then
@@ -640,9 +986,10 @@ PRBODY
     fi
   fi
 
-  add_label "${number}" "${PR_LABEL}"
-  remove_label "${number}" "${RUNNING_LABEL}"
+  set_flow_labels "${number}" "${PR_LABEL}" "${WAITING_CHECKS_LABEL}"
   write_issue_state "${number}" "${branch}" "${pr_url}"
+  pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
+  append_run_summary "${number}" "pr-opened" "${pr_number}" "${branch}" "SCC opened or updated ${pr_url}. Validation: ${validation_summary}"
   comment_issue "${number}" "Autonomous SDLC opened PR: ${pr_url}"
 
   if try_enable_auto_merge "${number}" "${branch}" "" "${pr_url}"; then
