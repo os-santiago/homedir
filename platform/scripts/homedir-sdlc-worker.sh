@@ -480,6 +480,8 @@ issue = os.environ.get("ISSUE_BODY", "")
 pr = os.environ.get("PR_BODY", "")
 gaps = []
 specific_items = []
+criteria_heading_pattern = r"(?im)^\s*(?:#{1,6}\s*)?(acceptance criteria|criterios de aceptaci[o\u00f3]n|definition of done|definici[o\u00f3]n de list[oa]s?)\b"
+criteria_item_pattern = r"(?im)acceptance criteria|acceptance criterion|criterios de aceptaci[o\u00f3]n|criterio de aceptaci[o\u00f3]n|definition of done|definici[o\u00f3]n de list[oa]s?"
 
 coverage_match = re.search(r"(?ims)^##\s+Issue Coverage\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
 coverage = coverage_match.group(1).strip() if coverage_match else ""
@@ -507,13 +509,10 @@ else:
     if not specific_items:
         gaps.append("`## Issue Coverage` only contains generic boilerplate; add issue-specific coverage evidence.")
 
-has_acceptance = bool(
-    re.search(r"(?im)acceptance criteria|criterios de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", issue)
-    or re.search(r"(?m)^\s*[-*]\s+\[\s\]", issue)
-)
+has_acceptance = bool(re.search(criteria_heading_pattern, issue))
 acceptance_items = [
     item for item in specific_items
-    if re.search(r"(?im)acceptance criteria|acceptance criterion|criterios de aceptaci[o\u00f3]n|criterio de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", item)
+    if re.search(criteria_item_pattern, item)
 ]
 if has_acceptance and not acceptance_items:
     gaps.append("Issue has explicit acceptance criteria, but PR body does not map them.")
