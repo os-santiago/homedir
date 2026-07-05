@@ -190,6 +190,8 @@ mark_needs_human() {
   local reason="$2"
   add_label "${issue}" "${NEEDS_HUMAN_LABEL}"
   remove_label "${issue}" "${RUNNING_LABEL}"
+  remove_label "${issue}" "${QUEUE_LABEL}"
+  remove_label "${issue}" "${TRIGGER_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC paused: ${reason}"
   alert WARN "Issue #${issue} needs human review" "${reason}"
 }
@@ -199,6 +201,8 @@ mark_failed() {
   local reason="$2"
   add_label "${issue}" "${FAILED_LABEL}"
   remove_label "${issue}" "${RUNNING_LABEL}"
+  remove_label "${issue}" "${QUEUE_LABEL}"
+  remove_label "${issue}" "${TRIGGER_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
   alert FAIL "Issue #${issue} failed" "${reason}"
 }
@@ -231,6 +235,18 @@ reject_issue_from_queue() {
   add_label "${issue}" "${UNAUTHORIZED_LABEL}"
   comment_issue "${issue}" "AI SDLC admission rejected: \`${labeler:-unknown}\` is not authorized to add \`${TRIGGER_LABEL}\`. Authorized labelers: \`${AUTHORIZED_LABELERS}\`."
   log "rejected issue #${issue} from AI SDLC queue; labeler=${labeler:-unknown}"
+}
+
+open_pr_for_issue() {
+  local issue="$1"
+  gh pr list \
+    --repo "${REPO}" \
+    --state open \
+    --search "${issue} in:title,body" \
+    --limit 20 \
+    --json number,title,url \
+    --jq '.[0] // empty' \
+    2>/dev/null
 }
 
 reconcile_admission_requests() {
@@ -485,7 +501,7 @@ prepare_workdir() {
 
 run_issue() {
   local issue_json="$1"
-  local number title labels body url branch slug prompt pr_url validation_summary
+  local number title labels body url branch slug prompt pr_url validation_summary existing_pr_json existing_pr_number existing_pr_url
 
   number="$(jq -r '.number' <<<"${issue_json}")"
   title="$(jq -r '.title' <<<"${issue_json}")"
@@ -498,7 +514,20 @@ run_issue() {
     || issue_has_label "${labels}" "${FAILED_LABEL}" \
     || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
     || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+    if issue_has_label "${labels}" "${QUEUE_LABEL}"; then
+      remove_label "${number}" "${QUEUE_LABEL}"
+      remove_label "${number}" "${TRIGGER_LABEL}"
+      log "cleaned queued admission labels for issue #${number}: already has automation lifecycle label"
+    fi
     log "skipping issue #${number}: already has automation lifecycle label"
+    return 0
+  fi
+
+  existing_pr_json="$(open_pr_for_issue "${number}")"
+  if [[ -n "${existing_pr_json}" && "${existing_pr_json}" != "null" ]]; then
+    existing_pr_number="$(jq -r '.number' <<<"${existing_pr_json}")"
+    existing_pr_url="$(jq -r '.url' <<<"${existing_pr_json}")"
+    mark_needs_human "${number}" "An open PR already exists for this issue: #${existing_pr_number} (${existing_pr_url}). Refusing to create duplicate autonomous work."
     return 0
   fi
 
