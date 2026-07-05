@@ -1356,7 +1356,9 @@
     }
 
     .community-item-card,
-    .community-vote-btn {
+    .community-vote-btn,
+    .community-media-btn,
+    .community-topic-btn {
       transition: none;
     }
   }
