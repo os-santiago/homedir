@@ -7,6 +7,7 @@
     homedir_sdlc_group: "homedir-sdlc"
     homedir_sdlc_home: "/home/homedir-sdlc"
     sc_agent_repo: "https://github.com/os-santiago/sc-agent-cli.git"
+    sc_agent_version: "main"
     sc_agent_dir: "/home/homedir-sdlc/.local/share/sc-agent-cli"
     homedir_platform_dir: "/home/homedir-sdlc/.local/share/homedir-platform"
     homedir_sdlc_dir: "/home/homedir-sdlc/.local/share/homedir-sdlc"
@@ -119,7 +120,7 @@
       ansible.builtin.git:
         repo: "{{ sc_agent_repo }}"
         dest: "{{ sc_agent_dir }}"
-        version: main
+        version: "{{ sc_agent_version }}"
         update: true
       become_user: "{{ homedir_sdlc_user }}"
       environment:
@@ -152,7 +153,7 @@
           #!/usr/bin/env bash
           exec node {{ sc_agent_dir }}/bin/sc.js "$@"
 
-    - name: Install SDLC worker script
+    - name: Install SDLC scripts
       ansible.builtin.copy:
         src: "../../scripts/{{ item }}"
         dest: "{{ homedir_sdlc_local_bin }}/{{ item }}"

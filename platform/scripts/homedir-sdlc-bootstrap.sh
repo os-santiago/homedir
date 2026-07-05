@@ -37,7 +37,7 @@ fi
 log "updating platform checkout to ${HOMEDIR_PLATFORM_REF}"
 git -C "${HOMEDIR_PLATFORM_DIR}" fetch origin "${HOMEDIR_PLATFORM_REF}" --tags
 git -C "${HOMEDIR_PLATFORM_DIR}" checkout "${HOMEDIR_PLATFORM_REF}"
-git -C "${HOMEDIR_PLATFORM_DIR}" pull --ff-only origin "${HOMEDIR_PLATFORM_REF}" || true
+git -C "${HOMEDIR_PLATFORM_DIR}" pull --ff-only origin "${HOMEDIR_PLATFORM_REF}"
 
 log "applying local SDLC runner playbook"
 ansible-playbook -i "${INVENTORY}" "${PLAYBOOK}"

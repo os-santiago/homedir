@@ -79,8 +79,9 @@ if [[ "${has_trigger}" != "true" ]]; then
 fi
 
 log "triggering worker for issue #${issue_number}"
-if systemctl --user is-system-running >/dev/null 2>&1; then
-  systemctl --user start homedir-sdlc-worker.service
+if systemctl --user start homedir-sdlc-worker.service 2>/dev/null; then
+  :
 else
+  log "systemctl --user start failed; falling back to direct execution"
   "${WORKER_BIN}"
 fi
