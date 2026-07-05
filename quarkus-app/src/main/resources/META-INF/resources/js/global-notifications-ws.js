@@ -29,7 +29,7 @@
           localStorage.setItem(inboxKey, JSON.stringify(arr.slice(0, 1000)));
           const unread = parseInt(localStorage.getItem(unreadKey) || '0', 10) + 1;
           localStorage.setItem(unreadKey, String(unread));
-        } catch (e) {}
+        } catch (e) { console.warn('global-notifications-ws: failed to persist notification', e); }
         if (window.HomeDirNotifications && window.HomeDirNotifications.accept) {
           window.HomeDirNotifications.accept(msg);
         }
