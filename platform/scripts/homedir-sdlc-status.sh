@@ -13,6 +13,7 @@ fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
+QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
 STATE_DIR="${HOMEDIR_SDLC_STATE_DIR:-/var/lib/homedir-sdlc}"
 HEARTBEAT_FILE="${HOMEDIR_SDLC_HEARTBEAT_FILE:-${STATE_DIR}/heartbeat.json}"
 MAX_AGE_SECONDS="${HOMEDIR_SDLC_HEARTBEAT_MAX_AGE_SECONDS:-900}"
@@ -55,7 +56,7 @@ if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   eligible_issues_json="$(gh issue list \
     --repo "${REPO}" \
     --state open \
-    --label "${TRIGGER_LABEL}" \
+    --label "${QUEUE_LABEL}" \
     --limit 20 \
     --json number,title,url,labels 2>/dev/null || echo "[]")"
 fi

@@ -36,7 +36,17 @@ ALERT_SCRIPT = os.environ.get("ALERT_SCRIPT", "/usr/local/bin/homedir-discord-al
 OPENCLAW_MONITOR_COMMAND = os.environ.get("OPENCLAW_GITHUB_MONITOR_COMMAND", "").strip()
 SDLC_HOOK_ENABLED = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_ENABLED", "true").strip().lower() == "true"
 SDLC_HOOK_LABEL = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_LABEL", "ready-to-implement").strip() or "ready-to-implement"
-SDLC_HOOK_AUTHOR = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_AUTHOR", "scanalesespinoza").strip() or "scanalesespinoza"
+SDLC_QUEUE_LABEL = os.environ.get("HOMEDIR_SDLC_QUEUE_LABEL", "scc-queued").strip() or "scc-queued"
+SDLC_REJECTED_LABEL = os.environ.get("HOMEDIR_SDLC_REJECTED_LABEL", "scc-rejected").strip() or "scc-rejected"
+SDLC_UNAUTHORIZED_LABEL = (
+    os.environ.get("HOMEDIR_SDLC_UNAUTHORIZED_LABEL", "scc-rejected:unauthorized-labeler").strip()
+    or "scc-rejected:unauthorized-labeler"
+)
+SDLC_AUTHORIZED_LABELERS = {
+    login.strip().casefold()
+    for login in os.environ.get("HOMEDIR_SDLC_AUTHORIZED_LABELERS", "scanalesespinoza").split(",")
+    if login.strip()
+}
 SDLC_HOOK_COMMAND = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_COMMAND", "").strip()
 SDLC_HOOK_TIMEOUT_SECONDS = int(os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_TIMEOUT_SECONDS", "20"))
 ALERT_TIMEOUT_SECONDS = int(os.environ.get("GITHUB_WEBHOOK_ALERT_TIMEOUT_SECONDS", "10"))
@@ -198,6 +208,15 @@ def _payload_labels(payload: dict[str, object], object_key: str) -> list[str]:
 def _has_label(payload: dict[str, object], object_key: str, wanted_label: str) -> bool:
     wanted = wanted_label.casefold()
     return any(label.casefold() == wanted for label in _payload_labels(payload, object_key))
+
+
+def _sender_login(payload: dict[str, object]) -> str:
+    sender = payload.get("sender") if isinstance(payload.get("sender"), dict) else {}
+    return str(sender.get("login") or "").strip()
+
+
+def _is_authorized_sdlc_labeler(login: str) -> bool:
+    return bool(login and login.casefold() in SDLC_AUTHORIZED_LABELERS)
 
 
 def _trim_text(value: object, max_chars: int) -> str:
@@ -546,6 +565,111 @@ def run_openclaw_hook(event: GitHubEvent, payload: dict[str, object]) -> None:
         log_line(f"openclaw hook failed event={event.event} repo={event.repo} error={exc}")
 
 
+def _gh_command() -> str:
+    return shutil.which("gh") or str(Path.home() / ".local" / "bin" / "gh")
+
+
+def _run_gh_issue_edit(repo: str, issue: int, *args: str) -> tuple[int, str, str]:
+    command = [_gh_command(), "issue", "edit", str(issue), "--repo", repo, *args]
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=SDLC_HOOK_TIMEOUT_SECONDS,
+            env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return 124, "", f"gh issue edit timed out after {SDLC_HOOK_TIMEOUT_SECONDS}s"
+    except OSError as exc:
+        return 127, "", str(exc)
+    return completed.returncode, (completed.stdout or "").strip(), (completed.stderr or "").strip()
+
+
+def _gh_add_label(repo: str, issue: int, label: str) -> bool:
+    rc, _, stderr = _run_gh_issue_edit(repo, issue, "--add-label", label)
+    if rc != 0:
+        log_line(f"sdlc label add failed issue={issue} label={label} exit={rc} stderr={stderr}")
+        return False
+    return True
+
+
+def _gh_remove_label(repo: str, issue: int, label: str) -> None:
+    rc, _, stderr = _run_gh_issue_edit(repo, issue, "--remove-label", label)
+    if rc != 0:
+        log_line(f"sdlc label remove skipped issue={issue} label={label} exit={rc} stderr={stderr}")
+
+
+def _run_gh_issue_comment(repo: str, issue: int, body: str) -> tuple[int, str, str]:
+    command = [_gh_command(), "issue", "comment", str(issue), "--repo", repo, "--body", body]
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=SDLC_HOOK_TIMEOUT_SECONDS,
+            env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return 124, "", f"gh issue comment timed out after {SDLC_HOOK_TIMEOUT_SECONDS}s"
+    except OSError as exc:
+        return 127, "", str(exc)
+    return completed.returncode, (completed.stdout or "").strip(), (completed.stderr or "").strip()
+
+
+def _repo_for_write(payload: dict[str, object]) -> str:
+    repository = payload.get("repository") if isinstance(payload.get("repository"), dict) else {}
+    repo = _repo_full_name(repository)
+    return repo if repo_is_allowed(repo) else ""
+
+
+def _admit_sdlc_issue(issue_number: int, labeler: str, payload: dict[str, object]) -> bool:
+    repo = _repo_for_write(payload)
+    if not repo:
+        log_line(f"sdlc admission failed issue={issue_number} reason=repo-not-allowed")
+        return False
+
+    if not _gh_add_label(repo, issue_number, SDLC_QUEUE_LABEL):
+        log_line(f"sdlc admission failed issue={issue_number} labeler={labeler}")
+        return False
+    _gh_remove_label(repo, issue_number, SDLC_REJECTED_LABEL)
+    _gh_remove_label(repo, issue_number, SDLC_UNAUTHORIZED_LABEL)
+
+    _run_gh_issue_comment(
+        repo,
+        issue_number,
+        f"AI SDLC admission accepted by `{labeler}`. The issue is now queued with `{SDLC_QUEUE_LABEL}`.",
+    )
+    log_line(f"sdlc admission accepted issue={issue_number} labeler={labeler} queue_label={SDLC_QUEUE_LABEL}")
+    return True
+
+
+def _reject_sdlc_issue(issue_number: int, labeler: str, payload: dict[str, object]) -> None:
+    repo = _repo_for_write(payload)
+    if not repo:
+        log_line(f"sdlc rejection skipped issue={issue_number} reason=repo-not-allowed labeler={labeler or 'unknown'}")
+        return
+
+    _gh_remove_label(repo, issue_number, SDLC_HOOK_LABEL)
+    _gh_remove_label(repo, issue_number, SDLC_QUEUE_LABEL)
+    if not _gh_add_label(repo, issue_number, SDLC_REJECTED_LABEL):
+        return
+    if not _gh_add_label(repo, issue_number, SDLC_UNAUTHORIZED_LABEL):
+        return
+
+    _run_gh_issue_comment(
+        repo,
+        issue_number,
+        (
+            f"AI SDLC admission rejected: `{labeler or 'unknown'}` is not authorized to add "
+            f"`{SDLC_HOOK_LABEL}`. Authorized labelers: {', '.join(sorted(SDLC_AUTHORIZED_LABELERS)) or 'none'}."
+        ),
+    )
+    log_line(f"sdlc admission rejected issue={issue_number} labeler={labeler or 'unknown'}")
+
+
 def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tuple[bool, str]:
     if not SDLC_HOOK_ENABLED:
         return False, "disabled"
@@ -555,7 +679,7 @@ def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tu
         return False, "not-issue-event"
 
     action = str(payload.get("action") or "").strip().casefold()
-    if action not in {"opened", "edited", "reopened", "labeled"}:
+    if action != "labeled":
         return False, f"ignored-action:{action or 'unknown'}"
 
     repository = payload.get("repository") if isinstance(payload.get("repository"), dict) else {}
@@ -566,11 +690,10 @@ def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tu
     issue = payload.get("issue") if isinstance(payload.get("issue"), dict) else {}
     number = _int(issue.get("number"))
     state = str(issue.get("state") or "").strip().casefold()
-    author = str((issue.get("user") or {}).get("login") if isinstance(issue.get("user"), dict) else "").strip()
     if state != "open":
         return False, f"issue-not-open:{number or 'unknown'}"
-    if author.casefold() != SDLC_HOOK_AUTHOR.casefold():
-        return False, f"author-mismatch:{author or 'unknown'}"
+    if not number:
+        return False, "missing-issue-number"
 
     labels = _payload_labels(payload, "issue")
     has_trigger = any(label.casefold() == SDLC_HOOK_LABEL.casefold() for label in labels)
@@ -582,7 +705,16 @@ def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tu
         return False, f"other-label:{event_label or 'unknown'}"
     if not has_trigger:
         return False, "missing-trigger-label"
-    return True, f"issue:{number or 'unknown'}"
+
+    labeler = _sender_login(payload)
+    if not _is_authorized_sdlc_labeler(labeler):
+        _reject_sdlc_issue(number, labeler, payload)
+        return False, f"unauthorized-labeler:{labeler or 'unknown'}"
+
+    if not _admit_sdlc_issue(number, labeler, payload):
+        return False, "admission-failed"
+
+    return True, f"issue:{number}:admitted-by:{labeler}"
 
 
 def _render_sdlc_hook_command(payload_file: str, *, delivery: str, event_name: str) -> list[str]:
@@ -591,7 +723,8 @@ def _render_sdlc_hook_command(payload_file: str, *, delivery: str, event_name: s
         delivery=_quoted_env(delivery),
         event=_quoted_env(event_name),
         label=_quoted_env(SDLC_HOOK_LABEL),
-        author=_quoted_env(SDLC_HOOK_AUTHOR),
+        queue_label=_quoted_env(SDLC_QUEUE_LABEL),
+        authorized_labelers=_quoted_env(",".join(sorted(SDLC_AUTHORIZED_LABELERS))),
     )
     return shlex.split(rendered)
 
@@ -663,7 +796,9 @@ class Handler(BaseHTTPRequestHandler):
             "openclaw_hook_enabled": bool(OPENCLAW_MONITOR_COMMAND),
             "sdlc_hook_enabled": SDLC_HOOK_ENABLED and bool(SDLC_HOOK_COMMAND),
             "sdlc_hook_label": SDLC_HOOK_LABEL,
-            "sdlc_hook_author": SDLC_HOOK_AUTHOR,
+            "sdlc_queue_label": SDLC_QUEUE_LABEL,
+            "sdlc_rejected_label": SDLC_REJECTED_LABEL,
+            "sdlc_authorized_labelers": sorted(SDLC_AUTHORIZED_LABELERS),
             "wos_review_hook_enabled": True,
             "wos_review_label": WOS_REVIEW_LABEL,
             "wos_review_discord_target": WOS_REVIEW_DISCORD_TARGET,

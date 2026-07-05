@@ -6,7 +6,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-update.sh` – pulls a tagged image, restarts the container, and rolls back on failure.
 - `scripts/homedir-env-lib.sh` – shared env loader with `*_FILE` secret resolution.
 - `scripts/homedir-webhook.py` – optional listener for Quay webhooks that triggers `homedir-update.sh` with the tag from the payload (ignores `latest`-only webhooks), validates webhook signatures, and exposes a token-protected status endpoint.
-- `scripts/homedir-github-webhook.py` – GitHub webhook listener for issue/PR alerts, WOS review delegation, and event-driven SDLC wake-up for eligible `ready-to-implement` issues.
+- `scripts/homedir-github-webhook.py` – GitHub webhook listener for issue/PR alerts, WOS review delegation, and authorized SDLC admission from `ready-to-implement` into `scc-queued`.
 - `scripts/homedir-auto-deploy.sh` – fallback poller that checks Quay tags and deploys the newest semver tag when webhook delivery is missing.
 - `scripts/homedir-discord-alert.sh` – sends deploy and webhook alerts to Discord with severity icons/colors (`WARN`, `FAIL`, `RECOVERY`).
 - `scripts/homedir-ir-first-level.sh` – first-level incident response (`status`, `snapshot`, `shield-on`, `recover`, `shield-off`) for attacks/DoS.
@@ -19,7 +19,7 @@ Configs and scripts to provision the VPS that runs HomeDir. All secrets are stri
 - `scripts/homedir-sdlc-bootstrap.sh` – server-side bootstrap that installs/repairs the autonomous SDLC runner without depending on a workstation.
 - `scripts/homedir-sdlc-user-bootstrap.sh` – user-owned server-side bootstrap for SSH accounts without passwordless root/sudo.
 - `scripts/homedir-sdlc-worker.sh` – optional issue-driven SCC worker for autonomous PR creation under repository rules.
-- `scripts/homedir-sdlc-openclaw-listener.sh` – OpenClaw/GitHub issue-event adapter that wakes the worker for eligible `ready-to-implement` issues.
+- `scripts/homedir-sdlc-openclaw-listener.sh` – OpenClaw/GitHub issue-event adapter that wakes the worker after authorized `ready-to-implement` admission.
 - `scripts/homedir-sdlc-status.sh` – JSON health probe for worker heartbeat, timer state, and eligible issue backlog.
 - `systemd/homedir-webhook.service` – runs the optional webhook listener.
 - `systemd/homedir-github-webhook.service` – runs the GitHub webhook listener on localhost.
@@ -159,7 +159,7 @@ What it automates:
 - Autonomous SDLC is governed by `docs/en/development/autonomous-sdlc.md`: it may create branches and PRs, but it must not bypass branch protection, reviews, required checks, repository rulesets, or secret controls.
 - The autonomous SDLC must run from the VPS. A workstation may SSH in to trigger bootstrap, but normal operation must not depend on WSL, PowerShell, local paths, or local credentials.
 - OpenClaw can invoke `homedir-sdlc-openclaw-listener.sh` with the GitHub issue event payload. The polling timer remains enabled as a reconciliation fallback.
-- The GitHub webhook can wake the SDLC immediately when an open issue from `scanalesespinoza` receives `ready-to-implement`. Run `homedir-github-webhook.service` as `homedir-sdlc` and set `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` in `/etc/homedir.env` to invoke `homedir-sdlc-openclaw-listener.sh` directly from that account.
+- The GitHub webhook can wake the SDLC immediately when an authorized labeler adds `ready-to-implement` to any open issue. The webhook promotes accepted issues to `scc-queued`; the worker only consumes `scc-queued`, while unauthorized labelers are moved to the `scc-rejected` discard queue. Run `homedir-github-webhook.service` as `homedir-sdlc` and set `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` in `/etc/homedir.env` to invoke `homedir-sdlc-openclaw-listener.sh` directly from that account.
 - Monitor the runner with `homedir-sdlc-status.sh`; a stale heartbeat or inactive user timer should page the operator before issues pile up.
 
 ## Autonomous SDLC service account

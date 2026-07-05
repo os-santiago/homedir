@@ -5,6 +5,9 @@ set -euo pipefail
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
+QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
+REJECTED_LABEL="${HOMEDIR_SDLC_REJECTED_LABEL:-scc-rejected}"
+UNAUTHORIZED_LABEL="${HOMEDIR_SDLC_UNAUTHORIZED_LABEL:-scc-rejected:unauthorized-labeler}"
 RUNNING_LABEL="${HOMEDIR_SDLC_RUNNING_LABEL:-scc-running}"
 PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
@@ -21,14 +24,17 @@ ensure_label() {
   local color="$2"
   local description="$3"
 
-  if "${GH_BIN}" label view "${name}" --repo "${REPO}" >/dev/null 2>&1; then
-    "${GH_BIN}" label edit "${name}" --repo "${REPO}" --color "${color}" --description "${description}" >/dev/null
-  else
-    "${GH_BIN}" label create "${name}" --repo "${REPO}" --color "${color}" --description "${description}" >/dev/null
-  fi
+  "${GH_BIN}" label create "${name}" \
+    --repo "${REPO}" \
+    --color "${color}" \
+    --description "${description}" \
+    --force >/dev/null
 }
 
-ensure_label "${TRIGGER_LABEL}" "0E8A16" "Approved trigger for autonomous SCC implementation"
+ensure_label "${TRIGGER_LABEL}" "0E8A16" "Human request for authorized AI SDLC admission"
+ensure_label "${QUEUE_LABEL}" "0E8A16" "Authorized AI SDLC queue entry"
+ensure_label "${REJECTED_LABEL}" "D93F0B" "Rejected from the AI SDLC queue"
+ensure_label "${UNAUTHORIZED_LABEL}" "D93F0B" "AI SDLC admission rejected because labeler is not authorized"
 ensure_label "${RUNNING_LABEL}" "FBCA04" "Autonomous SCC worker has claimed this issue"
 ensure_label "${PR_LABEL}" "1D76DB" "Autonomous SCC worker opened a pull request"
 ensure_label "${FAILED_LABEL}" "D73A4A" "Autonomous SCC worker failed and needs inspection"

@@ -176,8 +176,11 @@ write_env() {
   cat >"${env_file}" <<EOF
 PATH=${NODE_DIR}/bin:${LOCAL_BIN}:/usr/local/bin:/usr/bin:/bin
 HOMEDIR_SDLC_REPO=os-santiago/homedir
-HOMEDIR_SDLC_AUTHOR=scanalesespinoza
 HOMEDIR_SDLC_TRIGGER_LABEL=ready-to-implement
+HOMEDIR_SDLC_QUEUE_LABEL=scc-queued
+HOMEDIR_SDLC_REJECTED_LABEL=scc-rejected
+HOMEDIR_SDLC_UNAUTHORIZED_LABEL=scc-rejected:unauthorized-labeler
+HOMEDIR_SDLC_AUTHORIZED_LABELERS=scanalesespinoza
 HOMEDIR_SDLC_RUNNING_LABEL=scc-running
 HOMEDIR_SDLC_PR_LABEL=scc-pr-open
 HOMEDIR_SDLC_FAILED_LABEL=scc-failed
