@@ -647,7 +647,7 @@ run_scc_on_existing_pr() {
 
 release_status_for_pr() {
   local pr_number="$1"
-  local pr_json merge_sha runs_json run_status run_conclusion run_url
+  local pr_json merge_sha merge_date runs_json run_status run_conclusion run_url
 
   pr_json="$(gh pr view "${pr_number}" --repo "${REPO}" --json mergeCommit,mergedAt,url)"
   merge_sha="$(jq -r '.mergeCommit.oid // ""' <<<"${pr_json}")"
@@ -674,11 +674,12 @@ release_status_for_pr() {
   run_url="$(jq -r '.[0].url // ""' <<<"${runs_json}")"
 
   if [[ "${run_status}" == "completed" && "${run_conclusion}" == "success" ]]; then
-    echo "success|Production Release succeeded|${run_url}"
+    merge_date="$(jq -r '.mergedAt // ""' <<<"${pr_json}")"
+    echo "success|Production Release succeeded|${run_url}|${merge_sha}|${merge_date}"
   elif [[ "${run_status}" == "completed" ]]; then
-    echo "failure|Production Release completed with conclusion: ${run_conclusion}|${run_url}"
+    echo "failure|Production Release completed with conclusion: ${run_conclusion}|${run_url}|${merge_sha}|"
   else
-    echo "pending|Production Release is ${run_status}|${run_url}"
+    echo "pending|Production Release is ${run_status}|${run_url}|${merge_sha}|"
   fi
 }
 
@@ -828,9 +829,79 @@ reconcile_open_prs() {
   done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
 }
 
-reconcile_completed_issue() {
+finalize_merged_issue() {
+  local number="$1"
+  local pr_number="$2"
+  local pr_url="$3"
+  local release_status release_message release_url merge_sha merged_at labels
+
+  IFS='|' read -r release_status release_message release_url merge_sha merged_at < <(release_status_for_pr "${pr_number}")
+
+  if [[ "${release_status}" == "pending" ]]; then
+    log "issue #${number} PR #${pr_number} merged; waiting for release verification: ${release_message}"
+    return 0
+  fi
+
+  if [[ "${release_status}" == "failure" ]]; then
+    labels="$(gh issue view "${number}" --repo "${REPO}" --json labels --jq '[.labels[].name]' 2>/dev/null || echo '[]')"
+    if issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}"; then
+      log "issue #${number} release verification still failing for PR #${pr_number}; ${NEEDS_HUMAN_LABEL} already present"
+      return 0
+    fi
+    add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+    comment_issue "${number}" "Autonomous SDLC merge completed, but release verification failed for PR #${pr_number}: ${release_message} ${release_url}"
+    log "issue #${number} release verification failed for PR #${pr_number}"
+    alert FAIL "Issue #${number} release failed" "PR #${pr_number}: ${release_message} ${release_url}"
+    return 0
+  fi
+
+  add_label "${number}" "${MERGED_LABEL}"
+  remove_terminal_labels "${number}"
+  append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged at ${merged_at} (${merge_sha}) and production release verification succeeded. ${release_url}"
+  comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) at ${merged_at}. Merge commit: \`${merge_sha}\`. Production release succeeded: ${release_url}"
+  gh issue close "${number}" --repo "${REPO}" --comment "Closed by autonomous SDLC after PR #${pr_number} was merged and production release verification succeeded. Release: ${release_url}" >/dev/null 2>&1 || true
+  log "closed issue #${number} via PR #${pr_number}; release verified"
+  alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+}
+
+reconcile_merged_prs() {
+  local state_file issue pr_number pr_url labels pr_json pr_state resolved_pr_url
+
+  while IFS= read -r state_file; do
+    issue="$(jq -r '.issue // ""' "${state_file}")"
+    pr_number="$(jq -r '.pr_number // ""' "${state_file}")"
+    pr_url="$(jq -r '.pr_url // ""' "${state_file}")"
+
+    if [[ -z "${issue}" || -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+      continue
+    fi
+
+    labels="$(gh issue view "${issue}" --repo "${REPO}" --json labels --jq '[.labels[].name]' 2>/dev/null || echo '[]')"
+    if issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      continue
+    fi
+
+    pr_json="$(gh pr view "${pr_number}" --repo "${REPO}" --json state,url 2>/dev/null || true)"
+    if [[ -z "${pr_json}" ]]; then
+      continue
+    fi
+
+    pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
+    resolved_pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+    if [[ -n "${resolved_pr_url}" ]]; then
+      pr_url="${resolved_pr_url}"
+    fi
+    if [[ "${pr_state}" != "MERGED" ]]; then
+      continue
+    fi
+
+    finalize_merged_issue "${issue}" "${pr_number}" "${pr_url}"
+  done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
+}
+
+reconcile_legacy_closed_issue() {
   local issue_json="$1"
-  local number labels issue_detail prs_json pr_number pr_url release_status release_message release_url
+  local number labels issue_detail prs_json pr_number pr_url
 
   number="$(jq -r '.number' <<<"${issue_json}")"
   labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
@@ -852,31 +923,10 @@ reconcile_completed_issue() {
 
   pr_number="$(jq -r '.[0].number' <<<"${prs_json}")"
   pr_url="$(jq -r '.[0].url' <<<"${prs_json}")"
-
-  IFS='|' read -r release_status release_message release_url < <(release_status_for_pr "${pr_number}")
-
-  if [[ "${release_status}" == "pending" ]]; then
-    log "issue #${number} PR #${pr_number} merged; waiting for release verification: ${release_message}"
-    return 0
-  fi
-
-  if [[ "${release_status}" == "failure" ]]; then
-    add_label "${number}" "${NEEDS_HUMAN_LABEL}"
-    comment_issue "${number}" "Autonomous SDLC merge completed, but release verification failed for PR #${pr_number}: ${release_message} ${release_url}"
-    log "issue #${number} release verification failed for PR #${pr_number}"
-    alert FAIL "Issue #${number} release failed" "PR #${pr_number}: ${release_message} ${release_url}"
-    return 0
-  fi
-
-  add_label "${number}" "${MERGED_LABEL}"
-  remove_terminal_labels "${number}"
-  append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged and production release verification succeeded. ${release_url}"
-  comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
-  log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
-  alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+  finalize_merged_issue "${number}" "${pr_number}" "${pr_url}"
 }
 
-reconcile_completed_issues() {
+reconcile_legacy_closed_issues() {
   local issues_json issue_json label
 
   issues_json="$(
@@ -892,7 +942,7 @@ reconcile_completed_issues() {
 
   if [[ "${issues_json}" != "[]" ]]; then
     jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
-      reconcile_completed_issue "${issue_json}"
+      reconcile_legacy_closed_issue "${issue_json}"
     done
   fi
 }
@@ -1006,7 +1056,7 @@ EOF
   if [[ -n "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
     log "committing SCC changes for issue #${number}"
     git -C "${WORKDIR}" add -A
-    git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Closes #${number}"
+    git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Refs #${number}"
   fi
 
   if [[ -z "$(git -C "${WORKDIR}" log --oneline "origin/main..HEAD")" ]]; then
@@ -1058,7 +1108,7 @@ ${validation_summary}
 - Branch protection, required checks, required reviews, and repository rules still apply.
 - No admin bypass was used.
 
-Closes #${number}
+Refs #${number}
 PRBODY
 )" 2>/dev/null)"; then
       mark_failed "${number}" "GitHub PR creation failed for branch ${branch}."
@@ -1091,9 +1141,10 @@ main() {
     exit 0
   fi
 
-  log "reconciling completed autonomous SDLC issues"
-  write_heartbeat "running" "reconciling completed issues"
-  reconcile_completed_issues
+  log "reconciling merged autonomous SDLC PRs"
+  write_heartbeat "running" "reconciling merged PRs"
+  reconcile_merged_prs
+  reconcile_legacy_closed_issues
   reconcile_open_prs
 
   log "checking eligible issues in ${REPO}"
