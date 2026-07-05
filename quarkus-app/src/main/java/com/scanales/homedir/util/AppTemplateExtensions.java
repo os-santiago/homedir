@@ -2,6 +2,7 @@ package com.scanales.homedir.util;
 
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Talk;
+import com.scanales.homedir.security.CspService;
 import com.scanales.homedir.service.EventService;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
@@ -53,6 +54,12 @@ public class AppTemplateExtensions {
     return ConfigProvider.getConfig()
         .getOptionalValue("homedir.og-image.default-url", String.class)
         .orElse("/images/og-default.png");
+  }
+
+  /** Per-request CSP nonce for inline <script> tags. See issue #1029. */
+  public static String cspNonce() {
+    CspService csp = getBean(CspService.class);
+    return csp == null ? "" : csp.getNonce();
   }
 
   public static boolean isAuthenticated() {

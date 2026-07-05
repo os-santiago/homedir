@@ -89,7 +89,7 @@
   {#if showToasts}
   {#include fragments/toasts.qute.html/}
   {/if}
-  <script>
+  <script nonce="{app:cspNonce}">
     window.__EF_AUTH__ = { isAuth: { app: { userAuthenticated: {#if userAuthenticated}true{#else}false{/if} } } };
     window.userAuthenticated = window.__EF_AUTH__.isAuth.app.userAuthenticated;
     var userAuthenticated = window.userAuthenticated;

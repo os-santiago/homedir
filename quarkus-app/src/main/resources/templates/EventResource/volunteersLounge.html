@@ -178,7 +178,7 @@
   {/if}
 </section>
 
-<script>
+<script nonce="{app:cspNonce}">
   (() => {
     const isAuthenticated = {#if userAuthenticated}true{#else}false{/if};
     const canAccess = {#if loungeAccess}true{#else}false{/if};
