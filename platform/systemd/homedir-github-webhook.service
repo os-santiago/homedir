@@ -1,0 +1,27 @@
+[Unit]
+Description=Webhook listener for GitHub issue and PR events
+After=network.target
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/homedir.env
+Environment=GITHUB_WEBHOOK_SHARED_SECRET_FILE=/home/homedir-sdlc/.config/homedir-sdlc/github-webhook-secret
+Environment=GITHUB_WEBHOOK_STATUS_TOKEN_FILE=/home/homedir-sdlc/.config/homedir-sdlc/github-webhook-status-token
+Environment=GITHUB_WEBHOOK_LOGFILE=/home/homedir-sdlc/.local/state/homedir-sdlc/logs/github-webhook.log
+Environment="HOMEDIR_SDLC_GITHUB_HOOK_COMMAND=env HOME=/home/homedir-sdlc HOMEDIR_SDLC_ENV_FILE=/home/homedir-sdlc/.config/homedir-sdlc/env PATH=/home/homedir-sdlc/.local/bin:/usr/local/bin:/usr/bin:/bin /home/homedir-sdlc/.local/bin/homedir-sdlc-openclaw-listener.sh {payload}"
+ExecStart=/usr/bin/python3 /usr/local/bin/homedir-github-webhook.py
+Restart=always
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=no
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+User=homedir-sdlc
+Group=homedir-sdlc
+
+[Install]
+WantedBy=multi-user.target

@@ -3,10 +3,12 @@
 
 set -euo pipefail
 
-ENV_FILE="${HOMEDIR_SDLC_ENV_FILE:-/etc/homedir-sdlc.env}"
-if [[ -f "${ENV_FILE}" ]]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_LIB="${HOMEDIR_ENV_LIB:-${SCRIPT_DIR}/homedir-env-lib.sh}"
+if [[ -r "${ENV_LIB}" ]]; then
   # shellcheck disable=SC1090
-  source "${ENV_FILE}"
+  source "${ENV_LIB}"
+  homedir_sdlc_runtime_load
 fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
@@ -79,9 +81,9 @@ if [[ "${has_trigger}" != "true" ]]; then
 fi
 
 log "triggering worker for issue #${issue_number}"
-if systemctl --user start homedir-sdlc-worker.service 2>/dev/null; then
-  :
+if systemctl --user start --no-block homedir-sdlc-worker.service >/dev/null 2>&1; then
+  log "started homedir-sdlc-worker.service"
 else
-  log "systemctl --user start failed; falling back to direct execution"
-  "${WORKER_BIN}"
+  nohup "${WORKER_BIN}" >>"${LOGFILE}" 2>&1 &
+  log "started worker directly pid=$!"
 fi
