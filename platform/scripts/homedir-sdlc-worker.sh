@@ -208,6 +208,21 @@ set_flow_labels() {
   done
 }
 
+remove_terminal_labels() {
+  local issue="$1"
+
+  remove_label "${issue}" "${PR_LABEL}"
+  remove_label "${issue}" "${RUNNING_LABEL}"
+  remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${APPROVED_LABEL}"
+  remove_label "${issue}" "${FAILED_LABEL}"
+  remove_label "${issue}" "${NEEDS_HUMAN_LABEL}"
+  remove_label "${issue}" "${TRIGGER_LABEL}"
+  remove_label "${issue}" "${QUEUE_LABEL}"
+}
+
 comment_issue() {
   local issue="$1"
   local body="$2"
@@ -605,6 +620,10 @@ try_enable_auto_merge() {
   local pr_number="${3:-}"
   local pr_url="${4:-}"
 
+  if [[ -z "${pr_number}" && -n "${pr_url}" ]]; then
+    pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
+  fi
+
   if [[ "${ENABLE_AUTOMERGE}" != "true" ]]; then
     return 1
   fi
@@ -715,7 +734,7 @@ reconcile_pr_state() {
   if [[ "${approved_sha}" != "${pr_sha}" ]]; then
     append_run_summary "${issue}" "approved" "${pr_number}" "${branch}" "All checks passed and no actionable review feedback remains for ${pr_url}."
     APPROVED_SHA="${pr_sha}" update_issue_state "${issue}" '.last_pr_state = "approved" | .approved_sha = env.APPROVED_SHA | .approved_at = $updated_at'
-    comment_issue "${issue}" "Autonomous SDLC approved PR #${pr_number}: all checks passed and no actionable review feedback remains. Normal auto-merge remains governed by repository rules."
+    comment_issue "${issue}" "Autonomous SDLC approved PR #${pr_number}: all checks passed and no actionable review feedback remains. Normal auto-merge can now be enabled under repository rules."
   else
     update_issue_state "${issue}" '.last_pr_state = "approved" | .last_checked_at = $updated_at'
   fi
@@ -748,7 +767,8 @@ reconcile_completed_issue() {
 
   prs_json="$(jq -c '.closedByPullRequestsReferences // []' <<<"${issue_detail}")"
   if [[ "$(jq 'length' <<<"${prs_json}")" -eq 0 ]]; then
-    log "closed issue #${number} has ${PR_LABEL} but no closing PR reference"
+    log "closed issue #${number} has autonomous labels but no closing PR reference; cleaning terminal labels"
+    remove_terminal_labels "${number}"
     return 0
   fi
 
@@ -771,16 +791,7 @@ reconcile_completed_issue() {
   fi
 
   add_label "${number}" "${MERGED_LABEL}"
-  remove_label "${number}" "${PR_LABEL}"
-  remove_label "${number}" "${RUNNING_LABEL}"
-  remove_label "${number}" "${WAITING_CHECKS_LABEL}"
-  remove_label "${number}" "${FAILING_CHECKS_LABEL}"
-  remove_label "${number}" "${UNDER_REVIEW_LABEL}"
-  remove_label "${number}" "${APPROVED_LABEL}"
-  remove_label "${number}" "${FAILED_LABEL}"
-  remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
-  remove_label "${number}" "${TRIGGER_LABEL}"
-  remove_label "${number}" "${QUEUE_LABEL}"
+  remove_terminal_labels "${number}"
   append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged and production release verification succeeded. ${release_url}"
   comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
   log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
@@ -803,26 +814,7 @@ reconcile_completed_issues() {
 
   if [[ "${issues_json}" != "[]" ]]; then
     jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
-      if issue_has_label "$(jq -c '[.labels[].name]' <<<"${issue_json}")" "${PR_LABEL}"; then
-        reconcile_completed_issue "${issue_json}"
-      else
-        local number labels
-        number="$(jq -r '.number' <<<"${issue_json}")"
-        labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
-        if issue_has_label "${labels}" "${MERGED_LABEL}"; then
-          continue
-        fi
-        log "closed issue #${number} has autonomous labels but no ${PR_LABEL}; cleaning terminal labels"
-        remove_label "${number}" "${RUNNING_LABEL}"
-        remove_label "${number}" "${WAITING_CHECKS_LABEL}"
-        remove_label "${number}" "${FAILING_CHECKS_LABEL}"
-        remove_label "${number}" "${UNDER_REVIEW_LABEL}"
-        remove_label "${number}" "${APPROVED_LABEL}"
-        remove_label "${number}" "${FAILED_LABEL}"
-        remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
-        remove_label "${number}" "${TRIGGER_LABEL}"
-        remove_label "${number}" "${QUEUE_LABEL}"
-      fi
+      reconcile_completed_issue "${issue_json}"
     done
   fi
 }
@@ -991,12 +983,7 @@ PRBODY
   pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
   append_run_summary "${number}" "pr-opened" "${pr_number}" "${branch}" "SCC opened or updated ${pr_url}. Validation: ${validation_summary}"
   comment_issue "${number}" "Autonomous SDLC opened PR: ${pr_url}"
-
-  if try_enable_auto_merge "${number}" "${branch}" "" "${pr_url}"; then
-    comment_issue "${number}" "Normal GitHub auto-merge was enabled for ${pr_url}. Required checks and reviews still apply."
-  else
-    comment_issue "${number}" "Auto-merge is disabled or not available for the autonomous SDLC. PR remains governed by normal review and branch protection."
-  fi
+  comment_issue "${number}" "Autonomous SDLC is waiting for checks and review on ${pr_url}. Auto-merge will only be enabled after the worker marks the PR as \`${APPROVED_LABEL}\`; repository rules still apply."
   write_heartbeat "ok" "opened PR for issue #${number}"
 }
 

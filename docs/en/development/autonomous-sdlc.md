@@ -166,7 +166,8 @@ Allowed operations:
 - Commit and push branch changes.
 - Create or update pull requests.
 - Add status comments and automation labels.
-- Request or enable normal auto-merge when branch protection permits it.
+- Request or enable normal auto-merge only after the worker marks the PR
+  `scc-approved` and branch protection permits it.
 
 ## Approval and Merge
 
