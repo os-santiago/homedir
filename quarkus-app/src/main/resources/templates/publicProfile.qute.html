@@ -22,7 +22,7 @@
             </div>
             <h1 class="wrapped-title">{displayName}</h1>
             <p class="wrapped-subtitle">
-                <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">{i18n:public_profile_level_badge(level)}</span> • {questClassEmoji}
+                <span class="wrapped-stat-value gold" style="font-size: 1.2rem;">{i18n:public_profile_level_badge(level)}</span> • <span aria-hidden="true">{questClassEmoji}</span>
                 {i18n:public_profile_guild_badge(questClass)}
             </p>
             {#if hasProfileGlow}
@@ -70,7 +70,7 @@
                     {#for cls in classProgress}
                     <div class="wrapped-class-item">
                         <div class="wrapped-class-header">
-                            <span>{cls.emoji} {cls.className}</span>
+                            <span><span aria-hidden="true">{cls.emoji}</span> {cls.className}</span>
                             <span>{cls.xp} XP</span>
                         </div>
                         <div class="wrapped-xp-channel wrapped-class-bar">
@@ -447,7 +447,7 @@
                         </div>
                         <p class="wrapped-subtext">{challenge.description}</p>
                         <div class="wrapped-meta-row">
-                            <span class="wrapped-badge-pill">{challenge.classEmoji} {challenge.className}</span>
+                            <span class="wrapped-badge-pill"><span aria-hidden="true">{challenge.classEmoji}</span> {challenge.className}</span>
                             <span class="wrapped-badge-pill">{challenge.progressLabel}</span>
                             <span class="wrapped-badge-pill">{challenge.completedLabel}</span>
                         </div>

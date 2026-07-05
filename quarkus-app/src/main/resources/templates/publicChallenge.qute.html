@@ -16,7 +16,7 @@
                 {/if}
                 <div class="wrapped-rank-badge">{questClass}</div>
             </div>
-            <p class="wrapped-subtitle">{questClassEmoji} {i18n:public_profile_challenge_share_eyebrow}</p>
+            <p class="wrapped-subtitle"><span aria-hidden="true">{questClassEmoji}</span> {i18n:public_profile_challenge_share_eyebrow}</p>
             <h1 class="wrapped-title">{challenge.title}</h1>
             <p class="wrapped-subtext wrapped-share-intro">{challenge.description}</p>
         </header>
@@ -28,7 +28,7 @@
                     <h2 class="wrapped-share-owner">{displayName}</h2>
                 </div>
                 <div class="wrapped-meta-row">
-                    <span class="wrapped-badge-pill">{challenge.classEmoji} {challenge.className}</span>
+                    <span class="wrapped-badge-pill"><span aria-hidden="true">{challenge.classEmoji}</span> {challenge.className}</span>
                     <span class="wrapped-badge-pill">{challenge.rewardLabel}</span>
                     <span class="wrapped-badge-pill">{challenge.progressLabel}</span>
                 </div>
