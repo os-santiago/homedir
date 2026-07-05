@@ -571,14 +571,19 @@ def _gh_command() -> str:
 
 def _run_gh_issue_edit(repo: str, issue: int, *args: str) -> tuple[int, str, str]:
     command = [_gh_command(), "issue", "edit", str(issue), "--repo", repo, *args]
-    completed = subprocess.run(
-        command,
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=SDLC_HOOK_TIMEOUT_SECONDS,
-        env=os.environ.copy(),
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=SDLC_HOOK_TIMEOUT_SECONDS,
+            env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return 124, "", f"gh issue edit timed out after {SDLC_HOOK_TIMEOUT_SECONDS}s"
+    except OSError as exc:
+        return 127, "", str(exc)
     return completed.returncode, (completed.stdout or "").strip(), (completed.stderr or "").strip()
 
 
@@ -598,14 +603,19 @@ def _gh_remove_label(repo: str, issue: int, label: str) -> None:
 
 def _run_gh_issue_comment(repo: str, issue: int, body: str) -> tuple[int, str, str]:
     command = [_gh_command(), "issue", "comment", str(issue), "--repo", repo, "--body", body]
-    completed = subprocess.run(
-        command,
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=SDLC_HOOK_TIMEOUT_SECONDS,
-        env=os.environ.copy(),
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=SDLC_HOOK_TIMEOUT_SECONDS,
+            env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return 124, "", f"gh issue comment timed out after {SDLC_HOOK_TIMEOUT_SECONDS}s"
+    except OSError as exc:
+        return 127, "", str(exc)
     return completed.returncode, (completed.stdout or "").strip(), (completed.stderr or "").strip()
 
 
