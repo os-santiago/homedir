@@ -491,6 +491,45 @@
       font-size: 1.12rem;
     }
   }
+
+  @media (max-width: 480px) {
+    .events-stats-container {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+
+    .event-highlight-card {
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 0.55rem;
+      min-height: auto;
+    }
+
+    .event-highlight-media {
+      width: 56px;
+      height: 56px;
+    }
+
+    .event-highlight-content h3 {
+      font-size: 0.95rem;
+    }
+
+    .event-highlight-summary {
+      font-size: 0.78rem;
+    }
+
+    .event-past-card {
+      grid-template-columns: 40px minmax(0, 1fr) auto;
+      gap: 0.5rem;
+    }
+
+    .event-past-media {
+      width: 40px;
+      height: 40px;
+    }
+
+    .event-past-info h3 {
+      font-size: 0.82rem;
+    }
+  }
 </style>
 {/body}
 {/include}
