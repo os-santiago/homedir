@@ -34,6 +34,7 @@ VALIDATION_COMMAND="${HOMEDIR_SDLC_VALIDATION_COMMAND:-}"
 GIT_USER_NAME="${HOMEDIR_SDLC_GIT_USER_NAME:-homedir-sdlc[bot]}"
 GIT_USER_EMAIL="${HOMEDIR_SDLC_GIT_USER_EMAIL:-homedir-sdlc@users.noreply.github.com}"
 SCC_BIN="${SCC_BIN:-/usr/local/bin/scc}"
+SCC_TIMEOUT_SECONDS="${HOMEDIR_SDLC_SCC_TIMEOUT_SECONDS:-1800}"
 LOCK_FILE="${STATE_DIR}/worker.lock"
 ISSUE_STATE_DIR="${STATE_DIR}/issues"
 RUN_SUMMARY_DIR="${STATE_DIR}/run-summaries"
@@ -138,6 +139,33 @@ require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     log "missing required command: $1"
     exit 1
+  fi
+}
+
+run_scc_prompt() {
+  local prompt="$1"
+
+  (
+    cd "${WORKDIR}"
+    if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
+      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" -yq "${prompt}"
+    else
+      log "WARNING: timeout unavailable or HOMEDIR_SDLC_SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running ${SCC_BIN} without a time bound"
+      "${SCC_BIN}" -yq "${prompt}"
+    fi
+  ) 2>&1 | tee -a "${LOGFILE}"
+  return "${PIPESTATUS[0]}"
+}
+
+run_scc_checked() {
+  local prompt="$1"
+  local rc
+
+  if run_scc_prompt "${prompt}"; then
+    return 0
+  else
+    rc=$?
+    return "${rc}"
   fi
 }
 
@@ -296,14 +324,36 @@ reject_issue_from_queue() {
 
 open_pr_for_issue() {
   local issue="$1"
-  gh pr list \
-    --repo "${REPO}" \
-    --state open \
-    --search "${issue} in:title,body" \
-    --limit 20 \
-    --json number,title,url \
-    --jq '.[0] // empty' \
-    2>/dev/null
+  {
+    gh pr list \
+      --repo "${REPO}" \
+      --state open \
+      --search "head:scc/issue-${issue}" \
+      --limit 50 \
+      --json number,title,url,headRefName,body \
+      2>/dev/null
+    gh pr list \
+      --repo "${REPO}" \
+      --state open \
+      --search "#${issue} in:title,body" \
+      --limit 100 \
+      --json number,title,url,headRefName,body \
+      2>/dev/null
+  } \
+    | jq -sc --arg issue "${issue}" '
+        add
+        | unique_by(.number)
+        |
+        [
+          .[]
+          | select(
+              (.headRefName // "" | test("(^|/)issue-" + $issue + "([^0-9]|$)"))
+              or (.title // "" | test("#" + $issue + "\\b"))
+              or (.body // "" | test("(?m)^(Closes|Fixes|Resolves|Refs) #" + $issue + "\\b"))
+              or (.body // "" | test("Autonomous SCC implementation for issue #" + $issue + "\\b"))
+            )
+        ][0] // empty
+      '
 }
 
 reconcile_admission_requests() {
@@ -561,7 +611,10 @@ $(jq -r '.' <<<"${reviews_json}")
 Rules:
 - Stay on branch ${branch}; never push directly to main.
 - Fix only the failing checks or actionable review feedback shown above.
-- If the trigger is a coverage gap, update the implementation and PR body so `## Issue Coverage` truthfully maps code changes to the issue request and acceptance criteria.
+- If the trigger is a coverage gap, update the implementation and PR body so the section named ## Issue Coverage truthfully maps code changes to the issue request and acceptance criteria.
+- If the implementation is incomplete, make the missing code, test, workflow, or documentation changes instead of only describing them.
+- If only the PR body is incomplete, update it directly with gh pr edit so the coverage section contains checked, evidence-backed items.
+- Do not stop at analysis, recommendations, or requests for approval when the requested remediation is actionable.
 - Keep the change minimal and within the issue/PR scope.
 - Run the smallest meaningful validation you can.
 - Do not use --admin.
@@ -600,8 +653,16 @@ run_scc_on_existing_pr() {
   git -C "${WORKDIR}" checkout -B "${branch}" "origin/${branch}"
 
   prompt="$(build_remediation_prompt "${issue}" "${title}" "${branch}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}")"
-  if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
-    mark_failed "${issue}" "SCC remediation exited non-zero for PR #${pr_number}. Check ${LOGFILE} on the runner."
+  local scc_rc
+  if run_scc_checked "${prompt}"; then
+    :
+  else
+    scc_rc=$?
+    if [[ "${scc_rc}" -eq 124 ]]; then
+      mark_failed "${issue}" "SCC remediation timed out after ${SCC_TIMEOUT_SECONDS}s for PR #${pr_number}. Check ${LOGFILE} on the runner."
+      return 0
+    fi
+    mark_failed "${issue}" "SCC remediation exited non-zero (${scc_rc}) for PR #${pr_number}. Check ${LOGFILE} on the runner."
     return 0
   fi
 
@@ -616,7 +677,11 @@ run_scc_on_existing_pr() {
     if [[ "${attempts}" -ge "${MAX_REMEDIATION_ATTEMPTS}" ]]; then
       mark_needs_human "${issue}" "SCC remediation for PR #${pr_number} produced no changes after ${attempts} attempts."
     else
-      set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+      if [[ "${trigger}" == *"coverage gap"* ]]; then
+        set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
+      else
+        set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+      fi
       append_run_summary "${issue}" "remediation-noop" "${pr_number}" "${branch}" "SCC remediation produced no changes for ${trigger}; attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}."
       comment_issue "${issue}" "Autonomous SDLC remediation produced no changes for PR #${pr_number}. Attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}; state remains \`${UNDER_REVIEW_LABEL}\`."
     fi
@@ -746,9 +811,22 @@ enable_auto_merge_for_state() {
   fi
 }
 
+issue_title_for_prompt() {
+  local issue="$1"
+  local fallback_title="$2"
+  local title
+
+  title="$(gh issue view "${issue}" --repo "${REPO}" --json title --jq '.title' 2>/dev/null || true)"
+  if [[ -n "${title}" ]]; then
+    printf '%s\n' "${title}"
+  else
+    printf '%s\n' "${fallback_title}"
+  fi
+}
+
 reconcile_pr_state() {
   local state_file="$1"
-  local issue pr_number branch pr_json pr_state pr_url pr_title pr_sha is_draft checks_json reviews_json
+  local issue pr_number branch pr_json pr_state pr_url pr_title issue_title pr_sha is_draft checks_json reviews_json
   local coverage_json coverage_passed failing_count pending_count success_count actionable_count trigger approved_sha
 
   issue="$(jq -r '.issue' "${state_file}")"
@@ -770,6 +848,7 @@ reconcile_pr_state() {
   pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
   pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
   pr_title="$(jq -r '.title // ""' <<<"${pr_json}")"
+  issue_title="$(issue_title_for_prompt "${issue}" "${pr_title}")"
   pr_sha="$(jq -r '.headRefOid // ""' <<<"${pr_json}")"
   is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
   checks_json="$(pr_checks_state "${pr_json}")"
@@ -789,7 +868,7 @@ reconcile_pr_state() {
     trigger="failing checks on PR #${pr_number}"
     set_flow_labels "${issue}" "${PR_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "failing-checks" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
     return 0
   fi
 
@@ -804,7 +883,7 @@ reconcile_pr_state() {
     trigger="actionable review feedback on PR #${pr_number}"
     set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "under-review" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
     return 0
   fi
 
@@ -812,7 +891,7 @@ reconcile_pr_state() {
     trigger="technical issue coverage gap on PR #${pr_number}: $(jq -r '.gaps | join("; ")' <<<"${coverage_json}")"
     set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "coverage-gap" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
     return 0
   fi
 
@@ -1036,7 +1115,8 @@ Rules:
 - Work only within the issue scope.
 - Use branch ${branch}; never push directly to main.
 - Make a focused implementation, then leave a concise summary of validation.
-- Ensure the pull request body contains a `## Issue Coverage` section that maps code changes to the issue request and acceptance criteria.
+- Do not stop at analysis or ask follow-up questions when the issue is implementable; make the smallest safe code or documentation change that satisfies the issue.
+- Ensure the pull request body contains a section named ## Issue Coverage that maps code changes to the issue request and acceptance criteria.
 - Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
 - It is okay to edit files without committing; the worker will create the final commit if needed.
 - Run the smallest meaningful local validation and include evidence in the PR.
@@ -1050,9 +1130,17 @@ EOF
 
   log "running SCC for issue #${number}"
   write_heartbeat "running" "SCC running for issue #${number}"
-  if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
+  local scc_rc
+  if run_scc_checked "${prompt}"; then
+    :
+  else
+    scc_rc=$?
     log "SCC failed for issue #${number}"
-    mark_failed "${number}" "SCC exited non-zero. Check ${LOGFILE} on the runner."
+    if [[ "${scc_rc}" -eq 124 ]]; then
+      mark_failed "${number}" "SCC timed out after ${SCC_TIMEOUT_SECONDS}s. Check ${LOGFILE} on the runner."
+      return 0
+    fi
+    mark_failed "${number}" "SCC exited non-zero (${scc_rc}). Check ${LOGFILE} on the runner."
     return 0
   fi
 
