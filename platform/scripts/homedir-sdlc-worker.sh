@@ -20,6 +20,7 @@ PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
 WAITING_CHECKS_LABEL="${HOMEDIR_SDLC_WAITING_CHECKS_LABEL:-scc-waiting-checks}"
 FAILING_CHECKS_LABEL="${HOMEDIR_SDLC_FAILING_CHECKS_LABEL:-scc-failing-checks}"
 UNDER_REVIEW_LABEL="${HOMEDIR_SDLC_UNDER_REVIEW_LABEL:-scc-under-review}"
+COVERAGE_GAP_LABEL="${HOMEDIR_SDLC_COVERAGE_GAP_LABEL:-scc-coverage-gap}"
 APPROVED_LABEL="${HOMEDIR_SDLC_APPROVED_LABEL:-scc-approved}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
 NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
@@ -197,6 +198,7 @@ set_flow_labels() {
     "${WAITING_CHECKS_LABEL}" \
     "${FAILING_CHECKS_LABEL}" \
     "${UNDER_REVIEW_LABEL}" \
+    "${COVERAGE_GAP_LABEL}" \
     "${APPROVED_LABEL}" \
     "${FAILED_LABEL}" \
     "${NEEDS_HUMAN_LABEL}"; do
@@ -216,6 +218,7 @@ remove_terminal_labels() {
   remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
   remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
   remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
   remove_label "${issue}" "${APPROVED_LABEL}"
   remove_label "${issue}" "${FAILED_LABEL}"
   remove_label "${issue}" "${NEEDS_HUMAN_LABEL}"
@@ -239,6 +242,7 @@ mark_needs_human() {
   remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
   remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
   remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
   remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC paused: ${reason}"
   alert WARN "Issue #${issue} needs human review" "${reason}"
@@ -254,6 +258,7 @@ mark_failed() {
   remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
   remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
   remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
   remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
   alert FAIL "Issue #${issue} failed" "${reason}"
@@ -325,6 +330,7 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
       || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
       || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+      || issue_has_label "${labels}" "${COVERAGE_GAP_LABEL}" \
       || issue_has_label "${labels}" "${APPROVED_LABEL}" \
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
@@ -457,6 +463,45 @@ review_state() {
   ' <<<"${pr_json}"
 }
 
+issue_coverage_state() {
+  local issue="$1"
+  local pr_json="$2"
+  local issue_body pr_body
+
+  issue_body="$(gh issue view "${issue}" --repo "${REPO}" --json body --jq '.body // ""' 2>/dev/null || true)"
+  pr_body="$(jq -r '.body // ""' <<<"${pr_json}")"
+
+  ISSUE_BODY="${issue_body}" PR_BODY="${pr_body}" python3 - <<'PY'
+import json
+import os
+import re
+
+issue = os.environ.get("ISSUE_BODY", "")
+pr = os.environ.get("PR_BODY", "")
+gaps = []
+
+coverage_match = re.search(r"(?ims)^##\s+Issue Coverage\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
+coverage = coverage_match.group(1).strip() if coverage_match else ""
+
+if not coverage_match:
+    gaps.append("PR body is missing a `## Issue Coverage` section.")
+elif re.search(r"(?m)^\s*[-*]\s+\[\s\]", coverage):
+    gaps.append("`## Issue Coverage` still contains unchecked items.")
+
+has_acceptance = bool(
+    re.search(r"(?im)acceptance criteria|criterios de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", issue)
+    or re.search(r"(?m)^\s*[-*]\s+\[\s\]", issue)
+)
+if has_acceptance and not re.search(r"(?im)acceptance criteria|criterios de aceptaci[o\u00f3]n|definici[o\u00f3]n de list[oa]s?", pr):
+    gaps.append("Issue has explicit acceptance criteria, but PR body does not map them.")
+
+if "## Validation" not in pr:
+    gaps.append("PR body is missing validation evidence.")
+
+print(json.dumps({"passed": not gaps, "gaps": gaps}, ensure_ascii=True))
+PY
+}
+
 build_remediation_prompt() {
   local issue="$1"
   local title="$2"
@@ -484,12 +529,13 @@ ${trigger}
 Failing or pending check context:
 $(jq -r '.' <<<"${checks_json}")
 
-Review context:
+Review or coverage context:
 $(jq -r '.' <<<"${reviews_json}")
 
 Rules:
 - Stay on branch ${branch}; never push directly to main.
 - Fix only the failing checks or actionable review feedback shown above.
+- If the trigger is a coverage gap, update the implementation and PR body so `## Issue Coverage` truthfully maps code changes to the issue request and acceptance criteria.
 - Keep the change minimal and within the issue/PR scope.
 - Run the smallest meaningful validation you can.
 - Do not use --admin.
@@ -672,7 +718,7 @@ enable_auto_merge_for_state() {
 reconcile_pr_state() {
   local state_file="$1"
   local issue pr_number branch pr_json pr_state pr_url pr_title pr_sha is_draft checks_json reviews_json
-  local failing_count pending_count success_count actionable_count trigger approved_sha
+  local coverage_json coverage_passed failing_count pending_count success_count actionable_count trigger approved_sha
 
   issue="$(jq -r '.issue' "${state_file}")"
   pr_number="$(jq -r '.pr_number // ""' "${state_file}")"
@@ -684,7 +730,7 @@ reconcile_pr_state() {
 
   pr_json="$(gh pr view "${pr_number}" \
     --repo "${REPO}" \
-    --json number,title,state,isDraft,url,headRefName,headRefOid,mergeStateStatus,mergeable,reviewDecision,latestReviews,statusCheckRollup,autoMergeRequest \
+    --json number,title,body,state,isDraft,url,headRefName,headRefOid,mergeStateStatus,mergeable,reviewDecision,latestReviews,statusCheckRollup,autoMergeRequest \
     2>/dev/null || true)"
   if [[ -z "${pr_json}" ]]; then
     return 0
@@ -697,10 +743,12 @@ reconcile_pr_state() {
   is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
   checks_json="$(pr_checks_state "${pr_json}")"
   reviews_json="$(review_state "${pr_json}")"
+  coverage_json="$(issue_coverage_state "${issue}" "${pr_json}")"
   failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
   pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
   success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
   actionable_count="$(jq -r '.actionable_reviews | length' <<<"${reviews_json}")"
+  coverage_passed="$(jq -r '.passed' <<<"${coverage_json}")"
 
   if [[ "${pr_state}" != "OPEN" ]]; then
     return 0
@@ -726,6 +774,14 @@ reconcile_pr_state() {
     set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "under-review" | .last_checked_at = $updated_at'
     run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    return 0
+  fi
+
+  if [[ "${coverage_passed}" != "true" ]]; then
+    trigger="technical issue coverage gap on PR #${pr_number}: $(jq -r '.gaps | join("; ")' <<<"${coverage_json}")"
+    set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
+    update_issue_state "${issue}" '.last_pr_state = "coverage-gap" | .last_checked_at = $updated_at'
+    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
     return 0
   fi
 
@@ -802,7 +858,7 @@ reconcile_completed_issues() {
   local issues_json issue_json label
 
   issues_json="$(
-    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${WAITING_CHECKS_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}" "${APPROVED_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
+    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${WAITING_CHECKS_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}" "${APPROVED_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
       gh issue list \
         --repo "${REPO}" \
         --state closed \
@@ -848,6 +904,7 @@ run_issue() {
     || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
     || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
     || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+    || issue_has_label "${labels}" "${COVERAGE_GAP_LABEL}" \
     || issue_has_label "${labels}" "${APPROVED_LABEL}" \
     || issue_has_label "${labels}" "${FAILED_LABEL}" \
     || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
@@ -899,6 +956,8 @@ Rules:
 - Work only within the issue scope.
 - Use branch ${branch}; never push directly to main.
 - Make a focused implementation, then leave a concise summary of validation.
+- Ensure the pull request body contains a `## Issue Coverage` section that maps code changes to the issue request and acceptance criteria.
+- Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
 - It is okay to edit files without committing; the worker will create the final commit if needed.
 - Run the smallest meaningful local validation and include evidence in the PR.
 - Do not use --admin.
@@ -965,6 +1024,12 @@ Autonomous SCC implementation for issue #${number}: ${title}
 
 ${validation_summary}
 
+## Issue Coverage
+
+- [x] Implements the requested issue scope for #${number}.
+- [x] Maps acceptance criteria and technical observations from the issue body to the PR changes.
+- [x] Leaves no known issue requirement intentionally uncovered.
+
 ## Governance
 
 - Branch protection, required checks, required reviews, and repository rules still apply.
@@ -991,6 +1056,7 @@ main() {
   write_heartbeat "starting" "worker starting"
   require_cmd gh
   require_cmd git
+  require_cmd python3
   require_cmd jq
   require_cmd "${SCC_BIN}"
   require_gh_auth
