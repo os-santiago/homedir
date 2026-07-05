@@ -59,7 +59,8 @@ Use these labels for automation state:
 | `scc-waiting-checks` | The PR is waiting for CI, CodeRabbit, or branch-protection feedback |
 | `scc-failing-checks` | One or more PR checks failed and the worker will attempt SCC remediation |
 | `scc-under-review` | The PR has actionable review feedback or is in an automated remediation cycle |
-| `scc-approved` | Checks passed and no actionable automated review feedback remains |
+| `scc-coverage-gap` | The PR lacks evidence that it covers the issue request or acceptance criteria |
+| `scc-approved` | Checks passed, no actionable automated review feedback remains, and issue coverage evidence is present |
 | `scc-merged` | The PR was merged and the `Production Release` workflow succeeded |
 | `scc-failed` | Automation failed after allowed retries |
 | `needs-human` | A repository rule, unclear requirement, security concern, or repeated failure requires human action |
@@ -79,21 +80,27 @@ implementation unless `ready-to-implement` is admitted into `scc-queued`.
 6. Run `scc -yq` with the controlled implementation prompt.
 7. Require a PR branch and pull request, never a direct push to `main`.
 8. Run local validation appropriate to the change.
-9. Push the branch and create/update a PR with `Closes #<issue>`.
+9. Push the branch and create/update a PR with `Refs #<issue>`. Do not use a
+   closing keyword in the PR body.
 10. Mark the issue `scc-waiting-checks` while CI and review feedback run.
 11. Every worker cycle, reconcile PR state:
     - failed checks move the issue to `scc-failing-checks` and `scc-under-review`;
     - actionable review feedback moves the issue to `scc-under-review`;
+    - missing technical coverage evidence moves the issue to `scc-coverage-gap`
+      and `scc-under-review`;
     - SCC is re-run on the existing PR branch with the failing checks and review
       context;
     - successful remediation commits are pushed back to the same PR branch.
 12. Repeat remediation until checks and actionable review feedback are clear, or
     until `HOMEDIR_SDLC_MAX_REMEDIATION_ATTEMPTS` is reached.
 13. Mark the issue `scc-approved` and enable normal auto-merge only when
-    repository protection allows it.
+    checks, review feedback, issue coverage evidence, and repository protection
+    allow it.
 14. Monitor release workflows after merge.
-15. Remove transient lifecycle labels, comment the result, and update terminal
-    lifecycle labels.
+15. Comment on the issue with the resolving PR, merge commit, merge timestamp,
+    release workflow URL, validation summary, and final SDLC state.
+16. Remove transient lifecycle labels, add `scc-merged`, then explicitly close
+    the issue.
 
 ## Server Ownership
 
@@ -116,9 +123,9 @@ The server must be able to recover after reboot without this workstation:
 - The worker fetches from GitHub directly.
 - Branches and PRs are pushed from the server.
 - GitHub Actions owns release and deployment after merge.
-- The worker reconciles closed SDLC issues and only applies `scc-merged`
-  after the closing PR is merged and the matching `Production Release`
-  run for the merge commit succeeds.
+- The worker reconciles merged SDLC PRs from its issue state files and only
+  applies `scc-merged` and closes the issue after the matching
+  `Production Release` run for the merge commit succeeds.
 
 The worker must exit without processing issues when server-side GitHub
 authentication is missing. It must not rely on a workstation `gh` session,
@@ -166,7 +173,8 @@ Allowed operations:
 - Commit and push branch changes.
 - Create or update pull requests.
 - Add status comments and automation labels.
-- Request or enable normal auto-merge when branch protection permits it.
+- Request or enable normal auto-merge only after the worker marks the PR
+  `scc-approved` and branch protection permits it.
 
 ## Approval and Merge
 
@@ -196,10 +204,11 @@ Move to `needs-human` when:
 Move to `scc-failed` only for execution failures that do not need clarification,
 such as missing tools, provider errors, or repository checkout failures.
 
-The worker also reconciles closed issues that still carry automation lifecycle
-labels. If a human or another compliant flow closes an issue, the worker removes
-temporary automation labels instead of leaving stale `needs-human`,
-`scc-running`, `scc-queued`, or `ready-to-implement` state behind.
+The worker also reconciles legacy closed issues that still carry automation
+lifecycle labels. If a human or another compliant flow closes an issue, the
+worker removes temporary automation labels instead of leaving stale
+`needs-human`, `scc-running`, `scc-queued`, or `ready-to-implement` state
+behind.
 
 ## Observability
 
@@ -309,7 +318,8 @@ Every cycle must leave:
 
 - Issue comment with branch, PR, validation, and final state.
 - Branch name tied to issue number.
-- PR body with `Closes #<issue>`.
+- PR body with `Refs #<issue>`. The worker closes the issue only after merge
+  and release verification succeed.
 - Conventional commit or squash title.
 - Worker logs under `/home/homedir-sdlc/.local/state/homedir-sdlc/logs/worker.log`.
 - State under `/home/homedir-sdlc/.local/state/homedir-sdlc`.

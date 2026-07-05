@@ -20,6 +20,7 @@ PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
 WAITING_CHECKS_LABEL="${HOMEDIR_SDLC_WAITING_CHECKS_LABEL:-scc-waiting-checks}"
 FAILING_CHECKS_LABEL="${HOMEDIR_SDLC_FAILING_CHECKS_LABEL:-scc-failing-checks}"
 UNDER_REVIEW_LABEL="${HOMEDIR_SDLC_UNDER_REVIEW_LABEL:-scc-under-review}"
+COVERAGE_GAP_LABEL="${HOMEDIR_SDLC_COVERAGE_GAP_LABEL:-scc-coverage-gap}"
 APPROVED_LABEL="${HOMEDIR_SDLC_APPROVED_LABEL:-scc-approved}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
 NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
@@ -197,6 +198,7 @@ set_flow_labels() {
     "${WAITING_CHECKS_LABEL}" \
     "${FAILING_CHECKS_LABEL}" \
     "${UNDER_REVIEW_LABEL}" \
+    "${COVERAGE_GAP_LABEL}" \
     "${APPROVED_LABEL}" \
     "${FAILED_LABEL}" \
     "${NEEDS_HUMAN_LABEL}"; do
@@ -206,6 +208,22 @@ set_flow_labels() {
       remove_label "${issue}" "${label}"
     fi
   done
+}
+
+remove_terminal_labels() {
+  local issue="$1"
+
+  remove_label "${issue}" "${PR_LABEL}"
+  remove_label "${issue}" "${RUNNING_LABEL}"
+  remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
+  remove_label "${issue}" "${APPROVED_LABEL}"
+  remove_label "${issue}" "${FAILED_LABEL}"
+  remove_label "${issue}" "${NEEDS_HUMAN_LABEL}"
+  remove_label "${issue}" "${TRIGGER_LABEL}"
+  remove_label "${issue}" "${QUEUE_LABEL}"
 }
 
 comment_issue() {
@@ -224,6 +242,7 @@ mark_needs_human() {
   remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
   remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
   remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
   remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC paused: ${reason}"
   alert WARN "Issue #${issue} needs human review" "${reason}"
@@ -239,6 +258,7 @@ mark_failed() {
   remove_label "${issue}" "${WAITING_CHECKS_LABEL}"
   remove_label "${issue}" "${FAILING_CHECKS_LABEL}"
   remove_label "${issue}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${issue}" "${COVERAGE_GAP_LABEL}"
   remove_label "${issue}" "${APPROVED_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
   alert FAIL "Issue #${issue} failed" "${reason}"
@@ -310,6 +330,7 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
       || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
       || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+      || issue_has_label "${labels}" "${COVERAGE_GAP_LABEL}" \
       || issue_has_label "${labels}" "${APPROVED_LABEL}" \
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
@@ -442,6 +463,71 @@ review_state() {
   ' <<<"${pr_json}"
 }
 
+issue_coverage_state() {
+  local issue="$1"
+  local pr_json="$2"
+  local issue_body pr_body
+
+  issue_body="$(gh issue view "${issue}" --repo "${REPO}" --json body --jq '.body // ""' 2>/dev/null || true)"
+  pr_body="$(jq -r '.body // ""' <<<"${pr_json}")"
+
+  ISSUE_BODY="${issue_body}" PR_BODY="${pr_body}" python3 - <<'PY'
+import json
+import os
+import re
+
+issue = os.environ.get("ISSUE_BODY", "")
+pr = os.environ.get("PR_BODY", "")
+gaps = []
+specific_items = []
+criteria_heading_pattern = r"(?im)^\s*(?:#{1,6}\s*)?(acceptance criteria|criterios de aceptaci[o\u00f3]n|definition of done|definici[o\u00f3]n de list[oa]s?)\b"
+criteria_item_pattern = r"(?im)acceptance criteria|acceptance criterion|criterios de aceptaci[o\u00f3]n|criterio de aceptaci[o\u00f3]n|definition of done|definici[o\u00f3]n de list[oa]s?"
+
+coverage_match = re.search(r"(?ims)^##\s+Issue Coverage\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
+coverage = coverage_match.group(1).strip() if coverage_match else ""
+
+if not coverage_match:
+    gaps.append("PR body is missing a `## Issue Coverage` section.")
+elif re.search(r"(?m)^\s*[-*]\s+\[\s\]", coverage):
+    gaps.append("`## Issue Coverage` still contains unchecked items.")
+else:
+    coverage_items = re.findall(r"(?m)^\s*[-*]\s+\[[xX]\]\s+(.+?)\s*$", coverage)
+    generic_patterns = [
+        r"^addresses issue #[0-9]+:",
+        r"^map concrete code changes to issue #[0-9]+:",
+        r"^map each acceptance criterion",
+        r"^list any known uncovered requirement",
+        r"^implements the requested issue scope",
+        r"^maps acceptance criteria and technical observations",
+        r"^leaves no known issue requirement",
+        r"^source issue requirements reviewed",
+    ]
+    specific_items = [
+        item for item in coverage_items
+        if not any(re.search(pattern, item, re.I) for pattern in generic_patterns)
+    ]
+    if not specific_items:
+        gaps.append("`## Issue Coverage` only contains generic boilerplate; add issue-specific coverage evidence.")
+
+has_acceptance = bool(re.search(criteria_heading_pattern, issue))
+acceptance_items = [
+    item for item in specific_items
+    if re.search(criteria_item_pattern, item)
+]
+if has_acceptance and not acceptance_items:
+    gaps.append("Issue has explicit acceptance criteria, but PR body does not map them.")
+
+validation_match = re.search(r"(?ims)^##\s+Validation\s*$([\s\S]*?)(?=^##\s+|\Z)", pr)
+validation = validation_match.group(1).strip() if validation_match else ""
+if not validation_match:
+    gaps.append("PR body is missing validation evidence.")
+elif not validation or re.search(r"not run by worker", validation, re.I):
+    gaps.append("`## Validation` contains placeholder or missing validation evidence.")
+
+print(json.dumps({"passed": not gaps, "gaps": gaps}, ensure_ascii=True))
+PY
+}
+
 build_remediation_prompt() {
   local issue="$1"
   local title="$2"
@@ -469,12 +555,13 @@ ${trigger}
 Failing or pending check context:
 $(jq -r '.' <<<"${checks_json}")
 
-Review context:
+Review or coverage context:
 $(jq -r '.' <<<"${reviews_json}")
 
 Rules:
 - Stay on branch ${branch}; never push directly to main.
 - Fix only the failing checks or actionable review feedback shown above.
+- If the trigger is a coverage gap, update the implementation and PR body so `## Issue Coverage` truthfully maps code changes to the issue request and acceptance criteria.
 - Keep the change minimal and within the issue/PR scope.
 - Run the smallest meaningful validation you can.
 - Do not use --admin.
@@ -503,7 +590,11 @@ run_scc_on_existing_pr() {
 
   log "running SCC remediation for issue #${issue} PR #${pr_number}: ${trigger}"
   write_heartbeat "running" "SCC remediation for issue #${issue}"
-  set_flow_labels "${issue}" "${PR_LABEL}" "${RUNNING_LABEL}" "${UNDER_REVIEW_LABEL}"
+  if [[ "${trigger}" == *"coverage gap"* ]]; then
+    set_flow_labels "${issue}" "${PR_LABEL}" "${RUNNING_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
+  else
+    set_flow_labels "${issue}" "${PR_LABEL}" "${RUNNING_LABEL}" "${UNDER_REVIEW_LABEL}"
+  fi
 
   prepare_workdir
   git -C "${WORKDIR}" checkout -B "${branch}" "origin/${branch}"
@@ -535,7 +626,7 @@ run_scc_on_existing_pr() {
   git -C "${WORKDIR}" add -A
   git -C "${WORKDIR}" commit -m "fix(sdlc): remediate issue #${issue} PR checks" -m "PR #${pr_number}"
 
-  validation_summary="Not run by worker"
+  validation_summary="Worker validation command not configured; GitHub checks are required before approval."
   if [[ -n "${VALIDATION_COMMAND}" ]]; then
     log "running validation for issue #${issue} remediation: ${VALIDATION_COMMAND}"
     if (cd "${WORKDIR}" && bash -lc "${VALIDATION_COMMAND}"); then
@@ -564,7 +655,7 @@ run_scc_on_existing_pr() {
 
 release_status_for_pr() {
   local pr_number="$1"
-  local pr_json merge_sha runs_json run_status run_conclusion run_url
+  local pr_json merge_sha merge_date runs_json run_status run_conclusion run_url
 
   pr_json="$(gh pr view "${pr_number}" --repo "${REPO}" --json mergeCommit,mergedAt,url)"
   merge_sha="$(jq -r '.mergeCommit.oid // ""' <<<"${pr_json}")"
@@ -591,11 +682,12 @@ release_status_for_pr() {
   run_url="$(jq -r '.[0].url // ""' <<<"${runs_json}")"
 
   if [[ "${run_status}" == "completed" && "${run_conclusion}" == "success" ]]; then
-    echo "success|Production Release succeeded|${run_url}"
+    merge_date="$(jq -r '.mergedAt // ""' <<<"${pr_json}")"
+    echo "success|Production Release succeeded|${run_url}|${merge_sha}|${merge_date}"
   elif [[ "${run_status}" == "completed" ]]; then
-    echo "failure|Production Release completed with conclusion: ${run_conclusion}|${run_url}"
+    echo "failure|Production Release completed with conclusion: ${run_conclusion}|${run_url}|${merge_sha}|"
   else
-    echo "pending|Production Release is ${run_status}|${run_url}"
+    echo "pending|Production Release is ${run_status}|${run_url}|${merge_sha}|"
   fi
 }
 
@@ -604,6 +696,10 @@ try_enable_auto_merge() {
   local branch="$2"
   local pr_number="${3:-}"
   local pr_url="${4:-}"
+
+  if [[ -z "${pr_number}" && -n "${pr_url}" ]]; then
+    pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
+  fi
 
   if [[ "${ENABLE_AUTOMERGE}" != "true" ]]; then
     return 1
@@ -653,7 +749,7 @@ enable_auto_merge_for_state() {
 reconcile_pr_state() {
   local state_file="$1"
   local issue pr_number branch pr_json pr_state pr_url pr_title pr_sha is_draft checks_json reviews_json
-  local failing_count pending_count success_count actionable_count trigger approved_sha
+  local coverage_json coverage_passed failing_count pending_count success_count actionable_count trigger approved_sha
 
   issue="$(jq -r '.issue' "${state_file}")"
   pr_number="$(jq -r '.pr_number // ""' "${state_file}")"
@@ -665,7 +761,7 @@ reconcile_pr_state() {
 
   pr_json="$(gh pr view "${pr_number}" \
     --repo "${REPO}" \
-    --json number,title,state,isDraft,url,headRefName,headRefOid,mergeStateStatus,mergeable,reviewDecision,latestReviews,statusCheckRollup,autoMergeRequest \
+    --json number,title,body,state,isDraft,url,headRefName,headRefOid,mergeStateStatus,mergeable,reviewDecision,latestReviews,statusCheckRollup,autoMergeRequest \
     2>/dev/null || true)"
   if [[ -z "${pr_json}" ]]; then
     return 0
@@ -678,10 +774,12 @@ reconcile_pr_state() {
   is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
   checks_json="$(pr_checks_state "${pr_json}")"
   reviews_json="$(review_state "${pr_json}")"
+  coverage_json="$(issue_coverage_state "${issue}" "${pr_json}")"
   failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
   pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
   success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
   actionable_count="$(jq -r '.actionable_reviews | length' <<<"${reviews_json}")"
+  coverage_passed="$(jq -r '.passed' <<<"${coverage_json}")"
 
   if [[ "${pr_state}" != "OPEN" ]]; then
     return 0
@@ -710,12 +808,20 @@ reconcile_pr_state() {
     return 0
   fi
 
+  if [[ "${coverage_passed}" != "true" ]]; then
+    trigger="technical issue coverage gap on PR #${pr_number}: $(jq -r '.gaps | join("; ")' <<<"${coverage_json}")"
+    set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
+    update_issue_state "${issue}" '.last_pr_state = "coverage-gap" | .last_checked_at = $updated_at'
+    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
+    return 0
+  fi
+
   set_flow_labels "${issue}" "${PR_LABEL}" "${APPROVED_LABEL}"
   approved_sha="$(jq -r '.approved_sha // ""' "${state_file}")"
   if [[ "${approved_sha}" != "${pr_sha}" ]]; then
     append_run_summary "${issue}" "approved" "${pr_number}" "${branch}" "All checks passed and no actionable review feedback remains for ${pr_url}."
     APPROVED_SHA="${pr_sha}" update_issue_state "${issue}" '.last_pr_state = "approved" | .approved_sha = env.APPROVED_SHA | .approved_at = $updated_at'
-    comment_issue "${issue}" "Autonomous SDLC approved PR #${pr_number}: all checks passed and no actionable review feedback remains. Normal auto-merge remains governed by repository rules."
+    comment_issue "${issue}" "Autonomous SDLC approved PR #${pr_number}: all checks passed and no actionable review feedback remains. Normal auto-merge can now be enabled under repository rules."
   else
     update_issue_state "${issue}" '.last_pr_state = "approved" | .last_checked_at = $updated_at'
   fi
@@ -731,9 +837,79 @@ reconcile_open_prs() {
   done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
 }
 
-reconcile_completed_issue() {
+finalize_merged_issue() {
+  local number="$1"
+  local pr_number="$2"
+  local pr_url="$3"
+  local release_status release_message release_url merge_sha merged_at labels
+
+  IFS='|' read -r release_status release_message release_url merge_sha merged_at < <(release_status_for_pr "${pr_number}")
+
+  if [[ "${release_status}" == "pending" ]]; then
+    log "issue #${number} PR #${pr_number} merged; waiting for release verification: ${release_message}"
+    return 0
+  fi
+
+  if [[ "${release_status}" == "failure" ]]; then
+    labels="$(gh issue view "${number}" --repo "${REPO}" --json labels --jq '[.labels[].name]' 2>/dev/null || echo '[]')"
+    if issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}"; then
+      log "issue #${number} release verification still failing for PR #${pr_number}; ${NEEDS_HUMAN_LABEL} already present"
+      return 0
+    fi
+    add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+    comment_issue "${number}" "Autonomous SDLC merge completed, but release verification failed for PR #${pr_number}: ${release_message} ${release_url}"
+    log "issue #${number} release verification failed for PR #${pr_number}"
+    alert FAIL "Issue #${number} release failed" "PR #${pr_number}: ${release_message} ${release_url}"
+    return 0
+  fi
+
+  add_label "${number}" "${MERGED_LABEL}"
+  remove_terminal_labels "${number}"
+  append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged at ${merged_at} (${merge_sha}) and production release verification succeeded. ${release_url}"
+  comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) at ${merged_at}. Merge commit: \`${merge_sha}\`. Production release succeeded: ${release_url}"
+  gh issue close "${number}" --repo "${REPO}" --comment "Closed by autonomous SDLC after PR #${pr_number} was merged and production release verification succeeded. Release: ${release_url}" >/dev/null 2>&1 || true
+  log "closed issue #${number} via PR #${pr_number}; release verified"
+  alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+}
+
+reconcile_merged_prs() {
+  local state_file issue pr_number pr_url labels pr_json pr_state resolved_pr_url
+
+  while IFS= read -r state_file; do
+    issue="$(jq -r '.issue // ""' "${state_file}")"
+    pr_number="$(jq -r '.pr_number // ""' "${state_file}")"
+    pr_url="$(jq -r '.pr_url // ""' "${state_file}")"
+
+    if [[ -z "${issue}" || -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+      continue
+    fi
+
+    labels="$(gh issue view "${issue}" --repo "${REPO}" --json labels --jq '[.labels[].name]' 2>/dev/null || echo '[]')"
+    if issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      continue
+    fi
+
+    pr_json="$(gh pr view "${pr_number}" --repo "${REPO}" --json state,url 2>/dev/null || true)"
+    if [[ -z "${pr_json}" ]]; then
+      continue
+    fi
+
+    pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
+    resolved_pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+    if [[ -n "${resolved_pr_url}" ]]; then
+      pr_url="${resolved_pr_url}"
+    fi
+    if [[ "${pr_state}" != "MERGED" ]]; then
+      continue
+    fi
+
+    finalize_merged_issue "${issue}" "${pr_number}" "${pr_url}"
+  done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
+}
+
+reconcile_legacy_closed_issue() {
   local issue_json="$1"
-  local number labels issue_detail prs_json pr_number pr_url release_status release_message release_url
+  local number labels issue_detail prs_json pr_number pr_url
 
   number="$(jq -r '.number' <<<"${issue_json}")"
   labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
@@ -748,50 +924,21 @@ reconcile_completed_issue() {
 
   prs_json="$(jq -c '.closedByPullRequestsReferences // []' <<<"${issue_detail}")"
   if [[ "$(jq 'length' <<<"${prs_json}")" -eq 0 ]]; then
-    log "closed issue #${number} has ${PR_LABEL} but no closing PR reference"
+    log "closed issue #${number} has autonomous labels but no closing PR reference; cleaning terminal labels"
+    remove_terminal_labels "${number}"
     return 0
   fi
 
   pr_number="$(jq -r '.[0].number' <<<"${prs_json}")"
   pr_url="$(jq -r '.[0].url' <<<"${prs_json}")"
-
-  IFS='|' read -r release_status release_message release_url < <(release_status_for_pr "${pr_number}")
-
-  if [[ "${release_status}" == "pending" ]]; then
-    log "issue #${number} PR #${pr_number} merged; waiting for release verification: ${release_message}"
-    return 0
-  fi
-
-  if [[ "${release_status}" == "failure" ]]; then
-    add_label "${number}" "${NEEDS_HUMAN_LABEL}"
-    comment_issue "${number}" "Autonomous SDLC merge completed, but release verification failed for PR #${pr_number}: ${release_message} ${release_url}"
-    log "issue #${number} release verification failed for PR #${pr_number}"
-    alert FAIL "Issue #${number} release failed" "PR #${pr_number}: ${release_message} ${release_url}"
-    return 0
-  fi
-
-  add_label "${number}" "${MERGED_LABEL}"
-  remove_label "${number}" "${PR_LABEL}"
-  remove_label "${number}" "${RUNNING_LABEL}"
-  remove_label "${number}" "${WAITING_CHECKS_LABEL}"
-  remove_label "${number}" "${FAILING_CHECKS_LABEL}"
-  remove_label "${number}" "${UNDER_REVIEW_LABEL}"
-  remove_label "${number}" "${APPROVED_LABEL}"
-  remove_label "${number}" "${FAILED_LABEL}"
-  remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
-  remove_label "${number}" "${TRIGGER_LABEL}"
-  remove_label "${number}" "${QUEUE_LABEL}"
-  append_run_summary "${number}" "completed" "${pr_number}" "" "PR #${pr_number} merged and production release verification succeeded. ${release_url}"
-  comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
-  log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
-  alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+  finalize_merged_issue "${number}" "${pr_number}" "${pr_url}"
 }
 
-reconcile_completed_issues() {
+reconcile_legacy_closed_issues() {
   local issues_json issue_json label
 
   issues_json="$(
-    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${WAITING_CHECKS_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}" "${APPROVED_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
+    for label in "${PR_LABEL}" "${RUNNING_LABEL}" "${WAITING_CHECKS_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}" "${APPROVED_LABEL}" "${NEEDS_HUMAN_LABEL}" "${FAILED_LABEL}" "${TRIGGER_LABEL}"; do
       gh issue list \
         --repo "${REPO}" \
         --state closed \
@@ -803,26 +950,7 @@ reconcile_completed_issues() {
 
   if [[ "${issues_json}" != "[]" ]]; then
     jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
-      if issue_has_label "$(jq -c '[.labels[].name]' <<<"${issue_json}")" "${PR_LABEL}"; then
-        reconcile_completed_issue "${issue_json}"
-      else
-        local number labels
-        number="$(jq -r '.number' <<<"${issue_json}")"
-        labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
-        if issue_has_label "${labels}" "${MERGED_LABEL}"; then
-          continue
-        fi
-        log "closed issue #${number} has autonomous labels but no ${PR_LABEL}; cleaning terminal labels"
-        remove_label "${number}" "${RUNNING_LABEL}"
-        remove_label "${number}" "${WAITING_CHECKS_LABEL}"
-        remove_label "${number}" "${FAILING_CHECKS_LABEL}"
-        remove_label "${number}" "${UNDER_REVIEW_LABEL}"
-        remove_label "${number}" "${APPROVED_LABEL}"
-        remove_label "${number}" "${FAILED_LABEL}"
-        remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
-        remove_label "${number}" "${TRIGGER_LABEL}"
-        remove_label "${number}" "${QUEUE_LABEL}"
-      fi
+      reconcile_legacy_closed_issue "${issue_json}"
     done
   fi
 }
@@ -856,6 +984,7 @@ run_issue() {
     || issue_has_label "${labels}" "${WAITING_CHECKS_LABEL}" \
     || issue_has_label "${labels}" "${FAILING_CHECKS_LABEL}" \
     || issue_has_label "${labels}" "${UNDER_REVIEW_LABEL}" \
+    || issue_has_label "${labels}" "${COVERAGE_GAP_LABEL}" \
     || issue_has_label "${labels}" "${APPROVED_LABEL}" \
     || issue_has_label "${labels}" "${FAILED_LABEL}" \
     || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
@@ -907,6 +1036,8 @@ Rules:
 - Work only within the issue scope.
 - Use branch ${branch}; never push directly to main.
 - Make a focused implementation, then leave a concise summary of validation.
+- Ensure the pull request body contains a `## Issue Coverage` section that maps code changes to the issue request and acceptance criteria.
+- Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
 - It is okay to edit files without committing; the worker will create the final commit if needed.
 - Run the smallest meaningful local validation and include evidence in the PR.
 - Do not use --admin.
@@ -933,7 +1064,7 @@ EOF
   if [[ -n "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
     log "committing SCC changes for issue #${number}"
     git -C "${WORKDIR}" add -A
-    git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Closes #${number}"
+    git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Refs #${number}"
   fi
 
   if [[ -z "$(git -C "${WORKDIR}" log --oneline "origin/main..HEAD")" ]]; then
@@ -941,7 +1072,7 @@ EOF
     return 0
   fi
 
-  validation_summary="Not run by worker"
+  validation_summary="Worker validation command not configured; GitHub checks are required before approval."
   if [[ -n "${VALIDATION_COMMAND}" ]]; then
     log "running validation for issue #${number}: ${VALIDATION_COMMAND}"
     if (cd "${WORKDIR}" && bash -lc "${VALIDATION_COMMAND}"); then
@@ -973,12 +1104,18 @@ Autonomous SCC implementation for issue #${number}: ${title}
 
 ${validation_summary}
 
+## Issue Coverage
+
+- [ ] Map concrete code changes to issue #${number}: ${title}
+- [ ] Map each acceptance criterion, or explain why none applies.
+- [ ] List any known uncovered requirement, or state that none is known with evidence.
+
 ## Governance
 
 - Branch protection, required checks, required reviews, and repository rules still apply.
 - No admin bypass was used.
 
-Closes #${number}
+Refs #${number}
 PRBODY
 )" 2>/dev/null)"; then
       mark_failed "${number}" "GitHub PR creation failed for branch ${branch}."
@@ -991,12 +1128,7 @@ PRBODY
   pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
   append_run_summary "${number}" "pr-opened" "${pr_number}" "${branch}" "SCC opened or updated ${pr_url}. Validation: ${validation_summary}"
   comment_issue "${number}" "Autonomous SDLC opened PR: ${pr_url}"
-
-  if try_enable_auto_merge "${number}" "${branch}" "" "${pr_url}"; then
-    comment_issue "${number}" "Normal GitHub auto-merge was enabled for ${pr_url}. Required checks and reviews still apply."
-  else
-    comment_issue "${number}" "Auto-merge is disabled or not available for the autonomous SDLC. PR remains governed by normal review and branch protection."
-  fi
+  comment_issue "${number}" "Autonomous SDLC is waiting for checks and review on ${pr_url}. Auto-merge will only be enabled after the worker marks the PR as \`${APPROVED_LABEL}\`; repository rules still apply."
   write_heartbeat "ok" "opened PR for issue #${number}"
 }
 
@@ -1004,6 +1136,7 @@ main() {
   write_heartbeat "starting" "worker starting"
   require_cmd gh
   require_cmd git
+  require_cmd python3
   require_cmd jq
   require_cmd "${SCC_BIN}"
   require_gh_auth
@@ -1015,9 +1148,10 @@ main() {
     exit 0
   fi
 
-  log "reconciling completed autonomous SDLC issues"
-  write_heartbeat "running" "reconciling completed issues"
-  reconcile_completed_issues
+  log "reconciling merged autonomous SDLC PRs"
+  write_heartbeat "running" "reconciling merged PRs"
+  reconcile_merged_prs
+  reconcile_legacy_closed_issues
   reconcile_open_prs
 
   log "checking eligible issues in ${REPO}"
