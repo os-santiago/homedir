@@ -13,10 +13,12 @@ public record TrendingCacheSnapshot(
     return new TrendingCacheSnapshot(List.of(), null, null, period);
   }
 
+  /** Returns true if last successful refresh is older than TTL, or never refreshed. */
   public boolean isStale(java.time.Duration ttl) {
-    if (lastSuccessTime == null) {
+    // ponytail: use lastRefreshTime so failed attempts don't block on-demand retry
+    if (lastRefreshTime == null) {
       return true;
     }
-    return Instant.now().isAfter(lastSuccessTime.plus(ttl));
+    return Instant.now().isAfter(lastRefreshTime.plus(ttl));
   }
 }

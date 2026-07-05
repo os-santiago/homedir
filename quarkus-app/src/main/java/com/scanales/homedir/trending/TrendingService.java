@@ -58,7 +58,7 @@ public class TrendingService {
 
   private static final Pattern REPO_PATTERN =
       Pattern.compile(
-          "<h2[^>]*>.*?<a\\s+href=\"/([^/]+)/([^\"]+)\"[^>]*>.*?</a>.*?</h2>", Pattern.DOTALL);
+          "<h2[^>]*>.*?<a[^>]*href=\"/([^/]+)/([^\"]+)\"[^>]*>.*?</a>.*?</h2>", Pattern.DOTALL);
 
   private static final Pattern DESCRIPTION_PATTERN =
       Pattern.compile(
@@ -101,7 +101,7 @@ public class TrendingService {
     }
 
     List<TrendingRepo> repos = snapshot.repos();
-    int limit = Math.max(1, Math.min(count, 10));
+    int limit = Math.max(1, Math.min(count, defaultCount));
 
     if (repos.size() <= limit) {
       return repos;
@@ -211,7 +211,8 @@ public class TrendingService {
     }
   }
 
-  private List<TrendingRepo> parseHtml(String html) {
+  // ponytail: package-private for testability; extract to HtmlParser if parsing logic grows
+  List<TrendingRepo> parseHtml(String html) {
     List<TrendingRepo> repos = new ArrayList<>();
 
     String[] articles = html.split("<article\\s+class=\"[^\"]*Box-row[^\"]*\"");

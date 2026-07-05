@@ -78,11 +78,12 @@
                 </article>
                 {/for}
             </div>
+            {/if}
 
             <div class="trending-count-selector">
                 <span>{i18n:trending_show_more}:</span>
-                <a href="/trending?period={period}&count=3"
-                   class="hd-btn hd-btn-sm {#if count == 3}hd-btn-primary{#else}hd-btn-secondary{/if}">3</a>
+                <a href="/trending?period={period}&count=1"
+                   class="hd-btn hd-btn-sm {#if count == 1}hd-btn-primary{#else}hd-btn-secondary{/if}">1</a>
                 <a href="/trending?period={period}&count=5"
                    class="hd-btn hd-btn-sm {#if count == 5}hd-btn-primary{#else}hd-btn-secondary{/if}">5</a>
                 <a href="/trending?period={period}&count=10"
@@ -93,7 +94,6 @@
             <div class="trending-last-updated">
                 <small>{i18n:trending_last_updated(lastUpdated)}</small>
             </div>
-            {/if}
             {/if}
         </div>
     </div>

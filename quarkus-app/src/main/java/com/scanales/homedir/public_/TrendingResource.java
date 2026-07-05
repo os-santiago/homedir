@@ -15,13 +15,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 @Path("/trending")
 public class TrendingResource {
 
   private static final Logger LOG = Logger.getLogger(TrendingResource.class);
-  private static final int DEFAULT_COUNT = 3;
+  private static final int DEFAULT_COUNT = 1;
+
+  @ConfigProperty(name = "trending.max-count", defaultValue = "10")
+  int maxCount;
 
   @Inject SecurityIdentity identity;
 
@@ -64,7 +68,7 @@ public class TrendingResource {
     if (count == null) {
       return DEFAULT_COUNT;
     }
-    return Math.max(1, Math.min(count, 10));
+    return Math.max(1, Math.min(count, maxCount));
   }
 
   private String formatLastUpdated(List<TrendingRepo> repos) {
