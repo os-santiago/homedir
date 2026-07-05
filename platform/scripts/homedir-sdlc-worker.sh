@@ -10,8 +10,11 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
-AUTHOR="${HOMEDIR_SDLC_AUTHOR:-scanalesespinoza}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
+QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
+REJECTED_LABEL="${HOMEDIR_SDLC_REJECTED_LABEL:-scc-rejected}"
+UNAUTHORIZED_LABEL="${HOMEDIR_SDLC_UNAUTHORIZED_LABEL:-scc-rejected:unauthorized-labeler}"
+AUTHORIZED_LABELERS="${HOMEDIR_SDLC_AUTHORIZED_LABELERS:-scanalesespinoza}"
 RUNNING_LABEL="${HOMEDIR_SDLC_RUNNING_LABEL:-scc-running}"
 PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
@@ -151,6 +154,19 @@ issue_has_label() {
   jq -e --arg wanted "${wanted}" 'index($wanted) != null' >/dev/null <<<"${labels_json}"
 }
 
+is_authorized_labeler() {
+  local login="$1"
+  local item
+  IFS=',' read -r -a labelers <<<"${AUTHORIZED_LABELERS}"
+  for item in "${labelers[@]}"; do
+    item="${item//[[:space:]]/}"
+    if [[ -n "${item}" && "${login}" == "${item}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 add_label() {
   local issue="$1"
   local label="$2"
@@ -185,6 +201,72 @@ mark_failed() {
   remove_label "${issue}" "${RUNNING_LABEL}"
   comment_issue "${issue}" "Autonomous SDLC failed: ${reason}"
   alert FAIL "Issue #${issue} failed" "${reason}"
+}
+
+latest_trigger_labeler() {
+  local issue="$1"
+  gh api \
+    -H "Accept: application/vnd.github+json" \
+    "repos/${REPO}/issues/${issue}/timeline" --paginate \
+    --jq ".[] | select(.event == \"labeled\" and .label.name == \"${TRIGGER_LABEL}\") | .actor.login" \
+    2>/dev/null | tail -n1
+}
+
+admit_issue_to_queue() {
+  local issue="$1"
+  local labeler="$2"
+  add_label "${issue}" "${QUEUE_LABEL}"
+  remove_label "${issue}" "${REJECTED_LABEL}"
+  remove_label "${issue}" "${UNAUTHORIZED_LABEL}"
+  comment_issue "${issue}" "AI SDLC admission accepted by \`${labeler}\`. The issue is now queued with \`${QUEUE_LABEL}\`."
+  log "admitted issue #${issue} to ${QUEUE_LABEL}; labeler=${labeler}"
+}
+
+reject_issue_from_queue() {
+  local issue="$1"
+  local labeler="$2"
+  remove_label "${issue}" "${TRIGGER_LABEL}"
+  remove_label "${issue}" "${QUEUE_LABEL}"
+  add_label "${issue}" "${REJECTED_LABEL}"
+  add_label "${issue}" "${UNAUTHORIZED_LABEL}"
+  comment_issue "${issue}" "AI SDLC admission rejected: \`${labeler:-unknown}\` is not authorized to add \`${TRIGGER_LABEL}\`. Authorized labelers: \`${AUTHORIZED_LABELERS}\`."
+  log "rejected issue #${issue} from AI SDLC queue; labeler=${labeler:-unknown}"
+}
+
+reconcile_admission_requests() {
+  local issues_json issue_json number labels labeler
+
+  issues_json="$(gh issue list \
+    --repo "${REPO}" \
+    --state open \
+    --label "${TRIGGER_LABEL}" \
+    --limit 100 \
+    --json number,labels)"
+
+  if [[ "${issues_json}" == "[]" ]]; then
+    return 0
+  fi
+
+  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+    number="$(jq -r '.number' <<<"${issue_json}")"
+    labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    if issue_has_label "${labels}" "${QUEUE_LABEL}" \
+      || issue_has_label "${labels}" "${RUNNING_LABEL}" \
+      || issue_has_label "${labels}" "${PR_LABEL}" \
+      || issue_has_label "${labels}" "${FAILED_LABEL}" \
+      || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
+      || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      continue
+    fi
+
+    labeler="$(latest_trigger_labeler "${number}")"
+    if is_authorized_labeler "${labeler}"; then
+      admit_issue_to_queue "${number}" "${labeler}"
+    else
+      reject_issue_from_queue "${number}" "${labeler}"
+    fi
+  done
 }
 
 write_issue_state() {
@@ -345,6 +427,7 @@ reconcile_completed_issue() {
   remove_label "${number}" "${FAILED_LABEL}"
   remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
   remove_label "${number}" "${TRIGGER_LABEL}"
+  remove_label "${number}" "${QUEUE_LABEL}"
   comment_issue "${number}" "Autonomous SDLC completed: PR #${pr_number} was merged (${pr_url}) and release verification succeeded. ${release_url}"
   log "reconciled completed issue #${number} via PR #${pr_number}; release verified"
   alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
@@ -380,6 +463,7 @@ reconcile_completed_issues() {
         remove_label "${number}" "${FAILED_LABEL}"
         remove_label "${number}" "${NEEDS_HUMAN_LABEL}"
         remove_label "${number}" "${TRIGGER_LABEL}"
+        remove_label "${number}" "${QUEUE_LABEL}"
       fi
     done
   fi
@@ -401,19 +485,13 @@ prepare_workdir() {
 
 run_issue() {
   local issue_json="$1"
-  local number title author labels body url branch slug prompt pr_url validation_summary
+  local number title labels body url branch slug prompt pr_url validation_summary
 
   number="$(jq -r '.number' <<<"${issue_json}")"
   title="$(jq -r '.title' <<<"${issue_json}")"
-  author="$(jq -r '.author.login' <<<"${issue_json}")"
   labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
   body="$(jq -r '.body // ""' <<<"${issue_json}")"
   url="$(jq -r '.url // ""' <<<"${issue_json}")"
-
-  if [[ "${author}" != "${AUTHOR}" ]]; then
-    log "skipping issue #${number}: author ${author} is not ${AUTHOR}"
-    return 0
-  fi
 
   if issue_has_label "${labels}" "${RUNNING_LABEL}" \
     || issue_has_label "${labels}" "${PR_LABEL}" \
@@ -568,11 +646,12 @@ main() {
 
   log "checking eligible issues in ${REPO}"
   write_heartbeat "running" "checking eligible issues"
+  reconcile_admission_requests
   mapfile -t issues < <(
     gh issue list \
       --repo "${REPO}" \
       --state open \
-      --label "${TRIGGER_LABEL}" \
+      --label "${QUEUE_LABEL}" \
       --limit "${MAX_ISSUES}" \
       --json number,title,body,url,author,labels
   )

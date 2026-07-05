@@ -21,8 +21,9 @@ and repository worktree all live on the server.
 An issue is eligible only when all conditions are true:
 
 - The issue is open.
-- The issue author is `scanalesespinoza`.
-- The issue has the `ready-to-implement` label.
+- The issue can be authored by anyone.
+- An authorized labeler added the `ready-to-implement` admission label.
+- The issue has been promoted to the `scc-queued` execution queue.
 - The issue does not have an active terminal or in-progress automation label.
 - The issue metadata is clear enough to implement and validate.
 
@@ -37,10 +38,13 @@ payloads to:
 ```
 
 The listener only wakes the worker when the event belongs to this repository,
-the issue is open, the author is `scanalesespinoza`, and the issue has the
-`ready-to-implement` label. The worker remains the only component that claims,
-branches, runs SCC, opens PRs, and reconciles releases. Keep
-`homedir-sdlc-worker.timer` enabled as a fallback and reconciliation loop.
+the issue is open, the label added was `ready-to-implement`, and the actor who
+added the label is listed in `HOMEDIR_SDLC_AUTHORIZED_LABELERS`. Accepted issues
+are promoted to `scc-queued`; unauthorized attempts are moved to the discard
+queue with `scc-rejected` and `scc-rejected:unauthorized-labeler`. The worker
+remains the only component that claims, branches, runs SCC, opens PRs, and
+reconciles releases. Keep `homedir-sdlc-worker.timer` enabled as a fallback and
+reconciliation loop.
 
 ## Lifecycle Labels
 
@@ -48,15 +52,18 @@ Use these labels for automation state:
 
 | Label | Meaning |
 | --- | --- |
-| `ready-to-implement` | Human-approved trigger for autonomous implementation |
+| `ready-to-implement` | Human request for authorized AI SDLC admission |
+| `scc-queued` | Authorized issue admitted to the AI SDLC execution queue |
 | `scc-running` | The SCC worker has claimed the issue |
 | `scc-pr-open` | A pull request was opened for the issue |
 | `scc-merged` | The PR was merged and the `Production Release` workflow succeeded |
 | `scc-failed` | Automation failed after allowed retries |
 | `needs-human` | A repository rule, unclear requirement, security concern, or repeated failure requires human action |
+| `scc-rejected` | Issue was rejected from the AI SDLC queue |
+| `scc-rejected:unauthorized-labeler` | `ready-to-implement` was added by an unauthorized actor |
 
 Existing `wos-review` triage can remain separate. It should not trigger
-implementation unless `ready-to-implement` is also present.
+implementation unless `ready-to-implement` is admitted into `scc-queued`.
 
 ## Worker Flow
 
@@ -71,7 +78,7 @@ implementation unless `ready-to-implement` is also present.
 9. Push the branch and create/update a PR with `Closes #<issue>`.
 10. Enable normal auto-merge only when repository protection allows it.
 11. Monitor CI and release workflows.
-12. Comment the result and update lifecycle labels.
+12. Remove `scc-queued`, comment the result, and update lifecycle labels.
 
 ## Server Ownership
 
@@ -176,7 +183,7 @@ such as missing tools, provider errors, or repository checkout failures.
 The worker also reconciles closed issues that still carry automation lifecycle
 labels. If a human or another compliant flow closes an issue, the worker removes
 temporary automation labels instead of leaving stale `needs-human`,
-`scc-running`, or `ready-to-implement` state behind.
+`scc-running`, `scc-queued`, or `ready-to-implement` state behind.
 
 ## Observability
 
@@ -250,11 +257,12 @@ The SCC v0.4.0 canary validates that the autonomous worker:
 - Keeps scope strictly on the assigned issue (issue focus).
 - Correctly handles the current working directory for tool execution.
 
-1. Create a small documentation-only issue authored by `scanalesespinoza`.
-2. Add `ready-to-implement`.
-3. Confirm the worker claims it, opens a branch and PR, respects checks, and
+1. Create or choose a small issue authored by any contributor.
+2. Have an authorized labeler, such as `scanalesespinoza`, add `ready-to-implement`.
+3. Confirm the webhook or polling fallback promotes the issue to `scc-queued`.
+4. Confirm the worker claims it, opens a branch and PR, respects checks, and
    waits for normal repository rules.
-4. After merge, confirm `Production Release` succeeds and the worker marks the
+5. After merge, confirm `Production Release` succeeds and the worker marks the
    issue `scc-merged`.
 
 Recovery:

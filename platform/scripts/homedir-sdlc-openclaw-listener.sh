@@ -12,8 +12,9 @@ if [[ -r "${ENV_LIB}" ]]; then
 fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
-AUTHOR="${HOMEDIR_SDLC_AUTHOR:-scanalesespinoza}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
+QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
+AUTHORIZED_LABELERS="${HOMEDIR_SDLC_AUTHORIZED_LABELERS:-scanalesespinoza}"
 WORKER_BIN="${HOMEDIR_SDLC_WORKER_BIN:-homedir-sdlc-worker.sh}"
 LOGFILE="${HOMEDIR_SDLC_OPENCLAW_LOGFILE:-${HOMEDIR_SDLC_STATE_DIR:-/var/lib/homedir-sdlc}/logs/openclaw-listener.log}"
 
@@ -45,11 +46,24 @@ fi
 
 action="$(jq -r '.action // ""' "${payload_file}")"
 issue_state="$(jq -r '.issue.state // ""' "${payload_file}")"
-issue_author="$(jq -r '.issue.user.login // ""' "${payload_file}")"
 issue_number="$(jq -r '.issue.number // ""' "${payload_file}")"
 repository="$(jq -r '.repository.full_name // ""' "${payload_file}")"
 event_label="$(jq -r '.label.name // ""' "${payload_file}")"
+labeler="$(jq -r '.sender.login // ""' "${payload_file}")"
 has_trigger="$(jq -r --arg label "${TRIGGER_LABEL}" '[.issue.labels[]?.name] | index($label) != null' "${payload_file}")"
+
+is_authorized_labeler() {
+  local login="$1"
+  local item
+  IFS=',' read -r -a labelers <<<"${AUTHORIZED_LABELERS}"
+  for item in "${labelers[@]}"; do
+    item="${item//[[:space:]]/}"
+    if [[ -n "${item}" && "${login}" == "${item}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 case "${action}" in
   opened|edited|reopened|labeled)
@@ -65,8 +79,8 @@ if [[ "${repository}" != "${REPO}" ]]; then
   exit 0
 fi
 
-if [[ "${issue_state}" != "open" || "${issue_author}" != "${AUTHOR}" ]]; then
-  log "ignored issue #${issue_number}: state=${issue_state} author=${issue_author}"
+if [[ "${issue_state}" != "open" ]]; then
+  log "ignored issue #${issue_number}: state=${issue_state}"
   exit 0
 fi
 
@@ -80,7 +94,12 @@ if [[ "${has_trigger}" != "true" ]]; then
   exit 0
 fi
 
-log "triggering worker for issue #${issue_number}"
+if ! is_authorized_labeler "${labeler}"; then
+  log "ignored issue #${issue_number}: labeler ${labeler:-unknown} is not authorized for ${TRIGGER_LABEL}"
+  exit 0
+fi
+
+log "triggering worker for issue #${issue_number}; admission label=${QUEUE_LABEL} labeler=${labeler}"
 if systemctl --user start --no-block homedir-sdlc-worker.service >/dev/null 2>&1; then
   log "started homedir-sdlc-worker.service"
 else
