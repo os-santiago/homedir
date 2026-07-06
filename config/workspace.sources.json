@@ -1,0 +1,15 @@
+{
+  "workspace_root": ".",
+  "memory_db": "~/.workspace-os/global-memory.sqlite3",
+  "sources": [
+    {
+      "name": "homedir",
+      "type": "github",
+      "owner": "os-santiago",
+      "repository": "homedir",
+      "responsibility": "Homedir platform - community reputation and contribution system",
+      "path": ".",
+      "search": true
+    }
+  ]
+}
