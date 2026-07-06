@@ -159,7 +159,9 @@ What it automates:
 - Autonomous SDLC is governed by `docs/en/development/autonomous-sdlc.md`: it may create branches and PRs, but it must not bypass branch protection, reviews, required checks, repository rulesets, or secret controls.
 - The autonomous SDLC must run from the VPS. A workstation may SSH in to trigger bootstrap, but normal operation must not depend on WSL, PowerShell, local paths, or local credentials.
 - OpenClaw can invoke `homedir-sdlc-openclaw-listener.sh` with the GitHub issue event payload. The polling timer remains enabled as a reconciliation fallback.
-- The GitHub webhook can wake the SDLC immediately when an authorized labeler adds `ready-to-implement` to any open issue. The webhook promotes accepted issues to `scc-queued`; the worker only consumes `scc-queued`, while unauthorized labelers are moved to the `scc-rejected` discard queue. Run `homedir-github-webhook.service` as `homedir-sdlc` and set `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` in `/etc/homedir.env` to invoke `homedir-sdlc-openclaw-listener.sh` directly from that account.
+- The GitHub webhook can wake the SDLC immediately for issue, PR, comment, review, and check events. Set `HOMEDIR_SDLC_GITHUB_EVENT_COMMAND` to invoke `homedir-sdlc-worker.sh {command} {payload}` for event-driven handling; keep `HOMEDIR_SDLC_GITHUB_HOOK_COMMAND` for the legacy authorized label admission path.
+- New issues must pass the initial admission review and receive `scc-accepted` before `ready-to-implement` can move them to `scc-queued`. The webhook promotes only accepted issues from authorized labelers; unauthorized labelers are moved to the `scc-rejected` discard queue.
+- New PRs are tracked with `ai-sdlc-track` and held in `scc-waiting-checks` for `HOMEDIR_SDLC_PR_REVIEW_DELAY_SECONDS` (default 600) before automated review, unless comments, requested changes, or failed checks arrive first.
 - Monitor the runner with `homedir-sdlc-status.sh`; a stale heartbeat or inactive user timer should page the operator before issues pile up.
 
 ## Autonomous SDLC service account

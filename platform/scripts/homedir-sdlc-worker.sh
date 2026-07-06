@@ -15,8 +15,12 @@ QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
 REJECTED_LABEL="${HOMEDIR_SDLC_REJECTED_LABEL:-scc-rejected}"
 UNAUTHORIZED_LABEL="${HOMEDIR_SDLC_UNAUTHORIZED_LABEL:-scc-rejected:unauthorized-labeler}"
 AUTHORIZED_LABELERS="${HOMEDIR_SDLC_AUTHORIZED_LABELERS:-scanalesespinoza}"
+ADMISSION_REVIEW_LABEL="${HOMEDIR_SDLC_ADMISSION_REVIEW_LABEL:-scc-admission-review}"
+ACCEPTED_LABEL="${HOMEDIR_SDLC_ACCEPTED_LABEL:-scc-accepted}"
 RUNNING_LABEL="${HOMEDIR_SDLC_RUNNING_LABEL:-scc-running}"
 PR_LABEL="${HOMEDIR_SDLC_PR_LABEL:-scc-pr-open}"
+PR_TRACK_LABEL="${HOMEDIR_SDLC_PR_TRACK_LABEL:-ai-sdlc-track}"
+PR_ASSIST_LABEL="${HOMEDIR_SDLC_PR_ASSIST_LABEL:-ai-sdlc-assist}"
 WAITING_CHECKS_LABEL="${HOMEDIR_SDLC_WAITING_CHECKS_LABEL:-scc-waiting-checks}"
 FAILING_CHECKS_LABEL="${HOMEDIR_SDLC_FAILING_CHECKS_LABEL:-scc-failing-checks}"
 UNDER_REVIEW_LABEL="${HOMEDIR_SDLC_UNDER_REVIEW_LABEL:-scc-under-review}"
@@ -30,12 +34,15 @@ STATE_DIR="${HOMEDIR_SDLC_STATE_DIR:-/var/lib/homedir-sdlc}"
 LOGFILE="${HOMEDIR_SDLC_LOGFILE:-/var/log/homedir-sdlc-worker.log}"
 MAX_ISSUES="${HOMEDIR_SDLC_MAX_ISSUES_PER_RUN:-1}"
 ENABLE_AUTOMERGE="${HOMEDIR_SDLC_ENABLE_AUTOMERGE:-false}"
+PR_REVIEW_DELAY_SECONDS="${HOMEDIR_SDLC_PR_REVIEW_DELAY_SECONDS:-600}"
 VALIDATION_COMMAND="${HOMEDIR_SDLC_VALIDATION_COMMAND:-}"
 GIT_USER_NAME="${HOMEDIR_SDLC_GIT_USER_NAME:-homedir-sdlc[bot]}"
 GIT_USER_EMAIL="${HOMEDIR_SDLC_GIT_USER_EMAIL:-homedir-sdlc@users.noreply.github.com}"
 SCC_BIN="${SCC_BIN:-/usr/local/bin/scc}"
+SCC_TIMEOUT_SECONDS="${HOMEDIR_SDLC_SCC_TIMEOUT_SECONDS:-1800}"
 LOCK_FILE="${STATE_DIR}/worker.lock"
 ISSUE_STATE_DIR="${STATE_DIR}/issues"
+PR_STATE_DIR="${STATE_DIR}/prs"
 RUN_SUMMARY_DIR="${STATE_DIR}/run-summaries"
 HEARTBEAT_FILE="${HOMEDIR_SDLC_HEARTBEAT_FILE:-${STATE_DIR}/heartbeat.json}"
 MAX_REMEDIATION_ATTEMPTS="${HOMEDIR_SDLC_MAX_REMEDIATION_ATTEMPTS:-5}"
@@ -44,7 +51,7 @@ ALERT_WEBHOOK_URL="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL:-}"
 ALERT_WEBHOOK_URL_FILE="${HOMEDIR_SDLC_ALERT_WEBHOOK_URL_FILE:-}"
 ALERT_TIMEOUT_SECONDS="${HOMEDIR_SDLC_ALERT_TIMEOUT_SECONDS:-10}"
 
-mkdir -p "${STATE_DIR}" "${ISSUE_STATE_DIR}" "${RUN_SUMMARY_DIR}" "$(dirname "${LOGFILE}")"
+mkdir -p "${STATE_DIR}" "${ISSUE_STATE_DIR}" "${PR_STATE_DIR}" "${RUN_SUMMARY_DIR}" "$(dirname "${LOGFILE}")"
 touch "${LOGFILE}"
 
 log() {
@@ -138,6 +145,56 @@ require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     log "missing required command: $1"
     exit 1
+  fi
+}
+
+run_scc_prompt() {
+  local prompt="$1"
+
+  (
+    cd "${WORKDIR}"
+    if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
+      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" -yq "${prompt}"
+    else
+      log "WARNING: 'timeout' unavailable or SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running SCC without timeout enforcement"
+      "${SCC_BIN}" -yq "${prompt}"
+    fi
+  ) 2>&1 | tee -a "${LOGFILE}"
+  return "${PIPESTATUS[0]}"
+}
+
+run_scc_handle_exit_code() {
+  local rc=$1
+  local context=$2
+  if [[ "${rc}" -eq 124 ]]; then
+    log "SCC ${context} timed out after ${SCC_TIMEOUT_SECONDS}s"
+  else
+    log "SCC ${context} exited non-zero (${rc})"
+  fi
+  return "${rc}"
+}
+
+run_scc_with_timeout_handling() {
+  local prompt="$1"
+  local scc_rc
+  if run_scc_prompt "${prompt}"; then
+    return 0
+  fi
+  scc_rc=$?
+  run_scc_handle_exit_code "${scc_rc}" "remediation"
+  return "${scc_rc}"
+}
+
+run_scc_checked() {
+  local prompt="$1"
+  local rc
+
+  if run_scc_prompt "${prompt}"; then
+    return 0
+  else
+    rc=$?
+    run_scc_handle_exit_code "${rc}" "initial"
+    return "${rc}"
   fi
 }
 
@@ -296,14 +353,36 @@ reject_issue_from_queue() {
 
 open_pr_for_issue() {
   local issue="$1"
-  gh pr list \
-    --repo "${REPO}" \
-    --state open \
-    --search "${issue} in:title,body" \
-    --limit 20 \
-    --json number,title,url \
-    --jq '.[0] // empty' \
-    2>/dev/null
+  {
+    gh pr list \
+      --repo "${REPO}" \
+      --state open \
+      --search "head:scc/issue-${issue}" \
+      --limit 50 \
+      --json number,title,url,headRefName,body \
+      2>/dev/null
+    gh pr list \
+      --repo "${REPO}" \
+      --state open \
+      --search "#${issue} in:title,body" \
+      --limit 100 \
+      --json number,title,url,headRefName,body \
+      2>/dev/null
+  } \
+    | jq -sc --arg issue "${issue}" '
+        add
+        | unique_by(.number)
+        |
+        [
+          .[]
+          | select(
+              (.headRefName // "" | test("(^|/)issue-" + $issue + "([^0-9]|$)"))
+              or (.title // "" | test("#" + $issue + "\\b"))
+              or (.body // "" | test("(?m)^(Closes|Fixes|Resolves|Refs) #" + $issue + "\\b"))
+              or (.body // "" | test("Autonomous SCC implementation for issue #" + $issue + "\\b"))
+            )
+        ][0] // empty
+      '
 }
 
 reconcile_admission_requests() {
@@ -335,6 +414,13 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      continue
+    fi
+
+    if ! issue_has_label "${labels}" "${ACCEPTED_LABEL}"; then
+      add_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+      comment_issue "${number}" "AI SDLC admission is waiting for initial acceptance review. \`${TRIGGER_LABEL}\` requires \`${ACCEPTED_LABEL}\` before this issue can enter \`${QUEUE_LABEL}\`."
+      log "issue #${number} has ${TRIGGER_LABEL} but is missing ${ACCEPTED_LABEL}; admission deferred"
       continue
     fi
 
@@ -407,6 +493,270 @@ append_run_summary() {
       summary: $summary,
       created_at: $created_at
     }' >> "${file}"
+}
+
+now_epoch() {
+  date -u +%s
+}
+
+iso_from_epoch() {
+  local epoch="$1"
+  date -u -d "@${epoch}" +%Y-%m-%dT%H:%M:%SZ
+}
+
+event_payload_file() {
+  local payload_file="${1:-}"
+  if [[ -z "${payload_file}" || ! -f "${payload_file}" ]]; then
+    log "event command ignored: missing payload file"
+    return 1
+  fi
+  if ! jq empty "${payload_file}" >/dev/null 2>&1; then
+    log "event command ignored: invalid JSON payload ${payload_file}"
+    return 1
+  fi
+  printf '%s\n' "${payload_file}"
+}
+
+issue_acceptance_review() {
+  local title="$1"
+  local body="$2"
+
+  ISSUE_TITLE="${title}" ISSUE_BODY="${body}" python3 - <<'PY'
+import json
+import os
+import re
+
+title = os.environ.get("ISSUE_TITLE", "").strip()
+body = os.environ.get("ISSUE_BODY", "").strip()
+text = f"{title}\n{body}".lower()
+reasons = []
+warnings = []
+
+if len(title) < 8 or len(body) < 30:
+    warnings.append("Issue is too short to safely implement autonomously.")
+
+destructive = [
+    r"\bdelete\s+(all|prod|production|database|data|users?)\b",
+    r"\bdrop\s+(database|table|schema)\b",
+    r"\bwipe\s+(data|database|server|prod|production)\b",
+    r"\bdisable\s+(auth|authentication|authorization|security|checks?)\b",
+    r"\bbypass\s+(branch protection|rulesets?|reviews?|checks?|security)\b",
+    r"\bexpose\s+(secret|token|password|key)\b",
+    r"\bforce\s+push\b",
+    r"\b--admin\b",
+]
+if any(re.search(pattern, text) for pattern in destructive):
+    reasons.append("Issue appears to request destructive, unsafe, or bypass-oriented work.")
+
+architecture = [
+    r"\bremove\s+(tests?|validation|monitoring|logging)\b",
+    r"\bignore\s+(security|checks?|tests?|lint|validation)\b",
+]
+if any(re.search(pattern, text) for pattern in architecture):
+    warnings.append("Issue may degrade maintainability, safety checks, or operational guardrails.")
+
+if reasons:
+    status = "rejected"
+elif warnings:
+    status = "needs-human"
+else:
+    status = "accepted"
+
+print(json.dumps({"status": status, "reasons": reasons + warnings}, ensure_ascii=True))
+PY
+}
+
+review_new_issue_event() {
+  local payload_file="$1"
+  local number title body state repo review_json status reason_text
+
+  repo="$(jq -r '.repository.full_name // ""' "${payload_file}")"
+  number="$(jq -r '.issue.number // ""' "${payload_file}")"
+  title="$(jq -r '.issue.title // ""' "${payload_file}")"
+  body="$(jq -r '.issue.body // ""' "${payload_file}")"
+  state="$(jq -r '.issue.state // ""' "${payload_file}")"
+
+  if [[ "${repo}" != "${REPO}" || "${state}" != "open" || -z "${number}" ]]; then
+    log "issue-opened ignored repo=${repo} state=${state} number=${number}"
+    return 0
+  fi
+
+  add_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+  review_json="$(issue_acceptance_review "${title}" "${body}")"
+  status="$(jq -r '.status' <<<"${review_json}")"
+  reason_text="$(jq -r '.reasons | if length == 0 then "No blocking admission risks detected." else join(" ") end' <<<"${review_json}")"
+
+  case "${status}" in
+    accepted)
+      add_label "${number}" "${ACCEPTED_LABEL}"
+      remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+      comment_issue "${number}" "AI SDLC initial acceptance review passed. Criteria checked: improvement/correction intent, non-destructive scope, stability, security, maintainability, architecture, and good practices. ${reason_text}"
+      ;;
+    needs-human)
+      remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+      add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+      comment_issue "${number}" "AI SDLC initial acceptance review needs human clarification before queue admission. ${reason_text}"
+      ;;
+    *)
+      remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+      add_label "${number}" "${REJECTED_LABEL}"
+      comment_issue "${number}" "AI SDLC initial acceptance review rejected this issue for autonomous implementation. ${reason_text}"
+      ;;
+  esac
+
+  log "issue #${number} initial acceptance status=${status}"
+}
+
+write_pr_state_from_payload() {
+  local payload_file="$1"
+  local reason="$2"
+  local force_ready="${3:-false}"
+  local number repo title url head_ref base_ref state draft head_sha now not_before not_before_iso pr_state_file
+
+  repo="$(jq -r '.repository.full_name // ""' "${payload_file}")"
+  number="$(jq -r '.pull_request.number // .issue.number // ""' "${payload_file}")"
+  title="$(jq -r '.pull_request.title // .issue.title // ""' "${payload_file}")"
+  url="$(jq -r '.pull_request.html_url // .issue.html_url // ""' "${payload_file}")"
+  head_ref="$(jq -r '.pull_request.head.ref // ""' "${payload_file}")"
+  base_ref="$(jq -r '.pull_request.base.ref // ""' "${payload_file}")"
+  state="$(jq -r '.pull_request.state // .issue.state // ""' "${payload_file}")"
+  draft="$(jq -r '.pull_request.draft // false' "${payload_file}")"
+  head_sha="$(jq -r '.pull_request.head.sha // ""' "${payload_file}")"
+
+  if [[ "${repo}" != "${REPO}" || -z "${number}" ]]; then
+    log "PR event ignored repo=${repo} number=${number}"
+    return 1
+  fi
+
+  now="$(now_epoch)"
+  if [[ "${force_ready}" == "true" ]]; then
+    not_before="${now}"
+  else
+    not_before="$((now + PR_REVIEW_DELAY_SECONDS))"
+  fi
+  not_before_iso="$(iso_from_epoch "${not_before}")"
+  pr_state_file="${PR_STATE_DIR}/pr-${number}.json"
+
+  jq -n \
+    --arg repo "${REPO}" \
+    --arg number "${number}" \
+    --arg title "${title}" \
+    --arg url "${url}" \
+    --arg head_ref "${head_ref}" \
+    --arg base_ref "${base_ref}" \
+    --arg state "${state}" \
+    --arg draft "${draft}" \
+    --arg head_sha "${head_sha}" \
+    --arg reason "${reason}" \
+    --argjson review_not_before_epoch "${not_before}" \
+    --arg review_not_before "${not_before_iso}" \
+    --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{
+      repo: $repo,
+      pr_number: ($number|tonumber),
+      title: $title,
+      url: $url,
+      head_ref: $head_ref,
+      base_ref: $base_ref,
+      state: $state,
+      draft: ($draft == "true"),
+      head_sha: $head_sha,
+      last_event: $reason,
+      review_not_before_epoch: $review_not_before_epoch,
+      review_not_before: $review_not_before,
+      updated_at: $updated_at
+    }' > "${pr_state_file}"
+
+  add_label "${number}" "${PR_TRACK_LABEL}"
+  add_label "${number}" "${WAITING_CHECKS_LABEL}"
+  log "tracked PR #${number} reason=${reason} review_not_before=${not_before_iso}"
+}
+
+track_pr_event() {
+  local payload_file="$1"
+  local reason="$2"
+  local force_ready="${3:-false}"
+
+  write_pr_state_from_payload "${payload_file}" "${reason}" "${force_ready}" || return 0
+}
+
+review_tracked_pr_state() {
+  local state_file="$1"
+  local force="${2:-false}"
+  local number now due pr_json pr_state pr_url pr_sha branch checks_json reviews_json failing_count pending_count success_count actionable_count last_reviewed_sha
+
+  number="$(jq -r '.pr_number' "${state_file}")"
+  now="$(now_epoch)"
+  due="$(jq -r '.review_not_before_epoch // 0' "${state_file}")"
+  if [[ "${force}" != "true" && "${now}" -lt "${due}" ]]; then
+    log "PR #${number} review window still open until $(iso_from_epoch "${due}")"
+    return 0
+  fi
+
+  pr_json="$(gh pr view "${number}" \
+    --repo "${REPO}" \
+    --json number,title,body,state,isDraft,url,headRefName,headRefOid,reviewDecision,latestReviews,statusCheckRollup,labels \
+    2>/dev/null || true)"
+  if [[ -z "${pr_json}" ]]; then
+    return 0
+  fi
+
+  pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
+  if [[ "${pr_state}" != "OPEN" ]]; then
+    return 0
+  fi
+
+  pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+  pr_sha="$(jq -r '.headRefOid // ""' <<<"${pr_json}")"
+  branch="$(jq -r '.headRefName // ""' <<<"${pr_json}")"
+  checks_json="$(pr_checks_state "${pr_json}")"
+  reviews_json="$(review_state "${pr_json}")"
+  failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
+  pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
+  success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
+  actionable_count="$(jq -r '.actionable_reviews | length' <<<"${reviews_json}")"
+  last_reviewed_sha="$(jq -r '.last_reviewed_sha // ""' "${state_file}")"
+
+  if [[ "${branch}" =~ ^scc/issue-([0-9]+) ]]; then
+    local issue="${BASH_REMATCH[1]}"
+    if [[ ! -f "${ISSUE_STATE_DIR}/issue-${issue}.json" ]]; then
+      write_issue_state "${issue}" "${branch}" "${pr_url}"
+    fi
+    reconcile_pr_state "${ISSUE_STATE_DIR}/issue-${issue}.json"
+    return 0
+  fi
+
+  if [[ "${last_reviewed_sha}" == "${pr_sha}" && "${force}" != "true" ]]; then
+    return 0
+  fi
+
+  if [[ "${failing_count}" -gt 0 ]]; then
+    set_flow_labels "${number}" "${PR_TRACK_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}"
+    comment_issue "${number}" "AI SDLC review: PR checks are failing after the review window. Please inspect failing checks before merge. Context: $(jq -c '.failing' <<<"${checks_json}")"
+  elif [[ "${pending_count}" -gt 0 || "${success_count}" -eq 0 ]]; then
+    set_flow_labels "${number}" "${PR_TRACK_LABEL}" "${WAITING_CHECKS_LABEL}"
+    log "tracked PR #${number} still waiting for checks"
+  elif [[ "${actionable_count}" -gt 0 ]]; then
+    set_flow_labels "${number}" "${PR_TRACK_LABEL}" "${UNDER_REVIEW_LABEL}"
+    comment_issue "${number}" "AI SDLC review: actionable review feedback is present. Context: $(jq -c '.actionable_reviews' <<<"${reviews_json}")"
+  else
+    set_flow_labels "${number}" "${PR_TRACK_LABEL}" "${APPROVED_LABEL}"
+    comment_issue "${number}" "AI SDLC review passed for collaborator PR ${pr_url}: checks are green and no actionable review feedback was detected. Repository rules still apply."
+  fi
+
+  PR_SHA="${pr_sha}" jq \
+    --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '.last_reviewed_sha = env.PR_SHA | .last_reviewed_at = $updated_at' \
+    "${state_file}" > "${state_file}.tmp"
+  mv -f "${state_file}.tmp" "${state_file}"
+}
+
+reconcile_tracked_prs() {
+  local state_file
+
+  while IFS= read -r state_file; do
+    review_tracked_pr_state "${state_file}"
+  done < <(find "${PR_STATE_DIR}" -maxdepth 1 -name 'pr-*.json' -type f 2>/dev/null)
 }
 
 pr_checks_state() {
@@ -561,7 +911,10 @@ $(jq -r '.' <<<"${reviews_json}")
 Rules:
 - Stay on branch ${branch}; never push directly to main.
 - Fix only the failing checks or actionable review feedback shown above.
-- If the trigger is a coverage gap, update the implementation and PR body so `## Issue Coverage` truthfully maps code changes to the issue request and acceptance criteria.
+- If the trigger is a coverage gap, update the implementation and PR body so the section named ## Issue Coverage truthfully maps code changes to the issue request and acceptance criteria.
+- If the implementation is incomplete, make the missing code, test, workflow, or documentation changes instead of only describing them.
+- If only the PR body is incomplete, update it directly with gh pr edit so the coverage section contains checked, evidence-backed items.
+- Do not stop at analysis, recommendations, or requests for approval when the requested remediation is actionable.
 - Keep the change minimal and within the issue/PR scope.
 - Run the smallest meaningful validation you can.
 - Do not use --admin.
@@ -600,8 +953,15 @@ run_scc_on_existing_pr() {
   git -C "${WORKDIR}" checkout -B "${branch}" "origin/${branch}"
 
   prompt="$(build_remediation_prompt "${issue}" "${title}" "${branch}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}")"
-  if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
-    mark_failed "${issue}" "SCC remediation exited non-zero for PR #${pr_number}. Check ${LOGFILE} on the runner."
+  if run_scc_with_timeout_handling "${prompt}"; then
+    :
+  else
+    local scc_rc=$?
+    if [[ "${scc_rc}" -eq 124 ]]; then
+      mark_failed "${issue}" "SCC remediation timed out after ${SCC_TIMEOUT_SECONDS}s for PR #${pr_number}. Check ${LOGFILE} on the runner."
+      return 0
+    fi
+    mark_failed "${issue}" "SCC remediation exited non-zero (${scc_rc}) for PR #${pr_number}. Check ${LOGFILE} on the runner."
     return 0
   fi
 
@@ -616,7 +976,11 @@ run_scc_on_existing_pr() {
     if [[ "${attempts}" -ge "${MAX_REMEDIATION_ATTEMPTS}" ]]; then
       mark_needs_human "${issue}" "SCC remediation for PR #${pr_number} produced no changes after ${attempts} attempts."
     else
-      set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+      if [[ "${trigger}" == *"coverage gap"* ]]; then
+        set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
+      else
+        set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
+      fi
       append_run_summary "${issue}" "remediation-noop" "${pr_number}" "${branch}" "SCC remediation produced no changes for ${trigger}; attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}."
       comment_issue "${issue}" "Autonomous SDLC remediation produced no changes for PR #${pr_number}. Attempt ${attempts}/${MAX_REMEDIATION_ATTEMPTS}; state remains \`${UNDER_REVIEW_LABEL}\`."
     fi
@@ -746,9 +1110,22 @@ enable_auto_merge_for_state() {
   fi
 }
 
+issue_title_for_prompt() {
+  local issue="$1"
+  local fallback_title="$2"
+  local title
+
+  title="$(gh issue view "${issue}" --repo "${REPO}" --json title --jq '.title' 2>/dev/null || true)"
+  if [[ -n "${title}" ]]; then
+    printf '%s\n' "${title}"
+  else
+    printf '%s\n' "${fallback_title}"
+  fi
+}
+
 reconcile_pr_state() {
   local state_file="$1"
-  local issue pr_number branch pr_json pr_state pr_url pr_title pr_sha is_draft checks_json reviews_json
+  local issue pr_number branch pr_json pr_state pr_url pr_title issue_title pr_sha is_draft checks_json reviews_json
   local coverage_json coverage_passed failing_count pending_count success_count actionable_count trigger approved_sha
 
   issue="$(jq -r '.issue' "${state_file}")"
@@ -770,6 +1147,7 @@ reconcile_pr_state() {
   pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
   pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
   pr_title="$(jq -r '.title // ""' <<<"${pr_json}")"
+  issue_title="$(issue_title_for_prompt "${issue}" "${pr_title}")"
   pr_sha="$(jq -r '.headRefOid // ""' <<<"${pr_json}")"
   is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
   checks_json="$(pr_checks_state "${pr_json}")"
@@ -789,7 +1167,7 @@ reconcile_pr_state() {
     trigger="failing checks on PR #${pr_number}"
     set_flow_labels "${issue}" "${PR_LABEL}" "${FAILING_CHECKS_LABEL}" "${UNDER_REVIEW_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "failing-checks" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
     return 0
   fi
 
@@ -804,7 +1182,7 @@ reconcile_pr_state() {
     trigger="actionable review feedback on PR #${pr_number}"
     set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "under-review" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${reviews_json}" "${trigger}"
     return 0
   fi
 
@@ -812,7 +1190,7 @@ reconcile_pr_state() {
     trigger="technical issue coverage gap on PR #${pr_number}: $(jq -r '.gaps | join("; ")' <<<"${coverage_json}")"
     set_flow_labels "${issue}" "${PR_LABEL}" "${UNDER_REVIEW_LABEL}" "${COVERAGE_GAP_LABEL}"
     update_issue_state "${issue}" '.last_pr_state = "coverage-gap" | .last_checked_at = $updated_at'
-    run_scc_on_existing_pr "${issue}" "${pr_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
+    run_scc_on_existing_pr "${issue}" "${issue_title}" "${branch}" "${pr_number}" "${pr_url}" "${checks_json}" "${coverage_json}" "${trigger}"
     return 0
   fi
 
@@ -969,6 +1347,47 @@ prepare_workdir() {
   git -C "${WORKDIR}" config user.email "${GIT_USER_EMAIL}"
 }
 
+run_event_command() {
+  local command="$1"
+  local payload_file="${2:-}"
+  local payload
+
+  payload="$(event_payload_file "${payload_file}")" || return 0
+
+  case "${command}" in
+    issue-opened)
+      review_new_issue_event "${payload}"
+      ;;
+    issue-commented)
+      if [[ "$(jq -r 'has("issue") and (.issue.pull_request != null)' "${payload}")" == "true" ]]; then
+        track_pr_event "${payload}" "issue-comment-on-pr" "true"
+        review_tracked_pr_state "${PR_STATE_DIR}/pr-$(jq -r '.issue.number' "${payload}").json" "true"
+      else
+        reconcile_admission_requests
+      fi
+      ;;
+    pr-opened|pr-reopened|pr-ready-for-review|pr-synchronized)
+      track_pr_event "${payload}" "${command}" "false"
+      ;;
+    pr-commented|pr-review-submitted)
+      track_pr_event "${payload}" "${command}" "true"
+      review_tracked_pr_state "${PR_STATE_DIR}/pr-$(jq -r '.pull_request.number // .issue.number' "${payload}").json" "true"
+      ;;
+    checks-completed)
+      reconcile_open_prs
+      reconcile_tracked_prs
+      ;;
+    pr-closed)
+      reconcile_merged_prs
+      reconcile_legacy_closed_issues
+      ;;
+    *)
+      log "unknown event command: ${command}"
+      return 0
+      ;;
+  esac
+}
+
 run_issue() {
   local issue_json="$1"
   local number title labels body url branch slug prompt pr_url pr_number validation_summary existing_pr_json existing_pr_number existing_pr_url
@@ -1036,7 +1455,8 @@ Rules:
 - Work only within the issue scope.
 - Use branch ${branch}; never push directly to main.
 - Make a focused implementation, then leave a concise summary of validation.
-- Ensure the pull request body contains a `## Issue Coverage` section that maps code changes to the issue request and acceptance criteria.
+- Do not stop at analysis or ask follow-up questions when the issue is implementable; make the smallest safe code or documentation change that satisfies the issue.
+- Ensure the pull request body contains a section named ## Issue Coverage that maps code changes to the issue request and acceptance criteria.
 - Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
 - It is okay to edit files without committing; the worker will create the final commit if needed.
 - Run the smallest meaningful local validation and include evidence in the PR.
@@ -1050,9 +1470,17 @@ EOF
 
   log "running SCC for issue #${number}"
   write_heartbeat "running" "SCC running for issue #${number}"
-  if ! (cd "${WORKDIR}" && "${SCC_BIN}" -yq "${prompt}"); then
+  local scc_rc
+  if run_scc_checked "${prompt}"; then
+    :
+  else
+    scc_rc=$?
     log "SCC failed for issue #${number}"
-    mark_failed "${number}" "SCC exited non-zero. Check ${LOGFILE} on the runner."
+    if [[ "${scc_rc}" -eq 124 ]]; then
+      mark_failed "${number}" "SCC timed out after ${SCC_TIMEOUT_SECONDS}s. Check ${LOGFILE} on the runner."
+      return 0
+    fi
+    mark_failed "${number}" "SCC exited non-zero (${scc_rc}). Check ${LOGFILE} on the runner."
     return 0
   fi
 
@@ -1133,6 +1561,9 @@ PRBODY
 }
 
 main() {
+  local command="${1:-reconcile}"
+  local payload_file="${2:-}"
+
   write_heartbeat "starting" "worker starting"
   require_cmd gh
   require_cmd git
@@ -1148,11 +1579,20 @@ main() {
     exit 0
   fi
 
+  if [[ "${command}" != "reconcile" ]]; then
+    log "handling SDLC event command=${command}"
+    write_heartbeat "running" "handling event ${command}"
+    run_event_command "${command}" "${payload_file}"
+    write_heartbeat "ok" "event ${command} complete"
+    exit 0
+  fi
+
   log "reconciling merged autonomous SDLC PRs"
   write_heartbeat "running" "reconciling merged PRs"
   reconcile_merged_prs
   reconcile_legacy_closed_issues
   reconcile_open_prs
+  reconcile_tracked_prs
 
   log "checking eligible issues in ${REPO}"
   write_heartbeat "running" "checking eligible issues"

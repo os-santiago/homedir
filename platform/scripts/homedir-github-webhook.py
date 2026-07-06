@@ -42,6 +42,11 @@ SDLC_UNAUTHORIZED_LABEL = (
     os.environ.get("HOMEDIR_SDLC_UNAUTHORIZED_LABEL", "scc-rejected:unauthorized-labeler").strip()
     or "scc-rejected:unauthorized-labeler"
 )
+SDLC_ADMISSION_REVIEW_LABEL = (
+    os.environ.get("HOMEDIR_SDLC_ADMISSION_REVIEW_LABEL", "scc-admission-review").strip()
+    or "scc-admission-review"
+)
+SDLC_ACCEPTED_LABEL = os.environ.get("HOMEDIR_SDLC_ACCEPTED_LABEL", "scc-accepted").strip() or "scc-accepted"
 SDLC_AUTHORIZED_LABELERS = {
     login.strip().casefold()
     for login in os.environ.get("HOMEDIR_SDLC_AUTHORIZED_LABELERS", "scanalesespinoza").split(",")
@@ -49,6 +54,7 @@ SDLC_AUTHORIZED_LABELERS = {
 }
 SDLC_HOOK_COMMAND = os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_COMMAND", "").strip()
 SDLC_HOOK_TIMEOUT_SECONDS = int(os.environ.get("HOMEDIR_SDLC_GITHUB_HOOK_TIMEOUT_SECONDS", "20"))
+SDLC_EVENT_COMMAND = os.environ.get("HOMEDIR_SDLC_GITHUB_EVENT_COMMAND", "").strip()
 ALERT_TIMEOUT_SECONDS = int(os.environ.get("GITHUB_WEBHOOK_ALERT_TIMEOUT_SECONDS", "10"))
 OPENCLAW_HOOK_TIMEOUT_SECONDS = int(os.environ.get("OPENCLAW_GITHUB_MONITOR_TIMEOUT_SECONDS", "10"))
 DISCORD_TARGET = os.environ.get("GITHUB_WEBHOOK_DISCORD_TARGET", "community").strip().casefold() or "community"
@@ -670,30 +676,72 @@ def _reject_sdlc_issue(issue_number: int, labeler: str, payload: dict[str, objec
     log_line(f"sdlc admission rejected issue={issue_number} labeler={labeler or 'unknown'}")
 
 
-def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tuple[bool, str]:
+def _sdlc_event_command_name(event_name: str, payload: dict[str, object]) -> str:
+    action = str(payload.get("action") or "").strip().casefold()
+
+    if event_name == "issues":
+        if action == "opened":
+            return "issue-opened"
+        if action in {"edited", "reopened"}:
+            return "issue-opened"
+        if action == "labeled":
+            return "label-admission"
+
+    if event_name == "issue_comment" and action == "created":
+        return "issue-commented"
+
+    if event_name == "pull_request":
+        mapping = {
+            "opened": "pr-opened",
+            "reopened": "pr-reopened",
+            "ready_for_review": "pr-ready-for-review",
+            "synchronize": "pr-synchronized",
+            "closed": "pr-closed",
+        }
+        return mapping.get(action, "")
+
+    if event_name == "pull_request_review" and action == "submitted":
+        return "pr-review-submitted"
+
+    if event_name == "pull_request_review_comment" and action == "created":
+        return "pr-commented"
+
+    if event_name in {"check_suite", "check_run", "status"}:
+        return "checks-completed"
+
+    return ""
+
+
+def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tuple[bool, str, str]:
     if not SDLC_HOOK_ENABLED:
-        return False, "disabled"
-    if not SDLC_HOOK_COMMAND:
-        return False, "missing-command"
+        return False, "disabled", ""
+    if not SDLC_HOOK_COMMAND and not SDLC_EVENT_COMMAND:
+        return False, "missing-command", ""
+
+    event_command = _sdlc_event_command_name(event_name, payload)
+    if event_command and event_command != "label-admission":
+        if not SDLC_EVENT_COMMAND:
+            return False, f"missing-event-command:{event_command}", ""
+        return True, f"event-command:{event_command}", event_command
     if event_name != "issues":
-        return False, "not-issue-event"
+        return False, "not-sdlc-event", ""
 
     action = str(payload.get("action") or "").strip().casefold()
     if action != "labeled":
-        return False, f"ignored-action:{action or 'unknown'}"
+        return False, f"ignored-action:{action or 'unknown'}", ""
 
     repository = payload.get("repository") if isinstance(payload.get("repository"), dict) else {}
     repo = _repo_full_name(repository)
     if not repo_is_allowed(repo):
-        return False, "repo-not-allowed"
+        return False, "repo-not-allowed", ""
 
     issue = payload.get("issue") if isinstance(payload.get("issue"), dict) else {}
     number = _int(issue.get("number"))
     state = str(issue.get("state") or "").strip().casefold()
     if state != "open":
-        return False, f"issue-not-open:{number or 'unknown'}"
+        return False, f"issue-not-open:{number or 'unknown'}", ""
     if not number:
-        return False, "missing-issue-number"
+        return False, "missing-issue-number", ""
 
     labels = _payload_labels(payload, "issue")
     has_trigger = any(label.casefold() == SDLC_HOOK_LABEL.casefold() for label in labels)
@@ -702,26 +750,41 @@ def _should_trigger_sdlc_hook(event_name: str, payload: dict[str, object]) -> tu
     if isinstance(label, dict):
         event_label = str(label.get("name") or "").strip()
     if action == "labeled" and event_label.casefold() != SDLC_HOOK_LABEL.casefold():
-        return False, f"other-label:{event_label or 'unknown'}"
+        return False, f"other-label:{event_label or 'unknown'}", ""
     if not has_trigger:
-        return False, "missing-trigger-label"
+        return False, "missing-trigger-label", ""
+
+    has_accepted = any(label.casefold() == SDLC_ACCEPTED_LABEL.casefold() for label in labels)
+    if not has_accepted:
+        _gh_add_label(repo, number, SDLC_ADMISSION_REVIEW_LABEL)
+        _run_gh_issue_comment(
+            repo,
+            number,
+            (
+                f"AI SDLC admission is waiting for initial acceptance review. "
+                f"`{SDLC_HOOK_LABEL}` requires `{SDLC_ACCEPTED_LABEL}` before the issue can enter `{SDLC_QUEUE_LABEL}`."
+            ),
+        )
+        return False, f"missing-accepted-label:{SDLC_ACCEPTED_LABEL}", ""
 
     labeler = _sender_login(payload)
     if not _is_authorized_sdlc_labeler(labeler):
         _reject_sdlc_issue(number, labeler, payload)
-        return False, f"unauthorized-labeler:{labeler or 'unknown'}"
+        return False, f"unauthorized-labeler:{labeler or 'unknown'}", ""
 
     if not _admit_sdlc_issue(number, labeler, payload):
-        return False, "admission-failed"
+        return False, "admission-failed", ""
 
-    return True, f"issue:{number}:admitted-by:{labeler}"
+    return True, f"issue:{number}:admitted-by:{labeler}", "reconcile"
 
 
-def _render_sdlc_hook_command(payload_file: str, *, delivery: str, event_name: str) -> list[str]:
-    rendered = SDLC_HOOK_COMMAND.format(
+def _render_sdlc_hook_command(payload_file: str, *, delivery: str, event_name: str, event_command: str) -> list[str]:
+    template = SDLC_EVENT_COMMAND or SDLC_HOOK_COMMAND
+    rendered = template.format(
         payload=_quoted_env(payload_file),
         delivery=_quoted_env(delivery),
         event=_quoted_env(event_name),
+        command=_quoted_env(event_command),
         label=_quoted_env(SDLC_HOOK_LABEL),
         queue_label=_quoted_env(SDLC_QUEUE_LABEL),
         authorized_labelers=_quoted_env(",".join(sorted(SDLC_AUTHORIZED_LABELERS))),
@@ -730,7 +793,7 @@ def _render_sdlc_hook_command(payload_file: str, *, delivery: str, event_name: s
 
 
 def run_sdlc_hook(event_name: str, payload: dict[str, object], *, delivery: str) -> None:
-    should_trigger, reason = _should_trigger_sdlc_hook(event_name, payload)
+    should_trigger, reason, event_command = _should_trigger_sdlc_hook(event_name, payload)
     if not should_trigger:
         log_line(f"sdlc hook skipped event={event_name} reason={reason}")
         return
@@ -749,7 +812,12 @@ def run_sdlc_hook(event_name: str, payload: dict[str, object], *, delivery: str)
             fh.write("\n")
         os.chmod(payload_file, 0o600)
 
-        command = _render_sdlc_hook_command(payload_file, delivery=delivery, event_name=event_name)
+        command = _render_sdlc_hook_command(
+            payload_file,
+            delivery=delivery,
+            event_name=event_name,
+            event_command=event_command,
+        )
         completed = subprocess.run(
             command,
             check=False,
@@ -798,6 +866,8 @@ class Handler(BaseHTTPRequestHandler):
             "sdlc_hook_label": SDLC_HOOK_LABEL,
             "sdlc_queue_label": SDLC_QUEUE_LABEL,
             "sdlc_rejected_label": SDLC_REJECTED_LABEL,
+            "sdlc_admission_review_label": SDLC_ADMISSION_REVIEW_LABEL,
+            "sdlc_accepted_label": SDLC_ACCEPTED_LABEL,
             "sdlc_authorized_labelers": sorted(SDLC_AUTHORIZED_LABELERS),
             "wos_review_hook_enabled": True,
             "wos_review_label": WOS_REVIEW_LABEL,
