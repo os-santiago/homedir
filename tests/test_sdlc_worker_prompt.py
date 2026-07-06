@@ -68,6 +68,7 @@ def test_sdlc_worker_supports_event_driven_commands() -> None:
     assert "track_pr_event()" in worker
     assert "reconcile_tracked_prs()" in worker
     assert "run_event_command()" in worker
+    assert "finalize_closed_tracked_pr()" in worker
     for command in [
         "issue-opened",
         "issue-commented",
@@ -85,3 +86,14 @@ def test_initial_prompt_expands_issue_context() -> None:
     assert 'prompt="$(cat <<"EOF"' not in worker
     assert 'cat <<EOF\nContinue the autonomous SDLC remediation' in worker
     assert 'cat <<\'EOF\'\nContinue the autonomous SDLC remediation' not in worker
+
+
+def test_closed_tracked_prs_are_cleaned_after_merge_or_close() -> None:
+    worker = Path("platform/scripts/homedir-sdlc-worker.sh").read_text()
+
+    assert 'if [[ "${pr_state}" != "OPEN" ]]; then\n    finalize_closed_tracked_pr "${state_file}" "${pr_json}"' in worker
+    assert 'remove_label "${number}" "${PR_TRACK_LABEL}"' in worker
+    assert 'remove_label "${number}" "${WAITING_CHECKS_LABEL}"' in worker
+    assert 'remove_label "${number}" "${UNDER_REVIEW_LABEL}"' in worker
+    assert 'add_label "${number}" "${MERGED_LABEL}"' in worker
+    assert "reconcile_tracked_prs\n      reconcile_legacy_closed_issues" in worker
