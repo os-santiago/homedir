@@ -696,6 +696,68 @@ track_pr_event() {
   write_pr_state_from_payload "${payload_file}" "${reason}" "${force_ready}" || return 0
 }
 
+finalize_closed_tracked_pr() {
+  local state_file="$1"
+  local pr_json="$2"
+  local number pr_state pr_url merged_at merge_sha summary current_summary labels_json
+
+  number="$(jq -r '.number // .pr_number' <<<"${pr_json}")"
+  pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
+  pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+  merged_at="$(jq -r '.mergedAt // ""' <<<"${pr_json}")"
+  merge_sha="$(jq -r '.mergeCommit.oid // ""' <<<"${pr_json}")"
+  labels_json="$(jq -c '[.labels[].name]' <<<"${pr_json}")"
+
+  if [[ "${pr_state}" == "MERGED" ]]; then
+    summary="tracked PR merged"
+  else
+    summary="tracked PR closed without merge"
+  fi
+
+  current_summary="$(jq -r '.last_pr_state // ""' "${state_file}")"
+  if [[ "${current_summary}" == "${summary}" ]] \
+    && ! issue_has_label "${labels_json}" "${PR_TRACK_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${PR_ASSIST_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${WAITING_CHECKS_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${FAILING_CHECKS_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${UNDER_REVIEW_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${COVERAGE_GAP_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${APPROVED_LABEL}"; then
+    return 0
+  fi
+
+  remove_label "${number}" "${PR_TRACK_LABEL}"
+  remove_label "${number}" "${PR_ASSIST_LABEL}"
+  remove_label "${number}" "${WAITING_CHECKS_LABEL}"
+  remove_label "${number}" "${FAILING_CHECKS_LABEL}"
+  remove_label "${number}" "${UNDER_REVIEW_LABEL}"
+  remove_label "${number}" "${COVERAGE_GAP_LABEL}"
+  remove_label "${number}" "${APPROVED_LABEL}"
+
+  if [[ "${pr_state}" == "MERGED" ]]; then
+    add_label "${number}" "${MERGED_LABEL}"
+    log "cleaned tracked PR #${number} after merge"
+  else
+    log "cleaned tracked PR #${number} after close without merge"
+  fi
+
+  jq \
+    --arg state "${pr_state}" \
+    --arg pr_url "${pr_url}" \
+    --arg merged_at "${merged_at}" \
+    --arg merge_sha "${merge_sha}" \
+    --arg summary "${summary}" \
+    --arg updated_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '.state = $state
+      | .url = (if $pr_url == "" then .url else $pr_url end)
+      | .merged_at = (if $merged_at == "" then null else $merged_at end)
+      | .merge_sha = (if $merge_sha == "" then null else $merge_sha end)
+      | .last_pr_state = $summary
+      | .updated_at = $updated_at' \
+    "${state_file}" > "${state_file}.tmp"
+  mv -f "${state_file}.tmp" "${state_file}"
+}
+
 review_tracked_pr_state() {
   local state_file="$1"
   local force="${2:-false}"
@@ -711,7 +773,7 @@ review_tracked_pr_state() {
 
   pr_json="$(gh pr view "${number}" \
     --repo "${REPO}" \
-    --json number,title,body,state,isDraft,url,headRefName,headRefOid,reviewDecision,latestReviews,statusCheckRollup,labels \
+    --json number,title,body,state,isDraft,url,headRefName,headRefOid,reviewDecision,latestReviews,statusCheckRollup,labels,mergedAt,mergeCommit \
     2>/dev/null || true)"
   if [[ -z "${pr_json}" ]]; then
     return 0
@@ -719,6 +781,7 @@ review_tracked_pr_state() {
 
   pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
   if [[ "${pr_state}" != "OPEN" ]]; then
+    finalize_closed_tracked_pr "${state_file}" "${pr_json}"
     return 0
   fi
 
@@ -1395,6 +1458,7 @@ run_event_command() {
       ;;
     pr-closed)
       reconcile_merged_prs
+      reconcile_tracked_prs
       reconcile_legacy_closed_issues
       ;;
     *)
