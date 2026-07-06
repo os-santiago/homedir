@@ -1308,13 +1308,15 @@ public class CfpSubmissionService {
       return true;
     }
     return switch (current) {
-      case PENDING -> target == CfpSubmissionStatus.UNDER_REVIEW
-          || target == CfpSubmissionStatus.ACCEPTED
-          || target == CfpSubmissionStatus.REJECTED
-          || target == CfpSubmissionStatus.WITHDRAWN;
-      case UNDER_REVIEW -> target == CfpSubmissionStatus.ACCEPTED
-          || target == CfpSubmissionStatus.REJECTED
-          || target == CfpSubmissionStatus.WITHDRAWN;
+      case PENDING ->
+          target == CfpSubmissionStatus.UNDER_REVIEW
+              || target == CfpSubmissionStatus.ACCEPTED
+              || target == CfpSubmissionStatus.REJECTED
+              || target == CfpSubmissionStatus.WITHDRAWN;
+      case UNDER_REVIEW ->
+          target == CfpSubmissionStatus.ACCEPTED
+              || target == CfpSubmissionStatus.REJECTED
+              || target == CfpSubmissionStatus.WITHDRAWN;
       case ACCEPTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case REJECTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case WITHDRAWN -> target == CfpSubmissionStatus.UNDER_REVIEW;
