@@ -188,10 +188,15 @@ public class EventResource {
     List<CfpSubmission> acceptedSubmissions = List.of();
     if (event != null && cfpSubmissionService != null) {
       acceptedSubmissions =
-          cfpSubmissionService.listByEventAll(
-              id,
-              Optional.of(CfpSubmissionStatus.ACCEPTED),
-              CfpSubmissionService.SortOrder.CREATED_DESC);
+          cfpSubmissionService
+              .listByEventAll(
+                  id,
+                  Optional.of(CfpSubmissionStatus.ACCEPTED),
+                  CfpSubmissionService.SortOrder.CREATED_DESC)
+              .stream()
+              .filter(
+                  item -> cfpSubmissionService.visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
+              .toList();
     }
     return withLayoutData(
         Templates.cfpSelected(event, acceptedSubmissions), "eventos", localeCookie, headers);
@@ -216,10 +221,15 @@ public class EventResource {
     List<CfpSubmission> selectedSubmissions = List.of();
     if (event != null && cfpSubmissionService != null) {
       selectedSubmissions =
-          cfpSubmissionService.listByEventAll(
-              id,
-              Optional.of(CfpSubmissionStatus.ACCEPTED),
-              CfpSubmissionService.SortOrder.UPDATED_DESC);
+          cfpSubmissionService
+              .listByEventAll(
+                  id,
+                  Optional.of(CfpSubmissionStatus.ACCEPTED),
+                  CfpSubmissionService.SortOrder.UPDATED_DESC)
+              .stream()
+              .filter(
+                  item -> cfpSubmissionService.visibleStatus(item) == CfpSubmissionStatus.ACCEPTED)
+              .toList();
     }
     return withLayoutData(
         Templates.cfpSelected(event, selectedSubmissions), "eventos", localeCookie, headers);
