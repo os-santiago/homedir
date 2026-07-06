@@ -699,13 +699,32 @@ track_pr_event() {
 finalize_closed_tracked_pr() {
   local state_file="$1"
   local pr_json="$2"
-  local number pr_state pr_url merged_at merge_sha summary
+  local number pr_state pr_url merged_at merge_sha summary current_summary labels_json
 
   number="$(jq -r '.number // .pr_number' <<<"${pr_json}")"
   pr_state="$(jq -r '.state // ""' <<<"${pr_json}")"
   pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
   merged_at="$(jq -r '.mergedAt // ""' <<<"${pr_json}")"
   merge_sha="$(jq -r '.mergeCommit.oid // ""' <<<"${pr_json}")"
+  labels_json="$(jq -c '[.labels[].name]' <<<"${pr_json}")"
+
+  if [[ "${pr_state}" == "MERGED" ]]; then
+    summary="tracked PR merged"
+  else
+    summary="tracked PR closed without merge"
+  fi
+
+  current_summary="$(jq -r '.last_pr_state // ""' "${state_file}")"
+  if [[ "${current_summary}" == "${summary}" ]] \
+    && ! issue_has_label "${labels_json}" "${PR_TRACK_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${PR_ASSIST_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${WAITING_CHECKS_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${FAILING_CHECKS_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${UNDER_REVIEW_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${COVERAGE_GAP_LABEL}" \
+    && ! issue_has_label "${labels_json}" "${APPROVED_LABEL}"; then
+    return 0
+  fi
 
   remove_label "${number}" "${PR_TRACK_LABEL}"
   remove_label "${number}" "${PR_ASSIST_LABEL}"
@@ -717,10 +736,8 @@ finalize_closed_tracked_pr() {
 
   if [[ "${pr_state}" == "MERGED" ]]; then
     add_label "${number}" "${MERGED_LABEL}"
-    summary="tracked PR merged"
     log "cleaned tracked PR #${number} after merge"
   else
-    summary="tracked PR closed without merge"
     log "cleaned tracked PR #${number} after close without merge"
   fi
 

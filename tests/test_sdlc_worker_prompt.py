@@ -96,4 +96,6 @@ def test_closed_tracked_prs_are_cleaned_after_merge_or_close() -> None:
     assert 'remove_label "${number}" "${WAITING_CHECKS_LABEL}"' in worker
     assert 'remove_label "${number}" "${UNDER_REVIEW_LABEL}"' in worker
     assert 'add_label "${number}" "${MERGED_LABEL}"' in worker
+    assert 'current_summary="$(jq -r \'.last_pr_state // ""\' "${state_file}")"' in worker
+    assert '&& ! issue_has_label "${labels_json}" "${PR_TRACK_LABEL}"' in worker
     assert "reconcile_tracked_prs\n      reconcile_legacy_closed_issues" in worker
