@@ -1,5 +1,7 @@
 package com.scanales.homedir.public_;
 
+import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
@@ -34,7 +36,9 @@ public class TalkResource {
         Talk talk,
         com.scanales.homedir.model.Event event,
         java.util.List<Talk> occurrences,
-        boolean inSchedule);
+        boolean inSchedule,
+        boolean slidesAvailable,
+        String slidesUrl);
   }
 
   @Inject EventService eventService;
@@ -42,6 +46,8 @@ public class TalkResource {
   @Inject SecurityIdentity identity;
 
   @Inject UserScheduleService userSchedule;
+
+  @Inject CfpSubmissionService cfpSubmissionService;
 
   @Inject UsageMetricsService metrics;
 
@@ -118,14 +124,53 @@ public class TalkResource {
           inSchedule = userSchedule.getTalksForUser(email).contains(resolvedTalkId);
         }
       }
+      boolean slidesAvailable = false;
+      String slidesUrl = null;
+      String submissionId =
+          resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
+      Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
+      if (submission.isPresent()
+          && submission.get().presentationAsset() != null
+          && Boolean.TRUE.equals(submission.get().presentationPublished())) {
+        slidesAvailable = true;
+        slidesUrl = "/talk/" + resolvedTalkId + "/slides";
+      }
+
       return Response.ok(
               TemplateLocaleUtil.apply(
-                  Templates.detail(talk, event, occurrences, inSchedule), localeCookie))
+                  Templates.detail(
+                      talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl),
+                  localeCookie))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", id);
       return Response.serverError().build();
     }
+  }
+
+  @GET
+  @Path("/talk/{id}/slides")
+  @PermitAll
+  public Response downloadSlides(@PathParam("id") String talkId) {
+    if (talkId == null) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    String submissionId = talkId.startsWith("talk-") ? talkId.substring(5) : talkId;
+    Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
+    if (submission.isEmpty()
+        || submission.get().presentationAsset() == null
+        || !Boolean.TRUE.equals(submission.get().presentationPublished())) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    var asset = submission.get().presentationAsset();
+    java.nio.file.Path filePath = java.nio.file.Paths.get(asset.storagePath());
+    if (!java.nio.file.Files.exists(filePath)) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    return Response.ok(filePath.toFile())
+        .header("Content-Disposition", "attachment; filename=\"" + asset.fileName() + "\"")
+        .type(asset.contentType())
+        .build();
   }
 
   private Optional<String> currentUserId() {

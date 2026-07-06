@@ -99,6 +99,9 @@ public class AppTemplateExtensions {
     if (url == null || url.isBlank()) {
       return false;
     }
+    if (url.startsWith("/")) {
+      return true;
+    }
     try {
       URI uri = new URI(url);
       String scheme = uri.getScheme();

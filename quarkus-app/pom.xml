@@ -292,11 +292,11 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>2.43.0</version>
                 <configuration>
-                    <java>
+                     <java>
                         <googleJavaFormat>
                             <version>1.24.0</version>
                         </googleJavaFormat>
-                    </java>
+                     </java>
                 </configuration>
             </plugin>
             <plugin>
