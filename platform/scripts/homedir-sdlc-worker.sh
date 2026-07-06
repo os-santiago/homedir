@@ -154,10 +154,10 @@ run_scc_prompt() {
   (
     cd "${WORKDIR}"
     if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
-      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" -yq "${prompt}"
+      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" chat -yq "${prompt}"
     else
       log "WARNING: 'timeout' unavailable or SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running SCC without timeout enforcement"
-      "${SCC_BIN}" -yq "${prompt}"
+      "${SCC_BIN}" chat -yq "${prompt}"
     fi
   ) 2>&1 | tee -a "${LOGFILE}"
   return "${PIPESTATUS[0]}"

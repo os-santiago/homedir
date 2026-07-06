@@ -24,26 +24,6 @@
       if (this.visible.length < this.maxVisible) { this.show(vm); } else { this.queue.push(vm); }
       this.updateCloseAll();
     }
-    show(vm) {
-      vm.node = this.render(vm);
-      this.visible.push(vm);
-      this.metric('shown');
-      requestAnimationFrame(() => this.container.appendChild(vm.node));
-      vm.timer = this.startTimer(vm);
-    }
-    startTimer(vm) {
-      let remaining = this.autoDismissMs;
-      let start = Date.now();
-      const tick = () => this.close(vm.id);
-      let timer = setTimeout(tick, remaining);
-      const pause = () => { clearTimeout(timer); remaining -= Date.now() - start; };
-      const resume = () => { start = Date.now(); timer = setTimeout(tick, remaining); };
-      vm.node.addEventListener('mouseenter', pause);
-      vm.node.addEventListener('mouseleave', resume);
-      vm.node.addEventListener('focusin', pause);
-      vm.node.addEventListener('focusout', resume);
-      return timer;
-    }
     render(vm) {
       const toast = document.createElement('div');
       toast.className = 'ef-toast';
@@ -52,14 +32,6 @@
       toast.setAttribute('role', 'status');
       toast.setAttribute('aria-live', 'polite');
       toast.addEventListener('keydown', e => { if (e.key === 'Escape') { this.close(vm.id); } });
-      const title = document.createElement('div');
-      title.className = 'ef-toast__title';
-      title.textContent = vm.title;
-      toast.appendChild(title);
-      const msg = document.createElement('div');
-      msg.className = 'ef-toast__message';
-      msg.textContent = vm.message;
-      toast.appendChild(msg);
       const actions = document.createElement('div');
       actions.className = 'ef-toast__actions';
       if (vm.centerUrl) {
@@ -81,6 +53,37 @@
       actions.appendChild(close);
       toast.appendChild(actions);
       return toast;
+    }
+    show(vm) {
+      vm.node = this.render(vm);
+      this.visible.push(vm);
+      this.metric('shown');
+      requestAnimationFrame(() => {
+        this.container.appendChild(vm.node);
+        // Populate content after appending to DOM so screen readers announce after DOM ready
+        const title = document.createElement('div');
+        title.className = 'ef-toast__title';
+        title.textContent = vm.title;
+        vm.node.appendChild(title);
+        const msg = document.createElement('div');
+        msg.className = 'ef-toast__message';
+        msg.textContent = vm.message;
+        vm.node.appendChild(msg);
+      });
+      vm.timer = this.startTimer(vm);
+    }
+    startTimer(vm) {
+      let remaining = this.autoDismissMs;
+      let start = Date.now();
+      const tick = () => this.close(vm.id);
+      let timer = setTimeout(tick, remaining);
+      const pause = () => { clearTimeout(timer); remaining -= Date.now() - start; };
+      const resume = () => { start = Date.now(); timer = setTimeout(tick, remaining); };
+      vm.node.addEventListener('mouseenter', pause);
+      vm.node.addEventListener('mouseleave', resume);
+      vm.node.addEventListener('focusin', pause);
+      vm.node.addEventListener('focusout', resume);
+      return timer;
     }
     close(id) {
       const idx = this.visible.findIndex(t => t.id === id);
