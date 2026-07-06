@@ -633,9 +633,7 @@
         ? '<p class="form-hint" style="margin-top: 0.35rem;"><strong>'
             + escapeHtml(i18n.presentationTitle)
             + ':</strong> '
-            + '<a href="' + baseEndpoint + '/' + encodeURIComponent(item.id) + '/presentation" class="hd-link" target="_blank">'
-            + escapeHtml(item.presentation_asset.file_name)
-            + '</a>'
+            + escapeHtml(i18n.presentationCurrent + " " + item.presentation_asset.file_name)
             + "</p>"
         : "";
 
@@ -691,8 +689,6 @@
           + buildMetaItem(i18n.language, item.language)
           + buildMetaItem(i18n.format, item.format)
           + buildMetaItem(i18n.duration, item.duration_min ? item.duration_min + " min" : null)
-          + buildMetaItem("Resultado publicado", item.published ? "Sí" : "No")
-          + buildMetaItem("Diapositivas publicadas", item.presentation_published ? "Sí" : "No")
           + '</div></div>'
           + '<div class="card cfp-detail-section"><h3>' + escapeHtml(i18n.summary) + '</h3>'
           + '<p class="cfp-detail-summary" style="margin-top: 0.65rem;">' + escapeHtml(item.summary || i18n.notAvailable) + '</p></div>'
@@ -860,52 +856,6 @@
             showFeedback(i18n.promoteSuccess + " " + payload.speaker_id + " / " + payload.talk_id, false, btn);
           } catch (error) {
             showFeedback(error.message || i18n.promoteError, true, btn);
-          } finally {
-            btn.disabled = false;
-          }
-        });
-      }
-
-      if (status === "accepted" || status === "rejected") {
-        const pubLabel = item.published ? "Revertir publicación resultado" : "Publicar resultado";
-        const pubClass = item.published ? "btn btn-warning" : "btn btn-success";
-        attachAction(pubLabel, pubClass, async (event) => {
-          const btn = event.currentTarget;
-          btn.disabled = true;
-          try {
-            const res = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/publish", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json", Accept: "application/json" },
-              body: JSON.stringify({ published: !item.published })
-            });
-            if (!res.ok) throw new Error("Error al cambiar estado de publicación");
-            showFeedback("Publicación de resultado actualizada", false, btn);
-            await loadDetail();
-          } catch (error) {
-            showFeedback(error.message, true, btn);
-          } finally {
-            btn.disabled = false;
-          }
-        });
-      }
-
-      if (item.presentation_asset && item.presentation_asset.file_name) {
-        const slidesPubLabel = item.presentation_published ? "Ocultar diapositivas en agenda" : "Publicar diapositivas en agenda";
-        const slidesPubClass = item.presentation_published ? "btn btn-warning" : "btn btn-success";
-        attachAction(slidesPubLabel, slidesPubClass, async (event) => {
-          const btn = event.currentTarget;
-          btn.disabled = true;
-          try {
-            const res = await fetch(baseEndpoint + "/" + encodeURIComponent(submissionId) + "/presentation/publish", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json", Accept: "application/json" },
-              body: JSON.stringify({ published: !item.presentation_published })
-            });
-            if (!res.ok) throw new Error("Error al cambiar estado de publicación de diapositivas");
-            showFeedback("Publicación de diapositivas actualizada", false, btn);
-            await loadDetail();
-          } catch (error) {
-            showFeedback(error.message, true, btn);
           } finally {
             btn.disabled = false;
           }

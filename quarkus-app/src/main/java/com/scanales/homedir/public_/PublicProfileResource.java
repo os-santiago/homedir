@@ -18,6 +18,7 @@ import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.ProfileReadinessService;
 import com.scanales.homedir.service.QuestService;
+import com.scanales.homedir.service.SpeakerService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.util.AdminUtils;
@@ -80,6 +81,7 @@ public class PublicProfileResource {
   @Inject ChallengeService challengeService;
   @Inject ReputationProfileSummaryService reputationProfileSummaryService;
   @Inject ProfileReadinessService profileReadinessService;
+  @Inject SpeakerService speakerService;
 
   @GET
   @Path("/{username}")
@@ -120,7 +122,7 @@ public class PublicProfileResource {
     UserProfile profile = userProfileService.find(resolved.userId()).orElse(null);
     UserProfile.SpeakerProfile speakerProfile =
         profile != null ? profile.getSpeakerProfile() : null;
-    boolean speakerActive = speakerProfile != null && speakerProfile.active();
+    boolean speakerActiveRaw = speakerProfile != null && speakerProfile.active();
     ProfileReadinessService.Readiness selectionReadiness =
         profileReadinessService.evaluate(profile, resolved.displayName(), resolved.avatarUrl());
     List<PublicClassProgress> classProgress = buildClassProgress(profile, questProfile.currentXp);
@@ -173,7 +175,19 @@ public class PublicProfileResource {
             .toList();
     boolean selectionLocked =
         (cfpAcceptedCount > 0 || volunteerSelectedCount > 0) && !selectionReadiness.ready();
+    boolean speakerActive = speakerActiveRaw && !selectionLocked;
     List<PublicParticipationItem> participationHistory = buildParticipationHistory(cfpUserIds, 20);
+
+    String speakerPhoto = null;
+    if (resolved != null && resolved.userId() != null) {
+      com.scanales.homedir.model.Speaker speakerObj = speakerService.getSpeaker(resolved.userId());
+      if (speakerObj != null && speakerObj.getPhotoUrl() != null) {
+        speakerPhoto = speakerObj.getPhotoUrl();
+      }
+    }
+    if (speakerPhoto == null && resolved != null) {
+      speakerPhoto = resolved.avatarUrl();
+    }
 
     return Response.ok(
             TemplateLocaleUtil.apply(
@@ -210,6 +224,7 @@ public class PublicProfileResource {
                     .data("cfpRecentAccepted", cfpRecentAccepted)
                     .data("speakerProfile", speakerProfile)
                     .data("speakerActive", speakerActive)
+                    .data("speakerPhoto", speakerPhoto)
                     .data("selectionReadiness", selectionReadiness)
                     .data("selectionLocked", selectionLocked)
                     .data("volunteerSelectedCount", volunteerSelectedCount)
@@ -548,10 +563,42 @@ public class PublicProfileResource {
             member.getBadges() == null ? List.of() : member.getBadges()));
   }
 
+  private String resolveEmailFromHomedirId(String homedirId) {
+    if (homedirId == null || homedirId.isBlank()) {
+      return null;
+    }
+    for (UserProfile profile : userProfileService.allProfiles().values()) {
+      String seed = firstNonBlank(profile.getUserId(), profile.getEmail());
+      String id = homedirMemberId(seed, null);
+      if (homedirId.equalsIgnoreCase(id)) {
+        return seed;
+      }
+    }
+    for (CommunityMember member : communityService.listMembers()) {
+      String id = homedirMemberId(member.getUserId(), null);
+      if (homedirId.equalsIgnoreCase(id)) {
+        return member.getUserId();
+      }
+    }
+    return null;
+  }
+
   private Optional<ResolvedPublicProfile> resolveProfileByUserId(String userId) {
     String normalized = normalizeId(userId);
     if (normalized == null) {
       return Optional.empty();
+    }
+    if (normalized.startsWith("hd-") || normalized.startsWith("gh-")) {
+      String resolvedEmail = resolveEmailFromHomedirId(normalized);
+      if (resolvedEmail != null) {
+        normalized = normalizeId(resolvedEmail);
+      } else if (normalized.startsWith("gh-")) {
+        String ghLogin = normalized.substring(3);
+        Optional<CommunityMember> m = communityService.findByGithub(ghLogin);
+        if (m.isPresent()) {
+          normalized = normalizeId(m.get().getUserId());
+        }
+      }
     }
     Optional<UserProfile> profileOpt = userProfileService.find(normalized);
     if (profileOpt.isPresent()) {
@@ -731,7 +778,7 @@ public class PublicProfileResource {
 
   private PublicCfpItem toPublicCfpItem(CfpSubmission submission) {
     if (submission == null) {
-      return new PublicCfpItem("", "", "/eventos");
+      return new PublicCfpItem("", "", "", "/eventos");
     }
     String eventId = submission.eventId() != null ? submission.eventId() : "";
     com.scanales.homedir.model.Event event = eventService.getEvent(eventId);
@@ -740,7 +787,10 @@ public class PublicProfileResource {
             ? event.getTitle()
             : eventId;
     return new PublicCfpItem(
-        submission.title() != null ? submission.title() : "", eventTitle, "/event/" + eventId);
+        submission.title() != null ? submission.title() : "",
+        submission.summary() != null ? submission.summary() : "",
+        eventTitle,
+        "/event/" + eventId);
   }
 
   private PublicVolunteerItem toPublicVolunteerItem(VolunteerApplication application) {
@@ -887,7 +937,7 @@ public class PublicProfileResource {
       String homedirId,
       List<String> badges) {}
 
-  private record PublicCfpItem(String title, String eventTitle, String eventUrl) {}
+  private record PublicCfpItem(String title, String summary, String eventTitle, String eventUrl) {}
 
   private record PublicVolunteerItem(String eventTitle, String eventUrl, String eventId) {}
 
