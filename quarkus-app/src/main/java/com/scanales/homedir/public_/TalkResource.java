@@ -1,13 +1,13 @@
 package com.scanales.homedir.public_;
 
+import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserScheduleService;
-import com.scanales.homedir.cfp.CfpSubmission;
-import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
@@ -126,16 +126,21 @@ public class TalkResource {
       }
       boolean slidesAvailable = false;
       String slidesUrl = null;
-      String submissionId = resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
+      String submissionId =
+          resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
       Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
-      if (submission.isPresent() && submission.get().presentationAsset() != null && Boolean.TRUE.equals(submission.get().presentationPublished())) {
+      if (submission.isPresent()
+          && submission.get().presentationAsset() != null
+          && Boolean.TRUE.equals(submission.get().presentationPublished())) {
         slidesAvailable = true;
         slidesUrl = "/talk/" + resolvedTalkId + "/slides";
       }
 
       return Response.ok(
               TemplateLocaleUtil.apply(
-                  Templates.detail(talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl), localeCookie))
+                  Templates.detail(
+                      talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl),
+                  localeCookie))
           .build();
     } catch (Exception e) {
       LOG.errorf(e, "Error rendering talk %s", id);
@@ -152,7 +157,9 @@ public class TalkResource {
     }
     String submissionId = talkId.startsWith("talk-") ? talkId.substring(5) : talkId;
     Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
-    if (submission.isEmpty() || submission.get().presentationAsset() == null || !Boolean.TRUE.equals(submission.get().presentationPublished())) {
+    if (submission.isEmpty()
+        || submission.get().presentationAsset() == null
+        || !Boolean.TRUE.equals(submission.get().presentationPublished())) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     var asset = submission.get().presentationAsset();

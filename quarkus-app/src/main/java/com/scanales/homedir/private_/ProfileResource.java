@@ -4,8 +4,6 @@ import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import com.scanales.homedir.cfp.CfpTimelinePlanner;
 import com.scanales.homedir.cfp.CfpTimelineView;
 import com.scanales.homedir.challenges.ChallengeService;
@@ -64,6 +62,8 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 @Path("/private/profile")
 public class ProfileResource {
@@ -241,8 +241,10 @@ public class ProfileResource {
   @Inject CfpEventConfigService cfpEventConfigService;
   @Inject VolunteerApplicationService volunteerApplicationService;
   @Inject com.scanales.homedir.service.SpeakerService speakerService;
+
   @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
   String dataDirPath;
+
   @Inject VolunteerEventConfigService volunteerEventConfigService;
   @Inject ChallengeService challengeService;
   @Inject ProfileReadinessService profileReadinessService;
@@ -462,7 +464,11 @@ public class ProfileResource {
         .data("speakerError", speakerError)
         .data("photoSaved", photoSaved)
         .data("photoError", photoError)
-        .data("speakerPhoto", speakerService.getSpeaker(email) != null ? speakerService.getSpeaker(email).getPhotoUrl() : null)
+        .data(
+            "speakerPhoto",
+            speakerService.getSpeaker(email) != null
+                ? speakerService.getSpeaker(email).getPhotoUrl()
+                : null)
         .data("selectionReadiness", selectionReadiness)
         .data("selectionLocked", selectionLocked)
         .data("volunteerOverview", volunteerOverview)
@@ -639,7 +645,7 @@ public class ProfileResource {
     if (name != null && !name.isBlank()) {
       profile.setName(name);
       userProfiles.update(profile);
-      
+
       com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(email);
       if (sp == null) {
         sp = new com.scanales.homedir.model.Speaker(email, name);
@@ -664,8 +670,7 @@ public class ProfileResource {
   @Path("speaker/photo")
   @Authenticated
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public Response uploadSpeakerPhoto(
-      @jakarta.ws.rs.FormParam("file") FileUpload file) {
+  public Response uploadSpeakerPhoto(@jakarta.ws.rs.FormParam("file") FileUpload file) {
     String email = getEmail();
     String target = "/private/profile#speaker-panel";
     var profile = userProfiles.upsert(email, getClaim("name"), email);
@@ -676,9 +681,14 @@ public class ProfileResource {
       return redirectWithStatus(target, "photoError", "missing_file");
     }
     String contentType = file.contentType();
-    if (contentType == null || (!contentType.equals("image/png") && !contentType.equals("image/jpeg") && !contentType.equals("image/jpg"))) {
+    if (contentType == null
+        || (!contentType.equals("image/png")
+            && !contentType.equals("image/jpeg")
+            && !contentType.equals("image/jpg"))) {
       String lowerName = file.fileName().toLowerCase();
-      if (!lowerName.endsWith(".png") && !lowerName.endsWith(".jpg") && !lowerName.endsWith(".jpeg")) {
+      if (!lowerName.endsWith(".png")
+          && !lowerName.endsWith(".jpg")
+          && !lowerName.endsWith(".jpeg")) {
         return redirectWithStatus(target, "photoError", "invalid_type");
       }
     }
@@ -695,16 +705,19 @@ public class ProfileResource {
     String extension = file.fileName().toLowerCase().endsWith(".png") ? ".png" : ".jpg";
     String fileName = "avatar_" + safeSpeakerId + extension;
     try {
-      java.nio.file.Path uploadsRoot = java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
+      java.nio.file.Path uploadsRoot =
+          java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
       java.nio.file.Files.createDirectories(uploadsRoot);
       String[] extensions = {".png", ".jpg", ".jpeg"};
       for (String ext : extensions) {
         try {
           java.nio.file.Files.deleteIfExists(uploadsRoot.resolve("avatar_" + safeSpeakerId + ext));
-        } catch (java.io.IOException ignored) {}
+        } catch (java.io.IOException ignored) {
+        }
       }
       java.nio.file.Path targetFile = uploadsRoot.resolve(fileName);
-      java.nio.file.Files.copy(file.uploadedFile(), targetFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+      java.nio.file.Files.copy(
+          file.uploadedFile(), targetFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
       String photoUrl = "/speaker/" + email + "/photo";
       com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(email);
       if (sp == null) {

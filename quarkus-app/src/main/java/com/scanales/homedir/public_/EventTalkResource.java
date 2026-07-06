@@ -1,5 +1,7 @@
 package com.scanales.homedir.public_;
 
+import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
@@ -8,8 +10,6 @@ import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserScheduleService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
-import com.scanales.homedir.cfp.CfpSubmission;
-import com.scanales.homedir.cfp.CfpSubmissionService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -98,16 +98,20 @@ public class EventTalkResource {
       }
       boolean slidesAvailable = false;
       String slidesUrl = null;
-      String submissionId = resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
+      String submissionId =
+          resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
       Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
-      if (submission.isPresent() && submission.get().presentationAsset() != null && Boolean.TRUE.equals(submission.get().presentationPublished())) {
+      if (submission.isPresent()
+          && submission.get().presentationAsset() != null
+          && Boolean.TRUE.equals(submission.get().presentationPublished())) {
         slidesAvailable = true;
         slidesUrl = "/talk/" + resolvedTalkId + "/slides";
       }
 
       return Response.ok(
               TemplateLocaleUtil.apply(
-                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl),
+                  TalkResource.Templates.detail(
+                      talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl),
                   localeCookie))
           .build();
     } catch (Exception e) {

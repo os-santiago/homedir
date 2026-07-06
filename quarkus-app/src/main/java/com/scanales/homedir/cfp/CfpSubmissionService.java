@@ -905,37 +905,37 @@ public class CfpSubmissionService {
         return current;
       }
       Instant now = nextUpdatedAt(current);
-      CfpSubmission updated = new CfpSubmission(
-          current.id(),
-          current.eventId(),
-          current.proposerUserId(),
-          current.proposerName(),
-          current.title(),
-          current.summary(),
-          current.abstractText(),
-          current.level(),
-          current.format(),
-          current.durationMin(),
-          current.language(),
-          current.track(),
-          current.tags(),
-          current.links(),
-          current.status(),
-          current.createdAt(),
-          now,
-          current.moderatedAt(),
-          moderator,
-          current.moderationNote(),
-          current.ratingTechnicalDetail(),
-          current.ratingNarrative(),
-          current.ratingContentImpact(),
-          current.panelists(),
-          current.assignedBlock(),
-          current.assignedScenario(),
-          current.presentationAsset(),
-          published,
-          current.presentationPublished()
-      );
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              moderator,
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              current.panelists(),
+              current.assignedBlock(),
+              current.assignedScenario(),
+              current.presentationAsset(),
+              published,
+              current.presentationPublished());
       submissions.put(id, updated);
       persistSync();
       return updated;
@@ -950,37 +950,37 @@ public class CfpSubmissionService {
         return current;
       }
       Instant now = nextUpdatedAt(current);
-      CfpSubmission updated = new CfpSubmission(
-          current.id(),
-          current.eventId(),
-          current.proposerUserId(),
-          current.proposerName(),
-          current.title(),
-          current.summary(),
-          current.abstractText(),
-          current.level(),
-          current.format(),
-          current.durationMin(),
-          current.language(),
-          current.track(),
-          current.tags(),
-          current.links(),
-          current.status(),
-          current.createdAt(),
-          now,
-          current.moderatedAt(),
-          moderator,
-          current.moderationNote(),
-          current.ratingTechnicalDetail(),
-          current.ratingNarrative(),
-          current.ratingContentImpact(),
-          current.panelists(),
-          current.assignedBlock(),
-          current.assignedScenario(),
-          current.presentationAsset(),
-          current.published(),
-          published
-      );
+      CfpSubmission updated =
+          new CfpSubmission(
+              current.id(),
+              current.eventId(),
+              current.proposerUserId(),
+              current.proposerName(),
+              current.title(),
+              current.summary(),
+              current.abstractText(),
+              current.level(),
+              current.format(),
+              current.durationMin(),
+              current.language(),
+              current.track(),
+              current.tags(),
+              current.links(),
+              current.status(),
+              current.createdAt(),
+              now,
+              current.moderatedAt(),
+              moderator,
+              current.moderationNote(),
+              current.ratingTechnicalDetail(),
+              current.ratingNarrative(),
+              current.ratingContentImpact(),
+              current.panelists(),
+              current.assignedBlock(),
+              current.assignedScenario(),
+              current.presentationAsset(),
+              current.published(),
+              published);
       submissions.put(id, updated);
       persistSync();
       return updated;
@@ -1186,7 +1186,8 @@ public class CfpSubmissionService {
     CfpSubmissionStatus visibleStatus = visibleStatus(submission);
     CfpEventConfigService.ResolvedEventConfig eventConfig =
         resolveEventConfig(submission.eventId());
-    boolean isPublished = Boolean.TRUE.equals(submission.published()) || eventConfig.resultsPublished();
+    boolean isPublished =
+        Boolean.TRUE.equals(submission.published()) || eventConfig.resultsPublished();
     if (!isPublished) {
       return null;
     }
@@ -1307,15 +1308,13 @@ public class CfpSubmissionService {
       return true;
     }
     return switch (current) {
-      case PENDING ->
-          target == CfpSubmissionStatus.UNDER_REVIEW
-              || target == CfpSubmissionStatus.ACCEPTED
-              || target == CfpSubmissionStatus.REJECTED
-              || target == CfpSubmissionStatus.WITHDRAWN;
-      case UNDER_REVIEW ->
-          target == CfpSubmissionStatus.ACCEPTED
-              || target == CfpSubmissionStatus.REJECTED
-              || target == CfpSubmissionStatus.WITHDRAWN;
+      case PENDING -> target == CfpSubmissionStatus.UNDER_REVIEW
+          || target == CfpSubmissionStatus.ACCEPTED
+          || target == CfpSubmissionStatus.REJECTED
+          || target == CfpSubmissionStatus.WITHDRAWN;
+      case UNDER_REVIEW -> target == CfpSubmissionStatus.ACCEPTED
+          || target == CfpSubmissionStatus.REJECTED
+          || target == CfpSubmissionStatus.WITHDRAWN;
       case ACCEPTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case REJECTED -> target == CfpSubmissionStatus.UNDER_REVIEW;
       case WITHDRAWN -> target == CfpSubmissionStatus.UNDER_REVIEW;

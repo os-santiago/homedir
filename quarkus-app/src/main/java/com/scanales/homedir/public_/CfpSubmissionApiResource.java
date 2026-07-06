@@ -693,7 +693,8 @@ public class CfpSubmissionApiResource {
             .build();
       }
       CfpSubmission updated =
-          cfpSubmissionService.updatePublished(id, request.published(), currentUserId().orElse("admin"));
+          cfpSubmissionService.updatePublished(
+              id, request.published(), currentUserId().orElse("admin"));
       if (updated.status() == CfpSubmissionStatus.ACCEPTED && request.published()) {
         updated = safeRefreshPanelists(eventId, updated);
         applyAcceptedPublicationSideEffects(updated);
@@ -732,7 +733,8 @@ public class CfpSubmissionApiResource {
             .build();
       }
       CfpSubmission updated =
-          cfpSubmissionService.updatePresentationPublished(id, request.published(), currentUserId().orElse("admin"));
+          cfpSubmissionService.updatePresentationPublished(
+              id, request.published(), currentUserId().orElse("admin"));
       return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
     } catch (CfpSubmissionService.NotFoundException e) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -746,8 +748,7 @@ public class CfpSubmissionApiResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_JSON)
   public Response publishSlidesBulk(
-      @PathParam("eventId") String eventId,
-      BulkPublishRequest request) {
+      @PathParam("eventId") String eventId, BulkPublishRequest request) {
     if (!AdminUtils.isAdmin(identity)) {
       return Response.status(Response.Status.FORBIDDEN)
           .entity(Map.of("error", "admin_required"))
@@ -763,7 +764,8 @@ public class CfpSubmissionApiResource {
       for (String id : request.ids()) {
         Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
         if (existing.isPresent() && eventId.equals(existing.get().eventId())) {
-          cfpSubmissionService.updatePresentationPublished(id, request.published(), currentUserId().orElse("admin"));
+          cfpSubmissionService.updatePresentationPublished(
+              id, request.published(), currentUserId().orElse("admin"));
           count++;
         }
       }
@@ -779,8 +781,7 @@ public class CfpSubmissionApiResource {
   @Path("/{id}/presentation")
   @Authenticated
   public Response downloadPresentation(
-      @PathParam("eventId") String eventId,
-      @PathParam("id") String id) {
+      @PathParam("eventId") String eventId, @PathParam("id") String id) {
     Set<String> userIds = currentUserIds();
     if (userIds.isEmpty()) {
       return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -1906,8 +1907,7 @@ public class CfpSubmissionApiResource {
   public record UpdatePublishedRequest(@JsonProperty("published") Boolean published) {}
 
   public record BulkPublishRequest(
-      @JsonProperty("ids") List<String> ids,
-      @JsonProperty("published") Boolean published) {}
+      @JsonProperty("ids") List<String> ids, @JsonProperty("published") Boolean published) {}
 
   public record SubmissionLimitConfigResponse(
       @JsonProperty("max_per_user") int maxPerUser,
