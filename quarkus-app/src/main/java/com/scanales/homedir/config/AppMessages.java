@@ -115,7 +115,7 @@ public interface AppMessages {
   String section_integrations();
 
   @Message("GitHub")
-  String section_gitHub();
+  String section_github();
 
   @Message("Discord")
   String section_discord();
