@@ -33,6 +33,14 @@
   const confirmDlg = document.getElementById('confirmDeleteAll');
   const actionsRight = document.querySelector('.actions-right');
 
+  function focusDeleteAll() {
+    const delAll = document.getElementById('deleteAll');
+    if (delAll) delAll.focus();
+  }
+
+  // Restaurar foco al cerrar el diálogo (Escape, click fuera, etc.)
+  if (confirmDlg) confirmDlg.addEventListener('close', focusDeleteAll);
+
   // Estado de selección en memoria (se preserva entre renders)
   const selected = new Set();
   let currentFilter = 'all';
@@ -295,13 +303,19 @@
       selected.clear();
       render();
       updateSelectAllBtn();
-      if (confirmDlg) confirmDlg.close();
+      if (confirmDlg) {
+        confirmDlg.close();
+        focusDeleteAll();
+      }
       e.preventDefault();
       return;
     }
 
     if (e.target.closest('#cancelDeleteAllBtn')) {
-      if (confirmDlg) confirmDlg.close();
+      if (confirmDlg) {
+        confirmDlg.close();
+        focusDeleteAll();
+      }
       e.preventDefault();
       return;
     }
