@@ -507,18 +507,29 @@
             <!-- Photo Upload Area -->
             <div class="hd-integration-card" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.02); border-radius: 6px; border: 1px solid rgba(0,0,0,0.08);">
                 <h3>Foto de Perfil del Ponente</h3>
-                <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.8rem; flex-wrap: wrap;">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: #eee; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent-color, #1e88e5);">
-                        {#if speakerPhoto}
-                            <img src="{speakerPhoto}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                        {#else}
-                            <span style="font-size: 2rem; color: #aaa;">👤</span>
-                        {/if}
+                <div style="display: flex; align-items: flex-start; gap: 1.5rem; margin-top: 0.8rem; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: #eee; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent-color, #1e88e5);">
+                            {#if speakerPhoto}
+                                <img src="{speakerPhoto}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                            {#else}
+                                <span style="font-size: 2rem; color: #aaa;">👤</span>
+                            {/if}
+                        </div>
+                        <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: white;">
+                            <input type="checkbox" id="useCustomPhotoCheck" {#if hasCustomPhoto}checked{/if}>
+                            Usar una foto distinta
+                        </label>
                     </div>
-                    <form action="/private/profile/speaker/photo" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                    
+                    <form id="customPhotoUploadForm" action="/private/profile/speaker/photo" method="POST" enctype="multipart/form-data" style="display: {#if hasCustomPhoto}flex{#else}none{/if}; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem;">
                         {#include fragments/csrf-token.html /}
                         <input type="file" name="file" accept="image/png, image/jpeg, image/jpg" required style="font-size: 0.85rem;">
                         <button type="submit" class="hd-btn hd-btn-secondary" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; align-self: flex-start;">Subir Foto</button>
+                    </form>
+                    
+                    <form id="resetPhotoForm" action="/private/profile/speaker/photo/reset" method="POST" style="display:none;">
+                        {#include fragments/csrf-token.html /}
                     </form>
                 </div>
                 {#if photoSaved}
@@ -528,6 +539,30 @@
                     <div class="hd-alert hd-alert-warning" style="margin-top: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Error al subir foto: {photoError}</div>
                 {/if}
             </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const checkbox = document.getElementById('useCustomPhotoCheck');
+                    if (checkbox) {
+                        checkbox.addEventListener('change', function() {
+                            const hasCustom = {hasCustomPhoto};
+                            if (this.checked) {
+                                document.getElementById('customPhotoUploadForm').style.display = 'flex';
+                            } else {
+                                document.getElementById('customPhotoUploadForm').style.display = 'none';
+                                if (hasCustom) {
+                                    if (confirm("¿Estás seguro de que deseas volver a usar la foto predeterminada de tu cuenta de Google? Se eliminará la foto que subiste.")) {
+                                        document.getElementById('resetPhotoForm').submit();
+                                    } else {
+                                        this.checked = true;
+                                        document.getElementById('customPhotoUploadForm').style.display = 'flex';
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            </script>
 
             <form action="/private/profile/speaker" method="POST" class="hd-panel-actions" style="display: grid; gap: 0.8rem;">
                     {#include fragments/csrf-token.html /}

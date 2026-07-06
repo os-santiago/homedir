@@ -467,8 +467,14 @@ public class ProfileResource {
         .data(
             "speakerPhoto",
             speakerService.getSpeaker(email) != null
+                    && speakerService.getSpeaker(email).getPhotoUrl() != null
                 ? speakerService.getSpeaker(email).getPhotoUrl()
-                : null)
+                : getClaim("picture"))
+        .data(
+            "hasCustomPhoto",
+            speakerService.getSpeaker(email) != null
+                && speakerService.getSpeaker(email).getPhotoUrl() != null
+                && speakerService.getSpeaker(email).getPhotoUrl().startsWith("/speaker/"))
         .data("selectionReadiness", selectionReadiness)
         .data("selectionLocked", selectionLocked)
         .data("volunteerOverview", volunteerOverview)
@@ -729,6 +735,34 @@ public class ProfileResource {
     } catch (java.io.IOException e) {
       return redirectWithStatus(target, "photoError", "save_error");
     }
+  }
+
+  @POST
+  @Path("speaker/photo/reset")
+  @Authenticated
+  public Response resetSpeakerPhoto() {
+    String email = getEmail();
+    String target = "/private/profile#speaker-panel";
+    var profile = userProfiles.upsert(email, getClaim("name"), email);
+    if (!profile.hasActiveSpeakerProfile()) {
+      return redirectWithStatus(target, "speakerError", "inactive");
+    }
+    String safeSpeakerId = email.replaceAll("[^a-zA-Z0-9_.-]", "_");
+    java.nio.file.Path uploadsRoot =
+        java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
+    String[] extensions = {".png", ".jpg", ".jpeg"};
+    for (String ext : extensions) {
+      try {
+        java.nio.file.Files.deleteIfExists(uploadsRoot.resolve("avatar_" + safeSpeakerId + ext));
+      } catch (java.io.IOException ignored) {
+      }
+    }
+    com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(email);
+    if (sp != null) {
+      sp.setPhotoUrl(getClaim("picture"));
+      speakerService.saveSpeaker(sp);
+    }
+    return redirectWithStatus(target, "photoSaved", "1");
   }
 
   @POST
