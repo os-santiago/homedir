@@ -8,6 +8,8 @@ import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.service.UserScheduleService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
+import com.scanales.homedir.cfp.CfpSubmission;
+import com.scanales.homedir.cfp.CfpSubmissionService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -27,6 +29,7 @@ public class EventTalkResource {
   private static final Logger LOG = Logger.getLogger(EventTalkResource.class);
 
   @Inject EventService eventService;
+  @Inject CfpSubmissionService cfpSubmissionService;
   @Inject SecurityIdentity identity;
   @Inject UserScheduleService userSchedule;
   @Inject UsageMetricsService metrics;
@@ -93,9 +96,18 @@ public class EventTalkResource {
           inSchedule = userSchedule.getTalksForUser(email).contains(resolvedTalkId);
         }
       }
+      boolean slidesAvailable = false;
+      String slidesUrl = null;
+      String submissionId = resolvedTalkId.startsWith("talk-") ? resolvedTalkId.substring(5) : resolvedTalkId;
+      Optional<CfpSubmission> submission = cfpSubmissionService.findById(submissionId);
+      if (submission.isPresent() && submission.get().presentationAsset() != null && Boolean.TRUE.equals(submission.get().presentationPublished())) {
+        slidesAvailable = true;
+        slidesUrl = "/talk/" + resolvedTalkId + "/slides";
+      }
+
       return Response.ok(
               TemplateLocaleUtil.apply(
-                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule),
+                  TalkResource.Templates.detail(talk, event, occurrences, inSchedule, slidesAvailable, slidesUrl),
                   localeCookie))
           .build();
     } catch (Exception e) {

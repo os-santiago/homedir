@@ -640,7 +640,7 @@ public class CfpSubmissionApiResource {
       metrics.recordFunnelStep("cfp.submission.status");
       metrics.recordFunnelStep("cfp.submission.status." + status.get().apiValue());
       if (status.get() == CfpSubmissionStatus.ACCEPTED
-          && cfpSubmissionService.areResultsPublished(eventId)) {
+          && Boolean.TRUE.equals(updated.published())) {
         updated = safeRefreshPanelists(eventId, updated);
         applyAcceptedPublicationSideEffects(updated);
       }
@@ -665,6 +665,155 @@ public class CfpSubmissionApiResource {
           .entity(Map.of("error", "cfp_storage_unavailable", "detail", storageDetail(e)))
           .build();
     }
+  }
+
+  @PUT
+  @Path("/{id}/publish")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updatePublished(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdatePublishedRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
+    }
+    if (request == null || request.published() == null) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "published_required"))
+          .build();
+    }
+    try {
+      Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+      if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(Map.of("error", "submission_not_found"))
+            .build();
+      }
+      CfpSubmission updated =
+          cfpSubmissionService.updatePublished(id, request.published(), currentUserId().orElse("admin"));
+      if (updated.status() == CfpSubmissionStatus.ACCEPTED && request.published()) {
+        updated = safeRefreshPanelists(eventId, updated);
+        applyAcceptedPublicationSideEffects(updated);
+      }
+      return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
+    }
+  }
+
+  @PUT
+  @Path("/{id}/presentation/publish")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updatePresentationPublished(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id,
+      UpdatePublishedRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
+    }
+    if (request == null || request.published() == null) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "published_required"))
+          .build();
+    }
+    try {
+      Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+      if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(Map.of("error", "submission_not_found"))
+            .build();
+      }
+      CfpSubmission updated =
+          cfpSubmissionService.updatePresentationPublished(id, request.published(), currentUserId().orElse("admin"));
+      return Response.ok(new SubmissionResponse(toAdminView(updated))).build();
+    } catch (CfpSubmissionService.NotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
+    }
+  }
+
+  @PUT
+  @Path("/presentation/publish-bulk")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response publishSlidesBulk(
+      @PathParam("eventId") String eventId,
+      BulkPublishRequest request) {
+    if (!AdminUtils.isAdmin(identity)) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "admin_required"))
+          .build();
+    }
+    if (request == null || request.ids() == null || request.published() == null) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "ids_and_published_required"))
+          .build();
+    }
+    try {
+      int count = 0;
+      for (String id : request.ids()) {
+        Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+        if (existing.isPresent() && eventId.equals(existing.get().eventId())) {
+          cfpSubmissionService.updatePresentationPublished(id, request.published(), currentUserId().orElse("admin"));
+          count++;
+        }
+      }
+      return Response.ok(Map.of("status", "success", "count", count)).build();
+    } catch (Exception e) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
+    }
+  }
+
+  @GET
+  @Path("/{id}/presentation")
+  @Authenticated
+  public Response downloadPresentation(
+      @PathParam("eventId") String eventId,
+      @PathParam("id") String id) {
+    Set<String> userIds = currentUserIds();
+    if (userIds.isEmpty()) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+    Optional<CfpSubmission> existing = cfpSubmissionService.findById(id);
+    if (existing.isEmpty() || !eventId.equals(existing.get().eventId())) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    boolean admin = AdminUtils.isAdmin(identity);
+    boolean owner = containsUserId(userIds, existing.get().proposerUserId());
+    boolean panelist =
+        existing.get().panelists() != null
+            && existing.get().panelists().stream()
+                .anyMatch(item -> item != null && containsUserId(userIds, item.userId()));
+    if (!admin && !owner && !panelist) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    CfpPresentationAsset asset = existing.get().presentationAsset();
+    if (asset == null || asset.storagePath() == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "presentation_not_uploaded"))
+          .build();
+    }
+    java.nio.file.Path filePath = java.nio.file.Paths.get(asset.storagePath());
+    if (!java.nio.file.Files.exists(filePath)) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "presentation_file_missing"))
+          .build();
+    }
+    return Response.ok(filePath.toFile())
+        .header("Content-Disposition", "attachment; filename=\"" + asset.fileName() + "\"")
+        .type(asset.contentType())
+        .build();
   }
 
   @PUT
@@ -1077,7 +1226,9 @@ public class CfpSubmissionApiResource {
         resultsPublishedAt,
         resultMessage,
         viewerRole,
-        canEdit);
+        canEdit,
+        submission.published() != null && submission.published(),
+        submission.presentationPublished() != null && submission.presentationPublished());
   }
 
   private static String resolveViewerRole(CfpSubmission submission, Set<String> viewerUserIds) {
@@ -1752,6 +1903,12 @@ public class CfpSubmissionApiResource {
       int errors,
       @JsonProperty("error_details") List<String> errorDetails) {}
 
+  public record UpdatePublishedRequest(@JsonProperty("published") Boolean published) {}
+
+  public record BulkPublishRequest(
+      @JsonProperty("ids") List<String> ids,
+      @JsonProperty("published") Boolean published) {}
+
   public record SubmissionLimitConfigResponse(
       @JsonProperty("max_per_user") int maxPerUser,
       @JsonProperty("min_allowed") int minAllowed,
@@ -1802,7 +1959,9 @@ public class CfpSubmissionApiResource {
       @JsonProperty("results_published_at") Instant resultsPublishedAt,
       @JsonProperty("result_message") String resultMessage,
       @JsonProperty("viewer_role") String viewerRole,
-      @JsonProperty("can_edit") boolean canEdit) {}
+      @JsonProperty("can_edit") boolean canEdit,
+      @JsonProperty("published") Boolean published,
+      @JsonProperty("presentation_published") Boolean presentationPublished) {}
 
   public record PanelistView(
       String id,

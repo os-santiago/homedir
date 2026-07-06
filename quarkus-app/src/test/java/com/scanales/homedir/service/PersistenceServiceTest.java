@@ -649,7 +649,9 @@ public class PersistenceServiceTest {
         java.util.List.of(),
         null,
         null,
-        null);
+        null,
+        false,
+        false);
   }
 
   private boolean waitUntil(BooleanSupplier condition, Duration timeout)

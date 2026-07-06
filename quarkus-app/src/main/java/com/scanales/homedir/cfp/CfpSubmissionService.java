@@ -175,7 +175,9 @@ public class CfpSubmissionService {
               List.of(),
               null,
               null,
-              null);
+              null,
+              false,
+              false);
       submissions.put(submission.id(), submission);
       persistSync();
       return submission;
@@ -544,7 +546,9 @@ public class CfpSubmissionService {
               current.panelists() == null ? List.of() : current.panelists(),
               current.assignedBlock(),
               current.assignedScenario(),
-              current.presentationAsset());
+              current.presentationAsset(),
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -632,7 +636,9 @@ public class CfpSubmissionService {
               current.panelists() == null ? List.of() : current.panelists(),
               current.assignedBlock(),
               current.assignedScenario(),
-              current.presentationAsset());
+              current.presentationAsset(),
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -686,7 +692,9 @@ public class CfpSubmissionService {
               normalized,
               current.assignedBlock(),
               current.assignedScenario(),
-              current.presentationAsset());
+              current.presentationAsset(),
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -759,7 +767,9 @@ public class CfpSubmissionService {
               current.panelists() == null ? List.of() : current.panelists(),
               current.assignedBlock(),
               current.assignedScenario(),
-              sanitized);
+              sanitized,
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -818,7 +828,9 @@ public class CfpSubmissionService {
               current.panelists() == null ? List.of() : current.panelists(),
               normalizedBlock,
               normalizedScenario,
-              current.presentationAsset());
+              current.presentationAsset(),
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
       persistSync();
       return updated;
@@ -876,8 +888,100 @@ public class CfpSubmissionService {
               refreshed,
               current.assignedBlock(),
               current.assignedScenario(),
-              current.presentationAsset());
+              current.presentationAsset(),
+              current.published(),
+              current.presentationPublished());
       submissions.put(updated.id(), updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission updatePublished(String id, boolean published, String moderator) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      CfpSubmission current = findOrThrow(id);
+      if (current.published() != null && current.published() == published) {
+        return current;
+      }
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated = new CfpSubmission(
+          current.id(),
+          current.eventId(),
+          current.proposerUserId(),
+          current.proposerName(),
+          current.title(),
+          current.summary(),
+          current.abstractText(),
+          current.level(),
+          current.format(),
+          current.durationMin(),
+          current.language(),
+          current.track(),
+          current.tags(),
+          current.links(),
+          current.status(),
+          current.createdAt(),
+          now,
+          current.moderatedAt(),
+          moderator,
+          current.moderationNote(),
+          current.ratingTechnicalDetail(),
+          current.ratingNarrative(),
+          current.ratingContentImpact(),
+          current.panelists(),
+          current.assignedBlock(),
+          current.assignedScenario(),
+          current.presentationAsset(),
+          published,
+          current.presentationPublished()
+      );
+      submissions.put(id, updated);
+      persistSync();
+      return updated;
+    }
+  }
+
+  public CfpSubmission updatePresentationPublished(String id, boolean published, String moderator) {
+    synchronized (submissionsLock) {
+      refreshFromDisk(false);
+      CfpSubmission current = findOrThrow(id);
+      if (current.presentationPublished() != null && current.presentationPublished() == published) {
+        return current;
+      }
+      Instant now = nextUpdatedAt(current);
+      CfpSubmission updated = new CfpSubmission(
+          current.id(),
+          current.eventId(),
+          current.proposerUserId(),
+          current.proposerName(),
+          current.title(),
+          current.summary(),
+          current.abstractText(),
+          current.level(),
+          current.format(),
+          current.durationMin(),
+          current.language(),
+          current.track(),
+          current.tags(),
+          current.links(),
+          current.status(),
+          current.createdAt(),
+          now,
+          current.moderatedAt(),
+          moderator,
+          current.moderationNote(),
+          current.ratingTechnicalDetail(),
+          current.ratingNarrative(),
+          current.ratingContentImpact(),
+          current.panelists(),
+          current.assignedBlock(),
+          current.assignedScenario(),
+          current.presentationAsset(),
+          current.published(),
+          published
+      );
+      submissions.put(id, updated);
       persistSync();
       return updated;
     }
@@ -1063,6 +1167,9 @@ public class CfpSubmissionService {
     CfpSubmissionStatus internal =
         submission.status() != null ? submission.status() : CfpSubmissionStatus.PENDING;
     if (internal == CfpSubmissionStatus.ACCEPTED || internal == CfpSubmissionStatus.REJECTED) {
+      if (Boolean.TRUE.equals(submission.published())) {
+        return internal;
+      }
       CfpEventConfigService.ResolvedEventConfig eventConfig =
           resolveEventConfig(submission.eventId());
       if (!eventConfig.resultsPublished()) {
@@ -1079,7 +1186,8 @@ public class CfpSubmissionService {
     CfpSubmissionStatus visibleStatus = visibleStatus(submission);
     CfpEventConfigService.ResolvedEventConfig eventConfig =
         resolveEventConfig(submission.eventId());
-    if (!eventConfig.resultsPublished()) {
+    boolean isPublished = Boolean.TRUE.equals(submission.published()) || eventConfig.resultsPublished();
+    if (!isPublished) {
       return null;
     }
     return switch (visibleStatus) {

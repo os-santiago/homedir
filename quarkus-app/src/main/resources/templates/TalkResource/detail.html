@@ -73,6 +73,12 @@
         {#if talk.location && event}<span class="badge">{event.getScenarioName(talk.location)}</span>{/if}
         {#if talk.startTimeStr}<span class="badge">{talk.startTimeStr}</span>{#else}<span class="badge">{i18n:talk_tbd}</span>{/if}
         {#if talk.durationMinutes > 0}<span class="badge">{i18n:talk_duration_minutes(talk.durationMinutes)}</span>{/if}
+        {#if slidesAvailable}
+        <a href="{slidesUrl}" class="hd-btn hd-btn-primary" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" target="_blank">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">download</span>
+          Descargar Diapositivas
+        </a>
+        {/if}
       </div>
 
       {#if talk.description}<p class="talk-description">{talk.description}</p>{/if}

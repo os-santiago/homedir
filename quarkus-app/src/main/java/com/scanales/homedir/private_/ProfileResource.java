@@ -4,6 +4,8 @@ import com.scanales.homedir.cfp.CfpEventConfigService;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import com.scanales.homedir.cfp.CfpTimelinePlanner;
 import com.scanales.homedir.cfp.CfpTimelineView;
 import com.scanales.homedir.challenges.ChallengeService;
@@ -238,6 +240,9 @@ public class ProfileResource {
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject CfpEventConfigService cfpEventConfigService;
   @Inject VolunteerApplicationService volunteerApplicationService;
+  @Inject com.scanales.homedir.service.SpeakerService speakerService;
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
   @Inject VolunteerEventConfigService volunteerEventConfigService;
   @Inject ChallengeService challengeService;
   @Inject ProfileReadinessService profileReadinessService;
@@ -253,6 +258,8 @@ public class ProfileResource {
       @jakarta.ws.rs.QueryParam("discordError") String discordError,
       @jakarta.ws.rs.QueryParam("speakerSaved") boolean speakerSaved,
       @jakarta.ws.rs.QueryParam("speakerError") String speakerError,
+      @jakarta.ws.rs.QueryParam("photoSaved") String photoSaved,
+      @jakarta.ws.rs.QueryParam("photoError") String photoError,
       @jakarta.ws.rs.QueryParam("linkGithub") boolean linkGithub,
       @jakarta.ws.rs.QueryParam("historyLimit") Integer historyLimitParam,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
@@ -453,6 +460,9 @@ public class ProfileResource {
         .data("speakerActive", speakerActive)
         .data("speakerSaved", speakerSaved)
         .data("speakerError", speakerError)
+        .data("photoSaved", photoSaved)
+        .data("photoError", photoError)
+        .data("speakerPhoto", speakerService.getSpeaker(email) != null ? speakerService.getSpeaker(email).getPhotoUrl() : null)
         .data("selectionReadiness", selectionReadiness)
         .data("selectionLocked", selectionLocked)
         .data("volunteerOverview", volunteerOverview)
@@ -613,6 +623,7 @@ public class ProfileResource {
   @Authenticated
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response updateSpeakerProfile(
+      @jakarta.ws.rs.FormParam("name") String name,
       @jakarta.ws.rs.FormParam("headline") String headline,
       @jakarta.ws.rs.FormParam("bio") String bio,
       @jakarta.ws.rs.FormParam("organization") String organization,
@@ -625,6 +636,18 @@ public class ProfileResource {
     if (!profile.hasActiveSpeakerProfile()) {
       return redirectWithStatus(target, "speakerError", "inactive");
     }
+    if (name != null && !name.isBlank()) {
+      profile.setName(name);
+      userProfiles.update(profile);
+      
+      com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(email);
+      if (sp == null) {
+        sp = new com.scanales.homedir.model.Speaker(email, name);
+      } else {
+        sp.setName(name);
+      }
+      speakerService.saveSpeaker(sp);
+    }
     java.util.List<String> topicList =
         topics == null
             ? java.util.List.of()
@@ -635,6 +658,64 @@ public class ProfileResource {
     userProfiles.updateSpeakerProfile(
         email, headline, bio, organization, website, linkedin, topicList);
     return redirectWithStatus(target, "speakerSaved", "1");
+  }
+
+  @POST
+  @Path("speaker/photo")
+  @Authenticated
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public Response uploadSpeakerPhoto(
+      @jakarta.ws.rs.FormParam("file") FileUpload file) {
+    String email = getEmail();
+    String target = "/private/profile#speaker-panel";
+    var profile = userProfiles.upsert(email, getClaim("name"), email);
+    if (!profile.hasActiveSpeakerProfile()) {
+      return redirectWithStatus(target, "speakerError", "inactive");
+    }
+    if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+      return redirectWithStatus(target, "photoError", "missing_file");
+    }
+    String contentType = file.contentType();
+    if (contentType == null || (!contentType.equals("image/png") && !contentType.equals("image/jpeg") && !contentType.equals("image/jpg"))) {
+      String lowerName = file.fileName().toLowerCase();
+      if (!lowerName.endsWith(".png") && !lowerName.endsWith(".jpg") && !lowerName.endsWith(".jpeg")) {
+        return redirectWithStatus(target, "photoError", "invalid_type");
+      }
+    }
+    long size = 0;
+    try {
+      size = java.nio.file.Files.size(file.uploadedFile());
+    } catch (java.io.IOException e) {
+      return redirectWithStatus(target, "photoError", "read_error");
+    }
+    if (size > 20 * 1024 * 1024) {
+      return redirectWithStatus(target, "photoError", "too_large");
+    }
+    String safeSpeakerId = email.replaceAll("[^a-zA-Z0-9_.-]", "_");
+    String extension = file.fileName().toLowerCase().endsWith(".png") ? ".png" : ".jpg";
+    String fileName = "avatar_" + safeSpeakerId + extension;
+    try {
+      java.nio.file.Path uploadsRoot = java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
+      java.nio.file.Files.createDirectories(uploadsRoot);
+      String[] extensions = {".png", ".jpg", ".jpeg"};
+      for (String ext : extensions) {
+        try {
+          java.nio.file.Files.deleteIfExists(uploadsRoot.resolve("avatar_" + safeSpeakerId + ext));
+        } catch (java.io.IOException ignored) {}
+      }
+      java.nio.file.Path targetFile = uploadsRoot.resolve(fileName);
+      java.nio.file.Files.copy(file.uploadedFile(), targetFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+      String photoUrl = "/speaker/" + email + "/photo";
+      com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(email);
+      if (sp == null) {
+        sp = new com.scanales.homedir.model.Speaker(email, profile.getName());
+      }
+      sp.setPhotoUrl(photoUrl);
+      speakerService.saveSpeaker(sp);
+      return redirectWithStatus(target, "photoSaved", "1");
+    } catch (java.io.IOException e) {
+      return redirectWithStatus(target, "photoError", "save_error");
+    }
   }
 
   @POST
@@ -1007,25 +1088,7 @@ public class ProfileResource {
   }
 
   private CfpSubmissionStatus privateStatus(CfpSubmission submission) {
-    if (submission == null || submission.status() == null) {
-      return CfpSubmissionStatus.PENDING;
-    }
-    CfpSubmissionStatus status = submission.status();
-    if (status == CfpSubmissionStatus.ACCEPTED) {
-      return CfpSubmissionStatus.ACCEPTED;
-    }
-    if (status == CfpSubmissionStatus.REJECTED) {
-      try {
-        CfpEventConfigService.ResolvedEventConfig eventConfig =
-            cfpEventConfigService.resolveForEvent(submission.eventId());
-        if (!eventConfig.resultsPublished()) {
-          return CfpSubmissionStatus.UNDER_REVIEW;
-        }
-      } catch (Exception e) {
-        return CfpSubmissionStatus.UNDER_REVIEW;
-      }
-    }
-    return status;
+    return cfpSubmissionService.visibleStatus(submission);
   }
 
   private String privateDeliveryStatus(CfpSubmission submission) {

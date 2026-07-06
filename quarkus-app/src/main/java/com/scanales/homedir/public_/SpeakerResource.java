@@ -19,8 +19,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.ws.rs.core.Response;
+
 @Path("/speaker")
 public class SpeakerResource {
+
+  @ConfigProperty(name = "homedir.data.dir", defaultValue = "data")
+  String dataDirPath;
+
+  @GET
+  @Path("/{id}/photo")
+  @PermitAll
+  public Response getSpeakerPhoto(@PathParam("id") String speakerId) {
+    if (speakerId == null) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+    String safeSpeakerId = speakerId.replaceAll("[^a-zA-Z0-9_.-]", "_");
+    java.nio.file.Path uploadsRoot = java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
+    
+    // Check for PNG
+    java.nio.file.Path pngPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".png");
+    if (java.nio.file.Files.exists(pngPath)) {
+      return Response.ok(pngPath.toFile()).type("image/png").build();
+    }
+    
+    // Check for JPG
+    java.nio.file.Path jpgPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".jpg");
+    if (java.nio.file.Files.exists(jpgPath)) {
+      return Response.ok(jpgPath.toFile()).type("image/jpeg").build();
+    }
+    
+    // Check for JPEG
+    java.nio.file.Path jpegPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".jpeg");
+    if (java.nio.file.Files.exists(jpegPath)) {
+      return Response.ok(jpegPath.toFile()).type("image/jpeg").build();
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND).build();
+  }
 
   @CheckedTemplate
   static class Templates {

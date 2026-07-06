@@ -267,6 +267,15 @@
     </div>
   </div>
 
+  <div id="cfpBulkActionsBar" class="admin-shell-actions-bar" style="margin-bottom: 0.8rem; display: none; align-items: center; gap: 0.5rem; flex-wrap: wrap; background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px;">
+    <button id="cfpSelectAllBtn" type="button" class="btn btn-secondary">Seleccionar Todos</button>
+    <button id="cfpDeselectAllBtn" type="button" class="btn btn-secondary">Deseleccionar Todos</button>
+    <span class="form-hint" id="cfpBulkSelectedCount">0 seleccionados</span>
+    <span style="flex-grow: 1;"></span>
+    <button id="cfpBulkPublishSlidesBtn" type="button" class="btn btn-success">Publicar diapositivas en agenda</button>
+    <button id="cfpBulkUnpublishSlidesBtn" type="button" class="btn btn-warning">Ocultar diapositivas de agenda</button>
+  </div>
+
   <div id="cfpQueueList"></div>
   </section>
 </div>
@@ -736,6 +745,23 @@
       title.textContent = item.title || i18n.untitled;
       top.appendChild(title);
 
+      if (canManage) {
+        const cbContainer = document.createElement("div");
+        cbContainer.style.display = "flex";
+        cbContainer.style.alignItems = "center";
+        cbContainer.style.marginRight = "0.6rem";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className = "cfp-bulk-checkbox";
+        cb.dataset.id = item.id;
+        cb.style.width = "18px";
+        cb.style.height = "18px";
+        cb.style.cursor = "pointer";
+        cb.addEventListener("change", updateBulkBarState);
+        cbContainer.appendChild(cb);
+        top.insertBefore(cbContainer, title);
+      }
+
       const chipWrap = document.createElement("div");
       chipWrap.style.display = "flex";
       chipWrap.style.alignItems = "center";
@@ -746,6 +772,40 @@
       chip.className = "cfp-status-chip cfp-status-chip--" + currentStatus;
       chip.textContent = statusLabel[currentStatus] || currentStatus;
       chipWrap.appendChild(chip);
+
+      if (item.published) {
+        const pubChip = document.createElement("span");
+        pubChip.className = "cfp-status-chip";
+        pubChip.textContent = "Resultado Publicado";
+        pubChip.style.background = "#2e7d32";
+        pubChip.style.color = "#fff";
+        chipWrap.appendChild(pubChip);
+      } else {
+        const pubChip = document.createElement("span");
+        pubChip.className = "cfp-status-chip";
+        pubChip.textContent = "Resultado Privado";
+        pubChip.style.background = "#757575";
+        pubChip.style.color = "#fff";
+        chipWrap.appendChild(pubChip);
+      }
+
+      if (item.presentation_asset && item.presentation_asset.file_name) {
+        if (item.presentation_published) {
+          const slidesChip = document.createElement("span");
+          slidesChip.className = "cfp-status-chip";
+          slidesChip.textContent = "Diapositivas Publicadas";
+          slidesChip.style.background = "#1565c0";
+          slidesChip.style.color = "#fff";
+          chipWrap.appendChild(slidesChip);
+        } else {
+          const slidesChip = document.createElement("span");
+          slidesChip.className = "cfp-status-chip";
+          slidesChip.textContent = "Diapositivas Ocultas";
+          slidesChip.style.background = "#757575";
+          slidesChip.style.color = "#fff";
+          chipWrap.appendChild(slidesChip);
+        }
+      }
 
       if (item.public_status && item.public_status !== currentStatus) {
         const publicChip = document.createElement("span");
@@ -907,9 +967,11 @@
         items.forEach((item) => {
           listEl.appendChild(buildSubmissionCard(item));
         });
+        updateBulkBarState();
         updateListPagination();
         loadStats();
       } catch (error) {
+        updateBulkBarState();
         if (requestSequence !== listRequestSequence) {
           return;
         }
@@ -1470,6 +1532,59 @@
         addReviewerFromInput();
       });
     }
+    function updateBulkBarState() {
+      const cbs = document.querySelectorAll(".cfp-bulk-checkbox");
+      const selected = Array.from(cbs).filter(cb => cb.checked);
+      const bar = document.getElementById("cfpBulkActionsBar");
+      const countLabel = document.getElementById("cfpBulkSelectedCount");
+      if (bar && countLabel) {
+        if (selected.length > 0) {
+          bar.style.display = "flex";
+          countLabel.textContent = selected.length + " seleccionados";
+        } else {
+          bar.style.display = "none";
+          countLabel.textContent = "0 seleccionados";
+        }
+      }
+    }
+
+    async function handleBulkPublish(publish) {
+      const cbs = document.querySelectorAll(".cfp-bulk-checkbox");
+      const ids = Array.from(cbs).filter(cb => cb.checked).map(cb => cb.dataset.id);
+      if (ids.length === 0) return;
+      
+      const btn = publish ? document.getElementById("cfpBulkPublishSlidesBtn") : document.getElementById("cfpBulkUnpublishSlidesBtn");
+      if (btn) btn.disabled = true;
+      try {
+        const response = await fetch(baseEndpoint + "/presentation/publish-bulk", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ ids: ids, published: publish })
+        });
+        if (!response.ok) throw new Error("Error en la publicación en bloque");
+        const payload = await response.json();
+        showFeedback("Diapositivas actualizadas para " + payload.count + " propuestas", false, btn);
+        await loadList();
+      } catch (error) {
+        showFeedback(error.message, true, btn);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    if (canManage) {
+      document.getElementById("cfpSelectAllBtn")?.addEventListener("click", () => {
+        document.querySelectorAll(".cfp-bulk-checkbox").forEach(cb => cb.checked = true);
+        updateBulkBarState();
+      });
+      document.getElementById("cfpDeselectAllBtn")?.addEventListener("click", () => {
+        document.querySelectorAll(".cfp-bulk-checkbox").forEach(cb => cb.checked = false);
+        updateBulkBarState();
+      });
+      document.getElementById("cfpBulkPublishSlidesBtn")?.addEventListener("click", () => handleBulkPublish(true));
+      document.getElementById("cfpBulkUnpublishSlidesBtn")?.addEventListener("click", () => handleBulkPublish(false));
+    }
+
     restoreModerationStateFromUrl();
     applyControlsFromState();
     const initialPanelId = (() => {
