@@ -26,6 +26,20 @@ def test_scc_output_is_captured_in_worker_log() -> None:
     assert "set +e" not in worker
 
 
+def test_scc_invocation_uses_explicit_non_interactive_session_options() -> None:
+    worker = Path("platform/scripts/homedir-sdlc-worker.sh").read_text()
+
+    assert 'SCC_PROFILE="${HOMEDIR_SDLC_SCC_PROFILE:-nvidia}"' in worker
+    assert 'SCC_CLEAR_HISTORY="${HOMEDIR_SDLC_SCC_CLEAR_HISTORY:-true}"' in worker
+    assert 'SCC_PERMISSIONS="${HOMEDIR_SDLC_SCC_PERMISSIONS:-unlimited}"' in worker
+    assert "scc_args=(chat)" in worker
+    assert "scc_args+=(--clear)" in worker
+    assert 'scc_args+=(-m "${SCC_PROFILE}")' in worker
+    assert 'scc_args+=(--permissions "${SCC_PERMISSIONS}")' in worker
+    assert 'scc_args+=(-yq "${prompt}")' in worker
+    assert '"${SCC_BIN}" chat -yq "${prompt}"' not in worker
+
+
 def test_remediation_prompt_uses_issue_title_not_pr_title() -> None:
     worker = Path("platform/scripts/homedir-sdlc-worker.sh").read_text()
 

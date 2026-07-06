@@ -40,6 +40,9 @@ GIT_USER_NAME="${HOMEDIR_SDLC_GIT_USER_NAME:-homedir-sdlc[bot]}"
 GIT_USER_EMAIL="${HOMEDIR_SDLC_GIT_USER_EMAIL:-homedir-sdlc@users.noreply.github.com}"
 SCC_BIN="${SCC_BIN:-/usr/local/bin/scc}"
 SCC_TIMEOUT_SECONDS="${HOMEDIR_SDLC_SCC_TIMEOUT_SECONDS:-1800}"
+SCC_PROFILE="${HOMEDIR_SDLC_SCC_PROFILE:-nvidia}"
+SCC_CLEAR_HISTORY="${HOMEDIR_SDLC_SCC_CLEAR_HISTORY:-true}"
+SCC_PERMISSIONS="${HOMEDIR_SDLC_SCC_PERMISSIONS:-unlimited}"
 LOCK_FILE="${STATE_DIR}/worker.lock"
 ISSUE_STATE_DIR="${STATE_DIR}/issues"
 PR_STATE_DIR="${STATE_DIR}/prs"
@@ -150,14 +153,27 @@ require_cmd() {
 
 run_scc_prompt() {
   local prompt="$1"
+  local -a scc_args
 
   (
     cd "${WORKDIR}"
+    scc_args=(chat)
+    if [[ "${SCC_CLEAR_HISTORY}" == "true" ]]; then
+      scc_args+=(--clear)
+    fi
+    if [[ -n "${SCC_PROFILE}" ]]; then
+      scc_args+=(-m "${SCC_PROFILE}")
+    fi
+    if [[ -n "${SCC_PERMISSIONS}" ]]; then
+      scc_args+=(--permissions "${SCC_PERMISSIONS}")
+    fi
+    scc_args+=(-yq "${prompt}")
+
     if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
-      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" chat -yq "${prompt}"
+      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" "${scc_args[@]}"
     else
       log "WARNING: 'timeout' unavailable or SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running SCC without timeout enforcement"
-      "${SCC_BIN}" chat -yq "${prompt}"
+      "${SCC_BIN}" "${scc_args[@]}"
     fi
   ) 2>&1 | tee -a "${LOGFILE}"
   return "${PIPESTATUS[0]}"
