@@ -73,3 +73,6 @@ coverage.xml
 # Local Quarkus application data
 quarkus-app/data/
 data/
+
+# Personal work-in-progress notes
+.slim/
