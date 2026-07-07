@@ -1519,6 +1519,10 @@ run_issue() {
   prepare_workdir
   git -C "${WORKDIR}" checkout -B "${branch}" origin/main
 
+  # Fetch recent issue comments for context
+  local issue_comments
+  issue_comments="$(gh issue view "${number}" --repo "${REPO}" --json comments --jq '.comments[-5:] | map("- [" + (.author.login // "unknown") + " at " + .createdAt + "] " + .body) | join("\n")' 2>>"${LOGFILE}" || true)"
+
   prompt="$(cat <<EOF
 Implement GitHub issue #${number} in ${REPO}.
 
@@ -1530,6 +1534,21 @@ ${url}
 
 Issue body:
 ${body}
+EOF
+)"
+
+  if [[ -n "${issue_comments}" && "${issue_comments}" != "null" ]]; then
+    prompt+="$(cat <<EOF
+
+
+Recent issue comments (newest last):
+${issue_comments}
+EOF
+)"
+  fi
+
+  prompt+="$(cat <<EOF
+
 
 Rules:
 - Work only within the issue scope.
@@ -1576,7 +1595,13 @@ EOF
   fi
 
   if [[ -z "$(git -C "${WORKDIR}" log --oneline "origin/main..HEAD")" ]]; then
-    mark_needs_human "${number}" "SCC completed without producing any branch changes."
+    local diagnostic_msg="SCC completed without producing any branch changes. Common causes:
+- Agent responded with intent (\"Now I'll...\") but did not execute tools in batch mode
+- Issue description may be ambiguous or under-specified
+- Agent did not have sufficient permission or context to proceed
+
+Recommendation: Review the issue description for clarity, check SCC logs, or verify SCC autonomous mode configuration."
+    mark_needs_human "${number}" "${diagnostic_msg}"
     return 0
   fi
 
