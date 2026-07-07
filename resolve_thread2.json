@@ -1,1 +1,0 @@
-{"query":"query { node(id: \"PRRC_kwDOQGvW7s7Sh-Sk\") { ... on PullRequestReviewComment { id thread { id isResolved } } } }"}

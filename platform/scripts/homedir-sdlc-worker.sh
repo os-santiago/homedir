@@ -1521,7 +1521,7 @@ run_issue() {
 
   # Fetch recent issue comments for context
   local issue_comments
-  issue_comments="$(gh issue view "${number}" --repo "${REPO}" --json comments --jq '.comments[-5:] | map("- [" + .author.login + " at " + .createdAt + "] " + .body) | join("\n")' 2>/dev/null || true)"
+  issue_comments="$(gh issue view "${number}" --repo "${REPO}" --json comments --jq '.comments[-5:] | map("- [" + (.author.login // "unknown") + " at " + .createdAt + "] " + .body) | join("\n")' 2>>"${LOGFILE}" || true)"
 
   prompt="$(cat <<EOF
 Implement GitHub issue #${number} in ${REPO}.
