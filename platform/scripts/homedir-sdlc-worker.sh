@@ -944,7 +944,7 @@ else:
         r"line \d+",
         r"`[^`]+\.(ts|js|java|py|sh|yml|yaml|json|md|txt|example)`",  # File paths
         r"\u2192\s*\*\*",  # \u2192 **SATISFIED** pattern
-        r"None known\.",  # Explicit statement of no gaps
+        r"(?:known gaps?|uncovered)\s*:\s*none known\.",  # Explicit statement of no gaps, scoped to label
     ]
 
     for block in coverage_blocks:
