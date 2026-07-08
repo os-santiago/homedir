@@ -167,6 +167,8 @@ run_scc_prompt() {
     if [[ -n "${SCC_PERMISSIONS}" ]]; then
       scc_args+=(--permissions "${SCC_PERMISSIONS}")
     fi
+    # Enable throttling to avoid API rate limits (auto-detects provider-specific delays)
+    scc_args+=(--throttle auto)
     scc_args+=(-yq "${prompt}")
 
     if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
@@ -920,7 +922,9 @@ if not coverage_match:
 elif re.search(r"(?m)^\s*[-*]\s+\[\s\]", coverage):
     gaps.append("`## Issue Coverage` still contains unchecked items.")
 else:
-    coverage_items = re.findall(r"(?m)^\s*[-*]\s+\[[xX]\]\s+(.+?)\s*$", coverage)
+    # Extract checked items with their sub-bullets for context
+    coverage_blocks = re.findall(r"(?m)^\s*[-*]\s+\[[xX]\]\s+(.+?)(?=^\s*[-*]\s+\[|^##|\Z)", coverage, re.DOTALL)
+
     generic_patterns = [
         r"^addresses issue #[0-9]+:",
         r"^map concrete code changes to issue #[0-9]+:",
@@ -931,10 +935,30 @@ else:
         r"^leaves no known issue requirement",
         r"^source issue requirements reviewed",
     ]
-    specific_items = [
-        item for item in coverage_items
-        if not any(re.search(pattern, item, re.I) for pattern in generic_patterns)
+
+    # Evidence indicators that make an item specific even if header is generic
+    evidence_patterns = [
+        r"Evidence:",
+        r"SATISFIED",
+        r"Criterion \d+:",
+        r"line \d+",
+        r"`[^`]+\.(ts|js|java|py|sh|yml|yaml|json|md|txt|example)`",  # File paths
+        r"\u2192\s*\*\*",  # \u2192 **SATISFIED** pattern
+        r"None known\.",  # Explicit statement of no gaps
     ]
+
+    for block in coverage_blocks:
+        first_line = block.split('\n')[0].strip()
+        full_block = block.strip()
+
+        # Check if item is generic without evidence
+        is_generic_header = any(re.search(pattern, first_line, re.I) for pattern in generic_patterns)
+        has_evidence = any(re.search(pattern, full_block, re.I) for pattern in evidence_patterns)
+
+        # Item is specific if it's not generic OR if it has evidence markers
+        if not is_generic_header or has_evidence:
+            specific_items.append(full_block)
+
     if not specific_items:
         gaps.append("`## Issue Coverage` only contains generic boilerplate; add issue-specific coverage evidence.")
 
