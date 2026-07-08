@@ -76,3 +76,7 @@ data/
 
 # Personal work-in-progress notes
 .slim/
+
+# Temporary query/response files from agent sessions
+query_thread.json
+resolve_*.json
