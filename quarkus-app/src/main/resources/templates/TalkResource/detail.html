@@ -130,7 +130,7 @@
 
       {#if app:isAuthenticated()}
       <div class="talk-action-row">
-        <button id="addTalkBtn" class="btn-primary">
+        <button id="addTalkBtn" class="btn btn--primary">
           {#if inSchedule}<span class="material-symbols-outlined">check</span> {i18n:talk_btn_view_profile}
           {#else}<span class="material-symbols-outlined">add</span> {i18n:talk_btn_add_to_profile}{/if}
         </button>
@@ -147,7 +147,7 @@
             genericError: "{i18n:talk_js_error}"
           };
           if ({ inSchedule }) {
-            btn.classList.add('btn-secondary');
+            btn.classList.add('btn btn--secondary');
             btn.dataset.state = 'profile';
           }
           btn.addEventListener('click', async () => {
@@ -169,13 +169,13 @@
                 const data = await res.json();
                 if (data.status === 'added') {
                   showNotification('success', messages.added);
-                  btn.classList.add('btn-secondary');
+                  btn.classList.add('btn btn--secondary');
                   btn.innerHTML = '<span class="material-symbols-outlined">check</span> ' + profileLabel;
                   btn.disabled = false;
                   btn.dataset.state = 'profile';
                 } else if (data.status === 'exists') {
                   showNotification('info', messages.exists);
-                  btn.classList.add('btn-secondary');
+                  btn.classList.add('btn btn--secondary');
                   btn.innerHTML = '<span class="material-symbols-outlined">check</span> ' + profileLabel;
                   btn.disabled = false;
                   btn.dataset.state = 'profile';
@@ -204,8 +204,8 @@
       {/if}
 
       <div class="talk-action-row">
-        {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn-primary">{i18n:talk_back_to_scenario}</a>{/if}
-        {#if event}<a href="/event/{event.id}" class="btn-primary">{i18n:talk_back_to_event}</a>{/if}
+        {#if talk.location && event}<a href="/event/{event.id}/scenario/{talk.location}" class="btn btn--primary">{i18n:talk_back_to_scenario}</a>{/if}
+        {#if event}<a href="/event/{event.id}" class="btn btn--primary">{i18n:talk_back_to_event}</a>{/if}
       </div>
     </article>
 
@@ -242,7 +242,7 @@
     <span class="material-symbols-outlined">mic</span>
     <h2>{i18n:talk_title_default}</h2>
     <p>{i18n:talk_not_found}</p>
-    <a href="/eventos" class="btn-primary">{i18n:talk_back_to_event}</a>
+    <a href="/eventos" class="btn btn--primary">{i18n:talk_back_to_event}</a>
   </div>
 </div>
 {/if}

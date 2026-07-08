@@ -31,7 +31,7 @@
         </p>
       </div>
       <div class="action-group admin-shell-actions">
-        <a href="/private/admin" class="btn btn-secondary">{copy.backToPanel}</a>
+        <a href="/private/admin" class="btn btn--secondary">{copy.backToPanel}</a>
         <form action="/private/admin/campaigns/refresh" method="post">
                 {#include fragments/csrf-token.html /}
           <input type="hidden" name="q" value="{filters.query}" />
@@ -39,7 +39,7 @@
           <input type="hidden" name="kind" value="{filters.kind}" />
           <input type="hidden" name="channel" value="{filters.channel}" />
           <input type="hidden" name="returnTo" value="{activePage}" />
-          <button type="submit" class="btn btn-secondary" id="campaignsRefreshBtn">{copy.refresh}</button>
+          <button type="submit" class="btn btn--secondary" id="campaignsRefreshBtn">{copy.refresh}</button>
         </form>
       </div>
     </div>
@@ -161,7 +161,7 @@
               </div>
             </div>
             <p>{i18n:campaigns_admin_process_step_content_intro}</p>
-            <a href="/private/admin/campaigns/content{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_content_action}</a>
+            <a href="/private/admin/campaigns/content{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_content_action}</a>
           </article>
           <article class="section-card admin-shell-panel">
             <div class="admin-shell-card-header">
@@ -171,7 +171,7 @@
               </div>
             </div>
             <p>{i18n:campaigns_admin_process_step_channels_intro}</p>
-            <a href="/private/admin/campaigns/channels{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_channels_action}</a>
+            <a href="/private/admin/campaigns/channels{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_channels_action}</a>
           </article>
           <article class="section-card admin-shell-panel">
             <div class="admin-shell-card-header">
@@ -181,7 +181,7 @@
               </div>
             </div>
             <p>{i18n:campaigns_admin_process_step_publish_intro}</p>
-            <a href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
+            <a href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
           </article>
           <article class="section-card admin-shell-panel">
             <div class="admin-shell-card-header">
@@ -191,7 +191,7 @@
               </div>
             </div>
             <p>{i18n:campaigns_admin_process_step_monitor_intro}</p>
-            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
+            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
           </article>
           <article class="section-card admin-shell-panel">
             <div class="admin-shell-card-header">
@@ -201,7 +201,7 @@
               </div>
             </div>
             <p>{i18n:campaigns_admin_board_intro}</p>
-            <a href="/private/admin/campaigns/board{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_board}</a>
+            <a href="/private/admin/campaigns/board{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_board}</a>
           </article>
         </div>
       </section>
@@ -313,8 +313,8 @@
             </select>
           </div>
           <div class="admin-shell-toolbar-group">
-            <button type="submit" class="btn btn-secondary">{copy.filterApplyLabel}</button>
-            <a href="/private/admin/campaigns/content" class="btn btn-secondary">{copy.filterClearLabel}</a>
+            <button type="submit" class="btn btn--secondary">{copy.filterApplyLabel}</button>
+            <a href="/private/admin/campaigns/content" class="btn btn--secondary">{copy.filterClearLabel}</a>
           </div>
         </form>
         {#if filters.activeCount > 0 && view.drafts.isEmpty}
@@ -357,9 +357,9 @@
                     <input type="hidden" name="kind" value="{filters.kind}" />
                     <input type="hidden" name="channel" value="{filters.channel}" />
                     <input type="hidden" name="returnTo" value="channels" />
-                    <button id="campaignsSelectAndContinueBtn-{draft.id}" type="submit" class="btn btn-primary">{copy.contentSelectAction}</button>
+                    <button id="campaignsSelectAndContinueBtn-{draft.id}" type="submit" class="btn btn--primary">{copy.contentSelectAction}</button>
                   </form>
-                  <a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{copy.contentReviewAction}</a>
+                  <a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{copy.contentReviewAction}</a>
                 </div>
               </article>
             {/for}
@@ -391,17 +391,17 @@
             <article class="campaigns-admin-item">
               <strong>{i18n:campaigns_admin_process_step_channels}</strong>
               <span>{i18n:campaigns_admin_process_step_channels_intro}</span>
-              <a id="campaignsContentNextChannelsBtn" href="/private/admin/campaigns/channels{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_channels_action}</a>
+              <a id="campaignsContentNextChannelsBtn" href="/private/admin/campaigns/channels{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_channels_action}</a>
             </article>
             <article class="campaigns-admin-item">
               <strong>{i18n:campaigns_admin_process_step_publish}</strong>
               <span>{i18n:campaigns_admin_process_step_publish_intro}</span>
-              <a id="campaignsContentNextPublishBtn" href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
+              <a id="campaignsContentNextPublishBtn" href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
             </article>
             <article class="campaigns-admin-item">
               <strong>{i18n:campaigns_admin_process_step_monitor}</strong>
               <span>{i18n:campaigns_admin_process_step_monitor_intro}</span>
-              <a id="campaignsContentNextMonitorBtn" href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
+              <a id="campaignsContentNextMonitorBtn" href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_monitor_action}</a>
             </article>
           </div>
         </article>
@@ -480,7 +480,7 @@
                           <input type="hidden" name="kind" value="{filters.kind}" />
                           <input type="hidden" name="channel" value="{filters.channel}" />
                           <input type="hidden" name="returnTo" value="channels" />
-                          <button type="submit" class="btn btn-primary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                          <button type="submit" class="btn btn--primary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
                         </form>
                       {#else}
                         <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
@@ -490,7 +490,7 @@
                           <input type="hidden" name="kind" value="{filters.kind}" />
                           <input type="hidden" name="channel" value="{filters.channel}" />
                           <input type="hidden" name="returnTo" value="channels" />
-                          <button type="submit" class="btn btn-primary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                          <button type="submit" class="btn btn--primary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
                         </form>
                       {/if}
                     {#else}
@@ -501,7 +501,7 @@
                         <input type="hidden" name="kind" value="{filters.kind}" />
                         <input type="hidden" name="channel" value="{filters.channel}" />
                         <input type="hidden" name="returnTo" value="channels" />
-                        <button type="submit" class="btn btn-primary" id="campaignsChooseChannelBtn-{status.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
+                        <button type="submit" class="btn btn--primary" id="campaignsChooseChannelBtn-{status.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
                       </form>
                     {/if}
                   {/if}
@@ -517,10 +517,10 @@
                     {#if channelState.channelCode == status.channelCode}
                       {#if channelState.automationEnabled}
                         <input type="hidden" name="enabled" value="false" />
-                        <button type="submit" class="btn btn-secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
+                        <button type="submit" class="btn btn--secondary" id="campaignsDisableChannelBtn-{status.channelCode}">{copy.disableChannelAutomationLabel}</button>
                       {#else}
                         <input type="hidden" name="enabled" value="true" />
-                        <button type="submit" class="btn btn-secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
+                        <button type="submit" class="btn btn--secondary" id="campaignsEnableChannelBtn-{status.channelCode}">{copy.enableChannelAutomationLabel}</button>
                       {/if}
                     {/if}
                   {/for}
@@ -556,7 +556,7 @@
           <article class="campaigns-admin-item">
             <strong>{i18n:campaigns_admin_process_step_publish}</strong>
             <span>{i18n:campaigns_admin_process_step_publish_intro}</span>
-            <a id="campaignsChannelsNextPublishBtn" href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
+            <a id="campaignsChannelsNextPublishBtn" href="/private/admin/campaigns/publish{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_process_step_publish_action}</a>
           </article>
         </div>
       </section>
@@ -581,10 +581,10 @@
               <input type="hidden" name="returnTo" value="channels" />
               {#if view.automation.refreshAutomationEnabled}
                 <input type="hidden" name="enabled" value="false" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPauseRefreshBtn">{copy.pauseRefreshLabel}</button>
               {#else}
                 <input type="hidden" name="enabled" value="true" />
-                <button type="submit" class="btn btn-secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsResumeRefreshBtn">{copy.resumeRefreshLabel}</button>
               {/if}
             </form>
           </article>
@@ -600,10 +600,10 @@
               <input type="hidden" name="returnTo" value="channels" />
               {#if view.automation.publishAutomationEnabled}
                 <input type="hidden" name="enabled" value="false" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPausePublishBtn">{copy.pausePublishLabel}</button>
               {#else}
                 <input type="hidden" name="enabled" value="true" />
-                <button type="submit" class="btn btn-secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsResumePublishBtn">{copy.resumePublishLabel}</button>
               {/if}
             </form>
           </article>
@@ -647,10 +647,10 @@
                   <input type="hidden" name="returnTo" value="channels" />
                   {#if item.acknowledged}
                     <input type="hidden" name="acknowledged" value="false" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutClearBtn-{item.channelCode}">{copy.rolloutClearAckActionLabel}</button>
+                    <button type="submit" class="btn btn--secondary" id="campaignsRolloutClearBtn-{item.channelCode}">{copy.rolloutClearAckActionLabel}</button>
                   {#else}
                     <input type="hidden" name="acknowledged" value="true" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsRolloutAckBtn-{item.channelCode}">{copy.rolloutAckActionLabel}</button>
+                    <button type="submit" class="btn btn--secondary" id="campaignsRolloutAckBtn-{item.channelCode}">{copy.rolloutAckActionLabel}</button>
                   {/if}
                 </form>
                 {#if item.pilotLive}
@@ -662,7 +662,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input type="hidden" name="returnTo" value="channels" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                      <button type="submit" class="btn btn--secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
                     </form>
                   {#else}
                     <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
@@ -672,7 +672,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input type="hidden" name="returnTo" value="channels" />
-                      <button type="submit" class="btn btn-secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                      <button type="submit" class="btn btn--secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
                     </form>
                   {/if}
                   <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">
@@ -682,7 +682,7 @@
                     <input type="hidden" name="kind" value="{filters.kind}" />
                     <input type="hidden" name="channel" value="{filters.channel}" />
                     <input type="hidden" name="returnTo" value="channels" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsPilotClearBtn">{copy.rolloutClearPilotActionLabel}</button>
+                    <button type="submit" class="btn btn--secondary" id="campaignsPilotClearBtn">{copy.rolloutClearPilotActionLabel}</button>
                   </form>
                 {#else}
                   <form action="/private/admin/campaigns/rollout/pilot/{item.channelCode}/select" method="post">
@@ -692,7 +692,7 @@
                     <input type="hidden" name="kind" value="{filters.kind}" />
                     <input type="hidden" name="channel" value="{filters.channel}" />
                     <input type="hidden" name="returnTo" value="channels" />
-                    <button type="submit" class="btn btn-secondary" id="campaignsPilotSelectBtn-{item.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
+                    <button type="submit" class="btn btn--secondary" id="campaignsPilotSelectBtn-{item.channelCode}">{copy.rolloutSelectPilotActionLabel}</button>
                   </form>
                 {/if}
               </div>
@@ -740,7 +740,7 @@
               <input type="hidden" name="kind" value="{filters.kind}" />
               <input type="hidden" name="channel" value="{filters.channel}" />
               <input type="hidden" name="returnTo" value="publish" />
-              <button type="submit" class="btn btn-primary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
+              <button type="submit" class="btn btn--primary" id="campaignsPublishNowBtn">{copy.publisherRunLabel}</button>
             </form>
           </div>
         </div>
@@ -756,7 +756,7 @@
               {#for draft in view.drafts}
                 {#if draft.workflowStateCode == 'approved'}
                   <article class="campaigns-admin-item">
-                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></strong>
+                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{draft.title}</a></strong>
                     <span>{draft.scheduleReadinessLabel} · {draft.recommendedWindowLabel}</span>
                     <form action="/private/admin/campaigns/{draft.id}/schedule" method="post" class="admin-shell-toolbar">
                             {#include fragments/csrf-token.html /}
@@ -767,7 +767,7 @@
                       <input type="hidden" name="returnTo" value="publish" />
                       <label class="sr-only" for="schedule-{draft.id}">{copy.scheduleForLabel}</label>
                       <input id="schedule-{draft.id}" class="hd-input" type="datetime-local" name="scheduledFor" />
-                      <button type="submit" class="btn btn-secondary" {#if !draft.scheduleReady}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
+                      <button type="submit" class="btn btn--secondary" {#if !draft.scheduleReady}disabled aria-disabled="true"{/if}>{copy.scheduleLabel}</button>
                     </form>
                   </article>
                 {/if}
@@ -786,7 +786,7 @@
               {#for draft in view.drafts}
                 {#if draft.workflowStateCode == 'scheduled'}
                   <article class="campaigns-admin-item">
-                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{draft.title}</a></strong>
+                    <strong><a href="/private/admin/campaigns/{draft.id}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{draft.title}</a></strong>
                     <span>{draft.scheduledForLabel}</span>
                     <div class="action-group admin-shell-actions">
                       <form action="/private/admin/campaigns/{draft.id}/unschedule" method="post">
@@ -796,7 +796,7 @@
                         <input type="hidden" name="kind" value="{filters.kind}" />
                         <input type="hidden" name="channel" value="{filters.channel}" />
                         <input type="hidden" name="returnTo" value="publish" />
-                        <button type="submit" class="btn btn-secondary">{copy.unscheduleLabel}</button>
+                        <button type="submit" class="btn btn--secondary">{copy.unscheduleLabel}</button>
                       </form>
                     </div>
                   </article>
@@ -872,7 +872,7 @@
                   </div>
                   <div class="campaigns-admin-list">
                     <article class="campaigns-admin-item"><strong>{copy.linkedinHeadlineLabel}</strong><span>{handoff.headline}</span></article>
-                    <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn-secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
+                    <article class="campaigns-admin-item"><strong>{copy.linkedinLandingLabel}</strong><a href="{handoff.landingUrl}" class="btn btn--secondary campaigns-admin-cta">{handoff.ctaLabel}</a></article>
                   </div>
                   {#if !handoff.completed}
                     <form action="/private/admin/campaigns/{handoff.draftId}/mark-linkedin" method="post">
@@ -882,7 +882,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input type="hidden" name="returnTo" value="publish" />
-                      <button type="submit" class="btn btn-primary">{copy.markLinkedinLabel}</button>
+                      <button type="submit" class="btn btn--primary">{copy.markLinkedinLabel}</button>
                     </form>
                   {/if}
                 </article>
@@ -899,7 +899,7 @@
             <h2>{copy.recentActivityTitle}</h2>
           </div>
           <div class="action-group admin-shell-actions">
-            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn-secondary" id="campaignsPublishMonitorLink">{i18n:campaigns_admin_process_step_monitor}</a>
+            <a href="/private/admin/campaigns/monitor{filters.querySuffix}" class="btn btn--secondary" id="campaignsPublishMonitorLink">{i18n:campaigns_admin_process_step_monitor}</a>
           </div>
         </div>
         <div class="campaigns-admin-list">
@@ -941,7 +941,7 @@
                 <input type="hidden" name="channel" value="{filters.channel}" />
                 <input type="hidden" name="returnTo" value="publish" />
                 <input type="hidden" name="acknowledged" value="false" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationClearBtn">{copy.pilotVerificationClearActionLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPilotVerificationClearBtn">{copy.pilotVerificationClearActionLabel}</button>
               </form>
             {#else if view.pilotVerificationSummary.canAcknowledge}
               <form action="/private/admin/campaigns/rollout/pilot/verify" method="post">
@@ -952,7 +952,7 @@
                 <input type="hidden" name="channel" value="{filters.channel}" />
                 <input type="hidden" name="returnTo" value="publish" />
                 <input type="hidden" name="acknowledged" value="true" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPilotVerificationBtn">{copy.pilotVerificationMarkActionLabel}</button>
               </form>
             {/if}
           </div>
@@ -981,7 +981,7 @@
                 <input type="hidden" name="channel" value="{filters.channel}" />
                 <input type="hidden" name="returnTo" value="publish" />
                 <input type="hidden" name="decision" value="approved" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPilotDecisionApproveBtn">{copy.pilotDecision.approveActionLabel}</button>
               </form>
               <form action="/private/admin/campaigns/rollout/pilot/decision" method="post">
                       {#include fragments/csrf-token.html /}
@@ -991,7 +991,7 @@
                 <input type="hidden" name="channel" value="{filters.channel}" />
                 <input type="hidden" name="returnTo" value="publish" />
                 <input type="hidden" name="decision" value="hold" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionHoldBtn">{copy.pilotDecision.holdActionLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPilotDecisionHoldBtn">{copy.pilotDecision.holdActionLabel}</button>
               </form>
             {/if}
             {#if view.pilotDecisionSummary.canClear}
@@ -1003,7 +1003,7 @@
                 <input type="hidden" name="channel" value="{filters.channel}" />
                 <input type="hidden" name="returnTo" value="publish" />
                 <input type="hidden" name="decision" value="" />
-                <button type="submit" class="btn btn-secondary" id="campaignsPilotDecisionClearBtn">{copy.pilotDecision.clearActionLabel}</button>
+                <button type="submit" class="btn btn--secondary" id="campaignsPilotDecisionClearBtn">{copy.pilotDecision.clearActionLabel}</button>
               </form>
             {/if}
           </div>
@@ -1078,7 +1078,7 @@
               <div class="admin-shell-card-header">
                 <div>
                   <p class="section-subtitle">{item.kindLabel}</p>
-                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></h3>
+                  <h3><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{item.title}</a></h3>
                 </div>
                 <span class="admin-observability-badge">{copy.attributionTotalLabel}: {item.totalVisits}</span>
               </div>
@@ -1101,7 +1101,7 @@
           {/if}
           {#for item in view.recoveryItems}
             <article class="campaigns-admin-item">
-              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></strong>
+              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{item.title}</a></strong>
               <span>{item.channelLabel} · {item.stateLabel} · {item.recommendationLabel}</span>
             </article>
           {/for}
@@ -1121,7 +1121,7 @@
           {/if}
           {#for item in view.auditTrail}
             <article class="campaigns-admin-item">
-              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn-secondary campaigns-admin-cta">{item.title}</a></strong>
+              <strong><a href="/private/admin/campaigns/{item.draftId}{filters.querySuffix}" class="btn btn--secondary campaigns-admin-cta">{item.title}</a></strong>
               <span>{item.eventLabel} · {item.channelLabel} · {item.outcomeLabel} · {item.timestampLabel}</span>
             </article>
           {/for}
@@ -1165,7 +1165,7 @@
                     {#if card.noteLabel}
                       <p class="form-hint">{card.noteLabel}</p>
                     {/if}
-                    <a href="{card.href}" class="btn btn-secondary campaigns-admin-cta">{i18n:campaigns_admin_board_card_open}</a>
+                    <a href="{card.href}" class="btn btn--secondary campaigns-admin-cta">{i18n:campaigns_admin_board_card_open}</a>
                   </article>
                 {/for}
               </div>

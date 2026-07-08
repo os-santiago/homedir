@@ -77,14 +77,14 @@
 
   main#main-content.homedir-main .btn,
   main#main-content.homedir-main .login-btn-nav,
-  main#main-content.homedir-main .btn-secondary,
+  main#main-content.homedir-main .btn btn--secondary,
   main#main-content.homedir-main .cfp-view-btn {
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
     border-color: var(--event-theme-accent);
     color: var(--event-theme-text);
   }
 
-  main#main-content.homedir-main .btn-primary {
+  main#main-content.homedir-main .btn btn--primary {
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
     border-color: var(--event-theme-primary);
     color: var(--event-theme-text);
@@ -127,7 +127,7 @@
       </p>
     </div>
     <div class="cfp-preview-actions">
-      <a href="/u/preview?preview_user_id={cfpPreviewUserId}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+      <a href="/u/preview?preview_user_id={cfpPreviewUserId}" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">
         {#if resolvedLocaleCode == 'es'}Abrir perfil del speaker{#else}Open speaker profile{/if}
       </a>
     </div>
@@ -207,7 +207,7 @@
       <h3 style="margin: 0; font-size: 1.1rem;">{i18n:support_discord_banner_title}</h3>
       <p class="section-subtitle" style="margin: 0.25rem 0 0;">{i18n:support_discord_banner_desc}</p>
     </div>
-    <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn btn-primary" aria-label="{i18n:support_discord_aria_label}">
+    <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn btn--primary" aria-label="{i18n:support_discord_aria_label}">
       {i18n:support_discord_banner_cta}
     </a>
   </div>
@@ -216,7 +216,7 @@
 <section class="section-card" style="grid-column: 1 / -1;">
   <h2 style="margin-top: 0;">{i18n:events_cfp_sponsors_title}</h2>
   <p class="section-subtitle">{i18n:events_cfp_sponsors_desc(event.title)}</p>
-  <a href="https://santiago.devopsdayschile.cl/patrocinio" target="_blank" rel="noopener noreferrer" class="btn-primary">
+  <a href="https://santiago.devopsdayschile.cl/patrocinio" target="_blank" rel="noopener noreferrer" class="btn btn--primary">
     {i18n:events_cfp_sponsors_cta}
   </a>
 </section>
@@ -321,7 +321,7 @@
         </div>
       </div>
       <div class="form-actions">
-        <button id="cfpSubmitBtn" type="button" class="btn btn-primary">{i18n:events_cfp_form_submit}</button>
+        <button id="cfpSubmitBtn" type="button" class="btn btn--primary">{i18n:events_cfp_form_submit}</button>
         <button id="cfpAutofillBtn" type="button" class="btn login-btn-nav">{i18n:events_cfp_autofill_last}</button>
       </div>
     <p id="cfpQuotaHint" class="form-hint cfp-quota-hint"></p>
@@ -332,7 +332,7 @@
     {/if}
     {#if !cfpPreviewMode && !userAuthenticated}
     <p class="section-subtitle">{i18n:events_cfp_login_required}</p>
-    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn-primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
+    <a href="/private/login-callback?redirect=/event/{event.id}/cfp" class="btn btn--primary" data-login-return-current="true">{i18n:events_cfp_login_btn}</a>
     {/if}
   </article>
 
@@ -1737,7 +1737,7 @@
     <span class="material-symbols-outlined" style="font-size: 3.2rem; opacity: 0.55;">event_busy</span>
     <h2>{i18n:events_cfp_not_found_title}</h2>
     <p>{i18n:events_cfp_not_found_desc}</p>
-    <a href="/eventos" class="btn-primary">{i18n:nav_events}</a>
+    <a href="/eventos" class="btn btn--primary">{i18n:nav_events}</a>
   </article>
 </div>
 {/if}

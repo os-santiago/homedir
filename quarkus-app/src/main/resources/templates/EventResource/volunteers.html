@@ -91,7 +91,7 @@
           <textarea id="volunteerDifferentiator" name="differentiator" class="form-textarea" rows="3" maxlength="500"></textarea>
         </div>
         <div class="volunteer-form-actions">
-          <button id="volunteerSubmitBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_form_submit}</button>
+          <button id="volunteerSubmitBtn" type="button" class="btn btn--primary">{i18n:events_volunteers_form_submit}</button>
           <button id="volunteerWithdrawBtn" type="button" class="btn login-btn-nav" hidden>{i18n:events_volunteers_form_withdraw}</button>
         </div>
       </form>
@@ -99,14 +99,14 @@
     <div id="volunteerSelectedCta" class="volunteer-status-card" {#if !volunteerSelected}hidden{/if}>
       <strong>{i18n:events_volunteers_selected_cta_title}</strong>
       <p class="form-hint" style="margin: 0;">{i18n:events_volunteers_selected_cta_desc}</p>
-      <a href="/event/{event.id}/volunteers/lounge" class="btn btn-primary" style="margin-top: 0.45rem;">
+      <a href="/event/{event.id}/volunteers/lounge" class="btn btn--primary" style="margin-top: 0.45rem;">
         {i18n:events_volunteers_selected_cta_button}
       </a>
     </div>
     <p id="volunteerFeedback" class="volunteer-feedback" hidden></p>
     {#else}
     <p class="section-subtitle">{i18n:events_volunteers_login_required}</p>
-    <a href="/private/login-callback?redirect=/event/{event.id}/volunteers" class="btn-primary" data-login-return-current="true">{i18n:events_volunteers_login_btn}</a>
+    <a href="/private/login-callback?redirect=/event/{event.id}/volunteers" class="btn btn--primary" data-login-return-current="true">{i18n:events_volunteers_login_btn}</a>
     {/if}
   </article>
 
@@ -124,7 +124,7 @@
   <article class="section-card support-section">
     <h2 style="margin-top: 0;">{i18n:support_discord_banner_title}</h2>
     <p class="section-subtitle" style="margin-bottom: 1rem;">{i18n:support_discord_banner_desc}</p>
-    <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn btn-primary" aria-label="{i18n:support_discord_aria_label}">
+    <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener noreferrer" class="btn btn--primary" aria-label="{i18n:support_discord_aria_label}">
       <span class="material-symbols-outlined" style="vertical-align: text-bottom;">support_agent</span>
       {i18n:support_discord_banner_cta}
     </a>
@@ -400,7 +400,7 @@
     <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">group_off</span>
     <h2>{i18n:events_volunteers_not_found_title}</h2>
     <p>{i18n:events_volunteers_not_found_desc}</p>
-    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
+    <a href="/eventos" class="btn btn--primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
   </div>
 </div>
 {/if}

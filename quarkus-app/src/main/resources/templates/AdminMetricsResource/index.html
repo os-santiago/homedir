@@ -10,8 +10,8 @@
         <p class="admin-shell-note">Supervisa actividad, funnel y salud operativa del sitio desde una sola consola.</p>
       </div>
       <div class="admin-shell-actions">
-        <a href="/private/admin/observability" class="btn btn-secondary">Observabilidad</a>
-        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+        <a href="/private/admin/observability" class="btn btn--secondary">Observabilidad</a>
+        <a href="/private/admin" class="btn btn--secondary">Volver al panel</a>
       </div>
     </div>
   </div>
@@ -21,10 +21,10 @@
   <section class="admin-shell-panel admin-metrics-panel">
     <form method="get" class="admin-shell-toolbar admin-metrics-toolbar" aria-label="Filtros de métricas">
       <div class="admin-shell-toolbar-group">
-        <button type="submit" name="range" value="today" class="btn {#if data.range == 'today'}btn-primary{#else}btn-secondary{/if}">Hoy</button>
-        <button type="submit" name="range" value="7" class="btn {#if data.range == '7'}btn-primary{#else}btn-secondary{/if}">7 días</button>
-        <button type="submit" name="range" value="30" class="btn {#if data.range == '30'}btn-primary{#else}btn-secondary{/if}">30 días</button>
-        <button type="submit" name="range" value="all" class="btn {#if data.range == 'all'}btn-primary{#else}btn-secondary{/if}">Todo</button>
+        <button type="submit" name="range" value="today" class="btn {#if data.range == 'today'}btn btn--primary{#else}btn btn--secondary{/if}">Hoy</button>
+        <button type="submit" name="range" value="7" class="btn {#if data.range == '7'}btn btn--primary{#else}btn btn--secondary{/if}">7 días</button>
+        <button type="submit" name="range" value="30" class="btn {#if data.range == '30'}btn btn--primary{#else}btn btn--secondary{/if}">30 días</button>
+        <button type="submit" name="range" value="all" class="btn {#if data.range == 'all'}btn btn--primary{#else}btn btn--secondary{/if}">Todo</button>
       </div>
 
       <div class="admin-shell-toolbar-group">
@@ -44,9 +44,9 @@
       </div>
 
       <div class="admin-shell-toolbar-group">
-        <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn-secondary">Exportar CSV</a>
-        <a href="/private/admin/metrics/registrations" class="btn btn-secondary">Registros por charla</a>
-        <a href="/private/admin/metrics/guide" class="btn btn-secondary">Guía</a>
+        <a href="/private/admin/metrics/export?table=talks&amp;range={data.range}{#if data.eventId}&amp;event={data.eventId}{/if}" class="btn btn--secondary">Exportar CSV</a>
+        <a href="/private/admin/metrics/registrations" class="btn btn--secondary">Registros por charla</a>
+        <a href="/private/admin/metrics/guide" class="btn btn--secondary">Guía</a>
       </div>
     </form>
   </section>
@@ -223,9 +223,9 @@
       <div class="admin-shell-actions" style="margin-top: 1rem;">
         <form id="resetMetricsForm" method="post" action="/private/admin/metrics/reset">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Reset data</button>
+          <button type="submit" class="btn btn--danger">Reset data</button>
         </form>
-        <a href="/private/admin/metrics/data" class="btn btn-secondary">Download data</a>
+        <a href="/private/admin/metrics/data" class="btn btn--secondary">Download data</a>
       </div>
     </section>
 

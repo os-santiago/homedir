@@ -23,10 +23,10 @@ Nuevo Evento · Homedir
         {#if message}<p class="section-subtitle">{message}</p>{/if}
       </div>
       <div class="action-group">
-        <a href="/private/admin/events" class="btn btn-secondary">Volver a eventos</a>
+        <a href="/private/admin/events" class="btn btn--secondary">Volver a eventos</a>
         {#if event.id}
-        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">Moderar CFP</a>
-        <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-secondary">Moderar Voluntarios</a>
+        <a href="/private/admin/events/{event.id}/cfp" class="btn btn--secondary">Moderar CFP</a>
+        <a href="/private/admin/events/{event.id}/volunteers" class="btn btn--secondary">Moderar Voluntarios</a>
         {/if}
       </div>
     </div>
@@ -36,14 +36,14 @@ Nuevo Evento · Homedir
 <div class="container">
 
   <div class="sub-nav">
-    <a href="#event-info" class="btn btn-ghost">Evento</a>
+    <a href="#event-info" class="btn btn--ghost">Evento</a>
     {#if event.id}
-    <a href="#scenarios" class="btn btn-ghost">Escenarios</a>
-    <a href="#talks" class="btn btn-ghost">Charlas</a>
-    <a href="#breaks" class="btn btn-ghost">Breaks</a>
-    <a href="#agenda" class="btn btn-ghost">Agenda</a>
-    <a href="/private/admin/events/{event.id}/cfp" class="btn btn-ghost">CFP</a>
-    <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-ghost">Voluntarios</a>
+    <a href="#scenarios" class="btn btn--ghost">Escenarios</a>
+    <a href="#talks" class="btn btn--ghost">Charlas</a>
+    <a href="#breaks" class="btn btn--ghost">Breaks</a>
+    <a href="#agenda" class="btn btn--ghost">Agenda</a>
+    <a href="/private/admin/events/{event.id}/cfp" class="btn btn--ghost">CFP</a>
+    <a href="/private/admin/events/{event.id}/volunteers" class="btn btn--ghost">Voluntarios</a>
     {/if}
   </div>
 
@@ -199,7 +199,7 @@ Nuevo Evento · Homedir
         </div>
       </fieldset>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
       </div>
     </form>
   </div>
@@ -225,11 +225,11 @@ Nuevo Evento · Homedir
         </div>
       </form>
       <div class="event-edit-item-actions">
-        <button type="submit" class="btn btn-secondary" form="scenario-form-{sc.id}">Guardar</button>
+        <button type="submit" class="btn btn--secondary" form="scenario-form-{sc.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/scenario/{sc.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Eliminar</button>
+          <button type="submit" class="btn btn--danger">Eliminar</button>
         </form>
       </div>
     </div>
@@ -245,7 +245,7 @@ Nuevo Evento · Homedir
               placeholder="Ubicación" class="form-input"></div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Agregar escenario</button>
+          <button type="submit" class="btn btn--primary">Agregar escenario</button>
         </div>
       </form>
     </div>
@@ -288,11 +288,11 @@ Nuevo Evento · Homedir
         </div>
       </form>
       <div class="event-edit-item-actions">
-        <button type="submit" class="btn btn-secondary" form="talk-form-{t.id}">Guardar</button>
+        <button type="submit" class="btn btn--secondary" form="talk-form-{t.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/talk/{t.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Eliminar</button>
+          <button type="submit" class="btn btn--danger">Eliminar</button>
         </form>
       </div>
     </div>
@@ -342,7 +342,7 @@ Nuevo Evento · Homedir
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Agregar charla</button>
+          <button type="submit" class="btn btn--primary">Agregar charla</button>
         </div>
       </form>
     </div>
@@ -385,11 +385,11 @@ Nuevo Evento · Homedir
         </div>
       </form>
       <div class="event-edit-item-actions">
-        <button type="submit" class="btn btn-secondary" form="break-form-{t.id}">Guardar</button>
+        <button type="submit" class="btn btn--secondary" form="break-form-{t.id}">Guardar</button>
         <form method="post" action="/private/admin/events/{event.id}/break/{t.id}/delete"
           class="needs-confirm inline-form event-edit-delete-form">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Eliminar</button>
+          <button type="submit" class="btn btn--danger">Eliminar</button>
         </form>
       </div>
     </div>
@@ -422,7 +422,7 @@ Nuevo Evento · Homedir
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Agregar break</button>
+          <button type="submit" class="btn btn--primary">Agregar break</button>
         </div>
       </form>
     </div>
