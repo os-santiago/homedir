@@ -167,6 +167,8 @@ run_scc_prompt() {
     if [[ -n "${SCC_PERMISSIONS}" ]]; then
       scc_args+=(--permissions "${SCC_PERMISSIONS}")
     fi
+    # Enable throttling to avoid API rate limits (auto-detects provider-specific delays)
+    scc_args+=(--throttle auto)
     scc_args+=(-yq "${prompt}")
 
     if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
