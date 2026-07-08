@@ -276,6 +276,15 @@ wsl ssh -i /home/scanales/.ssh/id_ed25519 root@72.60.141.165 \
   'curl -fsS http://127.0.0.1:8080/q/health && podman ps --filter name=homedir'
 ```
 
+Post-merge cleanup verification:
+
+After an AI SDLC tracked PR is merged, the worker will remove transient labels (such as `ai-sdlc-track`, `scc-waiting-checks`, `scc-under-review`, and `scc-failing-checks`) and apply the expected terminal `scc-merged` label.
+This repeated reconciliation process is idempotent. Operators can verify the final state and labels of a merged PR by running:
+
+```bash
+gh pr view <number> --json state,labels
+```
+
 Canary test:
 
 The SCC v0.4.0 canary validates that the autonomous worker:
