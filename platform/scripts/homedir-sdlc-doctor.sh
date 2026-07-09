@@ -66,6 +66,10 @@ else
 fi
 
 # Check SCC config
+ACTIVE_PROFILE=""
+if ! command -v jq &>/dev/null; then
+    check_fail "jq not found in PATH (required for SCC config parsing)"
+else
 SCC_CONFIG="${HOME}/.sc-agent/config.json"
 if [[ -f "$SCC_CONFIG" ]]; then
     check_pass "SCC config found: $SCC_CONFIG"
@@ -90,6 +94,7 @@ if [[ -f "$SCC_CONFIG" ]]; then
     fi
 else
     check_fail "SCC config not found: $SCC_CONFIG"
+fi
 fi
 echo ""
 

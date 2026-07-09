@@ -22,9 +22,10 @@ labels: ready-to-implement
 [Command to validate the fix, e.g., `mvn test -Dtest=TrendingServiceTest`]
 
 ## Complexity
-- [ ] Simple (1 file, <50 lines, obvious fix)
-- [ ] Medium (2-3 files, <200 lines, clear scope)
-- [ ] Complex (>3 files or requires architectural decision - consider decomposition)
+Simple, Medium, or Complex:
+- **Simple**: 1 file, <50 lines, obvious fix
+- **Medium**: 2-3 files, <200 lines, clear scope
+- **Complex**: >3 files or requires architectural decision - consider decomposition
 
 ## Notes
 - Issues with >2 acceptance criteria require "batch delivery" label or decomposition

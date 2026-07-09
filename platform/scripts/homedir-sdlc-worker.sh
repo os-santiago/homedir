@@ -148,7 +148,7 @@ write_heartbeat() {
 classify_issue_complexity() {
   local body="$1"
   local criteria_count
-  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || echo 0)
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || true)
 
   if [[ "${criteria_count}" -le 1 ]]; then
     echo "simple"
@@ -185,14 +185,26 @@ get_validation_command_for_changes() {
   elif echo "$changed_files" | grep -q 'docs/.*\.md$'; then
     # Markdown validation only if markdownlint is available
     if command -v markdownlint >/dev/null 2>&1; then
-      echo "markdownlint ${changed_files}"
+      local md_files
+      md_files=$(echo "$changed_files" | tr ' ' '\n' | grep '\.md$' | tr '\n' ' ')
+      if [[ -n "${md_files}" ]]; then
+        echo "markdownlint ${md_files}"
+      else
+        echo ""
+      fi
     else
       echo ""
     fi
   elif echo "$changed_files" | grep -q 'platform/scripts/'; then
     # Shell script validation only if shellcheck is available
     if command -v shellcheck >/dev/null 2>&1; then
-      echo "shellcheck ${changed_files}"
+      local sh_files
+      sh_files=$(echo "$changed_files" | tr ' ' '\n' | grep '\.sh$' | tr '\n' ' ')
+      if [[ -n "${sh_files}" ]]; then
+        echo "shellcheck ${sh_files}"
+      else
+        echo ""
+      fi
     else
       echo ""
     fi
@@ -424,7 +436,7 @@ check_issue_atomicity() {
   local number="$2"
   local criteria_count
 
-  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || echo 0)
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || true)
 
   if [[ "${criteria_count}" -gt 2 ]]; then
     log "Issue #${number} has ${criteria_count} acceptance criteria (>2). Per ADEV Rule #1, issues must be atomic."
@@ -1743,7 +1755,7 @@ EOF
   if [[ -n "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
     # ADEV Rule #11: Run narrowest validation before commit
     local changed_files
-    changed_files=$(git -C "${WORKDIR}" diff --name-only HEAD 2>/dev/null || echo "")
+    changed_files=$( (git -C "${WORKDIR}" diff --name-only HEAD && git -C "${WORKDIR}" ls-files --others --exclude-standard) 2>/dev/null || echo "")
     local scoped_validation_cmd
     scoped_validation_cmd=$(get_validation_command_for_changes "$changed_files")
 
