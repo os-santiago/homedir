@@ -144,6 +144,64 @@ write_heartbeat() {
   mv -f "${tmp_file}" "${HEARTBEAT_FILE}"
 }
 
+# ADEV-compliant complexity classification
+classify_issue_complexity() {
+  local body="$1"
+  local criteria_count
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || echo 0)
+
+  if [[ "${criteria_count}" -le 1 ]]; then
+    echo "simple"
+  elif [[ "${criteria_count}" -le 2 ]]; then
+    echo "medium"
+  else
+    echo "complex"
+  fi
+}
+
+# Get timeout based on complexity (ADEV Rule #6)
+get_timeout_for_complexity() {
+  local complexity="$1"
+  case "${complexity}" in
+    simple)  echo 300 ;;   # 5 minutes
+    medium)  echo 600 ;;   # 10 minutes
+    complex) echo 900 ;;   # 15 minutes
+    *)       echo 600 ;;   # default 10 minutes
+  esac
+}
+
+# ADEV Rule #11: Narrowest validation that proves change is sound
+get_validation_command_for_changes() {
+  local changed_files="$1"
+
+  # Detect what changed and return scoped validation command
+  if echo "$changed_files" | grep -q 'trending/.*\.java$'; then
+    echo "cd quarkus-app && mvn test -Dtest=com.scanales.homedir.trending.*Test"
+  elif echo "$changed_files" | grep -q '\.java$'; then
+    # Generic Java files - run affected package tests
+    echo "cd quarkus-app && mvn test"
+  elif echo "$changed_files" | grep -q '\.html$'; then
+    echo "cd quarkus-app && mvn test -Dtest=*ResourceTest"
+  elif echo "$changed_files" | grep -q 'docs/.*\.md$'; then
+    # Markdown validation only if markdownlint is available
+    if command -v markdownlint >/dev/null 2>&1; then
+      echo "markdownlint ${changed_files}"
+    else
+      echo ""
+    fi
+  elif echo "$changed_files" | grep -q 'platform/scripts/'; then
+    # Shell script validation only if shellcheck is available
+    if command -v shellcheck >/dev/null 2>&1; then
+      echo "shellcheck ${changed_files}"
+    else
+      echo ""
+    fi
+  else
+    # Default: no validation (let CI handle it)
+    echo ""
+  fi
+}
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     log "missing required command: $1"
@@ -153,7 +211,17 @@ require_cmd() {
 
 run_scc_prompt() {
   local prompt="$1"
+  local issue_body="$2"
   local -a scc_args
+  local dynamic_timeout="${SCC_TIMEOUT_SECONDS}"
+
+  # Calculate dynamic timeout if issue_body provided (ADEV optimization)
+  if [[ -n "${issue_body}" ]]; then
+    local issue_complexity
+    issue_complexity=$(classify_issue_complexity "${issue_body}")
+    dynamic_timeout=$(get_timeout_for_complexity "${issue_complexity}")
+    log "Issue complexity: ${issue_complexity}, timeout: ${dynamic_timeout}s"
+  fi
 
   (
     cd "${WORKDIR}"
@@ -171,10 +239,10 @@ run_scc_prompt() {
     scc_args+=(--throttle auto)
     scc_args+=(-yq "${prompt}")
 
-    if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
-      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" "${scc_args[@]}"
+    if command -v timeout >/dev/null 2>&1 && [[ "${dynamic_timeout}" =~ ^[0-9]+$ && "${dynamic_timeout}" -gt 0 ]]; then
+      timeout "${dynamic_timeout}s" "${SCC_BIN}" "${scc_args[@]}"
     else
-      log "WARNING: 'timeout' unavailable or SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running SCC without timeout enforcement"
+      log "WARNING: 'timeout' unavailable or dynamic_timeout invalid (${dynamic_timeout}); running SCC without timeout enforcement"
       "${SCC_BIN}" "${scc_args[@]}"
     fi
   ) 2>&1 | tee -a "${LOGFILE}"
@@ -194,8 +262,9 @@ run_scc_handle_exit_code() {
 
 run_scc_with_timeout_handling() {
   local prompt="$1"
+  local issue_body="$2"
   local scc_rc
-  if run_scc_prompt "${prompt}"; then
+  if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
   fi
   scc_rc=$?
@@ -205,9 +274,10 @@ run_scc_with_timeout_handling() {
 
 run_scc_checked() {
   local prompt="$1"
+  local issue_body="$2"
   local rc
 
-  if run_scc_prompt "${prompt}"; then
+  if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
   else
     rc=$?
@@ -348,6 +418,35 @@ latest_trigger_labeler() {
     2>/dev/null | tail -n1
 }
 
+# ADEV Rules #1, #4: Check issue atomicity before admission
+check_issue_atomicity() {
+  local body="$1"
+  local number="$2"
+  local criteria_count
+
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || echo 0)
+
+  if [[ "${criteria_count}" -gt 2 ]]; then
+    log "Issue #${number} has ${criteria_count} acceptance criteria (>2). Per ADEV Rule #1, issues must be atomic."
+
+    # Check if batch delivery is explicitly requested
+    if echo "$body" | grep -qi 'batch delivery\|batch mode'; then
+      log "Issue #${number} has 'batch delivery' label/mention; proceeding with extended timeout"
+      return 0  # Allow, but will use complex timeout (15 min)
+    else
+      # Comment on issue asking for decomposition
+      comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
+1. Split into separate issues (recommended), or
+2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
+
+      # Do not admit to queue
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
 admit_issue_to_queue() {
   local issue="$1"
   local labeler="$2"
@@ -444,7 +543,14 @@ reconcile_admission_requests() {
 
     labeler="$(latest_trigger_labeler "${number}")"
     if is_authorized_labeler "${labeler}"; then
-      admit_issue_to_queue "${number}" "${labeler}"
+      # ADEV atomicity check before admission
+      local issue_body
+      issue_body="$(gh issue view "${number}" --repo "${REPO}" --json body --jq '.body // ""' 2>/dev/null || echo "")"
+      if check_issue_atomicity "${issue_body}" "${number}"; then
+        admit_issue_to_queue "${number}" "${labeler}"
+      else
+        log "Issue #${number} atomicity check failed; not admitting to queue"
+      fi
     else
       reject_issue_from_queue "${number}" "${labeler}"
     fi
@@ -1574,33 +1680,55 @@ EOF
   prompt+="$(cat <<EOF
 
 
-Rules:
-- Work only within the issue scope.
-- Use branch ${branch}; never push directly to main.
-- Make a focused implementation, then leave a concise summary of validation.
-- Do not stop at analysis or ask follow-up questions when the issue is implementable; make the smallest safe code or documentation change that satisfies the issue.
-- Ensure the pull request body contains a section named ## Issue Coverage that maps code changes to the issue request and acceptance criteria.
-- Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
-- It is okay to edit files without committing; the worker will create the final commit if needed.
-- Run the smallest meaningful local validation and include evidence in the PR.
-- Do not use --admin.
-- Do not bypass branch protection, required checks, reviews, or repository rulesets.
-- Do not change branch protection, repository rulesets, required status checks, or secrets.
-- If repository rules block merge, report the blocker and stop.
-- If requirements are ambiguous or unsafe, add a clear issue comment and stop.
+You are an autonomous agent implementing this issue. Follow these rules:
+
+1. SCOPE: Implement ONLY what is described in acceptance criteria. If multiple criteria exist, implement them in order, one at a time.
+
+2. EXECUTION: Use tools (read_file, edit_file, write_file) to make changes immediately. Do not describe what you would do - execute now.
+
+3. VALIDATION: Run the narrowest validation that proves your change works:
+   - Java file changed: mvn test -Dtest=<ClassName>Test
+   - Template changed: mvn test -Dtest=<Resource>Test
+   - Config changed: syntax check only
+   - Docs changed: markdownlint or no validation
+   Include validation output in your response. Do not run full test suite - worker and CI handle comprehensive validation.
+
+4. COMMITS: Leave files edited (do not commit). The worker creates commits automatically.
+
+5. CONSTRAINTS:
+   - Maximum 5 files changed (if issue needs more, comment and stop)
+   - Maximum 100 lines per file (if more, comment and stop)
+   - If ambiguous or blocked, comment on issue and stop (do not guess)
+
+6. BRANCH: You are on branch ${branch}. Never push to main. Never force push.
+
+7. SAFETY:
+   - Do not use --admin or bypass branch protection, checks, reviews, or rulesets
+   - Do not change branch protection, rulesets, required checks, or secrets
+   - If repository rules block merge, report blocker and stop
+
+8. SCOPE DISCIPLINE: If you discover additional issues outside this issue's scope, comment on the issue noting them for separate tracking. Do not expand scope.
+
+9. PULL REQUEST: Ensure PR body contains ## Issue Coverage section mapping code changes to acceptance criteria. Do not mark items complete unless code/tests actually satisfy them.
+
+Begin implementation now. Use tools, do not narrate.
 EOF
 )"
 
   log "running SCC for issue #${number}"
   write_heartbeat "running" "SCC running for issue #${number}"
   local scc_rc
-  if run_scc_checked "${prompt}"; then
+  if run_scc_checked "${prompt}" "${body}"; then
     :
   else
     scc_rc=$?
     log "SCC failed for issue #${number}"
     if [[ "${scc_rc}" -eq 124 ]]; then
-      mark_failed "${number}" "SCC timed out after ${SCC_TIMEOUT_SECONDS}s. Check ${LOGFILE} on the runner."
+      local issue_complexity
+      issue_complexity=$(classify_issue_complexity "${body}")
+      local actual_timeout
+      actual_timeout=$(get_timeout_for_complexity "${issue_complexity}")
+      mark_failed "${number}" "SCC timed out after ${actual_timeout}s (complexity: ${issue_complexity}). Check ${LOGFILE} on the runner."
       return 0
     fi
     mark_failed "${number}" "SCC exited non-zero (${scc_rc}). Check ${LOGFILE} on the runner."
@@ -1613,6 +1741,24 @@ EOF
   fi
 
   if [[ -n "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
+    # ADEV Rule #11: Run narrowest validation before commit
+    local changed_files
+    changed_files=$(git -C "${WORKDIR}" diff --name-only HEAD 2>/dev/null || echo "")
+    local scoped_validation_cmd
+    scoped_validation_cmd=$(get_validation_command_for_changes "$changed_files")
+
+    if [[ -n "${scoped_validation_cmd}" ]]; then
+      log "Running scoped validation: ${scoped_validation_cmd}"
+      if (cd "${WORKDIR}" && bash -c "${scoped_validation_cmd}"); then
+        log "Scoped validation passed"
+      else
+        mark_failed "${number}" "Scoped validation failed: ${scoped_validation_cmd}"
+        return 0
+      fi
+    else
+      log "No scoped validation defined for changed files; relying on CI"
+    fi
+
     log "committing SCC changes for issue #${number}"
     git -C "${WORKDIR}" add -A
     git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Refs #${number}"
