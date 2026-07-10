@@ -1,21 +1,14 @@
 [Unit]
-Description=HomeDir autonomous SDLC SCC worker
+Description=HomeDir autonomous SDLC SCC worker (user)
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
-EnvironmentFile=-/etc/homedir-sdlc.env
-ExecStart=/usr/local/bin/homedir-sdlc-worker.sh
-User=homedir-sdlc
-Group=homedir-sdlc
+Environment="HOMEDIR_SDLC_ENV_FILE=/home/homedir-sdlc/.config/homedir-sdlc/env"
+ExecStart=/home/homedir-sdlc/.local/bin/homedir-sdlc-worker.sh
 Nice=5
 NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=full
-ProtectHome=tmpfs
-BindPaths=/home/homedir-sdlc
-ReadWritePaths=/home/homedir-sdlc/.local/share/homedir-sdlc /home/homedir-sdlc/.local/state/homedir-sdlc /home/homedir-sdlc/.sc-agent /home/homedir-sdlc/.config/gh
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
