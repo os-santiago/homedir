@@ -183,14 +183,17 @@ create_issue_from_definition() {
 
   # Create issue
   local new_issue_number
-  new_issue_number=$(gh issue create -R "${REPO}" \
+  local create_output
+  create_output=$(gh issue create -R "${REPO}" \
     --title "${title}" \
     --body "${body}" \
-    --label "${labels}" \
-    --json number -q '.number' 2>&1)
+    --label "${labels}" 2>&1)
+
+  # Extract issue number from URL (gh returns URL in format https://github.com/owner/repo/issues/NUMBER)
+  new_issue_number=$(echo "$create_output" | grep -oE 'issues/[0-9]+' | grep -oE '[0-9]+' || echo "")
 
   if [[ ! "$new_issue_number" =~ ^[0-9]+$ ]]; then
-    log "ERROR: failed to create issue: ${new_issue_number}"
+    log "ERROR: failed to create issue: ${create_output}"
     return 1
   fi
 
