@@ -274,7 +274,7 @@ run_scc_handle_exit_code() {
 
 run_scc_with_timeout_handling() {
   local prompt="$1"
-  local issue_body="$2"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local scc_rc
   if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
@@ -286,7 +286,7 @@ run_scc_with_timeout_handling() {
 
 run_scc_checked() {
   local prompt="$1"
-  local issue_body="$2"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local rc
 
   if run_scc_prompt "${prompt}" "${issue_body}"; then
@@ -446,13 +446,33 @@ check_issue_atomicity() {
       log "Issue #${number} has 'batch delivery' label/mention; proceeding with extended timeout"
       return 0  # Allow, but will use complex timeout (15 min)
     else
-      # Comment on issue asking for decomposition
-      comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
+      # AUTO-SPLIT: Component #2 - Admission Auto-Processor
+      log "Auto-splitting issue #${number} into ${criteria_count} atomic issues"
+
+      if [[ -x "/home/homedir-sdlc/.local/bin/split-multi-criteria-issue.sh" ]]; then
+        local split_result
+        split_result=$(/home/homedir-sdlc/.local/bin/split-multi-criteria-issue.sh "${number}" 2>&1) || {
+          log "ERROR: Auto-split failed for issue #${number}: ${split_result}"
+          # Remove trigger label and mark rejected so the issue isn't retried
+          remove_label "${number}" "${ACCEPTED_LABEL}" 2>/dev/null || true
+          add_label "${number}" "${REJECTED_LABEL}" 2>/dev/null || true
+          comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
 1. Split into separate issues (recommended), or
 2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
+          return 1
+        }
 
-      # Do not admit to queue
-      return 1
+        log "Auto-split successful for issue #${number}: ${split_result}"
+        return 1  # Do not admit original (already closed by split script)
+      else
+        log "WARN: split-multi-criteria-issue.sh not found, falling back to manual request"
+        remove_label "${number}" "${ACCEPTED_LABEL}" 2>/dev/null || true
+        add_label "${number}" "${REJECTED_LABEL}" 2>/dev/null || true
+        comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
+1. Split into separate issues (recommended), or
+2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
+        return 1
+      fi
     fi
   fi
 

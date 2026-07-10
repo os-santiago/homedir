@@ -1,5 +1,5 @@
 [Unit]
-Description=Run HomeDir autonomous SDLC SCC worker periodically
+Description=Run HomeDir autonomous SDLC SCC worker periodically (user)
 
 [Timer]
 OnBootSec=2min
