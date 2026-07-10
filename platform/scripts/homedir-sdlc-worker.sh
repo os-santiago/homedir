@@ -274,7 +274,7 @@ run_scc_handle_exit_code() {
 
 run_scc_with_timeout_handling() {
   local prompt="$1"
-  local issue_body="$2"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local scc_rc
   if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
@@ -286,7 +286,7 @@ run_scc_with_timeout_handling() {
 
 run_scc_checked() {
   local prompt="$1"
-  local issue_body="$2"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local rc
 
   if run_scc_prompt "${prompt}" "${issue_body}"; then
