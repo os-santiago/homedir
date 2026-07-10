@@ -134,14 +134,17 @@ split_issue() {
 
     # Create child issue
     local child_number
-    child_number=$(gh issue create -R "${REPO}" \
+    local create_output
+    create_output=$(gh issue create -R "${REPO}" \
       --title "${child_title}" \
       --body "${child_body}" \
-      --label "${child_labels}" \
-      --json number -q '.number' 2>&1)
+      --label "${child_labels}" 2>&1)
+
+    # Extract issue number from URL (gh returns URL in format https://github.com/owner/repo/issues/NUMBER)
+    child_number=$(echo "$create_output" | grep -oE 'issues/[0-9]+' | grep -oE '[0-9]+' || echo "")
 
     if [[ ! "$child_number" =~ ^[0-9]+$ ]]; then
-      log "ERROR: failed to create child issue: ${child_number}"
+      log "ERROR: failed to create child issue: ${create_output}"
       continue
     fi
 
@@ -164,9 +167,7 @@ split_issue() {
   # Comment on parent with links to children
   local child_links=""
   for child in "${child_numbers[@]}"; do
-    local child_title
-    child_title=$(gh issue view "${child}" -R "${REPO}" --json title -q '.title' 2>/dev/null || echo "Issue #${child}")
-    child_links+="- #${child}: ${child_title}"$'\n'
+    child_links+="- #${child}"$'\n'
   done
 
   gh issue comment "${parent_number}" -R "${REPO}" --body "This issue has ${criteria_count} acceptance criteria and was auto-split into ${#child_numbers[@]} atomic issues for autonomous processing:
