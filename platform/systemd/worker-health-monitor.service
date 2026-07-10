@@ -1,0 +1,26 @@
+[Unit]
+Description=HomeDir SDLC Worker Health Monitor
+Documentation=https://github.com/os-santiago/homedir/tree/main/platform/scripts
+After=homedir-sdlc-worker.service
+
+[Service]
+Type=oneshot
+User=homedir-sdlc
+Group=homedir-sdlc
+
+# Environment
+Environment="HOMEDIR_SDLC_ENV_FILE=/home/homedir-sdlc/.config/homedir-sdlc/env"
+Environment="HOMEDIR_SDLC_STATE_DIR=/home/homedir-sdlc/.local/state/homedir-sdlc"
+Environment="HOMEDIR_SDLC_WORKER_SCRIPT=/home/homedir-sdlc/.local/bin/homedir-sdlc-worker.sh"
+
+# Health check script
+ExecStart=/home/homedir-sdlc/platform/scripts/worker-health-check.sh
+
+# On failure, restart worker service
+ExecStartPost=/bin/bash -c 'if [ $EXIT_STATUS -eq 1 ]; then systemctl --user restart homedir-sdlc-worker.service; fi'
+
+# Security
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
