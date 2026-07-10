@@ -7,6 +7,7 @@
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Maven Version](https://img.shields.io/badge/version-3.403.1-blue?style=for-the-badge&logo=apache-maven&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
+[![Project Status: Active](https://img.shields.io/badge/status-active-brightgreen?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir)
 
 <p align="center">
   <a href="https://coderabbit.ai" target="_blank">
