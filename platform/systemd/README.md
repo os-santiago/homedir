@@ -77,11 +77,13 @@ EnvironmentFile=%h/.config/homedir-sdlc/env
 
 ```ini
 [Timer]
-OnBootSec=1min          # First run 1 minute after boot
-OnUnitActiveSec=3min    # Subsequent runs every 3 minutes after completion
+OnBootSec=2min          # First run 2 minutes after boot
+OnCalendar=*:0/3        # Run every 3 minutes, on the minute
+AccuracySec=30s         # Allow up to 30s scheduling delay
+Persistent=true         # Catch up after system sleep
 ```
 
-The timer uses `OnUnitActiveSec` which triggers 3 minutes after the previous service invocation COMPLETES. This prevents overlapping runs.
+The timer uses `OnCalendar=*:0/3` for fixed three-minute clock scheduling. `Type=oneshot` prevents overlapping runs — if the service is still running when the next timer fires, systemd skips that trigger.
 
 ### Service Type
 

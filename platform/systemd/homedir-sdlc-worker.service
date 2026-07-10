@@ -9,6 +9,7 @@ Environment="HOMEDIR_SDLC_ENV_FILE=/home/homedir-sdlc/.config/homedir-sdlc/env"
 ExecStart=/home/homedir-sdlc/.local/bin/homedir-sdlc-worker.sh
 Nice=5
 NoNewPrivileges=true
+PrivateTmp=yes
 
 [Install]
 WantedBy=default.target

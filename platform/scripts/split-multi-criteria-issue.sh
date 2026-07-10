@@ -92,7 +92,13 @@ split_issue() {
   parent_body=$(echo "$parent_data" | jq -r '.body')
 
   local parent_labels
-  parent_labels=$(echo "$parent_data" | jq -r '.labels[].name' | grep -v '^scc-' | tr '\n' ',' | sed 's/,$//')
+  parent_labels=$(echo "$parent_data" | jq -r '.labels[].name' 2>/dev/null | grep -v '^scc-' || true)
+  local child_labels
+  if [[ -n "${parent_labels}" ]]; then
+    child_labels="${parent_labels},scc-auto-split"
+  else
+    child_labels="scc-auto-split"
+  fi
 
   # Extract criteria
   local -a criteria
@@ -131,7 +137,7 @@ split_issue() {
     child_number=$(gh issue create -R "${REPO}" \
       --title "${child_title}" \
       --body "${child_body}" \
-      --label "${parent_labels},scc-auto-split" \
+      --label "${child_labels}" \
       --json number -q '.number' 2>&1)
 
     if [[ ! "$child_number" =~ ^[0-9]+$ ]]; then
