@@ -110,6 +110,8 @@ Platform deployment notes:
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
 
+## Code of Conduct
+We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the standards of behavior we expect from all community members.
+
 ---
 *Homedir: Where code finds its home.*
-
