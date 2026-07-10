@@ -107,5 +107,9 @@ Platform deployment notes:
 - [platform/README.md](platform/README.md)
 - [Production-Safe Delivery Playbook](docs/en/development/production-safe-delivery-playbook.md)
 
+## Contributing
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
+
 ---
 *Homedir: Where code finds its home.*
+
