@@ -3,6 +3,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
+[![Contributors](https://img.shields.io/github/contributors/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/graphs/contributors)
 [![PR Validation](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-check.yml?style=for-the-badge&label=PR%20Validation&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Maven Version](https://img.shields.io/badge/version-3.403.1-blue?style=for-the-badge&logo=apache-maven&logoColor=white)](https://github.com/os-santiago/homedir/releases)
