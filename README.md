@@ -113,5 +113,8 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ## Code of Conduct
 We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the standards of behavior we expect from all community members.
 
+## Security
+We take security seriously. Please see our [Security Policy](SECURITY.md) for responsible disclosure guidelines and security contact information.
+
 ---
 *Homedir: Where code finds its home.*
