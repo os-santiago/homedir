@@ -63,9 +63,7 @@ public class SdlcObservabilityService {
         component(
             Files.isDirectory(root),
             workerVersion,
-            Files.isDirectory(root)
-                ? "State directory available"
-                : "State directory unavailable"));
+            Files.isDirectory(root) ? "State directory available" : "State directory unavailable"));
     components.put(
         "github",
         Map.of(
@@ -75,11 +73,16 @@ public class SdlcObservabilityService {
     components.put(
         "vps",
         Map.of(
-            "status", "healthy",
-            "label", "VPS resources",
-            "cpu", Math.max(0, os.getSystemLoadAverage()),
-            "memory", total == 0 ? 0 : Math.round(used * 100d / total),
-            "disk", diskUsage(root)));
+            "status",
+            "healthy",
+            "label",
+            "VPS resources",
+            "cpu",
+            Math.max(0, os.getSystemLoadAverage()),
+            "memory",
+            total == 0 ? 0 : Math.round(used * 100d / total),
+            "disk",
+            diskUsage(root)));
     components.put(
         "webhook",
         Map.of(
@@ -89,12 +92,18 @@ public class SdlcObservabilityService {
     return Map.of(
         "worker",
         Map.of(
-            "state", state,
-            "lastHeartbeat", heartbeat.get("updatedAt"),
-            "heartbeatAge", age,
-            "detail", heartbeat.get("detail")),
-        "components", components,
-        "generatedAt", Instant.now().toString());
+            "state",
+            state,
+            "lastHeartbeat",
+            heartbeat.get("updatedAt"),
+            "heartbeatAge",
+            age,
+            "detail",
+            heartbeat.get("detail")),
+        "components",
+        components,
+        "generatedAt",
+        Instant.now().toString());
   }
 
   public Map<String, Object> heartbeat() {
@@ -102,11 +111,16 @@ public class SdlcObservabilityService {
     String updated = text(node, "updated_at", text(node, "timestamp", ""));
     long age = ageSeconds(updated);
     return Map.of(
-        "status", text(node, "status", "missing"),
-        "detail", text(node, "detail", "No heartbeat has been recorded"),
-        "updatedAt", updated,
-        "ageSeconds", age == Long.MAX_VALUE ? 0 : age,
-        "stale", age > 300);
+        "status",
+        text(node, "status", "missing"),
+        "detail",
+        text(node, "detail", "No heartbeat has been recorded"),
+        "updatedAt",
+        updated,
+        "ageSeconds",
+        age == Long.MAX_VALUE ? 0 : age,
+        "stale",
+        age > 300);
   }
 
   public List<Map<String, Object>> issues() {
@@ -132,28 +146,28 @@ public class SdlcObservabilityService {
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];
       List<Map<String, Object>> matching =
-          items.stream()
-              .filter(row -> key.equals(normalizeStage(row)))
-              .toList();
+          items.stream().filter(row -> key.equals(normalizeStage(row))).toList();
       result.add(
           Map.of(
-              "id", key,
-              "name", names[i],
-              "count", matching.size(),
-              "avgDuration", averageAge(matching),
+              "id",
+              key,
+              "name",
+              names[i],
+              "count",
+              matching.size(),
+              "avgDuration",
+              averageAge(matching),
               "anomalies",
-                  matching.stream()
-                      .filter(row -> rowAge(row) > 600)
-                      .count(),
-              "items", matching));
+              matching.stream().filter(row -> rowAge(row) > 600).count(),
+              "items",
+              matching));
     }
     return result;
   }
 
   public Map<String, Object> metrics(int days) {
     int safeDays = Math.max(7, Math.min(days, 90));
-    List<Map<String, Object>> runs =
-        readJsonLines(stateDir().resolve("run-summaries"), 2000);
+    List<Map<String, Object>> runs = readJsonLines(stateDir().resolve("run-summaries"), 2000);
     long successful = runs.stream().filter(this::isSuccessful).count();
     List<Map<String, Object>> trend = new ArrayList<>();
     for (int i = safeDays - 1; i >= 0; i--) {
@@ -162,19 +176,19 @@ public class SdlcObservabilityService {
           runs.stream()
               .filter(
                   r ->
-                      String.valueOf(
-                              r.getOrDefault(
-                                  "timestamp",
-                                  r.getOrDefault("created_at", "")))
+                      String.valueOf(r.getOrDefault("timestamp", r.getOrDefault("created_at", "")))
                           .startsWith(date))
               .count();
       trend.add(
           Map.of(
-              "date", date,
-              "issues", count,
-              "prs", Math.max(0, count - 1),
+              "date",
+              date,
+              "issues",
+              count,
+              "prs",
+              Math.max(0, count - 1),
               "merged",
-                  successful == 0 ? 0 : Math.min(count, successful)));
+              successful == 0 ? 0 : Math.min(count, successful)));
     }
     double autonomy = runs.isEmpty() ? 0 : successful * 100d / runs.size();
     return Map.of(
@@ -248,9 +262,7 @@ public class SdlcObservabilityService {
     List<Map<String, Object>> events =
         readJsonLines(stateDir().resolve("run-summaries"), 2000).stream()
             .filter(row -> id.equals(String.valueOf(number(row))))
-            .sorted(
-                Comparator.comparing(
-                    row -> String.valueOf(row.getOrDefault("timestamp", ""))))
+            .sorted(Comparator.comparing(row -> String.valueOf(row.getOrDefault("timestamp", ""))))
             .toList();
     return events;
   }
@@ -259,18 +271,13 @@ public class SdlcObservabilityService {
     return Map.of(
         "stateDirectory", stateDir().toString(),
         "workerVersion", workerVersion,
-        "labels",
-            List.of(
-                "scc-accepted", "scc-queued", "scc-running", "scc-failed"),
-        "timeouts",
-            Map.of("heartbeatSeconds", 300, "admissionSeconds", 600),
+        "labels", List.of("scc-accepted", "scc-queued", "scc-running", "scc-failed"),
+        "timeouts", Map.of("heartbeatSeconds", 300, "admissionSeconds", 600),
         "paused", Files.exists(stateDir().resolve("paused")));
   }
 
-  public synchronized Map<String, Object> control(String action, String actor)
-      throws IOException {
-    if (!List.of("pause", "resume", "reconcile", "clear-locks")
-        .contains(action)) {
+  public synchronized Map<String, Object> control(String action, String actor) throws IOException {
+    if (!List.of("pause", "resume", "reconcile", "clear-locks").contains(action)) {
       throw new IllegalArgumentException("Unsupported action");
     }
     Path dir = stateDir();
@@ -300,11 +307,16 @@ public class SdlcObservabilityService {
     }
     Map<String, Object> event =
         Map.of(
-            "timestamp", Instant.now().toString(),
-            "actor", actor,
-            "eventType", "admin-control",
-            "decision", action,
-            "reasoning", "Requested from authenticated observability dashboard");
+            "timestamp",
+            Instant.now().toString(),
+            "actor",
+            actor,
+            "eventType",
+            "admin-control",
+            "decision",
+            action,
+            "reasoning",
+            "Requested from authenticated observability dashboard");
     Files.writeString(
         dir.resolve("admin-audit.jsonl"),
         mapper.writeValueAsString(event) + System.lineSeparator(),
@@ -312,10 +324,7 @@ public class SdlcObservabilityService {
         StandardOpenOption.CREATE,
         StandardOpenOption.APPEND);
     LOG.infof("SDLC administrative action=%s actor=%s", action, actor);
-    return Map.of(
-        "ok", true,
-        "action", action,
-        "timestamp", Instant.now().toString());
+    return Map.of("ok", true, "action", action, "timestamp", Instant.now().toString());
   }
 
   private List<Map<String, Object>> readObjects(Path dir, String kind) {
@@ -357,9 +366,7 @@ public class SdlcObservabilityService {
     Map<String, Object> out = new LinkedHashMap<>(source);
     long n = number(source);
     out.put("number", n);
-    out.putIfAbsent(
-        "title",
-        Character.toUpperCase(kind.charAt(0)) + kind.substring(1) + " #" + n);
+    out.putIfAbsent("title", Character.toUpperCase(kind.charAt(0)) + kind.substring(1) + " #" + n);
     out.putIfAbsent("state", normalizeStage(source));
     out.putIfAbsent("labels", List.of());
     out.putIfAbsent(
@@ -395,9 +402,7 @@ public class SdlcObservabilityService {
 
   private long ageSeconds(String value) {
     try {
-      return Math.max(
-          0,
-          Duration.between(Instant.parse(value), Instant.now()).getSeconds());
+      return Math.max(0, Duration.between(Instant.parse(value), Instant.now()).getSeconds());
     } catch (DateTimeParseException e) {
       return Long.MAX_VALUE;
     }
@@ -406,24 +411,19 @@ public class SdlcObservabilityService {
   private long rowAge(Map<String, Object> row) {
     Object v =
         row.getOrDefault(
-            "currentStateAt",
-            row.getOrDefault(
-                "updated_at", row.getOrDefault("created_at", "")));
+            "currentStateAt", row.getOrDefault("updated_at", row.getOrDefault("created_at", "")));
     return ageSeconds(String.valueOf(v));
   }
 
   private long averageAge(List<Map<String, Object>> rows) {
     return rows.isEmpty()
         ? 0
-        : Math.round(
-            rows.stream().mapToLong(this::rowAge).average().orElse(0));
+        : Math.round(rows.stream().mapToLong(this::rowAge).average().orElse(0));
   }
 
   private String normalizeStage(Map<String, Object> row) {
     String s =
-        String.valueOf(
-                row.getOrDefault(
-                    "stage", row.getOrDefault("state", "created")))
+        String.valueOf(row.getOrDefault("stage", row.getOrDefault("state", "created")))
             .toLowerCase();
     return s.replace('_', '-');
   }
@@ -431,36 +431,32 @@ public class SdlcObservabilityService {
   private long number(Map<String, Object> row) {
     return asLong(
         row.getOrDefault(
-            "number",
-            row.getOrDefault(
-                "issue_number", row.getOrDefault("pr_number", 0))));
+            "number", row.getOrDefault("issue_number", row.getOrDefault("pr_number", 0))));
   }
 
   private long asLong(Object value) {
     try {
-      return value instanceof Number n
-          ? n.longValue()
-          : Long.parseLong(String.valueOf(value));
+      return value instanceof Number n ? n.longValue() : Long.parseLong(String.valueOf(value));
     } catch (Exception e) {
       return 0;
     }
   }
 
   private boolean isSuccessful(Map<String, Object> row) {
-    String value =
-        String.valueOf(
-            row.getOrDefault("status", row.getOrDefault("result", "")));
-    return List.of("ok", "success", "merged", "completed")
-        .contains(value.toLowerCase());
+    String value = String.valueOf(row.getOrDefault("status", row.getOrDefault("result", "")));
+    return List.of("ok", "success", "merged", "completed").contains(value.toLowerCase());
   }
 
-  private Map<String, Object> component(
-      boolean ok, String version, String detail) {
+  private Map<String, Object> component(boolean ok, String version, String detail) {
     return Map.of(
-        "status", ok ? "healthy" : "critical",
-        "label", "SCC worker",
-        "version", version,
-        "detail", detail);
+        "status",
+        ok ? "healthy" : "critical",
+        "label",
+        "SCC worker",
+        "version",
+        version,
+        "detail",
+        detail);
   }
 
   private int diskUsage(Path path) {
@@ -469,21 +465,14 @@ public class SdlcObservabilityService {
       var store = Files.getFileStore(p);
       return (int)
           Math.round(
-              (store.getTotalSpace() - store.getUsableSpace())
-                  * 100d
-                  / store.getTotalSpace());
+              (store.getTotalSpace() - store.getUsableSpace()) * 100d / store.getTotalSpace());
     } catch (Exception e) {
       return 0;
     }
   }
 
   private Map<String, Object> anomaly(
-      String id,
-      String severity,
-      String description,
-      String action,
-      String type,
-      long number) {
+      String id, String severity, String description, String action, String type, long number) {
     return Map.of(
         "id", id,
         "timestamp", Instant.now().toString(),
