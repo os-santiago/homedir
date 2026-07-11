@@ -28,7 +28,9 @@ class SdlcObservabilityServiceTest {
 
   @Test
   void parsesHeartbeatAndMapsHealthyWorkerState() throws Exception {
-    Files.writeString(temp.resolve("heartbeat.json"), "{\"status\":\"running\",\"detail\":\"working\",\"updated_at\":\"" + Instant.now() + "\"}");
+    Files.writeString(
+        temp.resolve("heartbeat.json"),
+        "{\"status\":\"running\",\"detail\":\"working\",\"updated_at\":\"" + Instant.now() + "\"}");
     Map<?, ?> worker = (Map<?, ?>) service.status().get("worker");
     assertEquals("running", worker.get("state"));
     assertFalse((Boolean) service.heartbeat().get("stale"));
@@ -37,7 +39,11 @@ class SdlcObservabilityServiceTest {
   @Test
   void groupsIssueSnapshotsIntoPipelineStages() throws Exception {
     Path issues = Files.createDirectory(temp.resolve("issues"));
-    Files.writeString(issues.resolve("42.json"), "{\"number\":42,\"title\":\"Atomic task\",\"state\":\"queued\",\"updated_at\":\"" + Instant.now() + "\"}");
+    Files.writeString(
+        issues.resolve("42.json"),
+        "{\"number\":42,\"title\":\"Atomic task\",\"state\":\"queued\",\"updated_at\":\""
+            + Instant.now()
+            + "\"}");
     List<Map<String, Object>> stages = service.pipeline();
     Map<String, Object> queued = stages.stream().filter(s -> "queued".equals(s.get("id"))).findFirst().orElseThrow();
     assertEquals(1, queued.get("count"));
