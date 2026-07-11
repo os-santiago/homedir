@@ -453,9 +453,7 @@ check_issue_atomicity() {
         local split_result
         split_result=$(/home/homedir-sdlc/.local/bin/split-multi-criteria-issue.sh "${number}" 2>&1) || {
           log "ERROR: Auto-split failed for issue #${number}: ${split_result}"
-          # Remove trigger label and mark rejected so the issue isn't retried
-          remove_label "${number}" "${ACCEPTED_LABEL}" 2>/dev/null || true
-          add_label "${number}" "${REJECTED_LABEL}" 2>/dev/null || true
+          # Fallback to old behavior
           comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
 1. Split into separate issues (recommended), or
 2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
@@ -466,8 +464,6 @@ check_issue_atomicity() {
         return 1  # Do not admit original (already closed by split script)
       else
         log "WARN: split-multi-criteria-issue.sh not found, falling back to manual request"
-        remove_label "${number}" "${ACCEPTED_LABEL}" 2>/dev/null || true
-        add_label "${number}" "${REJECTED_LABEL}" 2>/dev/null || true
         comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
 1. Split into separate issues (recommended), or
 2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
@@ -1489,6 +1485,15 @@ finalize_merged_issue() {
   gh issue close "${number}" --repo "${REPO}" --comment "Closed by autonomous SDLC after PR #${pr_number} was merged and production release verification succeeded. Release: ${release_url}" >/dev/null 2>&1 || true
   log "closed issue #${number} via PR #${pr_number}; release verified"
   alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+
+  # Pipeline orchestration: trigger next issue in pipeline
+  local orchestrator_script="${HOME}/platform/scripts/pipeline-orchestrator.sh"
+  if [[ -x "${orchestrator_script}" ]]; then
+    log "calling pipeline orchestrator for completed issue #${number}"
+    "${orchestrator_script}" "${number}" 2>&1 | while IFS= read -r line; do
+      log "[orchestrator] ${line}"
+    done || log "WARNING: pipeline orchestrator failed for issue #${number}"
+  fi
 }
 
 reconcile_merged_prs() {
