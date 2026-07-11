@@ -62,7 +62,6 @@ public class NotificationService {
       log(n, "duplicate");
       return NotificationResult.DROPPED_DUPLICATE;
     }
-    cleanupDedupe(now);
 
     Deque<Notification> list = store.getUserList(n.userId);
     if (list.size() >= NotificationConfig.userCap
@@ -208,11 +207,6 @@ public class NotificationService {
   public void reset() {
     store.clear();
     dedupe.clear();
-  }
-
-  private void cleanupDedupe(long now) {
-    long window = NotificationConfig.dedupeWindow.toMillis();
-    dedupe.entrySet().removeIf(e -> now - e.getValue() > window);
   }
 
   private void log(Notification n, String reason) {
