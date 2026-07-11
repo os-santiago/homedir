@@ -585,6 +585,73 @@ reconcile_admission_requests() {
   done
 }
 
+# Fix #1140: Reconcile stuck admission reviews
+# Issues with ready-to-implement + scc-admission-review (without scc-accepted)
+# need to be re-reviewed to converge to accepted/rejected/needs-human
+reconcile_stuck_admission_reviews() {
+  local issues_json issue_json number title body review_json status reason_text
+
+  # Find issues stuck in admission review
+  issues_json="$(gh issue list \
+    --repo "${REPO}" \
+    --state open \
+    --label "${TRIGGER_LABEL}" \
+    --label "${ADMISSION_REVIEW_LABEL}" \
+    --limit 50 \
+    --json number,title,body,labels)"
+
+  if [[ "${issues_json}" == "[]" ]]; then
+    return 0
+  fi
+
+  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+    number="$(jq -r '.number' <<<"${issue_json}")"
+    local labels
+    labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    # Skip if already accepted, or in terminal states
+    if issue_has_label "${labels}" "${ACCEPTED_LABEL}" \
+      || issue_has_label "${labels}" "${REJECTED_LABEL}" \
+      || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
+      || issue_has_label "${labels}" "${QUEUE_LABEL}" \
+      || issue_has_label "${labels}" "${RUNNING_LABEL}" \
+      || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      continue
+    fi
+
+    title="$(jq -r '.title' <<<"${issue_json}")"
+    body="$(jq -r '.body // ""' <<<"${issue_json}")"
+
+    log "Reconciling stuck admission review for issue #${number}"
+
+    # Re-run acceptance review
+    review_json="$(issue_acceptance_review "${title}" "${body}")"
+    status="$(jq -r '.status' <<<"${review_json}")"
+    reason_text="$(jq -r '.reasons | if length == 0 then "No blocking admission risks detected." else join(" ") end' <<<"${review_json}")"
+
+    case "${status}" in
+      accepted)
+        add_label "${number}" "${ACCEPTED_LABEL}"
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review passed (auto-reconciled). Criteria checked: improvement/correction intent, non-destructive scope, stability, security, maintainability, architecture, and good practices. ${reason_text}"
+        log "Issue #${number} auto-accepted via reconciliation"
+        ;;
+      needs-human)
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review needs human clarification before queue admission (auto-reconciled). ${reason_text}"
+        log "Issue #${number} marked needs-human via reconciliation"
+        ;;
+      *)
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        add_label "${number}" "${REJECTED_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review rejected this issue for autonomous implementation (auto-reconciled). ${reason_text}"
+        log "Issue #${number} rejected via reconciliation"
+        ;;
+    esac
+  done
+}
+
 write_issue_state() {
   local issue="$1"
   local branch="$2"
@@ -1908,6 +1975,7 @@ main() {
 
   log "checking eligible issues in ${REPO}"
   write_heartbeat "running" "checking eligible issues"
+  reconcile_stuck_admission_reviews
   reconcile_admission_requests
   mapfile -t issues < <(
     gh issue list \
