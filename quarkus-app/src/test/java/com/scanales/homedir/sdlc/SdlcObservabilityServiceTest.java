@@ -45,7 +45,8 @@ class SdlcObservabilityServiceTest {
             + Instant.now()
             + "\"}");
     List<Map<String, Object>> stages = service.pipeline();
-    Map<String, Object> queued = stages.stream().filter(s -> "queued".equals(s.get("id"))).findFirst().orElseThrow();
+    Map<String, Object> queued =
+        stages.stream().filter(s -> "queued".equals(s.get("id"))).findFirst().orElseThrow();
     assertEquals(1, queued.get("count"));
     assertEquals(42L, ((List<Map<String, Object>>) queued.get("items")).getFirst().get("number"));
   }
@@ -53,11 +54,14 @@ class SdlcObservabilityServiceTest {
   @Test
   void detectsStaleAdmissionAndWritesAuditedControls() throws Exception {
     Path issues = Files.createDirectory(temp.resolve("issues"));
-    Files.writeString(issues.resolve("9.json"), "{\"number\":9,\"state\":\"admission\",\"updated_at\":\"2020-01-01T00:00:00Z\"}");
+    Files.writeString(
+        issues.resolve("9.json"),
+        "{\"number\":9,\"state\":\"admission\",\"updated_at\":\"2020-01-01T00:00:00Z\"}");
     assertTrue(service.anomalies().stream().anyMatch(a -> "issue-9".equals(a.get("id"))));
     service.control("pause", "operator@example.test");
     assertTrue(Files.exists(temp.resolve("paused")));
-    assertTrue(Files.readString(temp.resolve("admin-audit.jsonl")).contains("operator@example.test"));
+    assertTrue(
+        Files.readString(temp.resolve("admin-audit.jsonl")).contains("operator@example.test"));
     service.control("resume", "operator@example.test");
     assertFalse(Files.exists(temp.resolve("paused")));
     assertThrows(IllegalArgumentException.class, () -> service.control("restart", "operator"));
