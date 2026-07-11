@@ -19,8 +19,13 @@ public class SdlcDashboardResource {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response dashboard() {
-    if (!AdminUtils.canViewAdminBackoffice(identity)) return Response.status(Response.Status.FORBIDDEN).build();
-    InputStream stream = getClass().getResourceAsStream("/META-INF/resources/sdlc/dashboard/index.html");
-    return stream == null ? Response.status(Response.Status.NOT_FOUND).build() : Response.ok(stream).build();
+    if (!AdminUtils.canViewAdminBackoffice(identity)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    InputStream stream =
+        getClass().getResourceAsStream("/META-INF/resources/sdlc/dashboard/index.html");
+    return stream == null
+        ? Response.status(Response.Status.NOT_FOUND).build()
+        : Response.ok(stream).build();
   }
 }
