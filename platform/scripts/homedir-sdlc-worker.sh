@@ -235,6 +235,9 @@ run_scc_prompt() {
     log "Issue complexity: ${issue_complexity}, timeout: ${dynamic_timeout}s"
   fi
 
+  # Export timeout for error reporting (used by run_scc_handle_exit_code)
+  export SCC_ACTUAL_TIMEOUT="${dynamic_timeout}"
+
   (
     cd "${WORKDIR}"
     scc_args=(chat)
@@ -264,8 +267,9 @@ run_scc_prompt() {
 run_scc_handle_exit_code() {
   local rc=$1
   local context=$2
+  local actual_timeout="${SCC_ACTUAL_TIMEOUT:-${SCC_TIMEOUT_SECONDS}}"
   if [[ "${rc}" -eq 124 ]]; then
-    log "SCC ${context} timed out after ${SCC_TIMEOUT_SECONDS}s"
+    log "SCC ${context} timed out after ${actual_timeout}s (exit code 124)"
   else
     log "SCC ${context} exited non-zero (${rc})"
   fi
