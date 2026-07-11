@@ -1,6 +1,8 @@
 # Homedir
 > **DevRel, OpenSource, InnerSource Community Platform**
 
+
+![Maven Central](https://img.shields.io/maven-central/v/com.scanales/homedir?style=for-the-badge)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/graphs/contributors)
 [![GitHub Stars](https://img.shields.io/github/stars/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/stargazers)
