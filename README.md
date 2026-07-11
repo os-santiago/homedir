@@ -123,4 +123,4 @@ We are committed to fostering a welcoming and inclusive community. Please read o
 We take security seriously. Please see our [Security Policy](SECURITY.md) for responsible disclosure guidelines and security contact information.
 
 ---
-*Homedir: Where code finds its home.*
+*Homedir: Where code finds its home.*<!-- Test comment -->
