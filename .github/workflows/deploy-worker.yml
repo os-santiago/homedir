@@ -28,11 +28,11 @@ jobs:
     permissions:
       contents: read
     env:
-      DEPLOY_HOST: ${{ vars.DEPLOY_SSH_HOST }}
-      DEPLOY_USER: ${{ vars.DEPLOY_SSH_USER }}
-      DEPLOY_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
+      DEPLOY_HOST: ${{ vars.VPS_HOST }}
+      DEPLOY_USER: ${{ vars.VPS_USER }}
+      DEPLOY_PORT: ${{ vars.VPS_PORT || '22' }}
       WORKER_USER: ${{ vars.WORKER_SSH_USER || 'homedir-sdlc' }}
-      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
       DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
 
     steps:
