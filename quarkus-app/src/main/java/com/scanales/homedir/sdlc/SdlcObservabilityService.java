@@ -48,11 +48,11 @@ public class SdlcObservabilityService {
         age > 300
             ? "error"
             : switch (raw) {
-                case "running", "starting" -> "running";
-                case "paused" -> "paused";
-                case "ok", "skipped" -> "idle";
-                default -> "error";
-              };
+              case "running", "starting" -> "running";
+              case "paused" -> "paused";
+              case "ok", "skipped" -> "idle";
+              default -> "error";
+            };
     var os = ManagementFactory.getOperatingSystemMXBean();
     long total = Runtime.getRuntime().totalMemory();
     long used = total - Runtime.getRuntime().freeMemory();
