@@ -1,0 +1,138 @@
+name: E2E Complete Autonomy Test
+description: Comprehensive test - sequential issues + multi-criteria auto-split
+repository: os-santiago/homedir
+
+issues:
+  - id: test-1
+    title: "[e2e-full-1/6] Add build status badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a build status badge showing CI/CD health.
+
+      ## Expected Behavior
+      README should display GitHub Actions build status badge.
+
+      ## Acceptance Criteria
+      - [ ] Add GitHub Actions workflow status badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of comprehensive E2E autonomy test. Expected: Full autonomous processing.
+    labels:
+      - documentation
+
+  - id: test-2
+    title: "[e2e-full-2/6] Add code quality badge to README"
+    body: |
+      ## Problem Statement
+      README lacks code quality metrics badge.
+
+      ## Expected Behavior
+      README should display CodeQL or similar code quality badge.
+
+      ## Acceptance Criteria
+      - [ ] Add code quality badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E test. Auto-queued after test-1 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-1
+
+  - id: test-3-multi
+    title: "[e2e-full-3/6] Multi-criteria: Add multiple documentation links"
+    body: |
+      ## Problem Statement
+      README needs comprehensive documentation links for contributors.
+
+      ## Expected Behavior
+      README should have all essential documentation links.
+
+      ## Acceptance Criteria
+      - [ ] Add link to CONTRIBUTING.md in README
+      - [ ] Add link to CODE_OF_CONDUCT.md in README
+      - [ ] Add link to SECURITY.md in README
+
+      ## Complexity
+      - [x] Simple (documentation changes)
+
+      ## Notes
+      **MULTI-CRITERIA TEST**: This issue has 3 acceptance criteria.
+      Expected behavior: Auto-split into 3 atomic issues by Admission Auto-Processor.
+      Each child issue should process sequentially via pipeline orchestration.
+    labels:
+      - documentation
+    depends_on:
+      - test-2
+
+  - id: test-4
+    title: "[e2e-full-4/6] Add testing coverage badge to README"
+    body: |
+      ## Problem Statement
+      README lacks test coverage visibility.
+
+      ## Expected Behavior
+      README should display test coverage percentage badge.
+
+      ## Acceptance Criteria
+      - [ ] Add test coverage badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E test. Should auto-queue after test-3 children complete.
+    labels:
+      - documentation
+    depends_on:
+      - test-3-multi
+
+  - id: test-5
+    title: "[e2e-full-5/6] Add downloads/release badge to README"
+    body: |
+      ## Problem Statement
+      README lacks download/release information badge.
+
+      ## Expected Behavior
+      README should display latest release badge.
+
+      ## Acceptance Criteria
+      - [ ] Add GitHub release badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E test. Auto-queued after test-4 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-4
+
+  - id: test-6
+    title: "[e2e-full-6/6] Add community/discussions badge to README"
+    body: |
+      ## Problem Statement
+      README lacks community engagement badge.
+
+      ## Expected Behavior
+      README should display GitHub discussions or community badge.
+
+      ## Acceptance Criteria
+      - [ ] Add community/discussions badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Final issue in E2E comprehensive test. Auto-queued after test-5 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-5

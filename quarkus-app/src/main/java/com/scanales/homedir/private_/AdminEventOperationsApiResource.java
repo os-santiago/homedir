@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Path("/api/private/admin/events/{eventId}/ops")
+@Path("/api/private/admin")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated
 public class AdminEventOperationsApiResource {
@@ -37,7 +37,7 @@ public class AdminEventOperationsApiResource {
   @Inject SecurityIdentity identity;
 
   @GET
-  @Path("/staff")
+  @Path("/events/{eventId}/ops/staff")
   public Response listStaff(
       @PathParam("eventId") String eventId,
       @QueryParam("include_inactive") Boolean includeInactive) {
@@ -53,7 +53,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @PUT
-  @Path("/staff/{userId}")
+  @Path("/events/{eventId}/ops/staff/{userId}")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response upsertStaff(
       @PathParam("eventId") String eventId,
@@ -93,7 +93,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @GET
-  @Path("/spaces")
+  @Path("/events/{eventId}/ops/spaces")
   public Response listSpaces(
       @PathParam("eventId") String eventId,
       @QueryParam("include_inactive") Boolean includeInactive) {
@@ -109,7 +109,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @PUT
-  @Path("/spaces/{spaceId}")
+  @Path("/events/{eventId}/ops/spaces/{spaceId}")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response upsertSpace(
       @PathParam("eventId") String eventId,
@@ -143,7 +143,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @GET
-  @Path("/spaces/{spaceId}/shifts")
+  @Path("/events/{eventId}/ops/spaces/{spaceId}/shifts")
   public Response listSpaceShifts(
       @PathParam("eventId") String eventId, @PathParam("spaceId") String spaceId) {
     Response unauthorized = enforceView();
@@ -156,7 +156,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @POST
-  @Path("/spaces/{spaceId}/shifts")
+  @Path("/events/{eventId}/ops/spaces/{spaceId}/shifts")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createSpaceShift(
       @PathParam("eventId") String eventId,
@@ -189,7 +189,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @GET
-  @Path("/activities")
+  @Path("/events/{eventId}/ops/activities")
   public Response listActivities(
       @PathParam("eventId") String eventId, @QueryParam("visibility") String visibilityRaw) {
     Response unauthorized = enforceView();
@@ -208,7 +208,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @PUT
-  @Path("/activities/{activityId}")
+  @Path("/events/{eventId}/ops/activities/{activityId}")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response upsertActivity(
       @PathParam("eventId") String eventId,
@@ -244,7 +244,7 @@ public class AdminEventOperationsApiResource {
   }
 
   @GET
-  @Path("/runsheet")
+  @Path("/events/{eventId}/ops/runsheet")
   public Response runSheet(
       @PathParam("eventId") String eventId,
       @QueryParam("visibility") String visibilityRaw,

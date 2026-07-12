@@ -1,0 +1,30 @@
+name: Auto-Split Pipeline for Issue #1131
+description: Sequential processing of auto-split child issues
+repository: os-santiago/homedir
+
+issues:
+  - id: child-0
+    title: "[auto-split 1/4] README enhancements - multi-criteria test"
+    labels:
+      - scc-auto-split
+
+  - id: child-1
+    title: "[auto-split 2/4] README enhancements - multi-criteria test"
+    labels:
+      - scc-auto-split
+    depends_on:
+      - child-0
+
+  - id: child-2
+    title: "[auto-split 3/4] README enhancements - multi-criteria test"
+    labels:
+      - scc-auto-split
+    depends_on:
+      - child-1
+
+  - id: child-3
+    title: "[auto-split 4/4] README enhancements - multi-criteria test"
+    labels:
+      - scc-auto-split
+    depends_on:
+      - child-2
