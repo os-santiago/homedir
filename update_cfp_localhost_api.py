@@ -19,13 +19,13 @@ CFP_IDS = [
     "d6aa685a-466b-4064-8176-55f1c81c6b3f",
 ]
 
-EVENT_ID = "devopsdays-santiago-2026"
-SSH_HOST = "root@72.60.141.165"
-SSH_KEY = "/home/scanales/.ssh/id_ed25519"
-LOCAL_PORT = 18080
-REMOTE_PORT = 8080
+EVENT_ID = os.environ.get('EVENT_ID', 'devopsdays-santiago-2026')
+SSH_HOST = os.environ.get('SSH_TARGET')
+SSH_KEY = os.environ.get('SSH_KEY_PATH')
+LOCAL_PORT = int(os.environ.get('LOCAL_PORT', '18080'))
+REMOTE_PORT = int(os.environ.get('REMOTE_PORT', '8080'))
 
-# Get admin token from environment or prompt
+# Get admin token from environment
 ADMIN_TOKEN = os.environ.get('LOCALHOST_ADMIN_TOKEN')
 
 def create_ssh_tunnel():
@@ -35,9 +35,11 @@ def create_ssh_tunnel():
     tunnel_cmd = [
         "ssh",
         "-i", SSH_KEY,
+        "-o", "BatchMode=yes",
+        "-o", "StrictHostKeyChecking=accept-new",
         "-L", f"{LOCAL_PORT}:localhost:{REMOTE_PORT}",
-        "-N",  # Don't execute remote command
-        "-f",  # Go to background
+        "-N",
+        "-f",
         SSH_HOST
     ]
 
@@ -144,11 +146,18 @@ def update_cfp(api_url, headers, cfp_id):
         return False
 
 def main():
-    global ADMIN_TOKEN
+    global ADMIN_TOKEN, SSH_HOST, SSH_KEY
 
+    missing = []
     if not ADMIN_TOKEN:
-        print("Error: LOCALHOST_ADMIN_TOKEN environment variable not set")
-        print("Please set it with: export LOCALHOST_ADMIN_TOKEN=your-token")
+        missing.append("LOCALHOST_ADMIN_TOKEN")
+    if not SSH_HOST:
+        missing.append("SSH_TARGET")
+    if not SSH_KEY:
+        missing.append("SSH_KEY_PATH")
+    if missing:
+        for var in missing:
+            print(f"Error: {var} environment variable not set")
         return 1
 
     print(f"Updating {len(CFP_IDS)} CFP submissions to ACCEPTED status...")

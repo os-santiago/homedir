@@ -19,7 +19,7 @@ TOKEN = os.environ.get('HOMEDIR_ADMIN_TOKEN')
 LOCALHOST_TOKEN = os.environ.get('LOCALHOST_ADMIN_TOKEN')
 
 # Determine which API mode to use
-USE_LOCALHOST_API = LOCALHOST_TOKEN is not None
+USE_LOCALHOST_API = bool(LOCALHOST_TOKEN)
 
 SESSION = requests.Session()
 
@@ -53,11 +53,18 @@ def make_request(method, endpoint, json_data=None):
     try:
         response = SESSION.request(method, url, headers=headers, json=json_data, timeout=10)
         if response.status_code == 401:
-            return {"error": "Unauthorized. Please set/check your HOMEDIR_ADMIN_TOKEN."}
+            token_hint = "LOCALHOST_ADMIN_TOKEN" if USE_LOCALHOST_API else "HOMEDIR_ADMIN_TOKEN"
+            return {"error": f"Unauthorized. Please set/check your {token_hint}."}
         elif response.status_code == 403:
             return {"error": "Forbidden. Insufficient administrative privileges."}
         elif response.status_code == 404:
             return {"error": "Not Found."}
+        if not response.ok:
+            try:
+                error_body = response.json()
+                return error_body
+            except Exception:
+                pass
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -302,35 +309,19 @@ def handle_tool_call(name, args):
         note = args.get("note", "Status updated via MCP admin tool")
 
         if USE_LOCALHOST_API:
-            # Localhost API: Get current version first
-            current = make_request("GET", f"/api/localhost-admin/cfp/{event_id}/{cfp_id}")
-            if isinstance(current, dict) and "error" in current:
-                return current["error"]
-
-            version = current.get("item", {}).get("version", 0)
-
-            # Update the status
-            payload = {
-                "status": status,
-                "note": note,
-                "version": version
-            }
-            res = make_request("PUT", f"/api/localhost-admin/cfp/{event_id}/{cfp_id}/status", payload)
+            get_endpoint = f"/api/localhost-admin/cfp/{event_id}/{cfp_id}"
+            put_endpoint = f"/api/localhost-admin/cfp/{event_id}/{cfp_id}/status"
         else:
-            # Standard API: Get current version first
-            current = make_request("GET", f"/api/events/{event_id}/cfp/submissions/{cfp_id}")
-            if isinstance(current, dict) and "error" in current:
-                return current["error"]
+            get_endpoint = f"/api/events/{event_id}/cfp/submissions/{cfp_id}"
+            put_endpoint = f"/api/events/{event_id}/cfp/submissions/{cfp_id}/status"
 
-            version = current.get("item", {}).get("version", 0)
+        current = make_request("GET", get_endpoint)
+        if isinstance(current, dict) and "error" in current:
+            return current["error"]
 
-            # Update the status
-            payload = {
-                "status": status,
-                "note": note,
-                "version": version
-            }
-            res = make_request("PUT", f"/api/events/{event_id}/cfp/submissions/{cfp_id}/status", payload)
+        version = current.get("item", {}).get("version", 0)
+        payload = {"status": status, "note": note, "version": version}
+        res = make_request("PUT", put_endpoint, payload)
 
         if isinstance(res, dict) and "error" in res:
             return res["error"]

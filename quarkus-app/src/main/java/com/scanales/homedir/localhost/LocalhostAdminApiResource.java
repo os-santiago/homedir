@@ -20,6 +20,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,18 +54,19 @@ public class LocalhostAdminApiResource {
   @ConfigProperty(name = "LOCALHOST_ADMIN_TOKEN")
   Optional<String> adminToken;
 
-  /**
-   * Validates that:
-   * 1. Request comes from localhost
-   * 2. Bearer token matches configured token
-   */
+  /** Validates that: 1. Request comes from localhost 2. Bearer token matches configured token */
   private Response validateAccess(HttpServerRequest request, String authHeader) {
     // Check 1: Request must come from localhost
     String remoteHost = request.remoteAddress().host();
     if (!isLocalhost(remoteHost)) {
       LOG.warnf("Rejected localhost-admin request from non-localhost address: %s", remoteHost);
       return Response.status(Response.Status.FORBIDDEN)
-          .entity(Map.of("error", "localhost_only", "message", "This endpoint only accepts connections from localhost"))
+          .entity(
+              Map.of(
+                  "error",
+                  "localhost_only",
+                  "message",
+                  "This endpoint only accepts connections from localhost"))
           .build();
     }
 
@@ -69,7 +74,8 @@ public class LocalhostAdminApiResource {
     if (adminToken.isEmpty()) {
       LOG.warn("Localhost admin API accessed but LOCALHOST_ADMIN_TOKEN is not configured");
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-          .entity(Map.of("error", "not_configured", "message", "Localhost admin API is not configured"))
+          .entity(
+              Map.of("error", "not_configured", "message", "Localhost admin API is not configured"))
           .build();
     }
 
@@ -81,7 +87,9 @@ public class LocalhostAdminApiResource {
     }
 
     String providedToken = authHeader.substring(7).trim();
-    if (!providedToken.equals(adminToken.get())) {
+    if (!MessageDigest.isEqual(
+        providedToken.getBytes(StandardCharsets.UTF_8),
+        adminToken.get().getBytes(StandardCharsets.UTF_8))) {
       LOG.warnf("Invalid localhost admin token attempt from %s", remoteHost);
       return Response.status(Response.Status.FORBIDDEN)
           .entity(Map.of("error", "invalid_token", "message", "Invalid admin token"))
@@ -92,15 +100,17 @@ public class LocalhostAdminApiResource {
   }
 
   private boolean isLocalhost(String host) {
-    return "localhost".equals(host)
-        || "127.0.0.1".equals(host)
-        || "::1".equals(host)
-        || "0:0:0:0:0:0:0:1".equals(host);
+    try {
+      return InetAddress.getByName(host).isLoopbackAddress();
+    } catch (UnknownHostException e) {
+      return false;
+    }
   }
 
   @GET
   @Path("/status")
-  public Response status(@Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
+  public Response status(
+      @Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
@@ -113,7 +123,8 @@ public class LocalhostAdminApiResource {
 
   @GET
   @Path("/events")
-  public Response getEvents(@Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
+  public Response getEvents(
+      @Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
@@ -123,8 +134,7 @@ public class LocalhostAdminApiResource {
   @GET
   @Path("/cfp/all")
   public Response getAllCfpSubmissions(
-      @Context HttpServerRequest request,
-      @HeaderParam("Authorization") String authHeader) {
+      @Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
@@ -133,9 +143,7 @@ public class LocalhostAdminApiResource {
     for (com.scanales.homedir.model.Event event : events) {
       allSubmissions.addAll(
           cfpSubmissionService.listByEventAll(
-              event.getId(),
-              Optional.empty(),
-              CfpSubmissionService.SortOrder.CREATED_DESC));
+              event.getId(), Optional.empty(), CfpSubmissionService.SortOrder.CREATED_DESC));
     }
     return Response.ok(allSubmissions).build();
   }
@@ -152,6 +160,12 @@ public class LocalhostAdminApiResource {
 
     Optional<CfpSubmission> submission = cfpSubmissionService.findById(cfpId);
     if (submission.isEmpty()) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "not_found"))
+          .build();
+    }
+
+    if (!submission.get().eventId().equals(eventId)) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity(Map.of("error", "not_found"))
           .build();
@@ -188,26 +202,46 @@ public class LocalhostAdminApiResource {
       newStatus = com.scanales.homedir.cfp.CfpSubmissionStatus.valueOf(statusStr.toUpperCase());
     } catch (IllegalArgumentException e) {
       return Response.status(Response.Status.BAD_REQUEST)
-          .entity(Map.of("error", "invalid_status", "message", "Status must be one of: accepted, rejected, under_review, waitlisted"))
+          .entity(
+              Map.of(
+                  "error",
+                  "invalid_status",
+                  "message",
+                  "Status must be one of: accepted, rejected, under_review, waitlisted"))
           .build();
     }
 
     // Update the submission
     try {
-      CfpSubmission updated = cfpSubmissionService.updateStatus(
-          cfpId,
-          newStatus,
-          "localhost-admin",
-          note != null ? note : "Updated via localhost admin API"
-      );
+      CfpSubmission updated =
+          cfpSubmissionService.updateStatus(
+              cfpId,
+              newStatus,
+              "localhost-admin",
+              note != null ? note : "Updated via localhost admin API");
 
       LOG.infof("CFP %s updated to status %s via localhost admin API", cfpId, newStatus);
 
       return Response.ok(Map.of("item", updated)).build();
+    } catch (CfpSubmissionService.ValidationException e) {
+      String msg = e.getMessage();
+      if ("stale_submission".equals(msg)) {
+        return Response.status(Response.Status.CONFLICT)
+            .entity(
+                Map.of(
+                    "error",
+                    "stale_submission",
+                    "message",
+                    "Submission was modified by another session"))
+            .build();
+      }
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", msg != null ? msg : "validation_error"))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "Failed to update CFP %s", cfpId);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity(Map.of("error", "update_failed", "message", e.getMessage()))
+          .entity(Map.of("error", "update_failed"))
           .build();
     }
   }
@@ -221,16 +255,20 @@ public class LocalhostAdminApiResource {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
-    List<com.scanales.homedir.model.UserProfile> users = new ArrayList<>(userProfileService.allProfiles().values());
+    List<com.scanales.homedir.model.UserProfile> users =
+        new ArrayList<>(userProfileService.allProfiles().values());
 
     if (query != null && !query.isBlank()) {
       String lowerQuery = query.toLowerCase();
-      users = users.stream()
-          .filter(u ->
-              u.getUserId().toLowerCase().contains(lowerQuery)
-                  || (u.getName() != null && u.getName().toLowerCase().contains(lowerQuery))
-                  || (u.getEmail() != null && u.getEmail().toLowerCase().contains(lowerQuery)))
-          .toList();
+      users =
+          users.stream()
+              .filter(
+                  u ->
+                      u.getUserId().toLowerCase().contains(lowerQuery)
+                          || (u.getName() != null && u.getName().toLowerCase().contains(lowerQuery))
+                          || (u.getEmail() != null
+                              && u.getEmail().toLowerCase().contains(lowerQuery)))
+              .toList();
     }
 
     return Response.ok(users).build();
@@ -271,27 +309,32 @@ public class LocalhostAdminApiResource {
 
     if (amountObj == null || reason == null) {
       return Response.status(Response.Status.BAD_REQUEST)
-          .entity(Map.of("error", "missing_parameters", "message", "amount and reason are required"))
+          .entity(
+              Map.of("error", "missing_parameters", "message", "amount and reason are required"))
           .build();
     }
 
     int amount = ((Number) amountObj).intValue();
 
     try {
-      com.scanales.homedir.model.UserProfile updated = userProfileService.addXp(
-          userId,
-          amount,
-          reason,
-          questClass != null ? com.scanales.homedir.model.QuestClass.valueOf(questClass.toUpperCase()) : null
-      );
+      com.scanales.homedir.model.QuestClass qc =
+          questClass != null
+              ? com.scanales.homedir.model.QuestClass.valueOf(questClass.toUpperCase())
+              : null;
+      com.scanales.homedir.model.UserProfile updated =
+          userProfileService.addXp(userId, amount, reason, qc);
 
       LOG.infof("Added %d XP to user %s via localhost admin API: %s", amount, userId, reason);
 
       return Response.ok(updated).build();
+    } catch (IllegalArgumentException e) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_quest_class"))
+          .build();
     } catch (Exception e) {
       LOG.errorf(e, "Failed to add XP to user %s", userId);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity(Map.of("error", "update_failed", "message", e.getMessage()))
+          .entity(Map.of("error", "update_failed"))
           .build();
     }
   }
@@ -315,8 +358,10 @@ public class LocalhostAdminApiResource {
     }
 
     try {
-      com.scanales.homedir.model.QuestClass qc = com.scanales.homedir.model.QuestClass.valueOf(questClass.toUpperCase());
-      com.scanales.homedir.model.UserProfile updated = userProfileService.updateQuestClass(userId, qc);
+      com.scanales.homedir.model.QuestClass qc =
+          com.scanales.homedir.model.QuestClass.valueOf(questClass.toUpperCase());
+      com.scanales.homedir.model.UserProfile updated =
+          userProfileService.updateQuestClass(userId, qc);
 
       LOG.infof("Updated quest class for user %s to %s via localhost admin API", userId, qc);
 
@@ -336,8 +381,7 @@ public class LocalhostAdminApiResource {
   @GET
   @Path("/metrics")
   public Response getMetrics(
-      @Context HttpServerRequest request,
-      @HeaderParam("Authorization") String authHeader) {
+      @Context HttpServerRequest request, @HeaderParam("Authorization") String authHeader) {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
