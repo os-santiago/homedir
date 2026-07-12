@@ -1,20 +1,16 @@
 package com.scanales.homedir.localhost;
 
-import com.scanales.homedir.cfp.CfpSubmission;
-import com.scanales.homedir.cfp.CfpSubmissionService;
-import com.scanales.homedir.cfp.CfpSubmissionStatus;
-import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
-import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+
 /**
- * Tests for the localhost admin API endpoint.
- * These tests verify authentication, authorization, and functionality.
+ * Tests for the localhost admin API endpoint. These tests verify authentication, authorization, and
+ * functionality.
  */
 @QuarkusTest
 public class LocalhostAdminApiResourceTest {

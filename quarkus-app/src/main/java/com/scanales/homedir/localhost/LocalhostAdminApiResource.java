@@ -8,22 +8,31 @@ import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import java.util.*;
-
 /**
- * Administrative API resource that:
- * 1. Only accepts connections from localhost
- * 2. Requires Bearer token authentication
- * 3. Provides full administrative access to CFPs, users, events, etc.
+ * Administrative API resource that: 1. Only accepts connections from localhost 2. Requires Bearer
+ * token authentication 3. Provides full administrative access to CFPs, users, events, etc.
  *
- * Set environment variable: LOCALHOST_ADMIN_TOKEN=your-secure-token
+ * <p>Set environment variable: LOCALHOST_ADMIN_TOKEN=your-secure-token
  */
 @Path("/api/localhost-admin")
 @Produces(MediaType.APPLICATION_JSON)
@@ -141,7 +150,7 @@ public class LocalhostAdminApiResource {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
-    Optional<CfpSubmission> submission = cfpSubmissionService.getById(cfpId);
+    Optional<CfpSubmission> submission = cfpSubmissionService.findById(cfpId);
     if (submission.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity(Map.of("error", "not_found"))
@@ -189,21 +198,12 @@ public class LocalhostAdminApiResource {
           cfpId,
           newStatus,
           "localhost-admin",
-          note != null ? note : "Updated via localhost admin API",
-          versionObj != null ? ((Number) versionObj).intValue() : null
+          note != null ? note : "Updated via localhost admin API"
       );
 
       LOG.infof("CFP %s updated to status %s via localhost admin API", cfpId, newStatus);
 
       return Response.ok(Map.of("item", updated)).build();
-    } catch (CfpSubmissionService.NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity(Map.of("error", "not_found"))
-          .build();
-    } catch (CfpSubmissionService.StaleSubmissionException e) {
-      return Response.status(Response.Status.CONFLICT)
-          .entity(Map.of("error", "stale_submission", "message", e.getMessage()))
-          .build();
     } catch (Exception e) {
       LOG.errorf(e, "Failed to update CFP %s", cfpId);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -221,7 +221,7 @@ public class LocalhostAdminApiResource {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
-    List<com.scanales.homedir.model.UserProfile> users = userProfileService.listAll();
+    List<com.scanales.homedir.model.UserProfile> users = new ArrayList<>(userProfileService.allProfiles().values());
 
     if (query != null && !query.isBlank()) {
       String lowerQuery = query.toLowerCase();
@@ -245,7 +245,7 @@ public class LocalhostAdminApiResource {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
-    Optional<com.scanales.homedir.model.UserProfile> user = userProfileService.getProfile(userId);
+    Optional<com.scanales.homedir.model.UserProfile> user = userProfileService.find(userId);
     if (user.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity(Map.of("error", "user_not_found"))
@@ -341,6 +341,6 @@ public class LocalhostAdminApiResource {
     Response validationError = validateAccess(request, authHeader);
     if (validationError != null) return validationError;
 
-    return Response.ok(metricsService.getUsageMetrics()).build();
+    return Response.ok(metricsService.getSummary()).build();
   }
 }
