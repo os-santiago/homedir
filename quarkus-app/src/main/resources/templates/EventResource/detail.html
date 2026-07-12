@@ -84,13 +84,13 @@
 
   .event-theme-shell .btn,
   .event-theme-shell .login-btn-nav,
-  .event-theme-shell .btn-secondary {
+  .event-theme-shell .btn.btn--secondary {
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.12)), var(--event-theme-surface);
     border-color: var(--event-theme-accent);
     color: var(--event-theme-text);
   }
 
-  .event-theme-shell .btn-primary {
+  .event-theme-shell .btn.btn--primary {
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.14)), var(--event-theme-primary);
     border-color: var(--event-theme-primary);
     color: var(--event-theme-text);
@@ -176,7 +176,7 @@
                     {#if app:validUrl(event.website) || app:validUrl(event.twitter) || app:validUrl(event.linkedin) || app:validUrl(event.instagram) || app:validEmail(event.contactEmail) || app:validUrl(event.ticketsUrl)}
                     <div class="event-links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         {#if app:validUrl(event.ticketsUrl)}
-                        <a href="{event.ticketsUrl}" target="_blank" rel="noopener" class="btn-primary">
+                        <a href="{event.ticketsUrl}" target="_blank" rel="noopener" class="btn btn--primary">
                             <span class="material-symbols-outlined">confirmation_number</span> {i18n:events_detail_tickets}
                         </a>
                         {/if}
@@ -364,7 +364,7 @@
         <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">event_busy</span>
         <h2>{i18n:events_detail_not_found_title}</h2>
         <p>{i18n:events_detail_not_found_desc}</p>
-        <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
+        <a href="/eventos" class="btn btn--primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
     </div>
 </div>
 {/if}

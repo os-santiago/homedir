@@ -10,7 +10,7 @@
         {#if message}<p class="section-subtitle">{message}</p>{/if}
       </div>
       <div class="admin-shell-actions">
-        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+        <a href="/private/admin" class="btn btn--secondary">Volver al panel</a>
       </div>
     </div>
   </div>
@@ -20,7 +20,7 @@
   <div class="admin-shell-panel">
     <h2 class="card-title">Operaciones</h2>
     <div style="margin-bottom: 1.5rem;">
-      <a href="/private/admin/backup/download" class="btn btn-primary">Descargar backup</a>
+      <a href="/private/admin/backup/download" class="btn btn--primary">Descargar backup</a>
     </div>
 
     <form method="post" action="/private/admin/backup/upload" enctype="multipart/form-data" class="form-group"
@@ -31,7 +31,7 @@
         <input id="backupFile" type="file" name="file" accept=".zip" class="form-input">
       </div>
       <div>
-        <button type="submit" class="btn btn-secondary">Subir backup</button>
+        <button type="submit" class="btn btn--secondary">Subir backup</button>
       </div>
     </form>
   </div>

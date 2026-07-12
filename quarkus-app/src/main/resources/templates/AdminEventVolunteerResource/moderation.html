@@ -12,11 +12,11 @@
         <p class="section-subtitle">{i18n:events_volunteers_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
-        <a href="/private/admin" class="btn btn-secondary">{i18n:nav_admin_panel}</a>
-        <a href="/private/admin/events" class="btn btn-secondary">{i18n:nav_events}</a>
-        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
-        <a href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">CFP</a>
-        <a href="/event/{event.id}/volunteers" class="btn btn-secondary">{i18n:events_volunteers_open_cta}</a>
+        <a href="/private/admin" class="btn btn--secondary">{i18n:nav_admin_panel}</a>
+        <a href="/private/admin/events" class="btn btn--secondary">{i18n:nav_events}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn--secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/private/admin/events/{event.id}/cfp" class="btn btn--secondary">CFP</a>
+        <a href="/event/{event.id}/volunteers" class="btn btn--secondary">{i18n:events_volunteers_open_cta}</a>
       </div>
     </div>
   </div>
@@ -45,8 +45,8 @@
       </label>
     </div>
     <div class="action-group" style="margin-top: 0.75rem; gap: 0.5rem;">
-      <button id="volConfigSaveBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_config_save}</button>
-      <button id="volConfigClearBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_config_clear}</button>
+      <button id="volConfigSaveBtn" type="button" class="btn btn--secondary">{i18n:events_volunteers_admin_config_save}</button>
+      <button id="volConfigClearBtn" type="button" class="btn btn--secondary">{i18n:events_volunteers_admin_config_clear}</button>
     </div>
     <p id="volConfigSummary" class="form-hint" style="margin-top: 0.6rem;"></p>
     <p id="volConfigFeedback" class="form-hint" style="margin-top: 0.35rem;" hidden></p>
@@ -59,7 +59,7 @@
         <p class="form-hint" style="margin-top: 0.35rem;">{i18n:events_volunteers_admin_queue_desc}</p>
       </div>
       <div class="action-group" style="gap: 0.5rem;">
-        <button id="volReloadBtn" type="button" class="btn btn-secondary">{i18n:events_volunteers_admin_refresh}</button>
+        <button id="volReloadBtn" type="button" class="btn btn--secondary">{i18n:events_volunteers_admin_refresh}</button>
       </div>
     </div>
 
@@ -75,24 +75,24 @@
     <div class="vol-toolbar-grid">
       <div class="vol-toolbar-row">
         <span class="form-hint">{i18n:events_volunteers_admin_filter_label}</span>
-        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
-        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="applied">{i18n:events_volunteers_status_applied}</button>
-        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="under_review">{i18n:events_volunteers_status_under_review}</button>
-        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="selected">{i18n:events_volunteers_status_selected}</button>
-        <button type="button" class="btn btn-ghost vol-filter-btn" data-status="not_selected">{i18n:events_volunteers_status_not_selected}</button>
+        <button type="button" class="btn btn--ghost vol-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
+        <button type="button" class="btn btn--ghost vol-filter-btn" data-status="applied">{i18n:events_volunteers_status_applied}</button>
+        <button type="button" class="btn btn--ghost vol-filter-btn" data-status="under_review">{i18n:events_volunteers_status_under_review}</button>
+        <button type="button" class="btn btn--ghost vol-filter-btn" data-status="selected">{i18n:events_volunteers_status_selected}</button>
+        <button type="button" class="btn btn--ghost vol-filter-btn" data-status="not_selected">{i18n:events_volunteers_status_not_selected}</button>
       </div>
       <div class="vol-toolbar-row">
         <span class="form-hint">{i18n:events_volunteers_admin_sort_label}</span>
-        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
-        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="updated">{i18n:events_cfp_admin_sort_updated}</button>
-        <button type="button" class="btn btn-ghost vol-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
+        <button type="button" class="btn btn--ghost vol-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
+        <button type="button" class="btn btn--ghost vol-sort-btn" data-sort="updated">{i18n:events_cfp_admin_sort_updated}</button>
+        <button type="button" class="btn btn--ghost vol-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
       </div>
     </div>
 
     <div class="vol-toolbar-row vol-pagination-row">
-      <button id="volPrevPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_prev}</button>
+      <button id="volPrevPageBtn" type="button" class="btn btn--secondary">{i18n:community_board_prev}</button>
       <p id="volPageInfo" class="form-hint vol-page-info">0-0 / 0</p>
-      <button id="volNextPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_next}</button>
+      <button id="volNextPageBtn" type="button" class="btn btn--secondary">{i18n:community_board_next}</button>
     </div>
   </div>
 
@@ -425,16 +425,16 @@
           + '<p class="vol-admin-text"><strong>' + i18n.labelDifferentiator + ':</strong><br>' + differentiator + '</p>'
           + '<textarea class="form-textarea vol-admin-note" rows="2" maxlength="500" placeholder="' + i18n.notePlaceholder + '">' + (item.moderation_note || '') + '</textarea>'
           + '<div class="vol-admin-actions">'
-          + '<button type="button" class="btn btn-secondary" data-vol-action="under_review">' + i18n.actionUnderReview + '</button>'
-          + '<button type="button" class="btn btn-secondary" data-vol-action="selected">' + i18n.actionSelect + '</button>'
-          + '<button type="button" class="btn btn-secondary" data-vol-action="not_selected">' + i18n.actionReject + '</button>'
+          + '<button type="button" class="btn btn--secondary" data-vol-action="under_review">' + i18n.actionUnderReview + '</button>'
+          + '<button type="button" class="btn btn--secondary" data-vol-action="selected">' + i18n.actionSelect + '</button>'
+          + '<button type="button" class="btn btn--secondary" data-vol-action="not_selected">' + i18n.actionReject + '</button>'
           + '</div>'
           + '<div class="vol-rating-grid">'
           + '<div class="vol-rating-item"><label>Profile</label><select class="form-select" data-vol-rating="profile">' + ratingOptions(item.rating_profile) + '</select></div>'
           + '<div class="vol-rating-item"><label>Motivation</label><select class="form-select" data-vol-rating="motivation">' + ratingOptions(item.rating_motivation) + '</select></div>'
           + '<div class="vol-rating-item"><label>Differentiator</label><select class="form-select" data-vol-rating="differentiator">' + ratingOptions(item.rating_differentiator) + '</select></div>'
           + '</div>'
-          + '<div class="vol-admin-actions"><button type="button" class="btn btn-secondary" data-vol-action="save_rating">' + i18n.actionSaveRating + '</button></div>';
+          + '<div class="vol-admin-actions"><button type="button" class="btn btn--secondary" data-vol-action="save_rating">' + i18n.actionSaveRating + '</button></div>';
 
         const noteInput = card.querySelector('.vol-admin-note');
         item._noteInput = noteInput;

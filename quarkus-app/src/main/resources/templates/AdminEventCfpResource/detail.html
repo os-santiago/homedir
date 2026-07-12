@@ -12,19 +12,19 @@
         <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
-        <button id="cfpPrevBtn" type="button" class="btn btn-secondary" disabled>{i18n:events_cfp_admin_nav_previous}</button>
-        <button id="cfpNextBtn" type="button" class="btn btn-secondary" disabled>{i18n:events_cfp_admin_nav_next}</button>
-        <a id="cfpBackToOverviewLink" href="/private/admin/events/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
+        <button id="cfpPrevBtn" type="button" class="btn btn--secondary" disabled>{i18n:events_cfp_admin_nav_previous}</button>
+        <button id="cfpNextBtn" type="button" class="btn btn--secondary" disabled>{i18n:events_cfp_admin_nav_next}</button>
+        <a id="cfpBackToOverviewLink" href="/private/admin/events/{event.id}/cfp" class="btn btn--secondary">{i18n:events_cfp_admin_nav_back_overview}</a>
         {#if canManage}
-        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn--secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
         {/if}
-        <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
+        <a href="/event/{event.id}/cfp" class="btn btn--secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
     <div class="cfp-preview-tools">
       <input id="cfpPreviewUserId" type="text" class="form-input cfp-preview-input" placeholder="preview user id / email" autocomplete="off">
-      <button id="cfpPreviewCfpBtn" type="button" class="btn btn-secondary">View as user</button>
-      <a id="cfpPreviewProfileLink" href="#" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Open profile</a>
+      <button id="cfpPreviewCfpBtn" type="button" class="btn btn--secondary">View as user</button>
+      <a id="cfpPreviewProfileLink" href="#" class="btn btn--secondary" target="_blank" rel="noopener noreferrer">Open profile</a>
     </div>
   </div>
 </section>
@@ -731,7 +731,7 @@
         actions.appendChild(btn);
       }
 
-      attachAction(i18n.saveRating, "btn btn-secondary", async (event) => {
+      attachAction(i18n.saveRating, "btn btn--secondary", async (event) => {
         const btn = event.currentTarget;
         btn.disabled = true;
         try {
@@ -761,8 +761,8 @@
           + '<div class="cfp-confirmation-dialog__content">'
           + '<p class="cfp-confirmation-dialog__message">' + escapeHtml(message) + '</p>'
           + '<div class="cfp-confirmation-dialog__actions">'
-          + '<button type="button" class="btn btn-secondary cfp-confirmation-dialog__cancel">' + escapeHtml(i18n.confirmCancel) + '</button>'
-          + '<button type="button" class="btn btn-primary cfp-confirmation-dialog__confirm">' + escapeHtml(i18n.confirmProceed) + '</button>'
+          + '<button type="button" class="btn btn--secondary cfp-confirmation-dialog__cancel">' + escapeHtml(i18n.confirmCancel) + '</button>'
+          + '<button type="button" class="btn btn--primary cfp-confirmation-dialog__confirm">' + escapeHtml(i18n.confirmProceed) + '</button>'
           + '</div></div>';
 
         const confirmBtn = dialog.querySelector(".cfp-confirmation-dialog__confirm");
@@ -843,12 +843,12 @@
         });
       }
 
-      attachStatusAction(i18n.underReview, "under_review", "btn btn-secondary");
-      attachStatusAction(i18n.accept, "accepted", "btn btn-primary");
-      attachStatusAction(i18n.reject, "rejected", "btn btn-danger");
+      attachStatusAction(i18n.underReview, "under_review", "btn btn--secondary");
+      attachStatusAction(i18n.accept, "accepted", "btn btn--primary");
+      attachStatusAction(i18n.reject, "rejected", "btn btn--danger");
 
       if (status === "accepted") {
-        attachAction(i18n.promote, "btn btn-secondary", async (event) => {
+        attachAction(i18n.promote, "btn btn--secondary", async (event) => {
           const btn = event.currentTarget;
           btn.disabled = true;
           try {

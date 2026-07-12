@@ -24,12 +24,12 @@
           {#if discordLinked}
           <span class="board-status-chip">{i18n:community_board_discord_connected}</span>
           {/if}
-          <a class="btn-primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
+          <a class="btn btn--primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
           {#if publicProfilePath}
-          <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
+          <a class="btn btn--primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
           <button
             type="button"
-            class="btn-primary board-copy-btn"
+            class="btn btn--primary board-copy-btn"
             data-default-label="{i18n:community_board_activation_cta_copy}"
             data-success-label="{i18n:community_board_link_copied}"
             data-error-label="{i18n:community_board_copy_failed}"
@@ -41,7 +41,7 @@
           {/if}
         </div>
         {#else}
-        <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/board" data-login-return-current="true">{i18n:community_board_activation_cta_guest}</a>
+        <a class="btn btn--primary" href="/private/login-callback?redirect=/comunidad/board" data-login-return-current="true">{i18n:community_board_activation_cta_guest}</a>
         {/if}
       </section>
       <p class="board-share-hint">{i18n:community_board_share_hint}</p>
@@ -52,9 +52,9 @@
           <h2>{homedirUsers}</h2>
           <p>{i18n:community_board_group_homedir_desc}</p>
           <div class="board-card-actions">
-            <a class="btn-primary" href="/comunidad/board/homedir-users">{i18n:community_board_view_members}</a>
+            <a class="btn btn--primary" href="/comunidad/board/homedir-users">{i18n:community_board_view_members}</a>
             {#if isAuthenticated && myHomedirSearchUrl}
-            <a class="btn-primary" href="{myHomedirSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            <a class="btn btn--primary" href="{myHomedirSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
             {/if}
           </div>
         </article>
@@ -64,9 +64,9 @@
           <h2>{githubUsers}</h2>
           <p>{i18n:community_board_group_github_desc}</p>
           <div class="board-card-actions">
-            <a class="btn-primary" href="/comunidad/board/github-users">{i18n:community_board_view_members}</a>
+            <a class="btn btn--primary" href="/comunidad/board/github-users">{i18n:community_board_view_members}</a>
             {#if isAuthenticated && myGithubSearchUrl}
-            <a class="btn-primary" href="{myGithubSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            <a class="btn btn--primary" href="{myGithubSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
             {/if}
           </div>
         </article>
@@ -89,9 +89,9 @@
             {/if}
           </div>
           <div class="board-card-actions">
-            <a class="btn-primary" href="/comunidad/board/discord-users">{i18n:community_board_view_members}</a>
+            <a class="btn btn--primary" href="/comunidad/board/discord-users">{i18n:community_board_view_members}</a>
             {#if isAuthenticated && myDiscordSearchUrl}
-            <a class="btn-primary" href="{myDiscordSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+            <a class="btn btn--primary" href="{myDiscordSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
             {/if}
           </div>
         </article>

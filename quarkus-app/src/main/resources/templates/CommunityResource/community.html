@@ -86,7 +86,7 @@
             <strong>{i18n:community_js_cta_vote_title}</strong>
             <p>{i18n:community_vote_guest_desc}</p>
           </div>
-          <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/picks" data-login-return-current="true">{i18n:community_login}</a>
+          <a class="btn btn--primary" href="/private/login-callback?redirect=/comunidad/picks" data-login-return-current="true">{i18n:community_login}</a>
         </section>
         {/if}
 
@@ -118,13 +118,13 @@
         <div class="community-controls-panel">
           <div class="community-controls-top">
             <div class="community-filter-row" role="group" aria-label="Community source filter">
-              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="all">
+              <button type="button" class="btn btn--primary community-filter-btn community-filter" data-filter="all">
                 {i18n:community_filter_all}
               </button>
-              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="internet">
+              <button type="button" class="btn btn--primary community-filter-btn community-filter" data-filter="internet">
                 {i18n:community_filter_internet}
               </button>
-              <button type="button" class="btn-primary community-filter-btn community-filter" data-filter="members">
+              <button type="button" class="btn btn--primary community-filter-btn community-filter" data-filter="members">
                 {i18n:community_filter_members}
               </button>
             </div>
@@ -186,15 +186,15 @@
         <div id="community-empty" class="community-empty hidden">
           <p>{i18n:community_empty_no_content}</p>
           <div class="community-empty-actions">
-            <a class="btn-primary" href="/comunidad/picks">{i18n:community_empty_cta_picks}</a>
-            <a class="btn-primary" href="/comunidad/propose">{i18n:community_empty_cta_propose}</a>
+            <a class="btn btn--primary" href="/comunidad/picks">{i18n:community_empty_cta_picks}</a>
+            <a class="btn btn--primary" href="/comunidad/propose">{i18n:community_empty_cta_propose}</a>
           </div>
         </div>
 
         <div id="community-list" class="community-list"></div>
 
         <div class="community-actions">
-          <button id="community-load-more" type="button" class="btn-primary hidden">{i18n:community_load_more}</button>
+          <button id="community-load-more" type="button" class="btn btn--primary hidden">{i18n:community_load_more}</button>
         </div>
       </div>
     </div>
@@ -260,7 +260,7 @@
           <input type="text" name="tags" maxlength="180" placeholder="{i18n:community_form_tags_placeholder}" />
         </label>
         <div class="community-actions">
-          <button id="community-submit-btn" type="submit" class="btn-primary">{i18n:community_form_submit}</button>
+          <button id="community-submit-btn" type="submit" class="btn btn--primary">{i18n:community_form_submit}</button>
         </div>
       </form>
       <div class="community-submissions-list-wrap">
@@ -273,7 +273,7 @@
       {#else}
       <div class="community-empty">
         <p>{i18n:community_login_to_propose}</p>
-        <a class="btn-primary" href="/private/login-callback?redirect=/comunidad/propose" data-login-return-current="true">{i18n:community_login}</a>
+        <a class="btn btn--primary" href="/private/login-callback?redirect=/comunidad/propose" data-login-return-current="true">{i18n:community_login}</a>
       </div>
       {/if}
     </div>

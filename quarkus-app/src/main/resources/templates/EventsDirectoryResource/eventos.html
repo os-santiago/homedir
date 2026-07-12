@@ -40,8 +40,8 @@
     {#include fragments/empty-state message=i18n:events_empty_upcoming}
     {#actions}
     <div class="community-empty-actions">
-      <a href="#past-events" class="btn-primary">{i18n:events_empty_upcoming_cta_history}</a>
-      <a href="/comunidad/picks" class="btn-primary">{i18n:events_empty_upcoming_cta_community}</a>
+      <a href="#past-events" class="btn btn--primary">{i18n:events_empty_upcoming_cta_history}</a>
+      <a href="/comunidad/picks" class="btn btn--primary">{i18n:events_empty_upcoming_cta_community}</a>
     </div>
     {/actions}
     {/include}
@@ -148,7 +148,7 @@
           {i18n:events_countdown_days(event.daysUntil)}
           {/if}
         </p>
-        <span class="btn-primary event-highlight-open">{i18n:btn_view_details}</span>
+        <span class="btn btn--primary event-highlight-open">{i18n:btn_view_details}</span>
       </div>
     </a>
     {/for}

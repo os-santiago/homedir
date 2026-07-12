@@ -54,13 +54,13 @@
         {#if discordLinked}
         <span class="board-status-chip">{i18n:community_board_discord_connected}</span>
         {/if}
-        <a class="btn-primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
+        <a class="btn btn--primary" href="/private/profile#integrations-panel">{i18n:community_board_connect_discord}</a>
         {/if}
         {#if publicProfilePath}
-        <a class="btn-primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
+        <a class="btn btn--primary" href="{publicProfilePath}" target="_blank" rel="noopener noreferrer">{i18n:community_board_activation_cta_public}</a>
         <button
           type="button"
-          class="btn-primary board-copy-btn"
+          class="btn btn--primary board-copy-btn"
           data-default-label="{i18n:community_board_activation_cta_copy}"
           data-success-label="{i18n:community_board_link_copied}"
           data-error-label="{i18n:community_board_copy_failed}"
@@ -69,7 +69,7 @@
         </button>
         {/if}
         {#if myMemberSearchUrl}
-        <a class="btn-primary" href="{myMemberSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
+        <a class="btn btn--primary" href="{myMemberSearchUrl}">{i18n:community_board_activation_cta_find_me}</a>
         {/if}
       </div>
       {/if}
@@ -94,7 +94,7 @@
           aria-label="{i18n:community_board_search_aria}"
           class="board-search-input" />
         <input type="hidden" name="limit" value="{limit}" />
-        <button type="submit" class="btn-primary">{i18n:community_board_search}</button>
+        <button type="submit" class="btn btn--primary">{i18n:community_board_search}</button>
       </form>
       <p class="board-share-hint">{i18n:community_board_share_hint}</p>
 
@@ -128,10 +128,10 @@
                 </div>
               </div>
               <div class="board-member-actions">
-                <a class="btn-primary" href="{member.profileLink}">{i18n:community_board_open}</a>
+                <a class="btn btn--primary" href="{member.profileLink}">{i18n:community_board_open}</a>
                 <button
                   type="button"
-                  class="btn-primary board-copy-btn"
+                  class="btn btn--primary board-copy-btn"
                   data-default-label="{i18n:community_board_copy_profile_link}"
                   data-success-label="{i18n:community_board_link_copied}"
                   data-error-label="{i18n:community_board_copy_failed}"
@@ -147,14 +147,14 @@
 
       <div class="board-pagination">
         {#if hasPreviousPage}
-          <a class="btn-primary" href="{previousPageUrl}">{i18n:community_board_prev}</a>
+          <a class="btn btn--primary" href="{previousPageUrl}">{i18n:community_board_prev}</a>
         {#else}
-          <span class="btn-primary board-page-disabled">{i18n:community_board_prev}</span>
+          <span class="btn btn--primary board-page-disabled">{i18n:community_board_prev}</span>
         {/if}
         {#if hasNextPage}
-          <a class="btn-primary" href="{nextPageUrl}">{i18n:community_board_next}</a>
+          <a class="btn btn--primary" href="{nextPageUrl}">{i18n:community_board_next}</a>
         {#else}
-          <span class="btn-primary board-page-disabled">{i18n:community_board_next}</span>
+          <span class="btn btn--primary board-page-disabled">{i18n:community_board_next}</span>
         {/if}
       </div>
     </div>
@@ -197,9 +197,9 @@
       content: none;
     }
 
-    .board-detail-shell .btn-primary,
-    .board-detail-shell .btn-primary:hover,
-    .board-detail-shell .btn-primary:active,
+    .board-detail-shell .btn.btn--primary,
+    .board-detail-shell .btn.btn--primary:hover,
+    .board-detail-shell .btn.btn--primary:active,
     .board-detail-shell .board-member-card,
     .board-detail-shell .board-member-card:hover {
       transform: none !important;

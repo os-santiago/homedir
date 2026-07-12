@@ -86,9 +86,9 @@ public class AdminAccessTest {
           .then()
           .statusCode(200)
           .body(containsString("class=\"admin-event-actions\""))
-          .body(containsString("btn btn-secondary admin-event-action"))
-          .body(containsString("btn btn-ghost admin-event-action"))
-          .body(containsString("btn btn-danger admin-event-action"))
+          .body(containsString("btn btn--secondary admin-event-action"))
+          .body(containsString("btn btn--ghost admin-event-action"))
+          .body(containsString("btn btn--danger admin-event-action"))
           .body(containsString("/private/admin/metrics?event=admin-actions-ui-test&amp;range=all"));
     } finally {
       eventService.deleteEvent(eventId);
