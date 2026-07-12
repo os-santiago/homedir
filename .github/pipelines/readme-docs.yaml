@@ -1,0 +1,65 @@
+name: README Documentation Pipeline
+description: Sequential E2E test pipeline for autonomous SDLC
+repository: os-santiago/homedir
+
+# Pipeline of documentation issues to be processed sequentially
+# Each issue auto-creates the next when completed
+
+issues:
+  - id: license-badge
+    title: "[docs] Add license badge to README"
+    body: |
+      ## Problem Statement
+      README missing license badge to inform users of licensing terms
+
+      ## Expected Behavior
+      License badge displayed in README header
+
+      ## Acceptance Criteria
+      - [ ] Add Apache-2.0 license badge to README.md header linking to LICENSE file
+
+      ## Complexity
+      - [x] Simple (1 file, <10 lines)
+    labels:
+      - documentation
+      - ready-to-implement
+
+  - id: build-status-badge
+    title: "[docs] Add build status badge to README"
+    body: |
+      ## Problem Statement
+      README missing CI build status badge
+
+      ## Expected Behavior
+      Build status badge shows GitHub Actions CI health
+
+      ## Acceptance Criteria
+      - [ ] Add GitHub Actions workflow status badge to README.md header
+
+      ## Complexity
+      - [x] Simple (1 file, <10 lines)
+    labels:
+      - documentation
+      - ready-to-implement
+    depends_on:
+      - license-badge
+
+  - id: coverage-badge
+    title: "[docs] Add code coverage badge to README"
+    body: |
+      ## Problem Statement
+      README missing code coverage badge
+
+      ## Expected Behavior
+      Coverage badge shows test coverage percentage
+
+      ## Acceptance Criteria
+      - [ ] Add code coverage badge to README.md header
+
+      ## Complexity
+      - [x] Simple (1 file, <10 lines)
+    labels:
+      - documentation
+      - ready-to-implement
+    depends_on:
+      - build-status-badge

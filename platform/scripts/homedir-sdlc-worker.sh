@@ -144,6 +144,76 @@ write_heartbeat() {
   mv -f "${tmp_file}" "${HEARTBEAT_FILE}"
 }
 
+# ADEV-compliant complexity classification
+classify_issue_complexity() {
+  local body="$1"
+  local criteria_count
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || true)
+
+  if [[ "${criteria_count}" -le 1 ]]; then
+    echo "simple"
+  elif [[ "${criteria_count}" -le 2 ]]; then
+    echo "medium"
+  else
+    echo "complex"
+  fi
+}
+
+# Get timeout based on complexity (ADEV Rule #6)
+get_timeout_for_complexity() {
+  local complexity="$1"
+  case "${complexity}" in
+    simple)  echo 300 ;;   # 5 minutes
+    medium)  echo 600 ;;   # 10 minutes
+    complex) echo 900 ;;   # 15 minutes
+    *)       echo 600 ;;   # default 10 minutes
+  esac
+}
+
+# ADEV Rule #11: Narrowest validation that proves change is sound
+get_validation_command_for_changes() {
+  local changed_files="$1"
+
+  # Detect what changed and return scoped validation command
+  if echo "$changed_files" | grep -q 'trending/.*\.java$'; then
+    echo "cd quarkus-app && mvn test -Dtest=com.scanales.homedir.trending.*Test"
+  elif echo "$changed_files" | grep -q '\.java$'; then
+    # Generic Java files - run affected package tests
+    echo "cd quarkus-app && mvn test"
+  elif echo "$changed_files" | grep -q '\.html$'; then
+    echo "cd quarkus-app && mvn test -Dtest=*ResourceTest"
+  elif echo "$changed_files" | grep -q 'docs/.*\.md$'; then
+    # Markdown validation only if markdownlint is available
+    if command -v markdownlint >/dev/null 2>&1; then
+      local md_files
+      md_files=$(echo "$changed_files" | tr ' ' '\n' | grep '\.md$' | tr '\n' ' ')
+      if [[ -n "${md_files}" ]]; then
+        echo "markdownlint ${md_files}"
+      else
+        echo ""
+      fi
+    else
+      echo ""
+    fi
+  elif echo "$changed_files" | grep -q 'platform/scripts/'; then
+    # Shell script validation only if shellcheck is available
+    if command -v shellcheck >/dev/null 2>&1; then
+      local sh_files
+      sh_files=$(echo "$changed_files" | tr ' ' '\n' | grep '\.sh$' | tr '\n' ' ')
+      if [[ -n "${sh_files}" ]]; then
+        echo "shellcheck ${sh_files}"
+      else
+        echo ""
+      fi
+    else
+      echo ""
+    fi
+  else
+    # Default: no validation (let CI handle it)
+    echo ""
+  fi
+}
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     log "missing required command: $1"
@@ -153,7 +223,20 @@ require_cmd() {
 
 run_scc_prompt() {
   local prompt="$1"
+  local issue_body="$2"
   local -a scc_args
+  local dynamic_timeout="${SCC_TIMEOUT_SECONDS}"
+
+  # Calculate dynamic timeout if issue_body provided (ADEV optimization)
+  if [[ -n "${issue_body}" ]]; then
+    local issue_complexity
+    issue_complexity=$(classify_issue_complexity "${issue_body}")
+    dynamic_timeout=$(get_timeout_for_complexity "${issue_complexity}")
+    log "Issue complexity: ${issue_complexity}, timeout: ${dynamic_timeout}s"
+  fi
+
+  # Export timeout for error reporting (used by run_scc_handle_exit_code)
+  export SCC_ACTUAL_TIMEOUT="${dynamic_timeout}"
 
   (
     cd "${WORKDIR}"
@@ -171,10 +254,10 @@ run_scc_prompt() {
     scc_args+=(--throttle auto)
     scc_args+=(-yq "${prompt}")
 
-    if command -v timeout >/dev/null 2>&1 && [[ "${SCC_TIMEOUT_SECONDS}" =~ ^[0-9]+$ && "${SCC_TIMEOUT_SECONDS}" -gt 0 ]]; then
-      timeout "${SCC_TIMEOUT_SECONDS}s" "${SCC_BIN}" "${scc_args[@]}"
+    if command -v timeout >/dev/null 2>&1 && [[ "${dynamic_timeout}" =~ ^[0-9]+$ && "${dynamic_timeout}" -gt 0 ]]; then
+      timeout "${dynamic_timeout}s" "${SCC_BIN}" "${scc_args[@]}"
     else
-      log "WARNING: 'timeout' unavailable or SCC_TIMEOUT_SECONDS invalid (${SCC_TIMEOUT_SECONDS}); running SCC without timeout enforcement"
+      log "WARNING: 'timeout' unavailable or dynamic_timeout invalid (${dynamic_timeout}); running SCC without timeout enforcement"
       "${SCC_BIN}" "${scc_args[@]}"
     fi
   ) 2>&1 | tee -a "${LOGFILE}"
@@ -184,8 +267,9 @@ run_scc_prompt() {
 run_scc_handle_exit_code() {
   local rc=$1
   local context=$2
+  local actual_timeout="${SCC_ACTUAL_TIMEOUT:-${SCC_TIMEOUT_SECONDS}}"
   if [[ "${rc}" -eq 124 ]]; then
-    log "SCC ${context} timed out after ${SCC_TIMEOUT_SECONDS}s"
+    log "SCC ${context} timed out after ${actual_timeout}s (exit code 124)"
   else
     log "SCC ${context} exited non-zero (${rc})"
   fi
@@ -194,8 +278,9 @@ run_scc_handle_exit_code() {
 
 run_scc_with_timeout_handling() {
   local prompt="$1"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local scc_rc
-  if run_scc_prompt "${prompt}"; then
+  if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
   fi
   scc_rc=$?
@@ -205,9 +290,10 @@ run_scc_with_timeout_handling() {
 
 run_scc_checked() {
   local prompt="$1"
+  local issue_body="${2:-}"  # Optional: empty string if not provided
   local rc
 
-  if run_scc_prompt "${prompt}"; then
+  if run_scc_prompt "${prompt}" "${issue_body}"; then
     return 0
   else
     rc=$?
@@ -348,6 +434,51 @@ latest_trigger_labeler() {
     2>/dev/null | tail -n1
 }
 
+# ADEV Rules #1, #4: Check issue atomicity before admission
+check_issue_atomicity() {
+  local body="$1"
+  local number="$2"
+  local criteria_count
+
+  criteria_count=$(echo "$body" | grep -c '^\- \[ \]' || true)
+
+  if [[ "${criteria_count}" -gt 2 ]]; then
+    log "Issue #${number} has ${criteria_count} acceptance criteria (>2). Per ADEV Rule #1, issues must be atomic."
+
+    # Check if batch delivery is explicitly requested
+    if echo "$body" | grep -qi 'batch delivery\|batch mode'; then
+      log "Issue #${number} has 'batch delivery' label/mention; proceeding with extended timeout"
+      return 0  # Allow, but will use complex timeout (15 min)
+    else
+      # AUTO-SPLIT: Component #2 - Admission Auto-Processor
+      log "Auto-splitting issue #${number} into ${criteria_count} atomic issues"
+
+      if [[ -x "/home/homedir-sdlc/.local/bin/split-multi-criteria-issue.sh" ]]; then
+        local split_result
+        split_result=$(/home/homedir-sdlc/.local/bin/split-multi-criteria-issue.sh "${number}" 2>&1) || {
+          log "ERROR: Auto-split failed for issue #${number}: ${split_result}"
+          # Fallback to old behavior
+          comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
+1. Split into separate issues (recommended), or
+2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
+          return 1
+        }
+
+        log "Auto-split successful for issue #${number}: ${split_result}"
+        return 1  # Do not admit original (already closed by split script)
+      else
+        log "WARN: split-multi-criteria-issue.sh not found, falling back to manual request"
+        comment_issue "${number}" "This issue has ${criteria_count} acceptance criteria. Per ADEV discipline, issues should have 1-2 atomic objectives. Please either:
+1. Split into separate issues (recommended), or
+2. Add 'batch delivery' to the issue body and define explicit stages for each criterion."
+        return 1
+      fi
+    fi
+  fi
+
+  return 0
+}
+
 admit_issue_to_queue() {
   local issue="$1"
   local labeler="$2"
@@ -414,12 +545,20 @@ reconcile_admission_requests() {
     --json number,labels)"
 
   if [[ "${issues_json}" == "[]" ]]; then
+    log "reconcile_admission_requests: no admission requests found"
     return 0
   fi
 
-  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_admission_requests: processing issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
     number="$(jq -r '.number' <<<"${issue_json}")"
     labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    log "reconcile_admission_requests: evaluating issue #${number}"
 
     if issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
@@ -432,6 +571,7 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      log "reconcile_admission_requests: skipping issue #${number} (already in terminal state)"
       continue
     fi
 
@@ -444,11 +584,96 @@ reconcile_admission_requests() {
 
     labeler="$(latest_trigger_labeler "${number}")"
     if is_authorized_labeler "${labeler}"; then
-      admit_issue_to_queue "${number}" "${labeler}"
+      # ADEV atomicity check before admission
+      local issue_body
+      issue_body="$(gh issue view "${number}" --repo "${REPO}" --json body --jq '.body // ""' 2>/dev/null || echo "")"
+      if check_issue_atomicity "${issue_body}" "${number}"; then
+        admit_issue_to_queue "${number}" "${labeler}"
+      else
+        log "Issue #${number} atomicity check failed; not admitting to queue"
+      fi
     else
       reject_issue_from_queue "${number}" "${labeler}"
     fi
-  done
+  done < <(jq -c '.[]' <<<"${issues_json}")
+}
+
+# Fix #1140: Reconcile stuck admission reviews
+# Issues with ready-to-implement + scc-admission-review (without scc-accepted)
+# need to be re-reviewed to converge to accepted/rejected/needs-human
+reconcile_stuck_admission_reviews() {
+  local issues_json issue_json number title body review_json status reason_text
+
+  # Find issues stuck in admission review
+  issues_json="$(gh issue list \
+    --repo "${REPO}" \
+    --state open \
+    --label "${TRIGGER_LABEL}" \
+    --label "${ADMISSION_REVIEW_LABEL}" \
+    --limit 50 \
+    --json number,title,body,labels)"
+
+  if [[ "${issues_json}" == "[]" ]]; then
+    log "reconcile_stuck_admission_reviews: no stuck issues found"
+    return 0
+  fi
+
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_stuck_admission_reviews: processing issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
+    number="$(jq -r '.number' <<<"${issue_json}")"
+    local labels
+    labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    log "reconcile_stuck_admission_reviews: evaluating issue #${number}"
+
+    # Skip if already accepted, or in terminal states
+    if issue_has_label "${labels}" "${ACCEPTED_LABEL}" \
+      || issue_has_label "${labels}" "${REJECTED_LABEL}" \
+      || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
+      || issue_has_label "${labels}" "${QUEUE_LABEL}" \
+      || issue_has_label "${labels}" "${RUNNING_LABEL}" \
+      || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      log "reconcile_stuck_admission_reviews: skipping issue #${number} (already in terminal state)"
+      continue
+    fi
+
+    title="$(jq -r '.title' <<<"${issue_json}")"
+    body="$(jq -r '.body // ""' <<<"${issue_json}")"
+
+    log "Reconciling stuck admission review for issue #${number}"
+
+    # Re-run acceptance review
+    review_json="$(issue_acceptance_review "${title}" "${body}")"
+    status="$(jq -r '.status' <<<"${review_json}")"
+    reason_text="$(jq -r '.reasons | if length == 0 then "No blocking admission risks detected." else join(" ") end' <<<"${review_json}")"
+
+    log "reconcile_stuck_admission_reviews: issue #${number} review result: ${status}"
+
+    case "${status}" in
+      accepted)
+        add_label "${number}" "${ACCEPTED_LABEL}"
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review passed (auto-reconciled). Criteria checked: improvement/correction intent, non-destructive scope, stability, security, maintainability, architecture, and good practices. ${reason_text}"
+        log "Issue #${number} auto-accepted via reconciliation"
+        ;;
+      needs-human)
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review needs human clarification before queue admission (auto-reconciled). ${reason_text}"
+        log "Issue #${number} marked needs-human via reconciliation"
+        ;;
+      *)
+        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        add_label "${number}" "${REJECTED_LABEL}"
+        comment_issue "${number}" "AI SDLC initial acceptance review rejected this issue for autonomous implementation (auto-reconciled). ${reason_text}"
+        log "Issue #${number} rejected via reconciliation"
+        ;;
+    esac
+  done < <(jq -c '.[]' <<<"${issues_json}")
 }
 
 write_issue_state() {
@@ -1168,16 +1393,30 @@ try_enable_auto_merge() {
     pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
   fi
 
+  try_enable_auto_merge_for_pr "issue #${issue}" "${branch}" "${pr_number}" "${pr_url}"
+}
+
+try_enable_auto_merge_for_pr() {
+  local context="$1"
+  local branch="$2"
+  local pr_number="${3:-}"
+  local pr_url="${4:-}"
+  local merge_target="${branch}"
+
+  if [[ -z "${merge_target}" || "${merge_target}" == "null" ]]; then
+    merge_target="${pr_number}"
+  fi
+
   if [[ "${ENABLE_AUTOMERGE}" != "true" ]]; then
     return 1
   fi
 
-  if gh pr merge "${branch}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
-    log "enabled normal auto-merge for issue #${issue} (branch=${branch} pr=#${pr_number})"
+  if gh pr merge "${merge_target}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
+    log "enabled normal auto-merge for ${context} (branch=${branch} pr=#${pr_number})"
     return 0
   fi
 
-  log "auto-merge not available for issue #${issue} (branch=${branch} pr=#${pr_number})"
+  log "auto-merge not available for ${context} (branch=${branch} pr=#${pr_number} url=${pr_url})"
   return 1
 }
 
@@ -1318,6 +1557,73 @@ reconcile_open_prs() {
   done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
 }
 
+# Fix #1142: Reconcile orphan PRs (PRs without state files)
+reconcile_orphan_open_prs() {
+  local prs_json pr_json pr_number pr_url branch labels auto_merge is_draft checks_json
+  local failing_count pending_count success_count
+
+  prs_json="$(gh pr list \
+    --repo "${REPO}" \
+    --state open \
+    --search "label:${PR_TRACK_LABEL} label:${APPROVED_LABEL}" \
+    --limit 100 \
+    --json number,title,url,headRefName,isDraft,mergeStateStatus,mergeable,statusCheckRollup,autoMergeRequest,labels \
+    2>/dev/null || echo '[]')"
+
+  if [[ -z "${prs_json}" || "${prs_json}" == "null" ]]; then
+    prs_json="[]"
+  fi
+
+  if [[ "${prs_json}" == "[]" ]]; then
+    log "reconcile_orphan_open_prs: no orphan PRs found"
+    return 0
+  fi
+
+  local pr_numbers
+  pr_numbers="$(jq -r '.[].number' <<<"${prs_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_orphan_open_prs: processing PRs: ${pr_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r pr_json; do
+    pr_number="$(jq -r '.number // ""' <<<"${pr_json}")"
+    pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+    branch="$(jq -r '.headRefName // ""' <<<"${pr_json}")"
+    labels="$(jq -c '[.labels[].name]' <<<"${pr_json}")"
+    auto_merge="$(jq -r '.autoMergeRequest != null' <<<"${pr_json}")"
+    is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
+
+    if [[ -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+      continue
+    fi
+
+    if ! issue_has_label "${labels}" "${PR_TRACK_LABEL}" || ! issue_has_label "${labels}" "${APPROVED_LABEL}"; then
+      continue
+    fi
+
+    if [[ "${auto_merge}" == "true" ]]; then
+      log "approved tracked PR #${pr_number} already has auto-merge enabled"
+      continue
+    fi
+
+    checks_json="$(pr_checks_state "${pr_json}")"
+    failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
+    pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
+    success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
+
+    if [[ "${is_draft}" == "true" || "${failing_count}" -gt 0 || "${pending_count}" -gt 0 || "${success_count}" -eq 0 ]]; then
+      log "approved tracked PR #${pr_number} is not clean for orphan auto-merge reconciliation (draft=${is_draft} failing=${failing_count} pending=${pending_count} successful=${success_count})"
+      continue
+    fi
+
+    log "reconciling approved tracked PR #${pr_number} without issue state file"
+    if ! try_enable_auto_merge_for_pr "orphan approved tracked PR #${pr_number}" "${branch}" "${pr_number}" "${pr_url}"; then
+      add_label "${pr_number}" "${NEEDS_HUMAN_LABEL}"
+      comment_issue "${pr_number}" "Autonomous SDLC could not enable normal auto-merge for approved tracked PR ${pr_url}. Repository rules still apply; no admin bypass was used."
+      alert WARN "PR #${pr_number} auto-merge blocked" "Could not enable normal auto-merge for approved tracked PR ${pr_url}. Repository rules still apply; no admin bypass was used."
+    fi
+  done < <(jq -c '.[]' <<<"${prs_json}")
+}
+
 finalize_merged_issue() {
   local number="$1"
   local pr_number="$2"
@@ -1351,6 +1657,15 @@ finalize_merged_issue() {
   gh issue close "${number}" --repo "${REPO}" --comment "Closed by autonomous SDLC after PR #${pr_number} was merged and production release verification succeeded. Release: ${release_url}" >/dev/null 2>&1 || true
   log "closed issue #${number} via PR #${pr_number}; release verified"
   alert INFO "Issue #${number} deployed" "PR #${pr_number} was merged and Production Release succeeded. ${release_url}"
+
+  # Pipeline orchestration: trigger next issue in pipeline
+  local orchestrator_script="${HOME}/platform/scripts/pipeline-orchestrator.sh"
+  if [[ -x "${orchestrator_script}" ]]; then
+    log "calling pipeline orchestrator for completed issue #${number}"
+    "${orchestrator_script}" "${number}" 2>&1 | while IFS= read -r line; do
+      log "[orchestrator] ${line}"
+    done || log "WARNING: pipeline orchestrator failed for issue #${number}"
+  fi
 }
 
 reconcile_merged_prs() {
@@ -1430,9 +1745,16 @@ reconcile_legacy_closed_issues() {
   )"
 
   if [[ "${issues_json}" != "[]" ]]; then
-    jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+    local issue_numbers
+    issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+    log "reconcile_legacy_closed_issues: processing issues: ${issue_numbers}"
+
+    # Use process substitution instead of pipe to avoid subshell issues
+    while IFS= read -r issue_json; do
       reconcile_legacy_closed_issue "${issue_json}"
-    done
+    done < <(jq -c '.[]' <<<"${issues_json}")
+  else
+    log "reconcile_legacy_closed_issues: no legacy closed issues found"
   fi
 }
 
@@ -1478,6 +1800,7 @@ run_event_command() {
       ;;
     checks-completed)
       reconcile_open_prs
+      reconcile_orphan_open_prs
       reconcile_tracked_prs
       ;;
     pr-closed)
@@ -1574,33 +1897,55 @@ EOF
   prompt+="$(cat <<EOF
 
 
-Rules:
-- Work only within the issue scope.
-- Use branch ${branch}; never push directly to main.
-- Make a focused implementation, then leave a concise summary of validation.
-- Do not stop at analysis or ask follow-up questions when the issue is implementable; make the smallest safe code or documentation change that satisfies the issue.
-- Ensure the pull request body contains a section named ## Issue Coverage that maps code changes to the issue request and acceptance criteria.
-- Do not mark coverage items complete unless the code or tests in the PR actually satisfy them.
-- It is okay to edit files without committing; the worker will create the final commit if needed.
-- Run the smallest meaningful local validation and include evidence in the PR.
-- Do not use --admin.
-- Do not bypass branch protection, required checks, reviews, or repository rulesets.
-- Do not change branch protection, repository rulesets, required status checks, or secrets.
-- If repository rules block merge, report the blocker and stop.
-- If requirements are ambiguous or unsafe, add a clear issue comment and stop.
+You are an autonomous agent implementing this issue. Follow these rules:
+
+1. SCOPE: Implement ONLY what is described in acceptance criteria. If multiple criteria exist, implement them in order, one at a time.
+
+2. EXECUTION: Use tools (read_file, edit_file, write_file) to make changes immediately. Do not describe what you would do - execute now.
+
+3. VALIDATION: Run the narrowest validation that proves your change works:
+   - Java file changed: mvn test -Dtest=<ClassName>Test
+   - Template changed: mvn test -Dtest=<Resource>Test
+   - Config changed: syntax check only
+   - Docs changed: markdownlint or no validation
+   Include validation output in your response. Do not run full test suite - worker and CI handle comprehensive validation.
+
+4. COMMITS: Leave files edited (do not commit). The worker creates commits automatically.
+
+5. CONSTRAINTS:
+   - Maximum 5 files changed (if issue needs more, comment and stop)
+   - Maximum 100 lines per file (if more, comment and stop)
+   - If ambiguous or blocked, comment on issue and stop (do not guess)
+
+6. BRANCH: You are on branch ${branch}. Never push to main. Never force push.
+
+7. SAFETY:
+   - Do not use --admin or bypass branch protection, checks, reviews, or rulesets
+   - Do not change branch protection, rulesets, required checks, or secrets
+   - If repository rules block merge, report blocker and stop
+
+8. SCOPE DISCIPLINE: If you discover additional issues outside this issue's scope, comment on the issue noting them for separate tracking. Do not expand scope.
+
+9. PULL REQUEST: Ensure PR body contains ## Issue Coverage section mapping code changes to acceptance criteria. Do not mark items complete unless code/tests actually satisfy them.
+
+Begin implementation now. Use tools, do not narrate.
 EOF
 )"
 
   log "running SCC for issue #${number}"
   write_heartbeat "running" "SCC running for issue #${number}"
   local scc_rc
-  if run_scc_checked "${prompt}"; then
+  if run_scc_checked "${prompt}" "${body}"; then
     :
   else
     scc_rc=$?
     log "SCC failed for issue #${number}"
     if [[ "${scc_rc}" -eq 124 ]]; then
-      mark_failed "${number}" "SCC timed out after ${SCC_TIMEOUT_SECONDS}s. Check ${LOGFILE} on the runner."
+      local issue_complexity
+      issue_complexity=$(classify_issue_complexity "${body}")
+      local actual_timeout
+      actual_timeout=$(get_timeout_for_complexity "${issue_complexity}")
+      mark_failed "${number}" "SCC timed out after ${actual_timeout}s (complexity: ${issue_complexity}). Check ${LOGFILE} on the runner."
       return 0
     fi
     mark_failed "${number}" "SCC exited non-zero (${scc_rc}). Check ${LOGFILE} on the runner."
@@ -1613,6 +1958,24 @@ EOF
   fi
 
   if [[ -n "$(git -C "${WORKDIR}" status --porcelain)" ]]; then
+    # ADEV Rule #11: Run narrowest validation before commit
+    local changed_files
+    changed_files=$( (git -C "${WORKDIR}" diff --name-only HEAD && git -C "${WORKDIR}" ls-files --others --exclude-standard) 2>/dev/null || echo "")
+    local scoped_validation_cmd
+    scoped_validation_cmd=$(get_validation_command_for_changes "$changed_files")
+
+    if [[ -n "${scoped_validation_cmd}" ]]; then
+      log "Running scoped validation: ${scoped_validation_cmd}"
+      if (cd "${WORKDIR}" && bash -c "${scoped_validation_cmd}"); then
+        log "Scoped validation passed"
+      else
+        mark_failed "${number}" "Scoped validation failed: ${scoped_validation_cmd}"
+        return 0
+      fi
+    else
+      log "No scoped validation defined for changed files; relying on CI"
+    fi
+
     log "committing SCC changes for issue #${number}"
     git -C "${WORKDIR}" add -A
     git -C "${WORKDIR}" commit -m "chore(sdlc): implement issue #${number}" -m "Refs #${number}"
@@ -1721,10 +2084,12 @@ main() {
   reconcile_merged_prs
   reconcile_legacy_closed_issues
   reconcile_open_prs
+  reconcile_orphan_open_prs
   reconcile_tracked_prs
 
   log "checking eligible issues in ${REPO}"
   write_heartbeat "running" "checking eligible issues"
+  reconcile_stuck_admission_reviews
   reconcile_admission_requests
   mapfile -t issues < <(
     gh issue list \
@@ -1741,9 +2106,14 @@ main() {
     exit 0
   fi
 
-  jq -c '.[]' <<<"${issues[0]}" | while IFS= read -r issue_json; do
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues[0]}" | tr '\n' ',' | sed 's/,$//')"
+  log "main: processing eligible issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
     run_issue "${issue_json}"
-  done
+  done < <(jq -c '.[]' <<<"${issues[0]}")
   write_heartbeat "ok" "cycle complete"
 }
 

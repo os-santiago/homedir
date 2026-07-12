@@ -1,0 +1,43 @@
+[Unit]
+Description=HomeDir SDLC Webhook Handler
+Documentation=https://github.com/os-santiago/homedir/tree/main/platform/services/webhook-handler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=homedir-sdlc
+Group=homedir-sdlc
+WorkingDirectory=/home/homedir-sdlc/platform/services/webhook-handler
+
+# Environment variables
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+Environment="WORKER_SCRIPT=/home/homedir-sdlc/.local/bin/homedir-sdlc-worker.sh"
+Environment="ALLOWED_REPO=os-santiago/homedir"
+# WEBHOOK_SECRET should be set in environment file or override
+EnvironmentFile=-/home/homedir-sdlc/.config/homedir-sdlc/webhook.env
+
+# Execution
+ExecStart=/home/homedir-sdlc/.local/opt/node-v24.16.0-linux-x64/bin/node server.js
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/tmp
+
+# Restart policy
+Restart=always
+RestartSec=10s
+StartLimitBurst=5
+StartLimitIntervalSec=300s
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=webhook-handler
+
+[Install]
+WantedBy=multi-user.target

@@ -35,8 +35,9 @@ class TalkStateEvaluatorTest {
     NotificationConfig.upcomingWindow = java.time.Duration.ofMinutes(15);
     NotificationConfig.endingSoonWindow = java.time.Duration.ofMinutes(10);
     Event e = new Event("e1", "E", "d");
+    e.setDate(java.time.LocalDate.now(java.time.ZoneId.of("UTC")));
     e.setTimezone("UTC");
-    LocalTime now = LocalTime.now();
+    LocalTime now = LocalTime.now(java.time.ZoneId.of("UTC"));
     Talk t1 = new Talk("t1", "t1");
     t1.setStartTime(now.plusMinutes(10));
     t1.setDurationMinutes(30);

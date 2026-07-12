@@ -1,14 +1,23 @@
 # Homedir
 > **DevRel, OpenSource, InnerSource Community Platform**
 
+
+![Maven Central](https://img.shields.io/maven-central/v/com.scanales/homedir?style=for-the-badge)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
+[![Contributors](https://img.shields.io/github/contributors/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/graphs/contributors)
+[![GitHub Stars](https://img.shields.io/github/stars/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/stargazers)
 [![PR Validation](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-check.yml?style=for-the-badge&label=PR%20Validation&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
+[![Language](https://img.shields.io/github/languages/top/os-santiago/homedir?style=for-the-badge&logo=java&logoColor=white&color=ED8B00)](https://github.com/os-santiago/homedir)
+[![Last Commit](https://img.shields.io/github/last-commit/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/commits/main)
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
+[![Maven Version](https://img.shields.io/badge/version-3.403.1-blue?style=for-the-badge&logo=apache-maven&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
+[![Repo Size](https://img.shields.io/github/repo-size/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir)
+[![Project Status: Active](https://img.shields.io/badge/status-active-brightgreen?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir)
 
 <p align="center">
   <a href="https://coderabbit.ai" target="_blank">
-    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
+    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Pull+Request+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
   </a>
 </p>
 
@@ -107,5 +116,20 @@ Platform deployment notes:
 - [platform/README.md](platform/README.md)
 - [Production-Safe Delivery Playbook](docs/en/development/production-safe-delivery-playbook.md)
 
+## Contributing
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
+
+## Code of Conduct
+We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the standards of behavior we expect from all community members.
+
+## Security
+We take security seriously. Please see our [Security Policy](SECURITY.md) for responsible disclosure guidelines and security contact information.
+
+## Contributors
+
+Thanks to all our contributors!
+
+[![Contributors](https://contrib.rocks/image?repo=os-santiago/homedir)](https://github.com/os-santiago/homedir/graphs/contributors)
+
 ---
-*Homedir: Where code finds its home.*
+*Homedir: Where code finds its home.*<!-- Test comment -->

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HomeDir · SDLC Observatory</title>
+  <link rel="stylesheet" href="/sdlc/dashboard/dashboard.css">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">H/</span><div><strong>HOMEDIR</strong><small>SDLC OBSERVATORY</small></div></div>
+      <nav aria-label="Dashboard sections">
+        <a href="#overview" data-route="overview" class="active"><span>⌁</span>Overview</a>
+        <a href="#pipeline" data-route="pipeline"><span>◇</span>Pipeline flow</a>
+        <a href="#active" data-route="active"><span>≡</span>Active items</a>
+        <a href="#metrics" data-route="metrics"><span>⌁</span>Metrics</a>
+        <a href="#anomalies" data-route="anomalies"><span>△</span>Anomalies <b id="anomalyBadge">0</b></a>
+        <a href="#audit" data-route="audit"><span>◎</span>Audit trail</a>
+        <a href="#configuration" data-route="configuration"><span>⚙</span>Configuration</a>
+      </nav>
+      <div class="sidebar-foot"><span class="dot healthy"></span><div><strong>Secure session</strong><small>Admin · localhost/VPN</small></div></div>
+    </aside>
+    <div class="workspace">
+      <header><div><p class="eyebrow">AUTONOMOUS DELIVERY CONTROL PLANE</p><h1 id="pageTitle">System overview</h1></div><div class="header-status"><span id="livePulse" class="live-dot"></span><div><strong id="workerState">CONNECTING</strong><small id="lastSync">Waiting for telemetry</small></div><button id="refresh" aria-label="Refresh dashboard">↻</button></div></header>
+      <main id="content" tabindex="-1">
+        <section class="view active" data-view="overview">
+          <div class="hero"><div><span class="kicker">SYSTEM PULSE</span><h2>Autonomy, without the blind spots.</h2><p>Live health across the worker, infrastructure and delivery pipeline.</p></div><div class="hero-score"><span id="healthScore">--</span><small>HEALTH SCORE</small></div></div>
+          <div id="componentGrid" class="component-grid loading"></div>
+          <div class="split"><article class="panel"><div class="panel-head"><div><span class="kicker">FLOW SNAPSHOT</span><h3>Pipeline distribution</h3></div><a href="#pipeline">Inspect flow →</a></div><div id="miniPipeline" class="mini-pipeline"></div></article><article class="panel"><div class="panel-head"><div><span class="kicker">ATTENTION</span><h3>Recent anomalies</h3></div><a href="#anomalies">View all →</a></div><div id="miniAnomalies"></div></article></div>
+        </section>
+        <section class="view" data-view="pipeline"><div class="section-head"><div><span class="kicker">DELIVERY MAP</span><h2>Pipeline flow</h2><p>Select a stage to inspect its workload and dwell time.</p></div></div><div id="pipelineFlow" class="pipeline-flow"></div><article class="panel stage-detail"><div class="panel-head"><h3 id="stageTitle">Select a stage</h3><span id="stageMeta"></span></div><div id="stageItems" class="empty">No stage selected.</div></article></section>
+        <section class="view" data-view="active"><div class="section-head"><div><span class="kicker">WORK IN PROGRESS</span><h2>Active items</h2></div><div class="tabs"><button class="active" data-tab="issues">Issues</button><button data-tab="prs">Pull requests</button></div></div><div class="filter"><input id="activeSearch" type="search" placeholder="Filter by number, title or label…" aria-label="Filter active items"></div><div id="activeTable" class="table-wrap"></div></section>
+        <section class="view" data-view="metrics"><div class="section-head"><div><span class="kicker">HISTORICAL SIGNAL</span><h2>Autonomy & performance</h2></div><select id="range" aria-label="Metrics date range"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select></div><div id="metricCards" class="metric-grid"></div><article class="panel"><div class="panel-head"><div><span class="kicker">THROUGHPUT</span><h3>Delivery trend</h3></div><div class="legend"><i class="purple"></i> Issues <i class="green"></i> Merged</div></div><div id="trendChart" class="chart"></div></article><div id="performance" class="split"></div></section>
+        <section class="view" data-view="anomalies"><div class="section-head"><div><span class="kicker">DETECTION FEED</span><h2>Anomalies</h2><p>Prioritized conditions with an immediate recommended response.</p></div></div><div id="anomalyList" class="anomaly-list"></div></section>
+        <section class="view" data-view="audit"><div class="section-head"><div><span class="kicker">DECISION LEDGER</span><h2>Audit trail</h2></div></div><form id="auditForm" class="audit-search"><label>Issue or PR number<input id="auditId" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 1156" required></label><button>Search events</button></form><div id="auditTimeline" class="timeline empty">Enter an issue or PR number to reconstruct its autonomous decisions.</div></section>
+        <section class="view" data-view="configuration"><div class="section-head"><div><span class="kicker">WORKER OPERATIONS</span><h2>Configuration & control</h2><p>Administrative actions are authenticated and appended to the audit log.</p></div></div><div id="configGrid" class="config-grid"></div><article class="panel danger-panel"><div><span class="kicker">CONTROL PLANE</span><h3>Operational actions</h3><p>Every action is logged. Pause is a safe shutdown signal.</p></div><div class="controls"><button data-action="pause">Pause worker</button><button data-action="resume">Resume worker</button><button data-action="reconcile">Trigger reconciliation</button><button data-action="clear-locks" class="danger">Clear stale lock</button></div></article></section>
+      </main>
+      <footer><span>VPS <b>vh01</b></span><span>WORKER <b id="footerVersion">unknown</b></span><span>API <b class="ok">CONNECTED</b></span><span class="push">MEMORY SNAPSHOT · 30S</span></footer>
+    </div>
+  </div>
+  <div id="toastRegion" class="toasts" aria-live="polite"></div>
+  <script src="/sdlc/dashboard/dashboard.js" defer></script>
+</body></html>

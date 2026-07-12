@@ -1,0 +1,220 @@
+name: Deploy AI SDLC Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Deployment reason'
+        required: false
+        default: 'Manual deployment'
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - 'platform/scripts/homedir-sdlc-worker.sh'
+      - 'platform/scripts/split-multi-criteria-issue.sh'
+      - 'platform/scripts/pipeline-orchestrator.sh'
+      - '.github/workflows/deploy-worker.yml'
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Worker to VPS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DEPLOY_HOST: ${{ vars.VPS_HOST }}
+      DEPLOY_USER: ${{ vars.VPS_USER }}
+      DEPLOY_PORT: ${{ vars.VPS_PORT || '22' }}
+      WORKER_USER: ${{ vars.WORKER_SSH_USER || 'homedir-sdlc' }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+      DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate deployment config
+        id: validate
+        run: |
+          if [[ -z "${DEPLOY_HOST}" || -z "${DEPLOY_USER}" || -z "${DEPLOY_SSH_PRIVATE_KEY}" ]]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SSH deployment not configured (missing DEPLOY_HOST, DEPLOY_USER, or DEPLOY_SSH_PRIVATE_KEY)"
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Setup SSH
+        if: steps.validate.outputs.enabled == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Add SSH key
+          echo "$DEPLOY_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Add known hosts
+          if [[ -n "${DEPLOY_SSH_KNOWN_HOSTS}" ]]; then
+            echo "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+
+      - name: Deploy worker scripts
+        if: steps.validate.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+
+          echo "Deploying worker scripts to ${DEPLOY_USER}@${DEPLOY_HOST}..."
+
+          # Deploy main worker script
+          scp -i ~/.ssh/deploy_key -P "${DEPLOY_PORT}" \
+            platform/scripts/homedir-sdlc-worker.sh \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/homedir-sdlc-worker.sh.new"
+
+          # Deploy supporting scripts if they exist
+          if [[ -f "platform/scripts/split-multi-criteria-issue.sh" ]]; then
+            scp -i ~/.ssh/deploy_key -P "${DEPLOY_PORT}" \
+              platform/scripts/split-multi-criteria-issue.sh \
+              "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/split-multi-criteria-issue.sh.new"
+          fi
+
+          if [[ -f "platform/scripts/pipeline-orchestrator.sh" ]]; then
+            scp -i ~/.ssh/deploy_key -P "${DEPLOY_PORT}" \
+              platform/scripts/pipeline-orchestrator.sh \
+              "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/pipeline-orchestrator.sh.new"
+          fi
+
+          echo "Scripts uploaded successfully"
+
+      - name: Install and restart worker
+        if: steps.validate.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'REMOTE_SCRIPT'
+
+          set -euo pipefail
+
+          echo "Installing worker scripts..."
+
+          # Backup current version
+          if [[ -f ~/.local/bin/homedir-sdlc-worker.sh ]]; then
+            cp ~/.local/bin/homedir-sdlc-worker.sh \
+               ~/.local/bin/homedir-sdlc-worker.sh.backup.$(date +%Y%m%d_%H%M%S)
+          fi
+
+          # Install new version
+          mv /tmp/homedir-sdlc-worker.sh.new ~/.local/bin/homedir-sdlc-worker.sh
+          chmod +x ~/.local/bin/homedir-sdlc-worker.sh
+
+          # Install supporting scripts
+          if [[ -f /tmp/split-multi-criteria-issue.sh.new ]]; then
+            mv /tmp/split-multi-criteria-issue.sh.new ~/.local/bin/split-multi-criteria-issue.sh
+            chmod +x ~/.local/bin/split-multi-criteria-issue.sh
+          fi
+
+          if [[ -f /tmp/pipeline-orchestrator.sh.new ]]; then
+            mv /tmp/pipeline-orchestrator.sh.new ~/.local/bin/pipeline-orchestrator.sh
+            chmod +x ~/.local/bin/pipeline-orchestrator.sh
+          fi
+
+          echo "Worker scripts installed successfully"
+
+          # Check if systemd service exists
+          if systemctl --user list-unit-files | grep -q homedir-sdlc-worker.service; then
+            echo "Restarting worker service..."
+            systemctl --user restart homedir-sdlc-worker.service
+
+            # Wait a moment for service to start
+            sleep 2
+
+            # Check service status
+            if systemctl --user is-active --quiet homedir-sdlc-worker.service; then
+              echo "✅ Worker service restarted successfully"
+            else
+              echo "⚠️ Worker service may not be running"
+              systemctl --user status homedir-sdlc-worker.service --no-pager || true
+            fi
+          else
+            echo "⚠️ Worker systemd service not found - worker script updated but not restarted"
+          fi
+
+          # Verify heartbeat file
+          if [[ -f ~/.local/state/homedir-sdlc/heartbeat.json ]]; then
+            echo "Latest heartbeat:"
+            cat ~/.local/state/homedir-sdlc/heartbeat.json | jq '.' 2>/dev/null || cat ~/.local/state/homedir-sdlc/heartbeat.json
+          fi
+
+          REMOTE_SCRIPT
+
+      - name: Verify deployment
+        if: steps.validate.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+
+          echo "Verifying worker deployment..."
+
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'VERIFY_SCRIPT'
+
+          set -euo pipefail
+
+          # Check worker script version
+          if grep -q "reconcile_stuck_admission_reviews" ~/.local/bin/homedir-sdlc-worker.sh; then
+            echo "✅ Fix #1140 (admission stuck) detected in worker script"
+          else
+            echo "❌ Fix #1140 NOT found - deployment may have failed"
+            exit 1
+          fi
+
+          if grep -q "SCC_ACTUAL_TIMEOUT" ~/.local/bin/homedir-sdlc-worker.sh; then
+            echo "✅ Fix #1139 (timeout diagnostics) detected in worker script"
+          else
+            echo "⚠️ Fix #1139 NOT found"
+          fi
+
+          if grep -q "reconcile_orphan_open_prs" ~/.local/bin/homedir-sdlc-worker.sh; then
+            echo "✅ Fix #1142 (orphan PRs) detected in worker script"
+          else
+            echo "⚠️ Fix #1142 NOT found"
+          fi
+
+          echo ""
+          echo "Deployment verification complete"
+
+          VERIFY_SCRIPT
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          {
+            echo "# Worker Deployment Summary"
+            echo ""
+            if [[ "${{ steps.validate.outputs.enabled }}" == "true" ]]; then
+              echo "✅ Worker scripts deployed to VPS"
+              echo ""
+              echo "**Deployed files:**"
+              echo "- \`homedir-sdlc-worker.sh\`"
+              echo "- \`split-multi-criteria-issue.sh\` (if exists)"
+              echo "- \`pipeline-orchestrator.sh\` (if exists)"
+              echo ""
+              echo "**Service status:** Restarted via systemctl"
+              echo ""
+              echo "**Reason:** ${{ github.event.inputs.reason || 'Auto-deploy on push to main' }}"
+            else
+              echo "⚠️ Deployment skipped - SSH not configured"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key || true
