@@ -15,13 +15,25 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/api/sdlc")
 @Authenticated
 public class SdlcApiResource {
   private static final Map<String, Window> WINDOWS = new ConcurrentHashMap<>();
   @Inject SdlcObservabilityService service;
+  @Inject SdlcDashboardSnapshot snapshot;
   @Inject SecurityIdentity identity;
+
+  @ConfigProperty(name = "sdlc.dashboard.controls-enabled", defaultValue = "false")
+  boolean controlsEnabled;
+
+  @GET
+  @Path("snapshot")
+  public Response snapshot() {
+    if (!allowed(false)) return forbidden();
+    return Response.ok(snapshot.get()).build();
+  }
 
   @GET
   @Path("status")
@@ -84,6 +96,11 @@ public class SdlcApiResource {
   @POST
   @Path("control/{action}")
   public Response control(@PathParam("action") String action) {
+    if (!controlsEnabled) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "operational controls are disabled"))
+          .build();
+    }
     if (!allowed(true)) return forbidden();
     if (action == null || !action.matches("pause|resume|reconcile|clear-locks"))
       return Response.status(400).entity(Map.of("error", "unsupported action")).build();
