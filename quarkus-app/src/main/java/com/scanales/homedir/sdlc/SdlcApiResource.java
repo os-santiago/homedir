@@ -38,43 +38,46 @@ public class SdlcApiResource {
   @GET
   @Path("status")
   public Response status() {
-    return read(service.status());
+    return read(snapshot.get().get("status"));
   }
 
   @GET
   @Path("heartbeat")
   public Response heartbeat() {
-    return read(service.heartbeat());
+    return read(((Map<?, ?>) snapshot.get().get("status")).get("worker"));
   }
 
   @GET
   @Path("pipeline")
   public Response pipeline() {
-    return read(service.pipeline());
+    return read(snapshot.get().get("pipeline"));
   }
 
   @GET
   @Path("issues")
   public Response issues() {
-    return read(service.issues());
+    return read(snapshot.get().get("issues"));
   }
 
   @GET
   @Path("prs")
   public Response prs() {
-    return read(service.prs());
+    return read(snapshot.get().get("prs"));
   }
 
   @GET
   @Path("metrics")
   public Response metrics(@QueryParam("days") Integer days) {
-    return read(service.metrics(days == null ? 30 : days));
+    String range = String.valueOf(days == null ? 30 : Math.max(7, Math.min(days, 90)));
+    Map<?, ?> ranges = (Map<?, ?>) snapshot.get().get("metricsByRange");
+    Object selected = ranges.get(range);
+    return read(selected == null ? snapshot.get().get("metrics") : selected);
   }
 
   @GET
   @Path("anomalies")
   public Response anomalies() {
-    return read(service.anomalies());
+    return read(snapshot.get().get("anomalies"));
   }
 
   @GET
@@ -84,13 +87,13 @@ public class SdlcApiResource {
       return Response.status(400)
           .entity(Map.of("error", "id must be a positive issue or PR number"))
           .build();
-    return read(service.audit(id));
+    return read(snapshot.audit(id));
   }
 
   @GET
   @Path("configuration")
   public Response configuration() {
-    return read(service.configuration());
+    return read(snapshot.get().get("configuration"));
   }
 
   @POST

@@ -1,9 +1,15 @@
 # AI SDLC observability dashboard
 
-The authenticated dashboard is served at `/sdlc/dashboard`. A background job reads worker state
-from `HOMEDIR_SDLC_STATE_DIR` (default: `/var/lib/homedir-sdlc`) every 30 seconds. HTTP requests
-serve the resulting immutable in-memory snapshot and never read worker files directly. A failed
-refresh preserves the last good snapshot.
+The authenticated dashboard is served at `/sdlc/dashboard`. A background consumer tails the
+worker's existing append-only `run-summaries/*.jsonl` journal every 30 seconds. The AI SDLC worker
+does not call, wait for, or receive feedback from this consumer. HTTP requests serve an immutable
+in-memory projection and never read worker files directly.
+
+Resource containment is enforced independently of traffic: each ingestion cycle reads at most
+250 files and 64 KiB, retains at most 2,000 events, skips overlapping executions, and applies
+exponential backoff up to five minutes after journal failures. Initial catch-up therefore remains
+bounded even with a large historical journal. Malformed lines are isolated without stopping later
+events, and failed cycles preserve the last valid projection.
 
 ## API
 
