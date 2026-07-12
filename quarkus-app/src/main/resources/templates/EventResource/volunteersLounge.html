@@ -129,13 +129,13 @@
   {#if !userAuthenticated}
   <article class="section-card">
     <p class="section-subtitle">{i18n:events_volunteers_login_required}</p>
-    <a href="/private/login-callback?redirect=/event/{event.id}/volunteers/lounge" class="btn btn-primary" data-login-return-current="true">{i18n:events_volunteers_login_btn}</a>
+    <a href="/private/login-callback?redirect=/event/{event.id}/volunteers/lounge" class="btn btn--primary" data-login-return-current="true">{i18n:events_volunteers_login_btn}</a>
   </article>
   {#else if !loungeAccess}
   <article class="section-card">
     <h2 style="margin-top:0;">{i18n:events_volunteers_lounge_locked_title}</h2>
     <p class="section-subtitle">{i18n:events_volunteers_lounge_locked}</p>
-    <a href="/event/{event.id}/volunteers" class="btn btn-secondary">{i18n:events_volunteers_lounge_back_to_application}</a>
+    <a href="/event/{event.id}/volunteers" class="btn btn--secondary">{i18n:events_volunteers_lounge_back_to_application}</a>
   </article>
   {#else}
   <div class="lounge-grid">
@@ -148,7 +148,7 @@
         <textarea id="loungeAnnouncementInput" class="form-textarea" rows="3" maxlength="500" placeholder="{i18n:events_volunteers_lounge_announcements_placeholder}"></textarea>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
-        <button id="loungeAnnouncementPostBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_lounge_announcements_post}</button>
+        <button id="loungeAnnouncementPostBtn" type="button" class="btn btn--primary">{i18n:events_volunteers_lounge_announcements_post}</button>
       </div>
       {/if}
       <p id="loungeAnnouncementFeedback" class="lounge-feedback" hidden></p>
@@ -166,8 +166,8 @@
         <textarea id="loungePostInput" class="form-textarea" rows="3" maxlength="200" placeholder="{i18n:events_volunteers_lounge_placeholder}"></textarea>
       </div>
       <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.5rem;">
-        <button id="loungeReplyClearBtn" type="button" class="btn btn-secondary" hidden>{i18n:events_volunteers_lounge_clear_reply}</button>
-        <button id="loungePostBtn" type="button" class="btn btn-primary">{i18n:events_volunteers_lounge_post}</button>
+        <button id="loungeReplyClearBtn" type="button" class="btn btn--secondary" hidden>{i18n:events_volunteers_lounge_clear_reply}</button>
+        <button id="loungePostBtn" type="button" class="btn btn--primary">{i18n:events_volunteers_lounge_post}</button>
       </div>
       <p id="loungePostFeedback" class="lounge-feedback" hidden></p>
       <div id="loungePostsList" class="lounge-list">
@@ -290,7 +290,7 @@
         announcementsListEl.innerHTML = items.map((item) => {
           const id = item && item.id ? item.id : "";
           const deleteButton = isEventAdmin
-            ? '<button type="button" class="btn btn-secondary" data-announcement-delete-id="' + escapeHtml(id) + '">' + escapeHtml(i18n.loungeAnnouncementDelete) + '</button>'
+            ? '<button type="button" class="btn btn--secondary" data-announcement-delete-id="' + escapeHtml(id) + '">' + escapeHtml(i18n.loungeAnnouncementDelete) + '</button>'
             : "";
           return (
             '<article class="lounge-item lounge-announcement-item">'
@@ -378,7 +378,7 @@
             + '<div class="lounge-meta"><strong>' + escapeHtml(item.user_name || i18n.loungeUserFallback) + '</strong><span>' + escapeHtml(i18n.loungePostedAt) + ': ' + escapeHtml(formatDate(item.created_at)) + '</span></div>'
             + parentBlock
             + '<p>' + escapeHtml(item.body || "") + '</p>'
-            + '<div class="lounge-actions"><button type="button" class="btn btn-secondary" data-lounge-reply-id="' + escapeHtml(item.id || "") + '" data-lounge-reply-user="' + escapeHtml(item.user_name || i18n.loungeUserFallback) + '">' + escapeHtml(i18n.loungeReply) + '</button></div>'
+            + '<div class="lounge-actions"><button type="button" class="btn btn--secondary" data-lounge-reply-id="' + escapeHtml(item.id || "") + '" data-lounge-reply-user="' + escapeHtml(item.user_name || i18n.loungeUserFallback) + '">' + escapeHtml(i18n.loungeReply) + '</button></div>'
             + '</article>'
           );
         }).join("");
@@ -447,7 +447,7 @@
     <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">group_off</span>
     <h2>{i18n:events_volunteers_not_found_title}</h2>
     <p>{i18n:events_volunteers_not_found_desc}</p>
-    <a href="/eventos" class="btn-primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
+    <a href="/eventos" class="btn btn--primary" style="margin-top: 1.5rem;">{i18n:events_detail_not_found_cta}</a>
   </div>
 </div>
 {/if}
