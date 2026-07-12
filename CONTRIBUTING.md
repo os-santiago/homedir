@@ -55,7 +55,7 @@ This certifies that you have the right to submit the contribution under the Apac
 
 - Java: Follow existing project conventions (Quarkus)
 - Python: Follow PEP 8
-- Documentation: Use Markdown with English primary, Spanish stubs where applicable
+- Documentation: Use Markdown with English as primary, Spanish stubs where applicable
 
 ## Need Help?
 
