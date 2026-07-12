@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="https://coderabbit.ai" target="_blank">
-    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
+    <img src="https://img.shields.io/coderabbit/prs/github/os-santiago/homedir?utm_source=oss&utm_medium=github&utm_campaign=os-santiago%2Fhomedir&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Pull+Request+Reviews&style=for-the-badge" alt="CodeRabbit Pull Request Reviews">
   </a>
 </p>
 
@@ -124,6 +124,12 @@ We are committed to fostering a welcoming and inclusive community. Please read o
 
 ## Security
 We take security seriously. Please see our [Security Policy](SECURITY.md) for responsible disclosure guidelines and security contact information.
+
+## Contributors
+
+Thanks to all our contributors!
+
+[![Contributors](https://contrib.rocks/image?repo=os-santiago/homedir)](https://github.com/os-santiago/homedir/graphs/contributors)
 
 ---
 *Homedir: Where code finds its home.*<!-- Test comment -->
