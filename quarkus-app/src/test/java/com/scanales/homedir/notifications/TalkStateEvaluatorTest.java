@@ -83,8 +83,11 @@ class TalkStateEvaluatorTest {
     n2.type = NotificationType.FINISHED;
     n2.id = "id-2";
     n2.dedupeKey = "dedupe-key-2"; // Bypass in-memory check
-    
+
     NotificationResult res = notifications.enqueue(n2);
-    assertEquals(NotificationResult.DROPPED_DUPLICATE, res, "Subsequent notifications for the same talk and type must be dropped");
+    assertEquals(
+        NotificationResult.DROPPED_DUPLICATE,
+        res,
+        "Subsequent notifications for the same talk and type must be dropped");
   }
 }
