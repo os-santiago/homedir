@@ -98,8 +98,10 @@ public class SdlcDashboardSnapshot {
 
   public List<Map<String, Object>> audit(String id) {
     return events.stream()
-        .filter(event -> id.equals(String.valueOf(number(event, "issue")))
-            || id.equals(String.valueOf(number(event, "pr_number"))))
+        .filter(
+            event ->
+                id.equals(String.valueOf(number(event, "issue")))
+                    || id.equals(String.valueOf(number(event, "pr_number"))))
         .sorted(Comparator.comparing(event -> String.valueOf(event.getOrDefault("created_at", ""))))
         .toList();
   }
@@ -112,9 +114,12 @@ public class SdlcDashboardSnapshot {
     }
     long remaining = Math.max(1024, maxBytesPerCycle);
     try (Stream<Path> paths = Files.list(journal)) {
-      for (Path path : paths.filter(Files::isRegularFile)
-          .sorted(Comparator.comparingLong(this::lastModified).reversed())
-          .limit(Math.max(1, maxFilesPerCycle)).toList()) {
+      for (Path path :
+          paths
+              .filter(Files::isRegularFile)
+              .sorted(Comparator.comparingLong(this::lastModified).reversed())
+              .limit(Math.max(1, maxFilesPerCycle))
+              .toList()) {
         if (remaining <= 0) break;
         remaining -= tail(path, remaining);
       }
@@ -140,7 +145,8 @@ public class SdlcDashboardSnapshot {
           break;
         }
         consumed += lineBytes;
-        String line = new String(encoded.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+        String line =
+            new String(encoded.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
         try {
           events.addLast(mapper.readValue(line, MAP));
         } catch (Exception ignored) {
@@ -168,18 +174,47 @@ public class SdlcDashboardSnapshot {
       if (issue > 0) issues.put(issue, issueProjection(event, issue, at));
       if (pr > 0) prs.put(pr, prProjection(event, pr, at));
     }
-    String workerState = newest.equals(Instant.EPOCH) ? "unknown"
-        : Duration.between(newest, Instant.now()).toMinutes() > 10 ? "idle" : "running";
-    long age = newest.equals(Instant.EPOCH) ? 0 : Math.max(0, Duration.between(newest, Instant.now()).toSeconds());
+    String workerState =
+        newest.equals(Instant.EPOCH)
+            ? "unknown"
+            : Duration.between(newest, Instant.now()).toMinutes() > 10 ? "idle" : "running";
+    long age =
+        newest.equals(Instant.EPOCH)
+            ? 0
+            : Math.max(0, Duration.between(newest, Instant.now()).toSeconds());
     List<Map<String, Object>> issueList = new ArrayList<>(issues.values());
     List<Map<String, Object>> prList = new ArrayList<>(prs.values());
-    Map<String, Object> status = Map.of(
-        "worker", Map.of("state", workerState, "lastHeartbeat", newest.toString(), "heartbeatAge", age,
-            "detail", "Derived asynchronously from the append-only event journal"),
-        "components", Map.of(
-            "eventJournal", Map.of("status", stale ? "warning" : "healthy", "label", "Event journal", "detail", events.size() + " bounded events in memory"),
-            "observer", Map.of("status", "healthy", "label", "Observer isolation", "detail", "No worker-path callbacks or HTTP file I/O")),
-        "generatedAt", Instant.now().toString());
+    Map<String, Object> status =
+        Map.of(
+            "worker",
+                Map.of(
+                    "state",
+                    workerState,
+                    "lastHeartbeat",
+                    newest.toString(),
+                    "heartbeatAge",
+                    age,
+                    "detail",
+                    "Derived asynchronously from the append-only event journal"),
+            "components",
+                Map.of(
+                    "eventJournal",
+                        Map.of(
+                            "status",
+                            stale ? "warning" : "healthy",
+                            "label",
+                            "Event journal",
+                            "detail",
+                            events.size() + " bounded events in memory"),
+                    "observer",
+                        Map.of(
+                            "status",
+                            "healthy",
+                            "label",
+                            "Observer isolation",
+                            "detail",
+                            "No worker-path callbacks or HTTP file I/O")),
+            "generatedAt", Instant.now().toString());
     Map<String, Object> metrics7 = metrics(7);
     Map<String, Object> metrics30 = metrics(30);
     Map<String, Object> metrics90 = metrics(90);
@@ -198,59 +233,145 @@ public class SdlcDashboardSnapshot {
 
   private Map<String, Object> issueProjection(Map<String, Object> event, long issue, Instant at) {
     String stage = stage(String.valueOf(event.getOrDefault("event", "created")));
-    return Map.of("number", issue, "title", "Issue #" + issue, "state", stage,
-        "labels", List.of(), "ageSeconds", Math.max(0, Duration.between(at, Instant.now()).toSeconds()),
-        "githubUrl", "https://github.com/os-santiago/homedir/issues/" + issue);
+    return Map.of(
+        "number",
+        issue,
+        "title",
+        "Issue #" + issue,
+        "state",
+        stage,
+        "labels",
+        List.of(),
+        "ageSeconds",
+        Math.max(0, Duration.between(at, Instant.now()).toSeconds()),
+        "githubUrl",
+        "https://github.com/os-santiago/homedir/issues/" + issue);
   }
 
   private Map<String, Object> prProjection(Map<String, Object> event, long pr, Instant at) {
-    return Map.of("number", pr, "title", "Pull request #" + pr,
-        "state", stage(String.valueOf(event.getOrDefault("event", "pr-opened"))),
-        "checksStatus", "unknown", "autoMerge", false,
-        "ageSeconds", Math.max(0, Duration.between(at, Instant.now()).toSeconds()),
-        "githubUrl", "https://github.com/os-santiago/homedir/pull/" + pr);
+    return Map.of(
+        "number",
+        pr,
+        "title",
+        "Pull request #" + pr,
+        "state",
+        stage(String.valueOf(event.getOrDefault("event", "pr-opened"))),
+        "checksStatus",
+        "unknown",
+        "autoMerge",
+        false,
+        "ageSeconds",
+        Math.max(0, Duration.between(at, Instant.now()).toSeconds()),
+        "githubUrl",
+        "https://github.com/os-santiago/homedir/pull/" + pr);
   }
 
   private List<Map<String, Object>> pipeline(List<Map<String, Object>> issues) {
     List<Map<String, Object>> result = new ArrayList<>();
     for (int i = 0; i < STAGES.length; i++) {
       String id = STAGES[i];
-      List<Map<String, Object>> matching = issues.stream().filter(row -> id.equals(row.get("state"))).toList();
-      result.add(Map.of("id", id, "name", STAGE_NAMES[i], "count", matching.size(),
-          "avgDuration", averageAge(matching), "anomalies", 0, "items", matching));
+      List<Map<String, Object>> matching =
+          issues.stream().filter(row -> id.equals(row.get("state"))).toList();
+      result.add(
+          Map.of(
+              "id",
+              id,
+              "name",
+              STAGE_NAMES[i],
+              "count",
+              matching.size(),
+              "avgDuration",
+              averageAge(matching),
+              "anomalies",
+              0,
+              "items",
+              matching));
     }
     return result;
   }
 
   private Map<String, Object> metrics(int days) {
     List<Map<String, Object>> trend = new ArrayList<>();
-    long successful = events.stream().filter(event -> stage(String.valueOf(event.get("event"))).equals("closed")).count();
+    long successful =
+        events.stream()
+            .filter(event -> stage(String.valueOf(event.get("event"))).equals("closed"))
+            .count();
     for (int i = days - 1; i >= 0; i--) {
       String date = LocalDate.now().minusDays(i).toString();
-      long count = events.stream().filter(event -> String.valueOf(event.getOrDefault("created_at", "")).startsWith(date)).count();
-      trend.add(Map.of("date", date, "issues", count, "prs", count, "merged", Math.min(count, successful)));
+      long count =
+          events.stream()
+              .filter(
+                  event -> String.valueOf(event.getOrDefault("created_at", "")).startsWith(date))
+              .count();
+      trend.add(
+          Map.of(
+              "date", date, "issues", count, "prs", count, "merged", Math.min(count, successful)));
     }
     double autonomy = events.isEmpty() ? 0 : Math.round(successful * 1000d / events.size()) / 10d;
-    return Map.of("rangeDays", days, "autonomy", autonomy, "autoMerge", autonomy,
-        "admission", Map.of("accepted", 0, "rejected", 0, "needsHuman", 0),
-        "performance", Map.of("issueToPrMinutes", 0, "prToMergeMinutes", 0, "endToEndMinutes", 0,
-            "sccByComplexity", Map.of("simple", 0, "medium", 0, "complex", 0)),
-        "throughput", Map.of("daily", events.size(), "weekly", events.size()), "trend", trend);
+    return Map.of(
+        "rangeDays",
+        days,
+        "autonomy",
+        autonomy,
+        "autoMerge",
+        autonomy,
+        "admission",
+        Map.of("accepted", 0, "rejected", 0, "needsHuman", 0),
+        "performance",
+        Map.of(
+            "issueToPrMinutes",
+            0,
+            "prToMergeMinutes",
+            0,
+            "endToEndMinutes",
+            0,
+            "sccByComplexity",
+            Map.of("simple", 0, "medium", 0, "complex", 0)),
+        "throughput",
+        Map.of("daily", events.size(), "weekly", events.size()),
+        "trend",
+        trend);
   }
 
   private List<Map<String, Object>> anomalies(List<Map<String, Object>> issues, Instant newest) {
-    if (!newest.equals(Instant.EPOCH) && Duration.between(newest, Instant.now()).toMinutes() <= 15) return List.of();
-    return List.of(Map.of("id", "event-journal-stale", "timestamp", Instant.now().toString(),
-        "severity", "warning", "description", "No recent autonomous SDLC events",
-        "suggestedAction", "Check the worker timer only if queued work exists",
-        "affectedResource", Map.of("type", "worker", "number", 0)));
+    if (!newest.equals(Instant.EPOCH) && Duration.between(newest, Instant.now()).toMinutes() <= 15)
+      return List.of();
+    return List.of(
+        Map.of(
+            "id",
+            "event-journal-stale",
+            "timestamp",
+            Instant.now().toString(),
+            "severity",
+            "warning",
+            "description",
+            "No recent autonomous SDLC events",
+            "suggestedAction",
+            "Check the worker timer only if queued work exists",
+            "affectedResource",
+            Map.of("type", "worker", "number", 0)));
   }
 
   private Map<String, Object> configuration() {
-    return Map.of("stateDirectory", "event-journal", "workerVersion", workerVersion,
-        "labels", List.of(), "timeouts", Map.of("snapshotSeconds", 30), "paused", false,
-        "controlsEnabled", controlsEnabled, "maxEvents", maxEvents, "maxFilesPerCycle", maxFilesPerCycle,
-        "maxBytesPerCycle", maxBytesPerCycle);
+    return Map.of(
+        "stateDirectory",
+        "event-journal",
+        "workerVersion",
+        workerVersion,
+        "labels",
+        List.of(),
+        "timeouts",
+        Map.of("snapshotSeconds", 30),
+        "paused",
+        false,
+        "controlsEnabled",
+        controlsEnabled,
+        "maxEvents",
+        maxEvents,
+        "maxFilesPerCycle",
+        maxFilesPerCycle,
+        "maxBytesPerCycle",
+        maxBytesPerCycle);
   }
 
   private Map<String, Object> markStale(Map<String, Object> previous) {
@@ -261,11 +382,38 @@ public class SdlcDashboardSnapshot {
 
   private static Map<String, Object> empty() {
     return Map.ofEntries(
-        Map.entry("status", Map.of("worker", Map.of("state", "unknown", "heartbeatAge", 0, "detail", "Waiting for events"), "components", Map.of(), "generatedAt", Instant.now().toString())),
-        Map.entry("pipeline", List.of()), Map.entry("issues", List.of()), Map.entry("prs", List.of()),
-        Map.entry("metrics", Map.of()), Map.entry("metricsByRange", Map.of()), Map.entry("anomalies", List.of()),
-        Map.entry("configuration", Map.of("workerVersion", "unknown", "stateDirectory", "event-journal", "labels", List.of(), "timeouts", Map.of(), "paused", false, "controlsEnabled", false)),
-        Map.entry("generatedAt", Instant.now().toString()), Map.entry("stale", true));
+        Map.entry(
+            "status",
+            Map.of(
+                "worker",
+                Map.of("state", "unknown", "heartbeatAge", 0, "detail", "Waiting for events"),
+                "components",
+                Map.of(),
+                "generatedAt",
+                Instant.now().toString())),
+        Map.entry("pipeline", List.of()),
+        Map.entry("issues", List.of()),
+        Map.entry("prs", List.of()),
+        Map.entry("metrics", Map.of()),
+        Map.entry("metricsByRange", Map.of()),
+        Map.entry("anomalies", List.of()),
+        Map.entry(
+            "configuration",
+            Map.of(
+                "workerVersion",
+                "unknown",
+                "stateDirectory",
+                "event-journal",
+                "labels",
+                List.of(),
+                "timeouts",
+                Map.of(),
+                "paused",
+                false,
+                "controlsEnabled",
+                false)),
+        Map.entry("generatedAt", Instant.now().toString()),
+        Map.entry("stale", true));
   }
 
   private String stage(String event) {
@@ -282,21 +430,33 @@ public class SdlcDashboardSnapshot {
   }
 
   private long averageAge(List<Map<String, Object>> rows) {
-    return rows.isEmpty() ? 0 : Math.round(rows.stream().mapToLong(row -> number(row, "ageSeconds")).average().orElse(0));
+    return rows.isEmpty()
+        ? 0
+        : Math.round(rows.stream().mapToLong(row -> number(row, "ageSeconds")).average().orElse(0));
   }
 
   private long number(Map<String, Object> row, String key) {
     Object value = row.get(key);
-    try { return value instanceof Number n ? n.longValue() : Long.parseLong(String.valueOf(value)); }
-    catch (Exception ignored) { return 0; }
+    try {
+      return value instanceof Number n ? n.longValue() : Long.parseLong(String.valueOf(value));
+    } catch (Exception ignored) {
+      return 0;
+    }
   }
 
   private Instant parse(String value) {
-    try { return Instant.parse(value); } catch (Exception ignored) { return Instant.EPOCH; }
+    try {
+      return Instant.parse(value);
+    } catch (Exception ignored) {
+      return Instant.EPOCH;
+    }
   }
 
   private long lastModified(Path path) {
-    try { return Files.getLastModifiedTime(path).toMillis(); }
-    catch (Exception ignored) { return 0; }
+    try {
+      return Files.getLastModifiedTime(path).toMillis();
+    } catch (Exception ignored) {
+      return 0;
+    }
   }
 }

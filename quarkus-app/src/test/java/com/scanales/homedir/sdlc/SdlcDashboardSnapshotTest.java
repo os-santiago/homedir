@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -61,7 +60,12 @@ class SdlcDashboardSnapshotTest {
   }
 
   private String event(int issue, String event, Integer pr) {
-    return "{\"issue\":" + issue + ",\"event\":\"" + event + "\",\"pr_number\":"
-        + (pr == null ? "null" : pr) + ",\"created_at\":\"2026-07-12T15:00:00Z\"}\n";
+    return "{\"issue\":"
+        + issue
+        + ",\"event\":\""
+        + event
+        + "\",\"pr_number\":"
+        + (pr == null ? "null" : pr)
+        + ",\"created_at\":\"2026-07-12T15:00:00Z\"}\n";
   }
 }

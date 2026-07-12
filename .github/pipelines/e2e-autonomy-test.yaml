@@ -1,0 +1,112 @@
+name: E2E Autonomy Test Pipeline
+description: Test complete autonomous flow from issue to production (0 manual interventions)
+repository: os-santiago/homedir
+
+issues:
+  - id: test-1
+    title: "[e2e-1/5] Add project status badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a project status badge for quick visibility.
+
+      ## Expected Behavior
+      README should display a project status badge.
+
+      ## Acceptance Criteria
+      - [ ] Add project status badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E autonomy test pipeline. Expected: Full autonomous processing.
+    labels:
+      - documentation
+
+  - id: test-2
+    title: "[e2e-2/5] Add contributors badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a contributors badge.
+
+      ## Expected Behavior
+      README should display contributors count badge.
+
+      ## Acceptance Criteria
+      - [ ] Add contributors badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E autonomy test pipeline. Auto-queued after test-1 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-1
+
+  - id: test-3
+    title: "[e2e-3/5] Add last commit badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a last commit activity badge.
+
+      ## Expected Behavior
+      README should display last commit timestamp badge.
+
+      ## Acceptance Criteria
+      - [ ] Add last commit badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E autonomy test pipeline. Auto-queued after test-2 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-2
+
+  - id: test-4
+    title: "[e2e-4/5] Add repo size badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a repository size badge.
+
+      ## Expected Behavior
+      README should display repository size badge.
+
+      ## Acceptance Criteria
+      - [ ] Add repo size badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E autonomy test pipeline. Auto-queued after test-3 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-3
+
+  - id: test-5
+    title: "[e2e-5/5] Add language badge to README"
+    body: |
+      ## Problem Statement
+      README lacks a primary language badge.
+
+      ## Expected Behavior
+      README should display primary language badge.
+
+      ## Acceptance Criteria
+      - [ ] Add language badge to README header
+
+      ## Complexity
+      - [x] Simple (documentation change)
+
+      ## Notes
+      Part of E2E autonomy test pipeline. Final issue. Auto-queued after test-4 completion.
+    labels:
+      - documentation
+    depends_on:
+      - test-4
