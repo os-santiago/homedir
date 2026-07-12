@@ -177,7 +177,7 @@ public class LocalhostAdminApiResourceTest {
         .when()
         .get("/api/localhost-admin/status")
         .then()
-        .statusCode(403)
-        .body("error", equalTo("invalid_token"));
+        .statusCode(401)
+        .body("error", equalTo("missing_token"));
   }
 }
