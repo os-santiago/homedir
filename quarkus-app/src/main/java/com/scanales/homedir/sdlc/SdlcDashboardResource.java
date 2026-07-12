@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
@@ -24,8 +25,11 @@ public class SdlcDashboardResource {
     }
     InputStream stream =
         getClass().getResourceAsStream("/META-INF/resources/sdlc/dashboard/index.html");
-    return stream == null
-        ? Response.status(Response.Status.NOT_FOUND).build()
-        : Response.ok(stream).build();
+    if (stream == null) return Response.status(Response.Status.NOT_FOUND).build();
+    CacheControl cache = new CacheControl();
+    cache.setNoCache(true);
+    cache.setNoStore(true);
+    cache.setMustRevalidate(true);
+    return Response.ok(stream).cacheControl(cache).build();
   }
 }
