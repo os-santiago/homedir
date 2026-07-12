@@ -3401,7 +3401,7 @@ footer {
 
 .btn--link {
     background: transparent;
-    border: none !important;
+    border: 0;
     outline: none;
     color: inherit;
     padding: 0;
@@ -3416,7 +3416,7 @@ footer {
 
 .btn--filter {
     background: transparent;
-    border: none !important;
+    border: 0;
     outline: none;
     color: var(--color-text-muted);
     padding: var(--space-xs) var(--space-sm);

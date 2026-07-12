@@ -662,7 +662,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input type="hidden" name="returnTo" value="channels" />
-                      <button type="submit" class="btn btn--secondary" id="campaignsPilotDisarmBtn">{copy.rolloutDisarmPilotActionLabel}</button>
+                      <button type="submit" class="btn btn--secondary" id="campaignsPilotDisarmBtnChannel">{copy.rolloutDisarmPilotActionLabel}</button>
                     </form>
                   {#else}
                     <form action="/private/admin/campaigns/rollout/pilot/arm" method="post">
@@ -672,7 +672,7 @@
                       <input type="hidden" name="kind" value="{filters.kind}" />
                       <input type="hidden" name="channel" value="{filters.channel}" />
                       <input type="hidden" name="returnTo" value="channels" />
-                      <button type="submit" class="btn btn--secondary" id="campaignsPilotArmBtn">{copy.rolloutArmPilotActionLabel}</button>
+                      <button type="submit" class="btn btn--secondary" id="campaignsPilotArmBtnChannel">{copy.rolloutArmPilotActionLabel}</button>
                     </form>
                   {/if}
                   <form action="/private/admin/campaigns/rollout/pilot/clear" method="post">

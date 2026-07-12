@@ -147,7 +147,7 @@
             genericError: "{i18n:talk_js_error}"
           };
           if ({ inSchedule }) {
-            btn.classList.add('btn btn--secondary');
+            btn.classList.add('btn', 'btn--secondary');
             btn.dataset.state = 'profile';
           }
           btn.addEventListener('click', async () => {
@@ -169,13 +169,13 @@
                 const data = await res.json();
                 if (data.status === 'added') {
                   showNotification('success', messages.added);
-                  btn.classList.add('btn btn--secondary');
+                  btn.classList.add('btn', 'btn--secondary');
                   btn.innerHTML = '<span class="material-symbols-outlined">check</span> ' + profileLabel;
                   btn.disabled = false;
                   btn.dataset.state = 'profile';
                 } else if (data.status === 'exists') {
                   showNotification('info', messages.exists);
-                  btn.classList.add('btn btn--secondary');
+                  btn.classList.add('btn', 'btn--secondary');
                   btn.innerHTML = '<span class="material-symbols-outlined">check</span> ' + profileLabel;
                   btn.disabled = false;
                   btn.dataset.state = 'profile';
