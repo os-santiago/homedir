@@ -21,6 +21,10 @@ log() {
 validate_and_ensure_labels() {
   local labels_input="$1"
   local valid_labels=""
+  local existing_labels
+
+  # Fetch all existing labels once
+  existing_labels=$(gh label list -R "${REPO}" --limit 1000 --json name -q '.[].name' 2>/dev/null || echo "")
 
   # Split labels by comma
   IFS=',' read -ra label_array <<< "$labels_input"
@@ -29,8 +33,8 @@ validate_and_ensure_labels() {
     # Trim whitespace
     label=$(echo "$label" | xargs)
 
-    # Check if label exists
-    if gh label list -R "${REPO}" --limit 1000 2>/dev/null | grep -q "^${label}[[:space:]]"; then
+    # Check if label exists in the pre-fetched list
+    if echo "$existing_labels" | grep -qxF "$label"; then
       log "label exists: ${label}"
       if [[ -z "$valid_labels" ]]; then
         valid_labels="$label"
@@ -46,6 +50,7 @@ validate_and_ensure_labels() {
         --description "AI SDLC pipeline label (auto-created)" \
         --color "FBCA04" 2>/dev/null; then
         log "created label: ${label}"
+        existing_labels="${existing_labels}"$'\n'"${label}"
         if [[ -z "$valid_labels" ]]; then
           valid_labels="$label"
         else
