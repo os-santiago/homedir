@@ -34,6 +34,9 @@ public class SdlcObservabilityService {
   @ConfigProperty(name = "sdlc.worker-version", defaultValue = "unknown")
   String workerVersion;
 
+  @ConfigProperty(name = "sdlc.dashboard.controls-enabled", defaultValue = "false")
+  boolean controlsEnabled;
+
   private final ObjectMapper mapper;
 
   public SdlcObservabilityService(ObjectMapper mapper) {
@@ -273,7 +276,8 @@ public class SdlcObservabilityService {
         "workerVersion", workerVersion,
         "labels", List.of("scc-accepted", "scc-queued", "scc-running", "scc-failed"),
         "timeouts", Map.of("heartbeatSeconds", 300, "admissionSeconds", 600),
-        "paused", Files.exists(stateDir().resolve("paused")));
+        "paused", Files.exists(stateDir().resolve("paused")),
+        "controlsEnabled", controlsEnabled);
   }
 
   public synchronized Map<String, Object> control(String action, String actor) throws IOException {

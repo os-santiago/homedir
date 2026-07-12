@@ -1,7 +1,9 @@
 # AI SDLC observability dashboard
 
-The authenticated dashboard is served at `/sdlc/dashboard`. It reads worker snapshots from
-`HOMEDIR_SDLC_STATE_DIR` (default: `/var/lib/homedir-sdlc`) and refreshes every three seconds.
+The authenticated dashboard is served at `/sdlc/dashboard`. A background job reads worker state
+from `HOMEDIR_SDLC_STATE_DIR` (default: `/var/lib/homedir-sdlc`) every 30 seconds. HTTP requests
+serve the resulting immutable in-memory snapshot and never read worker files directly. A failed
+refresh preserves the last good snapshot.
 
 ## API
 
@@ -10,6 +12,7 @@ All endpoints require the existing Quarkus authentication and admin-view permiss
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | GET | `/api/sdlc/status` | Worker and component health |
+| GET | `/api/sdlc/snapshot` | Preferred consolidated, in-memory dashboard projection |
 | GET | `/api/sdlc/heartbeat` | Latest heartbeat and age |
 | GET | `/api/sdlc/pipeline` | Counts, dwell time and anomalies by stage |
 | GET | `/api/sdlc/issues` | Active issue snapshots |
@@ -20,8 +23,10 @@ All endpoints require the existing Quarkus authentication and admin-view permiss
 | GET | `/api/sdlc/configuration` | Non-secret worker configuration |
 | POST | `/api/sdlc/control/{action}` | `pause`, `resume`, `reconcile`, or `clear-locks` |
 
-Control calls require admin-manage permission, validate the action allow-list, and append an
-entry to `admin-audit.jsonl`. The API limits each authenticated principal to 120 calls/minute.
+Control calls are disabled by default. Enabling `HOMEDIR_SDLC_DASHBOARD_CONTROLS_ENABLED=true`
+requires admin-manage permission; calls validate the action allow-list and append an entry to
+`admin-audit.jsonl`. Read-only viewers cannot mutate worker state. The API limits each
+authenticated principal to 120 calls/minute.
 
 Example:
 
