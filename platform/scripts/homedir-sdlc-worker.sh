@@ -605,13 +605,21 @@ reconcile_stuck_admission_reviews() {
     --json number,title,body,labels)"
 
   if [[ "${issues_json}" == "[]" ]]; then
+    log "reconcile_stuck_admission_reviews: no stuck issues found"
     return 0
   fi
 
-  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_stuck_admission_reviews: processing issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
     number="$(jq -r '.number' <<<"${issue_json}")"
     local labels
     labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    log "reconcile_stuck_admission_reviews: evaluating issue #${number}"
 
     # Skip if already accepted, or in terminal states
     if issue_has_label "${labels}" "${ACCEPTED_LABEL}" \
@@ -620,6 +628,7 @@ reconcile_stuck_admission_reviews() {
       || issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      log "reconcile_stuck_admission_reviews: skipping issue #${number} (already in terminal state)"
       continue
     fi
 
@@ -632,6 +641,8 @@ reconcile_stuck_admission_reviews() {
     review_json="$(issue_acceptance_review "${title}" "${body}")"
     status="$(jq -r '.status' <<<"${review_json}")"
     reason_text="$(jq -r '.reasons | if length == 0 then "No blocking admission risks detected." else join(" ") end' <<<"${review_json}")"
+
+    log "reconcile_stuck_admission_reviews: issue #${number} review result: ${status}"
 
     case "${status}" in
       accepted)
@@ -653,7 +664,7 @@ reconcile_stuck_admission_reviews() {
         log "Issue #${number} rejected via reconciliation"
         ;;
     esac
-  done
+  done < <(jq -c '.[]' <<<"${issues_json}")
 }
 
 write_issue_state() {
