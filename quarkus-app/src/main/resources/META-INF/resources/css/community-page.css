@@ -109,9 +109,9 @@
     content: none;
   }
 
-  .community-shell-card .btn-primary,
-  .community-shell-card .btn-primary:hover,
-  .community-shell-card .btn-primary:active,
+  .community-shell-card .btn--primary,
+  .community-shell-card .btn--primary:hover,
+  .community-shell-card .btn--primary:active,
   .community-shell-card .community-vote-btn,
   .community-shell-card .community-vote-btn:hover,
   .community-shell-card .community-vote-btn:active,

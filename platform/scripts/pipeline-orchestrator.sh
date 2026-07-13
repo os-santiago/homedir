@@ -16,6 +16,55 @@ log() {
   echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [pipeline-orchestrator] $*" >&2
 }
 
+# Validate and create missing labels
+# Returns cleaned label list (only valid/created labels)
+validate_and_ensure_labels() {
+  local labels_input="$1"
+  local valid_labels=""
+  local existing_labels
+
+  # Fetch all existing labels once
+  existing_labels=$(gh label list -R "${REPO}" --limit 1000 --json name -q '.[].name' 2>/dev/null || echo "")
+
+  # Split labels by comma
+  IFS=',' read -ra label_array <<< "$labels_input"
+
+  for label in "${label_array[@]}"; do
+    # Trim whitespace
+    label=$(echo "$label" | xargs)
+
+    # Check if label exists in the pre-fetched list
+    if echo "$existing_labels" | grep -qxF "$label"; then
+      log "label exists: ${label}"
+      if [[ -z "$valid_labels" ]]; then
+        valid_labels="$label"
+      else
+        valid_labels="${valid_labels},${label}"
+      fi
+    else
+      log "label does not exist: ${label}, attempting to create..."
+
+      # Try to create label with default color
+      if gh label create "${label}" \
+        --repo "${REPO}" \
+        --description "AI SDLC pipeline label (auto-created)" \
+        --color "FBCA04" 2>/dev/null; then
+        log "created label: ${label}"
+        existing_labels="${existing_labels}"$'\n'"${label}"
+        if [[ -z "$valid_labels" ]]; then
+          valid_labels="$label"
+        else
+          valid_labels="${valid_labels},${label}"
+        fi
+      else
+        log "WARNING: could not create label '${label}', skipping"
+      fi
+    fi
+  done
+
+  echo "$valid_labels"
+}
+
 # Find pipeline YAML that references this issue number
 find_pipeline_for_issue() {
   local issue_number="$1"
@@ -179,7 +228,18 @@ create_issue_from_definition() {
   fi
 
   log "creating issue: ${title}"
-  log "labels: ${labels}"
+  log "labels (raw): ${labels}"
+
+  # Validate and ensure labels exist (create if missing)
+  local validated_labels
+  validated_labels=$(validate_and_ensure_labels "${labels}")
+
+  if [[ -z "$validated_labels" ]]; then
+    log "WARNING: no valid labels after validation, using default"
+    validated_labels="ready-to-implement"
+  fi
+
+  log "labels (validated): ${validated_labels}"
 
   # Create issue
   local new_issue_number
@@ -187,7 +247,7 @@ create_issue_from_definition() {
   create_output=$(gh issue create -R "${REPO}" \
     --title "${title}" \
     --body "${body}" \
-    --label "${labels}" 2>&1)
+    --label "${validated_labels}" 2>&1)
 
   # Extract issue number from URL (gh returns URL in format https://github.com/owner/repo/issues/NUMBER)
   new_issue_number=$(echo "$create_output" | grep -oE 'issues/[0-9]+' | grep -oE '[0-9]+' || echo "")

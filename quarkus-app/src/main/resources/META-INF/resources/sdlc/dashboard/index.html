@@ -36,7 +36,11 @@
         <section class="view" data-view="audit"><div class="section-head"><div><span class="kicker">DECISION LEDGER</span><h2>Audit trail</h2></div></div><form id="auditForm" class="audit-search"><label>Issue or PR number<input id="auditId" inputmode="numeric" pattern="[0-9]+" placeholder="e.g. 1156" required></label><button>Search events</button></form><div id="auditTimeline" class="timeline empty">Enter an issue or PR number to reconstruct its autonomous decisions.</div></section>
         <section class="view" data-view="configuration"><div class="section-head"><div><span class="kicker">WORKER OPERATIONS</span><h2>Configuration & control</h2><p>Administrative actions are authenticated and appended to the audit log.</p></div></div><div id="configGrid" class="config-grid"></div><article class="panel danger-panel"><div><span class="kicker">CONTROL PLANE</span><h3>Operational actions</h3><p>Every action is logged. Pause is a safe shutdown signal.</p></div><div class="controls"><button data-action="pause">Pause worker</button><button data-action="resume">Resume worker</button><button data-action="reconcile">Trigger reconciliation</button><button data-action="clear-locks" class="danger">Clear stale lock</button></div></article></section>
       </main>
+<<<<<<< HEAD
       <footer><span>VPS <b>vh01</b></span><span>WORKER <b id="footerVersion">unknown</b></span><span>API <b class="ok">CONNECTED</b></span><span class="push">AUTO-REFRESH 3S</span></footer>
+=======
+      <footer><span>VPS <b>vh01</b></span><span>WORKER <b id="footerVersion">unknown</b></span><span>API <b class="ok">CONNECTED</b></span><span class="push">MEMORY SNAPSHOT · 30S</span></footer>
+>>>>>>> origin/main
     </div>
   </div>
   <div id="toastRegion" class="toasts" aria-live="polite"></div>

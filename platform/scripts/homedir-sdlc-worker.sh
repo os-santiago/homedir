@@ -545,12 +545,20 @@ reconcile_admission_requests() {
     --json number,labels)"
 
   if [[ "${issues_json}" == "[]" ]]; then
+    log "reconcile_admission_requests: no admission requests found"
     return 0
   fi
 
-  jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_admission_requests: processing issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
     number="$(jq -r '.number' <<<"${issue_json}")"
     labels="$(jq -c '[.labels[].name]' <<<"${issue_json}")"
+
+    log "reconcile_admission_requests: evaluating issue #${number}"
 
     if issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
@@ -563,6 +571,7 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
+      log "reconcile_admission_requests: skipping issue #${number} (already in terminal state)"
       continue
     fi
 
@@ -586,7 +595,7 @@ reconcile_admission_requests() {
     else
       reject_issue_from_queue "${number}" "${labeler}"
     fi
-  done
+  done < <(jq -c '.[]' <<<"${issues_json}")
 }
 
 # Fix #1140: Reconcile stuck admission reviews
@@ -1384,16 +1393,30 @@ try_enable_auto_merge() {
     pr_number="$(sed -nE 's#.*/pull/([0-9]+).*#\1#p' <<<"${pr_url}" | head -n1)"
   fi
 
+  try_enable_auto_merge_for_pr "issue #${issue}" "${branch}" "${pr_number}" "${pr_url}"
+}
+
+try_enable_auto_merge_for_pr() {
+  local context="$1"
+  local branch="$2"
+  local pr_number="${3:-}"
+  local pr_url="${4:-}"
+  local merge_target="${branch}"
+
+  if [[ -z "${merge_target}" || "${merge_target}" == "null" ]]; then
+    merge_target="${pr_number}"
+  fi
+
   if [[ "${ENABLE_AUTOMERGE}" != "true" ]]; then
     return 1
   fi
 
-  if gh pr merge "${branch}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
-    log "enabled normal auto-merge for issue #${issue} (branch=${branch} pr=#${pr_number})"
+  if gh pr merge "${merge_target}" --repo "${REPO}" --squash --auto >/dev/null 2>&1; then
+    log "enabled normal auto-merge for ${context} (branch=${branch} pr=#${pr_number})"
     return 0
   fi
 
-  log "auto-merge not available for issue #${issue} (branch=${branch} pr=#${pr_number})"
+  log "auto-merge not available for ${context} (branch=${branch} pr=#${pr_number} url=${pr_url})"
   return 1
 }
 
@@ -1534,6 +1557,73 @@ reconcile_open_prs() {
   done < <(find "${ISSUE_STATE_DIR}" -maxdepth 1 -name 'issue-*.json' -type f 2>/dev/null)
 }
 
+# Fix #1142: Reconcile orphan PRs (PRs without state files)
+reconcile_orphan_open_prs() {
+  local prs_json pr_json pr_number pr_url branch labels auto_merge is_draft checks_json
+  local failing_count pending_count success_count
+
+  prs_json="$(gh pr list \
+    --repo "${REPO}" \
+    --state open \
+    --search "label:${PR_TRACK_LABEL} label:${APPROVED_LABEL}" \
+    --limit 100 \
+    --json number,title,url,headRefName,isDraft,mergeStateStatus,mergeable,statusCheckRollup,autoMergeRequest,labels \
+    2>/dev/null || echo '[]')"
+
+  if [[ -z "${prs_json}" || "${prs_json}" == "null" ]]; then
+    prs_json="[]"
+  fi
+
+  if [[ "${prs_json}" == "[]" ]]; then
+    log "reconcile_orphan_open_prs: no orphan PRs found"
+    return 0
+  fi
+
+  local pr_numbers
+  pr_numbers="$(jq -r '.[].number' <<<"${prs_json}" | tr '\n' ',' | sed 's/,$//')"
+  log "reconcile_orphan_open_prs: processing PRs: ${pr_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r pr_json; do
+    pr_number="$(jq -r '.number // ""' <<<"${pr_json}")"
+    pr_url="$(jq -r '.url // ""' <<<"${pr_json}")"
+    branch="$(jq -r '.headRefName // ""' <<<"${pr_json}")"
+    labels="$(jq -c '[.labels[].name]' <<<"${pr_json}")"
+    auto_merge="$(jq -r '.autoMergeRequest != null' <<<"${pr_json}")"
+    is_draft="$(jq -r '.isDraft // false' <<<"${pr_json}")"
+
+    if [[ -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+      continue
+    fi
+
+    if ! issue_has_label "${labels}" "${PR_TRACK_LABEL}" || ! issue_has_label "${labels}" "${APPROVED_LABEL}"; then
+      continue
+    fi
+
+    if [[ "${auto_merge}" == "true" ]]; then
+      log "approved tracked PR #${pr_number} already has auto-merge enabled"
+      continue
+    fi
+
+    checks_json="$(pr_checks_state "${pr_json}")"
+    failing_count="$(jq -r '.failing | length' <<<"${checks_json}")"
+    pending_count="$(jq -r '.pending | length' <<<"${checks_json}")"
+    success_count="$(jq -r '.successful | length' <<<"${checks_json}")"
+
+    if [[ "${is_draft}" == "true" || "${failing_count}" -gt 0 || "${pending_count}" -gt 0 || "${success_count}" -eq 0 ]]; then
+      log "approved tracked PR #${pr_number} is not clean for orphan auto-merge reconciliation (draft=${is_draft} failing=${failing_count} pending=${pending_count} successful=${success_count})"
+      continue
+    fi
+
+    log "reconciling approved tracked PR #${pr_number} without issue state file"
+    if ! try_enable_auto_merge_for_pr "orphan approved tracked PR #${pr_number}" "${branch}" "${pr_number}" "${pr_url}"; then
+      add_label "${pr_number}" "${NEEDS_HUMAN_LABEL}"
+      comment_issue "${pr_number}" "Autonomous SDLC could not enable normal auto-merge for approved tracked PR ${pr_url}. Repository rules still apply; no admin bypass was used."
+      alert WARN "PR #${pr_number} auto-merge blocked" "Could not enable normal auto-merge for approved tracked PR ${pr_url}. Repository rules still apply; no admin bypass was used."
+    fi
+  done < <(jq -c '.[]' <<<"${prs_json}")
+}
+
 finalize_merged_issue() {
   local number="$1"
   local pr_number="$2"
@@ -1655,9 +1745,16 @@ reconcile_legacy_closed_issues() {
   )"
 
   if [[ "${issues_json}" != "[]" ]]; then
-    jq -c '.[]' <<<"${issues_json}" | while IFS= read -r issue_json; do
+    local issue_numbers
+    issue_numbers="$(jq -r '.[].number' <<<"${issues_json}" | tr '\n' ',' | sed 's/,$//')"
+    log "reconcile_legacy_closed_issues: processing issues: ${issue_numbers}"
+
+    # Use process substitution instead of pipe to avoid subshell issues
+    while IFS= read -r issue_json; do
       reconcile_legacy_closed_issue "${issue_json}"
-    done
+    done < <(jq -c '.[]' <<<"${issues_json}")
+  else
+    log "reconcile_legacy_closed_issues: no legacy closed issues found"
   fi
 }
 
@@ -1703,6 +1800,7 @@ run_event_command() {
       ;;
     checks-completed)
       reconcile_open_prs
+      reconcile_orphan_open_prs
       reconcile_tracked_prs
       ;;
     pr-closed)
@@ -1986,6 +2084,7 @@ main() {
   reconcile_merged_prs
   reconcile_legacy_closed_issues
   reconcile_open_prs
+  reconcile_orphan_open_prs
   reconcile_tracked_prs
 
   log "checking eligible issues in ${REPO}"
@@ -2007,9 +2106,14 @@ main() {
     exit 0
   fi
 
-  jq -c '.[]' <<<"${issues[0]}" | while IFS= read -r issue_json; do
+  local issue_numbers
+  issue_numbers="$(jq -r '.[].number' <<<"${issues[0]}" | tr '\n' ',' | sed 's/,$//')"
+  log "main: processing eligible issues: ${issue_numbers}"
+
+  # Use process substitution instead of pipe to avoid subshell issues
+  while IFS= read -r issue_json; do
     run_issue "${issue_json}"
-  done
+  done < <(jq -c '.[]' <<<"${issues[0]}")
   write_heartbeat "ok" "cycle complete"
 }
 

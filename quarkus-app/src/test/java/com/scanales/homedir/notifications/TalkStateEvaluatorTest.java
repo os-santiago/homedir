@@ -65,4 +65,29 @@ class TalkStateEvaluatorTest {
     List<Notification> list = notifications.listForUser("user@example.com", 10, false);
     assertTrue(list.stream().anyMatch(n -> n.type == NotificationType.FINISHED));
   }
+
+  @Test
+  void preventsDuplicateNotifications() {
+    Notification n1 = new Notification();
+    n1.userId = "user@example.com";
+    n1.talkId = "t1";
+    n1.type = NotificationType.FINISHED;
+    n1.id = "id-1";
+    n1.dedupeKey = "dedupe-key-1";
+    notifications.enqueue(n1);
+
+    // Enqueue another notification for the same talk and type, but with a different dedupe key
+    Notification n2 = new Notification();
+    n2.userId = "user@example.com";
+    n2.talkId = "t1";
+    n2.type = NotificationType.FINISHED;
+    n2.id = "id-2";
+    n2.dedupeKey = "dedupe-key-2"; // Bypass in-memory check
+
+    NotificationResult res = notifications.enqueue(n2);
+    assertEquals(
+        NotificationResult.DROPPED_DUPLICATE,
+        res,
+        "Subsequent notifications for the same talk and type must be dropped");
+  }
 }

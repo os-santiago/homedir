@@ -14,17 +14,17 @@
     <div class="section-body flex flex-col notif-section-body">
       <div class="hd-tabs quest-tabs mb-6">
         <div class="quest-tabs-links" role="group" aria-label="Filter notifications">
-          <button class="hd-tab active btn-link-filter notif-filter-btn"
+          <button class="hd-tab active btn btn--filter"
             aria-pressed="true" aria-controls="notif-list" data-filter="all">{i18n:notifications_center_filter_all}</button>
           <span class="quest-tab-separator">|</span>
-          <button class="hd-tab btn-link-filter notif-filter-btn"
+          <button class="hd-tab btn btn--filter"
             aria-pressed="false" aria-controls="notif-list" data-filter="unread">{i18n:notifications_center_filter_unread}</button>
         </div>
         <div class="actions-right ml-auto flex gap-2">
-          <button class="btn-primary btn-sm" id="selectAll">{i18n:notifications_center_action_select_all}</button>
-          <button class="btn-primary btn-sm" id="markAllRead">{i18n:notifications_center_action_mark_all_read}</button>
-          <button class="btn-primary btn-sm" id="deleteSelected">{i18n:notifications_center_action_delete_selected}</button>
-          <button class="btn-danger btn-sm" id="deleteAll">{i18n:notifications_center_action_delete_all}</button>
+          <button class="btn btn--primary btn--sm" id="selectAll">{i18n:notifications_center_action_select_all}</button>
+          <button class="btn btn--primary btn--sm" id="markAllRead">{i18n:notifications_center_action_mark_all_read}</button>
+          <button class="btn btn--primary btn--sm" id="deleteSelected">{i18n:notifications_center_action_delete_selected}</button>
+          <button class="btn btn--danger btn--sm" id="deleteAll">{i18n:notifications_center_action_delete_all}</button>
         </div>
       </div>
 
@@ -33,8 +33,8 @@
         {#include fragments/empty-state message=i18n:notifications_center_empty icon="notifications_off" hint=i18n:notifications_center_empty_hint hintClass="notifications-empty-hint"}
         {#actions}
         <div class="notifications-empty-actions">
-          <a href="/eventos" class="btn-primary">{i18n:notifications_center_empty_cta_events}</a>
-          <a href="/comunidad/board" class="btn-primary">{i18n:notifications_center_empty_cta_board}</a>
+          <a href="/eventos" class="btn btn--primary">{i18n:notifications_center_empty_cta_events}</a>
+          <a href="/comunidad/board" class="btn btn--primary">{i18n:notifications_center_empty_cta_board}</a>
         </div>
         {/actions}
         {/include}
@@ -47,8 +47,8 @@
     <h2 id="confirmDeleteAllTitle" class="text-xl mb-4 font-bold">{i18n:notifications_center_confirm_title}</h2>
     <p id="confirmDeleteAllDesc" class="mb-4">{i18n:notifications_center_confirm_desc}</p>
     <div class="actions flex gap-4 justify-end">
-      <button class="btn-danger" id="confirmDeleteAllBtn">{i18n:notifications_center_confirm_btn}</button>
-      <button class="btn-primary" id="cancelDeleteAllBtn" autofocus>{i18n:notifications_center_cancel_btn}</button>
+      <button class="btn btn--danger" id="confirmDeleteAllBtn">{i18n:notifications_center_confirm_btn}</button>
+      <button class="btn btn--primary" id="cancelDeleteAllBtn" autofocus>{i18n:notifications_center_cancel_btn}</button>
     </div>
   </dialog>
 

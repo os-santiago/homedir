@@ -3,7 +3,6 @@ package com.scanales.homedir.sdlc;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.qute.Location;
 import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;

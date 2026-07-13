@@ -195,7 +195,7 @@
 
 /* Filter tab buttons - ensure 44x44px touch target */
 .notifications-center .hd-tab,
-.notifications-center .btn-link-filter {
+.notifications-center .btn--link-filter {
   min-width: 44px;
   min-height: 44px;
 }
@@ -217,7 +217,7 @@
   }
 }
 
-.notifications-center .btn-link {
+.notifications-center .btn--link {
   background: none;
   color: var(--color-primary);
   padding: 0.25rem 0.5rem;
@@ -230,7 +230,7 @@
   justify-content: center;
 }
 
-.notifications-center .btn-link:focus {
+.notifications-center .btn--link:focus {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -255,7 +255,7 @@
 }
 
 /* Ensure inline action buttons in notifications meet 44x44 */
-.notifications-center .notif .actions .btn-link {
+.notifications-center .notif .actions .btn--link {
   min-width: 44px; min-height: 44px;
 }
 
@@ -278,16 +278,7 @@
 }
 
 /* Notification center filter buttons */
-.notif-filter-btn {
-  background: transparent;
-  border: none;
-  outline: none;
-}
 
-.notif-filter-btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 
 .notif-section-body {
   min-height: 400px;
