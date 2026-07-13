@@ -2097,7 +2097,7 @@ main() {
       --state open \
       --label "${QUEUE_LABEL}" \
       --limit "${MAX_ISSUES}" \
-      --json number,title,body,url,author,labels
+      --json number,title,body,url,author,labels,createdAt
   )
 
   if [[ "${#issues[@]}" -eq 0 || -z "${issues[0]:-}" || "${issues[0]}" == "[]" ]]; then
@@ -2106,14 +2106,18 @@ main() {
     exit 0
   fi
 
+  # Sort by createdAt (oldest first) and take only the first one (FIFO queue, one at a time)
+  local sorted_issues
+  sorted_issues="$(jq 'sort_by(.createdAt) | .[0:1]' <<<"${issues[0]}")"
+
   local issue_numbers
-  issue_numbers="$(jq -r '.[].number' <<<"${issues[0]}" | tr '\n' ',' | sed 's/,$//')"
-  log "main: processing eligible issues: ${issue_numbers}"
+  issue_numbers="$(jq -r '.[].number' <<<"${sorted_issues}" | tr '\n' ',' | sed 's/,$//')"
+  log "main: processing oldest eligible issue (FIFO): ${issue_numbers}"
 
   # Use process substitution instead of pipe to avoid subshell issues
   while IFS= read -r issue_json; do
     run_issue "${issue_json}"
-  done < <(jq -c '.[]' <<<"${issues[0]}")
+  done < <(jq -c '.[]' <<<"${sorted_issues}")
   write_heartbeat "ok" "cycle complete"
 }
 
