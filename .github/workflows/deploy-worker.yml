@@ -99,58 +99,65 @@ jobs:
           set -euo pipefail
 
           ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'REMOTE_SCRIPT'
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s -- "${WORKER_USER}" <<'REMOTE_SCRIPT'
 
           set -euo pipefail
 
-          echo "Installing worker scripts..."
+          WORKER_USER="${1:-homedir-sdlc}"
+          WORKER_HOME="$(getent passwd "${WORKER_USER}" | cut -d: -f6 || echo "${HOME}")"
+          WORKER_BIN="${WORKER_HOME}/.local/bin"
+          WORKER_STATE="${WORKER_HOME}/.local/state/homedir-sdlc"
+
+          echo "Installing worker scripts for user ${WORKER_USER} (home: ${WORKER_HOME})..."
+
+          mkdir -p "${WORKER_BIN}" "${WORKER_STATE}"
 
           # Backup current version
-          if [[ -f ~/.local/bin/homedir-sdlc-worker.sh ]]; then
-            cp ~/.local/bin/homedir-sdlc-worker.sh \
-               ~/.local/bin/homedir-sdlc-worker.sh.backup.$(date +%Y%m%d_%H%M%S)
+          if [[ -f "${WORKER_BIN}/homedir-sdlc-worker.sh" ]]; then
+            cp "${WORKER_BIN}/homedir-sdlc-worker.sh" \
+               "${WORKER_BIN}/homedir-sdlc-worker.sh.backup.$(date +%Y%m%d_%H%M%S)"
           fi
 
           # Install new version
-          mv /tmp/homedir-sdlc-worker.sh.new ~/.local/bin/homedir-sdlc-worker.sh
-          chmod +x ~/.local/bin/homedir-sdlc-worker.sh
+          mv /tmp/homedir-sdlc-worker.sh.new "${WORKER_BIN}/homedir-sdlc-worker.sh"
+          chmod +x "${WORKER_BIN}/homedir-sdlc-worker.sh"
 
           # Install supporting scripts
           if [[ -f /tmp/split-multi-criteria-issue.sh.new ]]; then
-            mv /tmp/split-multi-criteria-issue.sh.new ~/.local/bin/split-multi-criteria-issue.sh
-            chmod +x ~/.local/bin/split-multi-criteria-issue.sh
+            mv /tmp/split-multi-criteria-issue.sh.new "${WORKER_BIN}/split-multi-criteria-issue.sh"
+            chmod +x "${WORKER_BIN}/split-multi-criteria-issue.sh"
           fi
 
           if [[ -f /tmp/pipeline-orchestrator.sh.new ]]; then
-            mv /tmp/pipeline-orchestrator.sh.new ~/.local/bin/pipeline-orchestrator.sh
-            chmod +x ~/.local/bin/pipeline-orchestrator.sh
+            mv /tmp/pipeline-orchestrator.sh.new "${WORKER_BIN}/pipeline-orchestrator.sh"
+            chmod +x "${WORKER_BIN}/pipeline-orchestrator.sh"
           fi
 
           echo "Worker scripts installed successfully"
 
-          # Check if systemd service exists
-          if systemctl --user list-unit-files | grep -q homedir-sdlc-worker.service; then
+          # Check if systemd service exists (run as WORKER_USER)
+          if sudo -u "${WORKER_USER}" systemctl --user list-unit-files 2>/dev/null | grep -q homedir-sdlc-worker.service; then
             echo "Restarting worker service..."
-            systemctl --user restart homedir-sdlc-worker.service
+            sudo -u "${WORKER_USER}" systemctl --user restart homedir-sdlc-worker.service
 
             # Wait a moment for service to start
             sleep 2
 
             # Check service status
-            if systemctl --user is-active --quiet homedir-sdlc-worker.service; then
+            if sudo -u "${WORKER_USER}" systemctl --user is-active --quiet homedir-sdlc-worker.service; then
               echo "✅ Worker service restarted successfully"
             else
               echo "⚠️ Worker service may not be running"
-              systemctl --user status homedir-sdlc-worker.service --no-pager || true
+              sudo -u "${WORKER_USER}" systemctl --user status homedir-sdlc-worker.service --no-pager || true
             fi
           else
             echo "⚠️ Worker systemd service not found - worker script updated but not restarted"
           fi
 
           # Verify heartbeat file
-          if [[ -f ~/.local/state/homedir-sdlc/heartbeat.json ]]; then
+          if [[ -f "${WORKER_STATE}/heartbeat.json" ]]; then
             echo "Latest heartbeat:"
-            cat ~/.local/state/homedir-sdlc/heartbeat.json | jq '.' 2>/dev/null || cat ~/.local/state/homedir-sdlc/heartbeat.json
+            cat "${WORKER_STATE}/heartbeat.json" | jq '.' 2>/dev/null || cat "${WORKER_STATE}/heartbeat.json"
           fi
 
           REMOTE_SCRIPT
@@ -163,25 +170,29 @@ jobs:
           echo "Verifying worker deployment..."
 
           ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT}" \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'VERIFY_SCRIPT'
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s -- "${WORKER_USER}" <<'VERIFY_SCRIPT'
 
           set -euo pipefail
 
+          WORKER_USER="${1:-homedir-sdlc}"
+          WORKER_HOME="$(getent passwd "${WORKER_USER}" | cut -d: -f6 || echo "${HOME}")"
+          WORKER_BIN="${WORKER_HOME}/.local/bin"
+
           # Check worker script version
-          if grep -q "reconcile_stuck_admission_reviews" ~/.local/bin/homedir-sdlc-worker.sh; then
+          if grep -q "reconcile_stuck_admission_reviews" "${WORKER_BIN}/homedir-sdlc-worker.sh"; then
             echo "✅ Fix #1140 (admission stuck) detected in worker script"
           else
             echo "❌ Fix #1140 NOT found - deployment may have failed"
             exit 1
           fi
 
-          if grep -q "SCC_ACTUAL_TIMEOUT" ~/.local/bin/homedir-sdlc-worker.sh; then
+          if grep -q "SCC_ACTUAL_TIMEOUT" "${WORKER_BIN}/homedir-sdlc-worker.sh"; then
             echo "✅ Fix #1139 (timeout diagnostics) detected in worker script"
           else
             echo "⚠️ Fix #1139 NOT found"
           fi
 
-          if grep -q "reconcile_orphan_open_prs" ~/.local/bin/homedir-sdlc-worker.sh; then
+          if grep -q "reconcile_orphan_open_prs" "${WORKER_BIN}/homedir-sdlc-worker.sh"; then
             echo "✅ Fix #1142 (orphan PRs) detected in worker script"
           else
             echo "⚠️ Fix #1142 NOT found"

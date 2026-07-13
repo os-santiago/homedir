@@ -6721,4 +6721,227 @@ public interface AppMessages {
 
   @Message("Discord Support")
   String support_discord_footer_link();
+
+  // --- SDLC Dashboard ---
+  @Message("SDLC Dashboard · Homedir")
+  String sdlc_dash_title();
+
+  @Message("Skip to content")
+  String sdlc_dash_skip();
+
+  @Message("SDLC OBSERVATORY")
+  String sdlc_dash_brand_subtitle();
+
+  @Message("Dashboard sections")
+  String sdlc_dash_nav_aria();
+
+  @Message("Overview")
+  String sdlc_dash_nav_overview();
+
+  @Message("Pipeline flow")
+  String sdlc_dash_nav_pipeline();
+
+  @Message("Active items")
+  String sdlc_dash_nav_active();
+
+  @Message("Metrics")
+  String sdlc_dash_nav_metrics();
+
+  @Message("Anomalies")
+  String sdlc_dash_nav_anomalies();
+
+  @Message("Audit trail")
+  String sdlc_dash_nav_audit();
+
+  @Message("Configuration")
+  String sdlc_dash_nav_config();
+
+  @Message("Secure session")
+  String sdlc_dash_session_label();
+
+  @Message("Admin · localhost/VPN")
+  String sdlc_dash_session_desc();
+
+  @Message("AUTONOMOUS DELIVERY CONTROL PLANE")
+  String sdlc_dash_header_eyebrow();
+
+  @Message("System overview")
+  String sdlc_dash_header_title();
+
+  @Message("CONNECTING")
+  String sdlc_dash_connecting();
+
+  @Message("Waiting for telemetry")
+  String sdlc_dash_waiting();
+
+  @Message("Refresh dashboard")
+  String sdlc_dash_refresh_aria();
+
+  @Message("SYSTEM PULSE")
+  String sdlc_dash_hero_kicker();
+
+  @Message("Autonomy, without the blind spots.")
+  String sdlc_dash_hero_title();
+
+  @Message("Live health across the worker, infrastructure and delivery pipeline.")
+  String sdlc_dash_hero_desc();
+
+  @Message("HEALTH SCORE")
+  String sdlc_dash_health_label();
+
+  @Message("FLOW SNAPSHOT")
+  String sdlc_dash_snapshot_kicker();
+
+  @Message("Pipeline distribution")
+  String sdlc_dash_snapshot_heading();
+
+  @Message("Inspect flow")
+  String sdlc_dash_inspect_flow();
+
+  @Message("ATTENTION")
+  String sdlc_dash_attention_kicker();
+
+  @Message("Recent anomalies")
+  String sdlc_dash_attention_heading();
+
+  @Message("View all")
+  String sdlc_dash_view_all();
+
+  @Message("DELIVERY MAP")
+  String sdlc_dash_pipeline_kicker();
+
+  @Message("Pipeline flow")
+  String sdlc_dash_pipeline_heading();
+
+  @Message("Select a stage to inspect its workload and dwell time.")
+  String sdlc_dash_pipeline_desc();
+
+  @Message("Select a stage")
+  String sdlc_dash_select_stage();
+
+  @Message("No stage selected")
+  String sdlc_dash_no_stage();
+
+  @Message("WORK IN PROGRESS")
+  String sdlc_dash_active_kicker();
+
+  @Message("Active items")
+  String sdlc_dash_active_heading();
+
+  @Message("Issues")
+  String sdlc_dash_tab_issues();
+
+  @Message("Pull requests")
+  String sdlc_dash_tab_prs();
+
+  @Message("Filter by number, title or label\u2026")
+  String sdlc_dash_filter_placeholder();
+
+  @Message("Filter active items")
+  String sdlc_dash_filter_aria();
+
+  @Message("HISTORICAL SIGNAL")
+  String sdlc_dash_metrics_kicker();
+
+  @Message("Autonomy & performance")
+  String sdlc_dash_metrics_heading();
+
+  @Message("Metrics date range")
+  String sdlc_dash_range_aria();
+
+  @Message("Last 7 days")
+  String sdlc_dash_range_7();
+
+  @Message("Last 30 days")
+  String sdlc_dash_range_30();
+
+  @Message("Last 90 days")
+  String sdlc_dash_range_90();
+
+  @Message("THROUGHPUT")
+  String sdlc_dash_throughput_kicker();
+
+  @Message("Delivery trend")
+  String sdlc_dash_throughput_heading();
+
+  @Message("Issues")
+  String sdlc_dash_legend_issues();
+
+  @Message("Merged")
+  String sdlc_dash_legend_merged();
+
+  @Message("DETECTION FEED")
+  String sdlc_dash_anomalies_kicker();
+
+  @Message("Anomalies")
+  String sdlc_dash_anomalies_heading();
+
+  @Message("Prioritized conditions with an immediate recommended response.")
+  String sdlc_dash_anomalies_desc();
+
+  @Message("DECISION LEDGER")
+  String sdlc_dash_audit_kicker();
+
+  @Message("Audit trail")
+  String sdlc_dash_audit_heading();
+
+  @Message("Issue or PR number")
+  String sdlc_dash_audit_label();
+
+  @Message("e.g. 1156")
+  String sdlc_dash_audit_placeholder();
+
+  @Message("Search events")
+  String sdlc_dash_audit_button();
+
+  @Message("Enter an issue or PR number to reconstruct its autonomous decisions")
+  String sdlc_dash_audit_empty();
+
+  @Message("WORKER OPERATIONS")
+  String sdlc_dash_config_kicker();
+
+  @Message("Configuration & control")
+  String sdlc_dash_config_heading();
+
+  @Message("Administrative actions are authenticated and appended to the audit log.")
+  String sdlc_dash_config_desc();
+
+  @Message("CONTROL PLANE")
+  String sdlc_dash_control_kicker();
+
+  @Message("Operational actions")
+  String sdlc_dash_control_heading();
+
+  @Message("Every action is logged. Pause is a safe shutdown signal.")
+  String sdlc_dash_control_desc();
+
+  @Message("Pause worker")
+  String sdlc_dash_btn_pause();
+
+  @Message("Resume worker")
+  String sdlc_dash_btn_resume();
+
+  @Message("Trigger reconciliation")
+  String sdlc_dash_btn_reconcile();
+
+  @Message("Clear stale lock")
+  String sdlc_dash_btn_clear_locks();
+
+  @Message("VPS")
+  String sdlc_dash_footer_vps();
+
+  @Message("WORKER")
+  String sdlc_dash_footer_worker();
+
+  @Message("unknown")
+  String sdlc_dash_unknown();
+
+  @Message("API")
+  String sdlc_dash_footer_api();
+
+  @Message("CONNECTED")
+  String sdlc_dash_connected();
+
+  @Message("AUTO-REFRESH 3S")
+  String sdlc_dash_autorefresh();
 }
