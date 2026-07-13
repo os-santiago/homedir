@@ -151,9 +151,7 @@ public class SdlcApiResource {
   }
 
   private Response tooManyRequests() {
-    return Response.status(429)
-        .entity(Map.of("error", "rate limit exceeded"))
-        .build();
+    return Response.status(429).entity(Map.of("error", "rate limit exceeded")).build();
   }
 
   private static final class Window {

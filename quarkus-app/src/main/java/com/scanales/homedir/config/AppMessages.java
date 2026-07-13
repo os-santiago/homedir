@@ -6944,5 +6944,4 @@ public interface AppMessages {
 
   @Message("AUTO-REFRESH 3S")
   String sdlc_dash_autorefresh();
-
 }
