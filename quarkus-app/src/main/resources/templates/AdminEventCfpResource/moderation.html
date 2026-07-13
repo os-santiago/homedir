@@ -12,13 +12,13 @@
         <p class="section-subtitle">{i18n:events_cfp_admin_event_label(event.title)}</p>
       </div>
       <div class="action-group admin-nav-strip">
-        <a href="/private/admin" class="btn btn-secondary">{i18n:nav_admin_panel}</a>
-        <a href="/private/admin/events" class="btn btn-secondary">{i18n:nav_events}</a>
+        <a href="/private/admin" class="btn btn--secondary">{i18n:nav_admin_panel}</a>
+        <a href="/private/admin/events" class="btn btn--secondary">{i18n:nav_events}</a>
         {#if canManage}
-        <a href="/private/admin/events/{event.id}/edit" class="btn btn-secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
-        <a href="/private/admin/events/{event.id}/volunteers" class="btn btn-secondary">{i18n:events_volunteers_open_cta}</a>
+        <a href="/private/admin/events/{event.id}/edit" class="btn btn--secondary">{i18n:events_cfp_admin_nav_edit_event}</a>
+        <a href="/private/admin/events/{event.id}/volunteers" class="btn btn--secondary">{i18n:events_volunteers_open_cta}</a>
         {/if}
-        <a href="/event/{event.id}/cfp" class="btn btn-secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
+        <a href="/event/{event.id}/cfp" class="btn btn--secondary">{i18n:events_cfp_admin_nav_public_cfp}</a>
       </div>
     </div>
   </div>
@@ -47,7 +47,7 @@
           <input id="cfpTestingToggle" type="checkbox" style="transform: translateY(1px);">
           <span>{i18n:events_cfp_admin_testing_toggle_label}</span>
         </label>
-        <button id="cfpTestingSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_testing_save}</button>
+        <button id="cfpTestingSaveBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_testing_save}</button>
       </div>
     </div>
     <p id="cfpTestingFeedback" class="form-hint admin-shell-feedback" hidden></p>
@@ -94,8 +94,8 @@
       </label>
     </div>
     <div class="action-group admin-shell-actions-tight admin-shell-margin-top-md">
-      <button id="cfpEventConfigSaveBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_save}</button>
-      <button id="cfpEventConfigClearBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_event_config_clear}</button>
+      <button id="cfpEventConfigSaveBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_event_config_save}</button>
+      <button id="cfpEventConfigClearBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_event_config_clear}</button>
     </div>
     <p id="cfpEventConfigSummary" class="form-hint admin-shell-feedback"></p>
     <p id="cfpEventConfigFeedback" class="form-hint admin-shell-hint-tight" hidden></p>
@@ -112,7 +112,7 @@
           <input id="agendaNoticeToggle" type="checkbox" style="transform: translateY(1px);">
           <span>{i18n:events_agenda_admin_proposed_toggle_label}</span>
         </label>
-        <button id="agendaNoticeSaveBtn" type="button" class="btn btn-secondary">{i18n:events_agenda_admin_proposed_save}</button>
+        <button id="agendaNoticeSaveBtn" type="button" class="btn btn--secondary">{i18n:events_agenda_admin_proposed_save}</button>
       </div>
     </div>
     <p id="agendaNoticeFeedback" class="form-hint admin-shell-feedback" hidden></p>
@@ -136,7 +136,7 @@
       </label>
     </div>
     <div class="action-group admin-shell-actions-tight admin-shell-margin-top-md">
-      <button id="cfpPublishResultsBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_results_publish}</button>
+      <button id="cfpPublishResultsBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_results_publish}</button>
     </div>
     <p id="cfpResultsSummary" class="form-hint admin-shell-feedback"></p>
     <p id="cfpResultsFeedback" class="form-hint admin-shell-hint-tight" hidden></p>
@@ -154,7 +154,7 @@
         <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_reviewers_desc}</p>
       </div>
       <div class="action-group admin-shell-actions-tight">
-        <button id="cfpReviewerReloadBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_reviewers_reload}</button>
+        <button id="cfpReviewerReloadBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_reviewers_reload}</button>
       </div>
     </div>
     <div class="cfp-review-search-grid">
@@ -169,7 +169,7 @@
       </label>
     </div>
     <div class="action-group admin-shell-actions-tight admin-shell-margin-top-sm">
-      <button id="cfpReviewerAddBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_reviewers_add}</button>
+      <button id="cfpReviewerAddBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_reviewers_add}</button>
     </div>
     <p id="cfpReviewerFeedback" class="form-hint admin-shell-feedback" hidden></p>
   </div>
@@ -193,8 +193,8 @@
         <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_overview_desc}</p>
       </div>
       <div class="action-group admin-shell-actions-tight">
-        <button id="reloadCfpBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_queue_refresh}</button>
-        <a id="exportCsvBtn" href="#" class="btn btn-secondary">{i18n:events_cfp_admin_queue_export}</a>
+        <button id="reloadCfpBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_queue_refresh}</button>
+        <a id="exportCsvBtn" href="#" class="btn btn--secondary">{i18n:events_cfp_admin_queue_export}</a>
       </div>
     </div>
     <div id="cfpStatsSummary" class="cfp-stats-grid" aria-live="polite">
@@ -210,7 +210,7 @@
       {i18n:events_cfp_admin_insights_loading}
     </div>
     <div class="action-group admin-shell-margin-top-sm">
-      <a href="/private/admin/insights" class="btn btn-secondary">{i18n:events_cfp_admin_insights_open}</a>
+      <a href="/private/admin/insights" class="btn btn--secondary">{i18n:events_cfp_admin_insights_open}</a>
     </div>
   </div>
   </section>
@@ -223,7 +223,7 @@
         <p class="form-hint admin-shell-hint-tight">{i18n:events_cfp_admin_review_desc}</p>
       </div>
       <div class="action-group admin-shell-actions-tight">
-        <button id="cfpGoOverviewBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_subnav_overview}</button>
+        <button id="cfpGoOverviewBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_subnav_overview}</button>
       </div>
     </div>
     <div class="cfp-review-search-grid">
@@ -241,39 +241,39 @@
       </label>
     </div>
     <div class="cfp-toolbar-row admin-shell-margin-top-sm">
-      <button id="cfpApplyFiltersBtn" type="button" class="btn btn-secondary">{i18n:events_cfp_admin_filter_apply}</button>
-      <button id="cfpClearFiltersBtn" type="button" class="btn btn-ghost">{i18n:events_cfp_admin_filter_clear}</button>
+      <button id="cfpApplyFiltersBtn" type="button" class="btn btn--secondary">{i18n:events_cfp_admin_filter_apply}</button>
+      <button id="cfpClearFiltersBtn" type="button" class="btn btn--ghost">{i18n:events_cfp_admin_filter_clear}</button>
     </div>
     <div class="cfp-toolbar-grid">
       <div class="cfp-toolbar-row">
         <span class="form-hint">{i18n:events_cfp_admin_label_status}</span>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="pending">{i18n:events_cfp_status_pending}</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="under_review">{i18n:events_cfp_status_under_review}</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="accepted">{i18n:events_cfp_status_accepted}</button>
-        <button type="button" class="btn btn-ghost cfp-filter-btn" data-status="rejected">{i18n:events_cfp_status_rejected}</button>
+        <button type="button" class="btn btn--ghost cfp-filter-btn" data-status="all">{i18n:events_cfp_admin_filter_all}</button>
+        <button type="button" class="btn btn--ghost cfp-filter-btn" data-status="pending">{i18n:events_cfp_status_pending}</button>
+        <button type="button" class="btn btn--ghost cfp-filter-btn" data-status="under_review">{i18n:events_cfp_status_under_review}</button>
+        <button type="button" class="btn btn--ghost cfp-filter-btn" data-status="accepted">{i18n:events_cfp_status_accepted}</button>
+        <button type="button" class="btn btn--ghost cfp-filter-btn" data-status="rejected">{i18n:events_cfp_status_rejected}</button>
       </div>
       <div class="cfp-toolbar-row">
         <span class="form-hint">{i18n:events_cfp_admin_label_sort}</span>
-        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
-        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="updated">{i18n:events_cfp_admin_sort_updated}</button>
-        <button type="button" class="btn btn-ghost cfp-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
+        <button type="button" class="btn btn--ghost cfp-sort-btn" data-sort="created">{i18n:events_cfp_admin_sort_recent}</button>
+        <button type="button" class="btn btn--ghost cfp-sort-btn" data-sort="updated">{i18n:events_cfp_admin_sort_updated}</button>
+        <button type="button" class="btn btn--ghost cfp-sort-btn" data-sort="score">{i18n:events_cfp_admin_sort_score}</button>
       </div>
     </div>
     <div class="cfp-toolbar-row cfp-pagination-row">
-      <button id="cfpPrevPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_prev}</button>
+      <button id="cfpPrevPageBtn" type="button" class="btn btn--secondary">{i18n:community_board_prev}</button>
       <p id="cfpPageInfo" class="form-hint cfp-page-info">0-0 / 0</p>
-      <button id="cfpNextPageBtn" type="button" class="btn btn-secondary">{i18n:community_board_next}</button>
+      <button id="cfpNextPageBtn" type="button" class="btn btn--secondary">{i18n:community_board_next}</button>
     </div>
   </div>
 
   <div id="cfpBulkActionsBar" class="admin-shell-actions-bar" style="margin-bottom: 0.8rem; display: none; align-items: center; gap: 0.5rem; flex-wrap: wrap; background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px;">
-    <button id="cfpSelectAllBtn" type="button" class="btn btn-secondary">Seleccionar Todos</button>
-    <button id="cfpDeselectAllBtn" type="button" class="btn btn-secondary">Deseleccionar Todos</button>
+    <button id="cfpSelectAllBtn" type="button" class="btn btn--secondary">Seleccionar Todos</button>
+    <button id="cfpDeselectAllBtn" type="button" class="btn btn--secondary">Deseleccionar Todos</button>
     <span class="form-hint" id="cfpBulkSelectedCount">0 seleccionados</span>
     <span style="flex-grow: 1;"></span>
-    <button id="cfpBulkPublishSlidesBtn" type="button" class="btn btn-success">Publicar diapositivas en agenda</button>
-    <button id="cfpBulkUnpublishSlidesBtn" type="button" class="btn btn-warning">Ocultar diapositivas de agenda</button>
+    <button id="cfpBulkPublishSlidesBtn" type="button" class="btn btn--success">Publicar diapositivas en agenda</button>
+    <button id="cfpBulkUnpublishSlidesBtn" type="button" class="btn btn--warning">Ocultar diapositivas de agenda</button>
   </div>
 
   <div id="cfpQueueList"></div>
@@ -912,7 +912,7 @@
       actions.className = "cfp-admin-actions";
 
       const detailLink = document.createElement("a");
-      detailLink.className = "btn btn-secondary";
+      detailLink.className = "btn btn--secondary";
       const detailParams = activeSearchParams().toString();
       detailLink.href =
         "/private/admin/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id)
@@ -1048,7 +1048,7 @@
       actions.className = "cfp-admin-actions";
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
-      removeBtn.className = "btn btn-ghost";
+      removeBtn.className = "btn btn--ghost";
       removeBtn.textContent = i18n.reviewerRemove;
       removeBtn.addEventListener("click", () => {
         updateReviewer(item.user_id, false, item.user_name || null);

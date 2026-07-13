@@ -33,6 +33,16 @@ _tmp_fetch.py
 error.html
 runs.json
 
+# Temporary admin scripts
+update_cfp_status.py
+update_cfp_bulk.py
+update_cfp_via_api.py
+update_cfp_tunnel.py
+update_cfp_container.py
+update_cfp_ssh.sh
+update_cfp_direct.sh
+remote_update_cfp.sh
+
 # Agent session metadata (Rule #29)
 LATEST.txt
 HANDOFF.md

@@ -1,0 +1,50 @@
+name: Test Label Validation Pipeline
+description: Test pipeline to validate orchestrator creates missing labels
+repository: os-santiago/homedir
+
+# This pipeline intentionally uses non-existent labels to test
+# the orchestrator's label validation and auto-creation feature
+
+issues:
+  - id: test-step-1
+    title: "[test] Orchestrator label validation - step 1"
+    body: |
+      ## Problem Statement
+      This is a test issue to validate that the pipeline orchestrator
+      correctly handles non-existent labels by auto-creating them.
+
+      ## Expected Behavior
+      Issue should be created with auto-created labels
+
+      ## Acceptance Criteria
+      - [ ] Issue created successfully
+      - [ ] Labels auto-created by orchestrator
+
+      ## Complexity
+      - [x] Simple (test only)
+    labels:
+      - documentation
+      - ready-to-implement
+      - test-orchestrator-validation
+
+  - id: test-step-2
+    title: "[test] Orchestrator label validation - step 2"
+    body: |
+      ## Problem Statement
+      Second issue in test pipeline with another non-existent label
+
+      ## Expected Behavior
+      Issue created with auto-created label after step 1 completes
+
+      ## Acceptance Criteria
+      - [ ] Issue created successfully after step 1
+      - [ ] Label auto-created by orchestrator
+
+      ## Complexity
+      - [x] Simple (test only)
+    labels:
+      - documentation
+      - ready-to-implement
+      - test-pipeline-continuation
+    depends_on:
+      - test-step-1

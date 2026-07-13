@@ -14,9 +14,9 @@
                 {/if}
             </div>
             <div class="admin-shell-actions">
-                <a href="/private/admin/events/new" class="btn btn-primary"><span
+                <a href="/private/admin/events/new" class="btn btn--primary"><span
                         class="material-symbols-outlined">add</span> Nuevo evento</a>
-                <a href="/private/admin" class="btn btn-secondary">Volver</a>
+                <a href="/private/admin" class="btn btn--secondary">Volver</a>
             </div>
         </div>
     </div>
@@ -33,7 +33,7 @@
                 <input id="importFile" type="file" name="file" accept="application/json" class="form-input">
             </div>
             <div>
-                <button type="submit" class="btn btn-secondary">Importar</button>
+                <button type="submit" class="btn btn--secondary">Importar</button>
             </div>
         </form>
     </div>
@@ -63,19 +63,19 @@
                     </td>
                     <td class="u-p-2">
                         <div class="admin-event-actions">
-                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn-secondary admin-event-action">
+                            <a href="/private/admin/events/{ev.id}/edit" class="btn btn--secondary admin-event-action">
                                 <span class="material-symbols-outlined" aria-hidden="true">edit</span>
                                 <span>{i18n:profile_cfp_manage}</span>
                             </a>
                             <a href="/private/admin/metrics?event={ev.id}&amp;range=all"
-                                class="btn btn-ghost admin-event-action">
+                                class="btn btn--ghost admin-event-action">
                                 <span class="material-symbols-outlined" aria-hidden="true">analytics</span>
                                 <span>Métricas</span>
                             </a>
                             <form method="post" action="/private/admin/events/{ev.id}/delete"
                                 class="needs-confirm inline-form admin-event-action-form">
                                     {#include fragments/csrf-token.html /}
-                                <button type="submit" class="btn btn-danger admin-event-action">
+                                <button type="submit" class="btn btn--danger admin-event-action">
                                     <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                                     <span>Eliminar</span>
                                 </button>

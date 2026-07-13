@@ -2,6 +2,10 @@
 """
 Homedir User Administration MCP Server.
 Implements the Model Context Protocol (MCP) over stdin/stdout for local agents.
+
+This server can operate in two modes:
+1. OIDC mode: Uses standard authentication (requires login via web)
+2. Localhost admin mode: Uses bearer token (LOCALHOST_ADMIN_TOKEN) for direct API access
 """
 
 import sys
@@ -12,6 +16,10 @@ import requests
 # Retrieve config from environment variables
 API_URL = os.environ.get('HOMEDIR_API_URL', 'http://localhost:8080').rstrip('/')
 TOKEN = os.environ.get('HOMEDIR_ADMIN_TOKEN')
+LOCALHOST_TOKEN = os.environ.get('LOCALHOST_ADMIN_TOKEN')
+
+# Determine which API mode to use
+USE_LOCALHOST_API = bool(LOCALHOST_TOKEN)
 
 SESSION = requests.Session()
 
@@ -20,16 +28,18 @@ def get_headers():
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
-    if TOKEN:
+    if USE_LOCALHOST_API and LOCALHOST_TOKEN:
+        headers['Authorization'] = f'Bearer {LOCALHOST_TOKEN}'
+    elif TOKEN:
         headers['Authorization'] = f'Bearer {TOKEN}'
     return headers
 
 def make_request(method, endpoint, json_data=None):
     url = f"{API_URL}{endpoint}"
     headers = get_headers()
-    
-    # Dev mode auto-login if hitting localhost without a token
-    if not TOKEN and ("localhost" in API_URL or "127.0.0.1" in API_URL):
+
+    # Dev mode auto-login if hitting localhost without a token (only for non-localhost-API mode)
+    if not USE_LOCALHOST_API and not TOKEN and ("localhost" in API_URL or "127.0.0.1" in API_URL):
         if "quarkus-credential" not in SESSION.cookies:
             try:
                 SESSION.post(
@@ -43,11 +53,18 @@ def make_request(method, endpoint, json_data=None):
     try:
         response = SESSION.request(method, url, headers=headers, json=json_data, timeout=10)
         if response.status_code == 401:
-            return {"error": "Unauthorized. Please set/check your HOMEDIR_ADMIN_TOKEN."}
+            token_hint = "LOCALHOST_ADMIN_TOKEN" if USE_LOCALHOST_API else "HOMEDIR_ADMIN_TOKEN"
+            return {"error": f"Unauthorized. Please set/check your {token_hint}."}
         elif response.status_code == 403:
             return {"error": "Forbidden. Insufficient administrative privileges."}
         elif response.status_code == 404:
             return {"error": "Not Found."}
+        if not response.ok:
+            try:
+                error_body = response.json()
+                return error_body
+            except Exception:
+                pass
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -139,6 +156,51 @@ TOOLS = [
         "description": "Retrieve all CFP (Call for Papers) submissions across events."
     },
     {
+        "name": "get_cfp_submission",
+        "description": "Get detailed information about a specific CFP submission by ID and event ID.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string",
+                    "description": "The event ID (e.g., devopsdays-santiago-2026)."
+                },
+                "cfp_id": {
+                    "type": "string",
+                    "description": "The CFP submission UUID."
+                }
+            },
+            "required": ["event_id", "cfp_id"]
+        }
+    },
+    {
+        "name": "update_cfp_status",
+        "description": "Update the status of a CFP submission (e.g., to ACCEPTED, REJECTED, UNDER_REVIEW).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string",
+                    "description": "The event ID (e.g., devopsdays-santiago-2026)."
+                },
+                "cfp_id": {
+                    "type": "string",
+                    "description": "The CFP submission UUID."
+                },
+                "status": {
+                    "type": "string",
+                    "description": "The new status: accepted, rejected, under_review, or waitlisted.",
+                    "enum": ["accepted", "rejected", "under_review", "waitlisted"]
+                },
+                "note": {
+                    "type": "string",
+                    "description": "Optional note explaining the status change."
+                }
+            },
+            "required": ["event_id", "cfp_id", "status"]
+        }
+    },
+    {
         "name": "list_volunteers",
         "description": "Retrieve all volunteer applications across events."
     },
@@ -225,6 +287,45 @@ def handle_tool_call(name, args):
         if isinstance(res, dict) and "error" in res:
             return res["error"]
         return f"Successfully updated Quest Class for {user_id}. New profile state:\n{json.dumps(res, indent=2)}"
+
+    elif name == "get_cfp_submission":
+        event_id = args.get("event_id")
+        cfp_id = args.get("cfp_id")
+
+        if USE_LOCALHOST_API:
+            endpoint = f"/api/localhost-admin/cfp/{event_id}/{cfp_id}"
+        else:
+            endpoint = f"/api/events/{event_id}/cfp/submissions/{cfp_id}"
+
+        res = make_request("GET", endpoint)
+        if isinstance(res, dict) and "error" in res:
+            return res["error"]
+        return json.dumps(res, indent=2)
+
+    elif name == "update_cfp_status":
+        event_id = args.get("event_id")
+        cfp_id = args.get("cfp_id")
+        status = args.get("status")
+        note = args.get("note", "Status updated via MCP admin tool")
+
+        if USE_LOCALHOST_API:
+            get_endpoint = f"/api/localhost-admin/cfp/{event_id}/{cfp_id}"
+            put_endpoint = f"/api/localhost-admin/cfp/{event_id}/{cfp_id}/status"
+        else:
+            get_endpoint = f"/api/events/{event_id}/cfp/submissions/{cfp_id}"
+            put_endpoint = f"/api/events/{event_id}/cfp/submissions/{cfp_id}/status"
+
+        current = make_request("GET", get_endpoint)
+        if isinstance(current, dict) and "error" in current:
+            return current["error"]
+
+        version = current.get("item", {}).get("version", 0)
+        payload = {"status": status, "note": note, "version": version}
+        res = make_request("PUT", put_endpoint, payload)
+
+        if isinstance(res, dict) and "error" in res:
+            return res["error"]
+        return f"Successfully updated CFP {cfp_id} to status '{status}'.\n{json.dumps(res, indent=2)}"
 
     return f"Error: Tool '{name}' not found."
 

@@ -65,6 +65,17 @@ public class NotificationService {
     cleanupDedupe(now);
 
     Deque<Notification> list = store.getUserList(n.userId);
+    if (n.talkId != null && n.type != null) {
+      boolean alreadyNotified =
+          list.stream()
+              .anyMatch(
+                  existing -> n.talkId.equals(existing.talkId) && n.type.equals(existing.type));
+      if (alreadyNotified) {
+        deduped.incrementAndGet();
+        log(n, "duplicate.persistent");
+        return NotificationResult.DROPPED_DUPLICATE;
+      }
+    }
     if (list.size() >= NotificationConfig.userCap
         || store.totalSize() >= NotificationConfig.globalCap) {
       dropped.incrementAndGet();

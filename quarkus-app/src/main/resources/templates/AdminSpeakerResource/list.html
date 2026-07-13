@@ -12,8 +12,8 @@
         {#if message}<p class="section-subtitle">{message}</p>{/if}
       </div>
       <div class="action-group">
-        <a href="#new-speaker" class="btn btn-primary">Agregar orador</a>
-        <a href="/private/admin" class="btn btn-secondary">Volver al panel</a>
+        <a href="#new-speaker" class="btn btn--primary">Agregar orador</a>
+        <a href="/private/admin" class="btn btn--secondary">Volver al panel</a>
       </div>
     </div>
   </div>
@@ -31,7 +31,7 @@
       <div>
         <form method="post" action="/private/admin/speakers/{s.id}/delete" class="needs-confirm inline-form">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Eliminar</button>
+          <button type="submit" class="btn btn--danger">Eliminar</button>
         </form>
       </div>
     </div>
@@ -71,7 +71,7 @@
         <textarea name="bio" rows="3" placeholder="Bio" class="form-textarea">{s.bio}</textarea>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-secondary">Guardar</button>
+        <button type="submit" class="btn btn--secondary">Guardar</button>
       </div>
     </form>
 
@@ -112,13 +112,13 @@
             </div>
           </div>
           <div class="form-actions">
-            <button type="submit" class="btn btn-secondary">Guardar</button>
+            <button type="submit" class="btn btn--secondary">Guardar</button>
           </div>
         </form>
         <form method="post" action="/private/admin/speakers/{s.id}/talk/{t.id}/delete"
           class="needs-confirm form-actions item-header" style="margin-top: 0;">
                 {#include fragments/csrf-token.html /}
-          <button type="submit" class="btn btn-danger">Eliminar</button>
+          <button type="submit" class="btn btn--danger">Eliminar</button>
         </form>
       </div>
       {/for}
@@ -154,7 +154,7 @@
             </div>
           </div>
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Agregar</button>
+            <button type="submit" class="btn btn--primary">Agregar</button>
           </div>
         </form>
       </div>
@@ -184,7 +184,7 @@
       <div class="form-group"><label class="form-label">Bio</label><textarea name="bio" rows="3" placeholder="Bio"
           class="form-textarea"></textarea></div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Agregar</button>
+        <button type="submit" class="btn btn--primary">Agregar</button>
       </div>
     </form>
   </div>
