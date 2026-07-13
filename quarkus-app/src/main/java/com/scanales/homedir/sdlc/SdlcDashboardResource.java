@@ -9,6 +9,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -27,6 +28,8 @@ public class SdlcDashboardResource {
     if (!AdminUtils.canViewAdminBackoffice(identity)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    return dashboard.instance();
+    CacheControl cc = new CacheControl();
+    cc.setNoStore(true);
+    return Response.ok(dashboard.instance()).cacheControl(cc).build();
   }
 }
