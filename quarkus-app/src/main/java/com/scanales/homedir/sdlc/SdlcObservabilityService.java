@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,7 @@ public class SdlcObservabilityService {
 
   private final ObjectMapper mapper;
 
+  @Inject
   public SdlcObservabilityService(ObjectMapper mapper) {
     this.mapper = mapper;
   }
@@ -43,9 +45,10 @@ public class SdlcObservabilityService {
   public Map<String, Object> status() {
     Map<String, Object> heartbeat = heartbeat();
     long age = ((Number) heartbeat.getOrDefault("ageSeconds", Long.MAX_VALUE)).longValue();
+    boolean stale = age == Long.MAX_VALUE || age > 300;
     String raw = String.valueOf(heartbeat.getOrDefault("status", "missing"));
     String state =
-        age > 300
+        stale
             ? "error"
             : switch (raw) {
               case "running", "starting" -> "running";
@@ -118,7 +121,7 @@ public class SdlcObservabilityService {
         "updatedAt",
         updated,
         "ageSeconds",
-        age == Long.MAX_VALUE ? 0 : age,
+        age,
         "stale",
         age > 300);
   }
@@ -167,7 +170,21 @@ public class SdlcObservabilityService {
 
   public Map<String, Object> metrics(int days) {
     int safeDays = Math.max(7, Math.min(days, 90));
-    List<Map<String, Object>> runs = readJsonLines(stateDir().resolve("run-summaries"), 2000);
+    List<Map<String, Object>> allRuns = readJsonLines(stateDir().resolve("run-summaries"), 2000);
+    Instant cutoff = Instant.now().minus(java.time.Duration.ofDays(safeDays));
+    List<Map<String, Object>> runs =
+        allRuns.stream()
+            .filter(
+                r -> {
+                  String ts =
+                      String.valueOf(r.getOrDefault("timestamp", r.getOrDefault("created_at", "")));
+                  try {
+                    return !ts.isEmpty() && Instant.parse(ts).isAfter(cutoff);
+                  } catch (java.time.format.DateTimeParseException e) {
+                    return false;
+                  }
+                })
+            .toList();
     long successful = runs.stream().filter(this::isSuccessful).count();
     List<Map<String, Object>> trend = new ArrayList<>();
     for (int i = safeDays - 1; i >= 0; i--) {
@@ -188,7 +205,7 @@ public class SdlcObservabilityService {
               "prs",
               Math.max(0, count - 1),
               "merged",
-              successful == 0 ? 0 : Math.min(count, successful)));
+              Math.min(count, successful)));
     }
     double autonomy = runs.isEmpty() ? 0 : successful * 100d / runs.size();
     return Map.of(
@@ -197,23 +214,23 @@ public class SdlcObservabilityService {
         "autoMerge", round(autonomy),
         "admission",
             Map.of(
-                "accepted", 78,
-                "rejected", 14,
-                "needsHuman", 8),
+                "accepted", 0,
+                "rejected", 0,
+                "needsHuman", 0),
         "performance",
             Map.of(
-                "issueToPrMinutes", 18,
-                "prToMergeMinutes", 11,
-                "endToEndMinutes", 37,
+                "issueToPrMinutes", 0,
+                "prToMergeMinutes", 0,
+                "endToEndMinutes", 0,
                 "sccByComplexity",
                     Map.of(
-                        "simple", 7,
-                        "medium", 19,
-                        "complex", 42)),
+                        "simple", 0,
+                        "medium", 0,
+                        "complex", 0)),
         "throughput",
             Map.of(
                 "daily", runs.size(),
-                "weekly", runs.size()),
+                "weekly", Math.round(runs.size() / Math.max(1, safeDays / 7.0))),
         "trend", trend);
   }
 
@@ -258,7 +275,7 @@ public class SdlcObservabilityService {
   }
 
   public List<Map<String, Object>> audit(String id) {
-    if (!id.matches("[0-9]{1,10}")) return List.of();
+    if (!id.matches("[1-9][0-9]{0,9}")) return List.of();
     List<Map<String, Object>> events =
         readJsonLines(stateDir().resolve("run-summaries"), 2000).stream()
             .filter(row -> id.equals(String.valueOf(number(row))))
@@ -303,6 +320,13 @@ public class SdlcObservabilityService {
           StandardOpenOption.TRUNCATE_EXISTING);
     }
     if ("clear-locks".equals(action)) {
+      Map<String, Object> hb = heartbeat();
+      long age = ((Number) hb.getOrDefault("ageSeconds", Long.MAX_VALUE)).longValue();
+      boolean stale = age == Long.MAX_VALUE || age > 300;
+      if (!stale && Boolean.FALSE.equals(hb.get("stale"))) {
+        throw new IllegalArgumentException(
+            "Worker heartbeat is fresh (" + age + "s old); cannot clear lock on a live worker");
+      }
       Files.deleteIfExists(dir.resolve("worker.lock"));
     }
     Map<String, Object> event =
@@ -369,7 +393,7 @@ public class SdlcObservabilityService {
     out.putIfAbsent("title", Character.toUpperCase(kind.charAt(0)) + kind.substring(1) + " #" + n);
     out.putIfAbsent("state", normalizeStage(source));
     out.putIfAbsent("labels", List.of());
-    out.putIfAbsent(
+    out.put(
         "githubUrl",
         "https://github.com/os-santiago/homedir/"
             + ("pr".equals(kind) ? "pull" : "issues")

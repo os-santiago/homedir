@@ -68,7 +68,7 @@ public class SdlcApiResource {
   @GET
   @Path("audit/{id}")
   public Response audit(@PathParam("id") String id) {
-    if (id == null || !id.matches("[0-9]{1,10}"))
+    if (id == null || !id.matches("[1-9][0-9]{0,9}"))
       return Response.status(400)
           .entity(Map.of("error", "id must be a positive issue or PR number"))
           .build();
@@ -84,7 +84,8 @@ public class SdlcApiResource {
   @POST
   @Path("control/{action}")
   public Response control(@PathParam("action") String action) {
-    if (!allowed(true)) return forbidden();
+    if (!authorized(true)) return forbidden();
+    if (!checkRateLimit()) return tooManyRequests();
     if (action == null || !action.matches("pause|resume|reconcile|clear-locks"))
       return Response.status(400).entity(Map.of("error", "unsupported action")).build();
     try {
@@ -99,14 +100,18 @@ public class SdlcApiResource {
   }
 
   private Response read(Object entity) {
-    if (!allowed(false)) return forbidden();
+    if (!authorized(false)) return forbidden();
+    if (!checkRateLimit()) return tooManyRequests();
     return Response.ok(entity).build();
   }
 
-  private boolean allowed(boolean manage) {
-    if (manage
-        ? !AdminUtils.canManageAdminBackoffice(identity)
-        : !AdminUtils.canViewAdminBackoffice(identity)) return false;
+  private boolean authorized(boolean manage) {
+    return manage
+        ? AdminUtils.canManageAdminBackoffice(identity)
+        : AdminUtils.canViewAdminBackoffice(identity);
+  }
+
+  private boolean checkRateLimit() {
     String key = identity.getPrincipal().getName();
     Window w =
         WINDOWS.compute(
@@ -115,12 +120,18 @@ public class SdlcApiResource {
                 old == null || old.started.plusSeconds(60).isBefore(Instant.now())
                     ? new Window()
                     : old);
-    return w.requests.incrementAndGet() <= 120;
+    return w.requests.incrementAndGet() <= 300;
   }
 
   private Response forbidden() {
     return Response.status(Response.Status.FORBIDDEN)
-        .entity(Map.of("error", "not authorized or rate limit exceeded"))
+        .entity(Map.of("error", "not authorized"))
+        .build();
+  }
+
+  private Response tooManyRequests() {
+    return Response.status(429)
+        .entity(Map.of("error", "rate limit exceeded"))
         .build();
   }
 

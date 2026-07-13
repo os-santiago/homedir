@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{i18n:sdlc_dash_title}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="/sdlc/dashboard/dashboard.css">
+</head>
+<body>
+  <a class="skip" href="#content">{i18n:sdlc_dash_skip}</a>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">H/</span><div><strong>HOMEDIR</strong><small>{i18n:sdlc_dash_brand_subtitle}</small></div></div>
+      <nav aria-label="{i18n:sdlc_dash_nav_aria}">
+        <a href="#overview" data-route="overview" class="active"><span class="material-symbols-outlined">monitoring</span>{i18n:sdlc_dash_nav_overview}</a>
+        <a href="#pipeline" data-route="pipeline"><span class="material-symbols-outlined">account_tree</span>{i18n:sdlc_dash_nav_pipeline}</a>
+        <a href="#active" data-route="active"><span class="material-symbols-outlined">list</span>{i18n:sdlc_dash_nav_active}</a>
+        <a href="#metrics" data-route="metrics"><span class="material-symbols-outlined">bar_chart</span>{i18n:sdlc_dash_nav_metrics}</a>
+        <a href="#anomalies" data-route="anomalies"><span class="material-symbols-outlined">warning</span>{i18n:sdlc_dash_nav_anomalies} <b id="anomalyBadge">0</b></a>
+        <a href="#audit" data-route="audit"><span class="material-symbols-outlined">history</span>{i18n:sdlc_dash_nav_audit}</a>
+        <a href="#configuration" data-route="configuration"><span class="material-symbols-outlined">settings</span>{i18n:sdlc_dash_nav_config}</a>
+      </nav>
+      <div class="sidebar-foot"><span class="dot healthy"></span><div><strong>{i18n:sdlc_dash_session_label}</strong><small>{i18n:sdlc_dash_session_desc}</small></div></div>
+    </aside>
+    <div class="workspace">
+      <header><div><p class="eyebrow">{i18n:sdlc_dash_header_eyebrow}</p><h1 id="pageTitle">{i18n:sdlc_dash_header_title}</h1></div><div class="header-status"><span id="livePulse" class="live-dot"></span><div><strong id="workerState">{i18n:sdlc_dash_connecting}</strong><small id="lastSync">{i18n:sdlc_dash_waiting}</small></div><button id="refresh" aria-label="{i18n:sdlc_dash_refresh_aria}"><span class="material-symbols-outlined">refresh</span></button></div></header>
+      <main id="content" tabindex="-1">
+        <section class="view active" data-view="overview">
+          <div class="hero"><div><span class="kicker">{i18n:sdlc_dash_hero_kicker}</span><h2>{i18n:sdlc_dash_hero_title}</h2><p>{i18n:sdlc_dash_hero_desc}</p></div><div class="hero-score"><span id="healthScore">--</span><small>{i18n:sdlc_dash_health_label}</small></div></div>
+          <div id="componentGrid" class="component-grid loading"></div>
+          <div class="split"><article class="panel"><div class="panel-head"><div><span class="kicker">{i18n:sdlc_dash_snapshot_kicker}</span><h3>{i18n:sdlc_dash_snapshot_heading}</h3></div><a href="#pipeline">{i18n:sdlc_dash_inspect_flow} →</a></div><div id="miniPipeline" class="mini-pipeline"></div></article><article class="panel"><div class="panel-head"><div><span class="kicker">{i18n:sdlc_dash_attention_kicker}</span><h3>{i18n:sdlc_dash_attention_heading}</h3></div><a href="#anomalies">{i18n:sdlc_dash_view_all} →</a></div><div id="miniAnomalies"></div></article></div>
+        </section>
+        <section class="view" data-view="pipeline"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_pipeline_kicker}</span><h2>{i18n:sdlc_dash_pipeline_heading}</h2><p>{i18n:sdlc_dash_pipeline_desc}</p></div></div><div id="pipelineFlow" class="pipeline-flow"></div><article class="panel stage-detail"><div class="panel-head"><h3 id="stageTitle">{i18n:sdlc_dash_select_stage}</h3><span id="stageMeta"></span></div><div id="stageItems" class="empty">{i18n:sdlc_dash_no_stage}.</div></article></section>
+        <section class="view" data-view="active"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_active_kicker}</span><h2>{i18n:sdlc_dash_active_heading}</h2></div><div class="tabs"><button class="active" data-tab="issues">{i18n:sdlc_dash_tab_issues}</button><button data-tab="prs">{i18n:sdlc_dash_tab_prs}</button></div></div><div class="filter"><input id="activeSearch" type="search" placeholder="{i18n:sdlc_dash_filter_placeholder}" aria-label="{i18n:sdlc_dash_filter_aria}"></div><div id="activeTable" class="table-wrap"></div></section>
+        <section class="view" data-view="metrics"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_metrics_kicker}</span><h2>{i18n:sdlc_dash_metrics_heading}</h2></div><select id="range" aria-label="{i18n:sdlc_dash_range_aria}"><option value="7">{i18n:sdlc_dash_range_7}</option><option value="30" selected>{i18n:sdlc_dash_range_30}</option><option value="90">{i18n:sdlc_dash_range_90}</option></select></div><div id="metricCards" class="metric-grid"></div><article class="panel"><div class="panel-head"><div><span class="kicker">{i18n:sdlc_dash_throughput_kicker}</span><h3>{i18n:sdlc_dash_throughput_heading}</h3></div><div class="legend"><i class="purple"></i> {i18n:sdlc_dash_legend_issues} <i class="green"></i> {i18n:sdlc_dash_legend_merged}</div></div><div id="trendChart" class="chart"></div></article><div id="performance" class="split"></div></section>
+        <section class="view" data-view="anomalies"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_anomalies_kicker}</span><h2>{i18n:sdlc_dash_anomalies_heading}</h2><p>{i18n:sdlc_dash_anomalies_desc}</p></div></div><div id="anomalyList" class="anomaly-list"></div></section>
+        <section class="view" data-view="audit"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_audit_kicker}</span><h2>{i18n:sdlc_dash_audit_heading}</h2></div></div><form id="auditForm" class="audit-search"><label>{i18n:sdlc_dash_audit_label}<input id="auditId" inputmode="numeric" pattern="[0-9]+" placeholder="{i18n:sdlc_dash_audit_placeholder}" required></label><button>{i18n:sdlc_dash_audit_button}</button></form><div id="auditTimeline" class="timeline empty">{i18n:sdlc_dash_audit_empty}.</div></section>
+        <section class="view" data-view="configuration"><div class="section-head"><div><span class="kicker">{i18n:sdlc_dash_config_kicker}</span><h2>{i18n:sdlc_dash_config_heading}</h2><p>{i18n:sdlc_dash_config_desc}</p></div></div><div id="configGrid" class="config-grid"></div><article class="panel danger-panel"><div><span class="kicker">{i18n:sdlc_dash_control_kicker}</span><h3>{i18n:sdlc_dash_control_heading}</h3><p>{i18n:sdlc_dash_control_desc}</p></div><div class="controls"><button data-action="pause">{i18n:sdlc_dash_btn_pause}</button><button data-action="resume">{i18n:sdlc_dash_btn_resume}</button><button data-action="reconcile">{i18n:sdlc_dash_btn_reconcile}</button><button data-action="clear-locks" class="danger">{i18n:sdlc_dash_btn_clear_locks}</button></div></article></section>
+      </main>
+      <footer><span>{i18n:sdlc_dash_footer_vps} <b>vh01</b></span><span>{i18n:sdlc_dash_footer_worker} <b id="footerVersion">{i18n:sdlc_dash_unknown}</b></span><span>{i18n:sdlc_dash_footer_api} <b class="ok">{i18n:sdlc_dash_connected}</b></span><span class="push">{i18n:sdlc_dash_autorefresh}</span></footer>
+    </div>
+  </div>
+  <div id="toastRegion" class="toasts" aria-live="polite"></div>
+  <script src="/sdlc/dashboard/dashboard.js" defer></script>
+</body></html>
