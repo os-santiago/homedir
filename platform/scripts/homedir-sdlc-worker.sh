@@ -663,10 +663,52 @@ reconcile_admission_requests() {
     fi
 
     if ! issue_has_label "${labels}" "${ACCEPTED_LABEL}"; then
-      add_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-      comment_issue "${number}" "AI SDLC admission is waiting for initial acceptance review. \`${TRIGGER_LABEL}\` requires \`${ACCEPTED_LABEL}\` before this issue can enter \`${QUEUE_LABEL}\`."
-      log "issue #${number} has ${TRIGGER_LABEL} but is missing ${ACCEPTED_LABEL}; admission deferred"
-      continue
+      # ============================================================================
+      # POLICY-DRIVEN AUTO-APPROVAL (first check)
+      # ============================================================================
+      local title body policy_decision policy_approved
+      title="$(jq -r '.title' <<<"${issue_json}")"
+      body="$(jq -r '.body // ""' <<<"${issue_json}")"
+      policy_approved="false"
+
+      if declare -f get_policy_decision >/dev/null 2>&1; then
+        policy_decision=$(get_policy_decision "${number}" "${title}" "${body}" 2>/dev/null || echo "null")
+
+        if [[ "$policy_decision" != "null" ]] && [[ -n "$policy_decision" ]]; then
+          local requires_approval
+          requires_approval=$(echo "$policy_decision" | jq -r '.requires_approval // false' 2>/dev/null || echo "false")
+
+          local requires_legal
+          requires_legal=$(echo "$policy_decision" | jq -r '.requires_legal // false' 2>/dev/null || echo "false")
+
+          if [[ "$requires_approval" != "true" ]] && [[ "$requires_legal" != "true" ]]; then
+            # Auto-approve via policy
+            policy_approved="true"
+            add_label "${number}" "${ACCEPTED_LABEL}"
+
+            local policy_ref
+            policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
+
+            local policy_text
+            policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
+
+            comment_issue "${number}" "✅ **Auto-approved via policy \`${policy_ref}\`**
+
+Autonomous decision: ${policy_text}
+
+Proceeding to admission..."
+            log "Issue #${number} auto-approved via policy on first check: ${policy_ref}"
+          fi
+        fi
+      fi
+
+      # If not auto-approved, defer to standard admission review
+      if [[ "$policy_approved" != "true" ]]; then
+        add_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+        comment_issue "${number}" "AI SDLC admission is waiting for initial acceptance review. \`${TRIGGER_LABEL}\` requires \`${ACCEPTED_LABEL}\` before this issue can enter \`${QUEUE_LABEL}\`."
+        log "issue #${number} has ${TRIGGER_LABEL} but is missing ${ACCEPTED_LABEL}; admission deferred"
+        continue
+      fi
     fi
 
     labeler="$(latest_trigger_labeler "${number}")"
@@ -733,6 +775,73 @@ reconcile_stuck_admission_reviews() {
 
     log "Reconciling stuck admission review for issue #${number}"
 
+    # ============================================================================
+    # POLICY-DRIVEN AUTO-APPROVAL
+    # ============================================================================
+    # Check if this issue matches any autonomous decision policy
+    local policy_decision=""
+    local policy_approved="false"
+
+    if declare -f get_policy_decision >/dev/null 2>&1; then
+      policy_decision=$(get_policy_decision "${number}" "${title}" "${body}" 2>/dev/null || echo "null")
+
+      if [[ "$policy_decision" != "null" ]] && [[ -n "$policy_decision" ]]; then
+        local requires_approval
+        requires_approval=$(echo "$policy_decision" | jq -r '.requires_approval // false' 2>/dev/null || echo "false")
+
+        local requires_legal
+        requires_legal=$(echo "$policy_decision" | jq -r '.requires_legal // false' 2>/dev/null || echo "false")
+
+        local policy_ref
+        policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
+
+        local policy_text
+        policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
+
+        if [[ "$requires_approval" != "true" ]] && [[ "$requires_legal" != "true" ]]; then
+          # Policy matched and does NOT require approval -> AUTO-APPROVE
+          policy_approved="true"
+          log "Issue #${number} auto-approved via policy: ${policy_ref}"
+
+          add_label "${number}" "${ACCEPTED_LABEL}"
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          comment_issue "${number}" "✅ **AI SDLC auto-approved via policy**
+
+**Policy Matched**: \`${policy_ref}\`
+**Autonomous Decision**: ${policy_text}
+**Approval**: AUTOMATIC (policy-driven, no human approval required)
+
+The worker will implement this autonomously following the established policy.
+
+Proceeding to queue..."
+          log "Issue #${number} auto-accepted via policy: ${policy_ref}"
+          continue  # Skip standard review, already approved
+        elif [[ "$requires_approval" == "true" ]]; then
+          # Policy matched but requires human approval
+          log "Issue #${number} matched policy ${policy_ref} but requires human approval"
+
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          add_label "${number}" "${NEEDS_HUMAN_LABEL}"
+          comment_issue "${number}" "⚠️ **Policy matched but requires approval**
+
+**Policy**: \`${policy_ref}\`
+**Recommendation**: ${policy_text}
+**Approval Required**: YES (policy requires human approval for this category)
+
+Please review and approve by:
+1. Adding label \`${ACCEPTED_LABEL}\` if you approve
+2. Or closing the issue if you reject
+
+The worker will wait for your decision."
+          log "Issue #${number} marked needs-human (policy requires approval)"
+          continue
+        fi
+      fi
+    fi
+
+    # ============================================================================
+    # STANDARD ACCEPTANCE REVIEW (fallback if no policy match)
+    # ============================================================================
     # Re-run acceptance review
     review_json="$(issue_acceptance_review "${title}" "${body}")"
     status="$(jq -r '.status' <<<"${review_json}")"
