@@ -44,6 +44,7 @@ COVERAGE_GAP_LABEL="${HOMEDIR_SDLC_COVERAGE_GAP_LABEL:-scc-coverage-gap}"
 APPROVED_LABEL="${HOMEDIR_SDLC_APPROVED_LABEL:-scc-approved}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
 NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
+LEGAL_REVIEW_LABEL="${HOMEDIR_SDLC_LEGAL_REVIEW_LABEL:-scc-legal-review}"
 MERGED_LABEL="${HOMEDIR_SDLC_MERGED_LABEL:-scc-merged}"
 WORKDIR="${HOMEDIR_SDLC_WORKDIR:-/srv/homedir-sdlc/worktrees/homedir}"
 STATE_DIR="${HOMEDIR_SDLC_STATE_DIR:-/var/lib/homedir-sdlc}"
@@ -378,6 +379,7 @@ set_flow_labels() {
     "${COVERAGE_GAP_LABEL}" \
     "${APPROVED_LABEL}" \
     "${FAILED_LABEL}" \
+    "${LEGAL_REVIEW_LABEL}" \
     "${NEEDS_HUMAN_LABEL}"; do
     if [[ "${wanted}" == *" ${label} "* ]]; then
       add_label "${issue}" "${label}"
@@ -656,6 +658,7 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${COVERAGE_GAP_LABEL}" \
       || issue_has_label "${labels}" "${APPROVED_LABEL}" \
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
+      || issue_has_label "${labels}" "${LEGAL_REVIEW_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
       log "reconcile_admission_requests: skipping issue #${number} (already in terminal state)"
@@ -698,6 +701,15 @@ Autonomous decision: ${policy_text}
 
 Proceeding to admission..."
             log "Issue #${number} auto-approved via policy on first check: ${policy_ref}"
+          elif [[ "$requires_legal" == "true" ]]; then
+            add_label "${number}" "${LEGAL_REVIEW_LABEL}"
+            comment_issue "${number}" "⚠️ **Legal review required before implementation**
+
+Autonomous decision indicated legal/compliance review is needed.
+
+The worker will wait for legal review before proceeding."
+            log "Issue #${number} marked legal-review on first check"
+            continue
           fi
         fi
       fi
@@ -762,6 +774,7 @@ reconcile_stuck_admission_reviews() {
     # Skip if already accepted, or in terminal states
     if issue_has_label "${labels}" "${ACCEPTED_LABEL}" \
       || issue_has_label "${labels}" "${REJECTED_LABEL}" \
+      || issue_has_label "${labels}" "${LEGAL_REVIEW_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
       || issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
@@ -816,6 +829,25 @@ The worker will implement this autonomously following the established policy.
 Proceeding to queue..."
           log "Issue #${number} auto-accepted via policy: ${policy_ref}"
           continue  # Skip standard review, already approved
+        elif [[ "$requires_legal" == "true" ]]; then
+          # Policy matched but requires legal/compliance review
+          log "Issue #${number} matched policy ${policy_ref} but requires legal review"
+
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          add_label "${number}" "${LEGAL_REVIEW_LABEL}"
+          comment_issue "${number}" "⚠️ **Policy matched but requires legal review**
+
+**Policy**: \`${policy_ref}\`
+**Recommendation**: ${policy_text}
+**Legal Review Required**: YES (policy requires compliance review)
+
+Legal review requested. Please review and approve by:
+1. Adding label \`${ACCEPTED_LABEL}\` if compliant
+2. Or closing the issue if rejected
+
+The worker will wait for your decision."
+          log "Issue #${number} marked legal-review (policy requires compliance check)"
+          continue
         elif [[ "$requires_approval" == "true" ]]; then
           # Policy matched but requires human approval
           log "Issue #${number} matched policy ${policy_ref} but requires human approval"

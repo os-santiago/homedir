@@ -100,7 +100,7 @@ Is it a public API?
 
 **Automatic Decision**:
 - ✅ **MINOR/PATCH**: Auto-update if tests pass
-- ✅ **MAJOR**: Check CHANGELOG, update code if breaking changes are minor
+- ❌ **MAJOR**: Requires human approval (check CHANGELOG, update code if breaking changes are minor)
 - ✅ **SECURITY**: Always update, fix breaking changes
 - ✅ **LOCKFILE**: Update package-lock.json/yarn.lock
 
@@ -186,7 +186,7 @@ New function added?
 **Automatic Decision**:
 - ✅ **ALWAYS VALIDATE**: User input, URL parameters, headers
 - ✅ **WHITELIST**: Prefer whitelisting over blacklisting
-- ✅ **SANITIZE**: HTML/SQL before use
+- ✅ **SANITIZE**: HTML before use, parameterized queries for SQL
 - ✅ **LIMIT**: Add rate limiting for public endpoints
 
 **Auto-Apply Pattern**:
@@ -211,7 +211,7 @@ function updateUser(userId, data) {
 
 ## When to Still Escalate to needs-human
 
-Only escalate when **ALL** of these are true:
+Only escalate when **ANY** of these are true:
 
 1. ❌ **Ambiguity is fundamental**, not solvable with best practices
 2. ❌ **Multiple approaches have EQUAL merit** (rare)
