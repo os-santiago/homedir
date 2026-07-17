@@ -6,6 +6,7 @@
   const duration = seconds => { const n=Number(seconds)||0; if(n<60)return `${n}s`; if(n<3600)return `${Math.round(n/60)}m`; if(n<86400)return `${Math.round(n/3600)}h`; return `${Math.round(n/86400)}d`; };
   const api = async path => { const r=await fetch(`/api/sdlc/${path}`,{headers:{Accept:'application/json'}}); if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||`Request failed (${r.status})`); return r.json(); };
   const toast = message => { const el=document.createElement('div'); el.className='toast'; el.textContent=message; $('#toastRegion').append(el); setTimeout(()=>el.remove(),4000); };
+  const REPO = 'os-santiago/homedir';
   const titles={overview:'System overview',pipeline:'Pipeline flow',active:'Active items',metrics:'Autonomy & performance',anomalies:'Anomaly detection',audit:'Audit trail',configuration:'Configuration & control',decisions:'Autonomous Decisions'};
 
   function route(){ const name=location.hash.slice(1)||'overview'; $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name)); $$('[data-route]').forEach(a=>a.classList.toggle('active',a.dataset.route===name)); $('#pageTitle').textContent=titles[name]||titles.overview; if(!titles[name])location.hash='overview'; }

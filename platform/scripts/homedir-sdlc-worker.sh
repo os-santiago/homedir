@@ -435,44 +435,47 @@ log_autonomous_decision() {
     needs_review="true"
   fi
 
-  local pr_num="null"
-  if [[ -n "${pr_number}" ]]; then
-    pr_num="${pr_number}"
-  fi
-
-  # Prepare policy fields
   local policy_driven="false"
-  local policy_reference="null"
-  local policy_version="null"
-
   if [[ -n "${policy_ref}" ]]; then
     policy_driven="true"
-    policy_reference="\"${policy_ref}\""
-    policy_version="\"1.0\""
   fi
 
-  cat > "${decision_file}" <<EOF
-{
-  "id": "${decision_id}",
-  "issueNumber": ${issue},
-  "prNumber": ${pr_num},
-  "category": "${category}",
-  "decision": "${decision}",
-  "rationale": "${rationale}",
-  "pattern": "${pattern}",
-  "reversibility": "${reversibility}",
-  "confidence": "${confidence}",
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "needsReview": ${needs_review},
-  "policyDriven": ${policy_driven},
-  "policyReference": ${policy_reference},
-  "policyVersion": ${policy_version},
-  "metadata": {
-    "worker": "homedir-sdlc-worker",
-    "workerVersion": "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}"
-  }
-}
-EOF
+  jq -n \
+    --arg id "${decision_id}" \
+    --argjson issueNumber "${issue}" \
+    --arg prNumber "${pr_number}" \
+    --arg category "${category}" \
+    --arg decision "${decision}" \
+    --arg rationale "${rationale}" \
+    --arg pattern "${pattern}" \
+    --arg reversibility "${reversibility}" \
+    --arg confidence "${confidence}" \
+    --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --argjson needsReview ${needs_review} \
+    --argjson policyDriven ${policy_driven} \
+    --arg policyReference "${policy_ref}" \
+    --argjson policyVersion "$(if [[ -n "${policy_ref}" ]]; then echo '"1.0"'; else echo 'null'; fi)" \
+    --arg workerVersion "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}" \
+    '{
+      "id": $id,
+      "issueNumber": $issueNumber,
+      "prNumber": (if $prNumber == "" then null else ($prNumber | tonumber) end),
+      "category": $category,
+      "decision": $decision,
+      "rationale": $rationale,
+      "pattern": $pattern,
+      "reversibility": $reversibility,
+      "confidence": $confidence,
+      "timestamp": $timestamp,
+      "needsReview": $needsReview,
+      "policyDriven": $policyDriven,
+      "policyReference": (if $policyReference == "" then null else $policyReference end),
+      "policyVersion": $policyVersion,
+      "metadata": {
+        "worker": "homedir-sdlc-worker",
+        "workerVersion": $workerVersion
+      }
+    }' > "${decision_file}"
 
   log "Logged autonomous decision: ${decision_id} for issue #${issue}"
 }

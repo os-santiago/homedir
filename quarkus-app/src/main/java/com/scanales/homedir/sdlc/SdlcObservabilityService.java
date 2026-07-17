@@ -514,8 +514,7 @@ public class SdlcObservabilityService {
     return readJsonLines(stateDir().resolve("autonomous-decisions"), 500).stream()
         .sorted(
             Comparator.comparing(
-                (Map<String, Object> m) ->
-                    String.valueOf(m.getOrDefault("timestamp", "")),
+                (Map<String, Object> m) -> String.valueOf(m.getOrDefault("timestamp", "")),
                 Comparator.reverseOrder()))
         .toList();
   }
@@ -535,9 +534,7 @@ public class SdlcObservabilityService {
 
     long total = decisions.size();
     long needsReview =
-        decisions.stream()
-            .filter(d -> Boolean.TRUE.equals(d.get("needsReview")))
-            .count();
+        decisions.stream().filter(d -> Boolean.TRUE.equals(d.get("needsReview"))).count();
 
     Map<String, Long> byCategory =
         decisions.stream()
