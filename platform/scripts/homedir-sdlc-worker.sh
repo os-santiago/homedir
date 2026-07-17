@@ -9,6 +9,9 @@ if [[ -f "${ENV_FILE}" ]]; then
   source "${ENV_FILE}"
 fi
 
+# Minimal logger for early init (overridden by full log() below)
+log() { echo "[$1] $2"; }
+
 # ============================================================================
 # POLICY SYSTEM INTEGRATION
 # ============================================================================
@@ -16,14 +19,23 @@ fi
 PLATFORM_DIR="${PLATFORM_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 export PLATFORM_DIR
 
-# Source policy loader and matcher
-# shellcheck source=policy-loader.sh
-source "${PLATFORM_DIR}/scripts/policy-loader.sh" || log "WARN: Policy loader not found"
-# shellcheck source=policy-matcher.sh
-source "${PLATFORM_DIR}/scripts/policy-matcher.sh" || log "WARN: Policy matcher not found"
+# Source policy loader and matcher (non-fatal if unavailable)
+if [[ -f "${PLATFORM_DIR}/scripts/policy-loader.sh" ]]; then
+  source "${PLATFORM_DIR}/scripts/policy-loader.sh"
+else
+  log "WARN" "policy-loader.sh not found"
+fi
 
-# Load policies (non-fatal if fails)
-load_policies || log "WARN: Running without policy system"
+if [[ -f "${PLATFORM_DIR}/scripts/policy-matcher.sh" ]]; then
+  source "${PLATFORM_DIR}/scripts/policy-matcher.sh"
+else
+  log "WARN" "policy-matcher.sh not found"
+fi
+
+# Load policies only when the function was defined
+if declare -f load_policies &>/dev/null; then
+  load_policies || log "WARN" "Running without policy system"
+fi
 
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
@@ -631,7 +643,7 @@ reconcile_admission_requests() {
     --state open \
     --label "${TRIGGER_LABEL}" \
     --limit 100 \
-    --json number,labels)"
+    --json number,labels,title,body)"
 
   if [[ "${issues_json}" == "[]" ]]; then
     log "reconcile_admission_requests: no admission requests found"
