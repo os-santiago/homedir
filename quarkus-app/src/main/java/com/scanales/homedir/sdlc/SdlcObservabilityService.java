@@ -510,6 +510,54 @@ public class SdlcObservabilityService {
     return Math.round(n * 10d) / 10d;
   }
 
+  public List<Map<String, Object>> autonomousDecisions() {
+    return readJsonLines(stateDir().resolve("autonomous-decisions"), 500).stream()
+        .sorted(
+            Comparator.comparing(
+                (Map<String, Object> m) -> String.valueOf(m.getOrDefault("timestamp", "")),
+                Comparator.reverseOrder()))
+        .toList();
+  }
+
+  public List<Map<String, Object>> autonomousDecisionsForIssue(String issueNumber) {
+    if (!issueNumber.matches("[1-9][0-9]{0,9}")) {
+      return List.of();
+    }
+    long issue = Long.parseLong(issueNumber);
+    return autonomousDecisions().stream()
+        .filter(d -> asLong(d.get("issueNumber")) == issue)
+        .toList();
+  }
+
+  public Map<String, Object> autonomousDecisionStats() {
+    List<Map<String, Object>> decisions = autonomousDecisions();
+
+    long total = decisions.size();
+    long needsReview =
+        decisions.stream().filter(d -> Boolean.TRUE.equals(d.get("needsReview"))).count();
+
+    Map<String, Long> byCategory =
+        decisions.stream()
+            .collect(
+                java.util.stream.Collectors.groupingBy(
+                    d -> String.valueOf(d.getOrDefault("category", "OTHER")),
+                    java.util.stream.Collectors.counting()));
+
+    Map<String, Long> byConfidence =
+        decisions.stream()
+            .collect(
+                java.util.stream.Collectors.groupingBy(
+                    d -> String.valueOf(d.getOrDefault("confidence", "MEDIUM")),
+                    java.util.stream.Collectors.counting()));
+
+    return Map.of(
+        "total", total,
+        "needsReview", needsReview,
+        "byCategory", byCategory,
+        "byConfidence", byConfidence,
+        "autonomyRate", total > 0 ? Math.round((total - needsReview) * 100.0 / total) : 0);
+  }
+
   private Path stateDir() {
     return Path.of(configuredStateDir).toAbsolutePath().normalize();
   }

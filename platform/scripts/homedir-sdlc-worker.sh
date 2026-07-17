@@ -9,6 +9,22 @@ if [[ -f "${ENV_FILE}" ]]; then
   source "${ENV_FILE}"
 fi
 
+# ============================================================================
+# POLICY SYSTEM INTEGRATION
+# ============================================================================
+# Load autonomous decision policies
+PLATFORM_DIR="${PLATFORM_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export PLATFORM_DIR
+
+# Source policy loader and matcher
+# shellcheck source=policy-loader.sh
+source "${PLATFORM_DIR}/scripts/policy-loader.sh" || log "WARN: Policy loader not found"
+# shellcheck source=policy-matcher.sh
+source "${PLATFORM_DIR}/scripts/policy-matcher.sh" || log "WARN: Policy matcher not found"
+
+# Load policies (non-fatal if fails)
+load_policies || log "WARN: Running without policy system"
+
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
 QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
@@ -391,6 +407,77 @@ comment_issue() {
   local issue="$1"
   local body="$2"
   gh issue comment "${issue}" --repo "${REPO}" --body "${body}" >/dev/null
+}
+
+log_autonomous_decision() {
+  local issue="$1"
+  local category="$2"
+  local decision="$3"
+  local rationale="$4"
+  local pattern="${5:-Followed existing codebase patterns}"
+  local reversibility="${6:-Yes}"
+  local confidence="${7:-MEDIUM}"
+  local pr_number="${8:-}"
+  local policy_ref="${9:-}"  # NEW: policy reference
+
+  local decisions_dir="${STATE_DIR}/autonomous-decisions"
+  mkdir -p "${decisions_dir}"
+
+  local timestamp
+  timestamp=$(date +%s%3N)
+  local category_slug
+  category_slug=$(echo "${category}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+  local decision_id="decision-${issue}-${category_slug}-${timestamp: -5}"
+  local decision_file="${decisions_dir}/${decision_id}.json"
+
+  local needs_review="false"
+  if [[ "${confidence}" == "LOW" ]] || [[ "${reversibility}" =~ [Nn]o ]] || [[ "${category}" == "SECURITY" ]]; then
+    needs_review="true"
+  fi
+
+  local policy_driven="false"
+  if [[ -n "${policy_ref}" ]]; then
+    policy_driven="true"
+  fi
+
+  jq -n \
+    --arg id "${decision_id}" \
+    --argjson issueNumber "${issue}" \
+    --arg prNumber "${pr_number}" \
+    --arg category "${category}" \
+    --arg decision "${decision}" \
+    --arg rationale "${rationale}" \
+    --arg pattern "${pattern}" \
+    --arg reversibility "${reversibility}" \
+    --arg confidence "${confidence}" \
+    --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --argjson needsReview ${needs_review} \
+    --argjson policyDriven ${policy_driven} \
+    --arg policyReference "${policy_ref}" \
+    --argjson policyVersion "$(if [[ -n "${policy_ref}" ]]; then echo '"1.0"'; else echo 'null'; fi)" \
+    --arg workerVersion "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}" \
+    '{
+      "id": $id,
+      "issueNumber": $issueNumber,
+      "prNumber": (if $prNumber == "" then null else ($prNumber | tonumber) end),
+      "category": $category,
+      "decision": $decision,
+      "rationale": $rationale,
+      "pattern": $pattern,
+      "reversibility": $reversibility,
+      "confidence": $confidence,
+      "timestamp": $timestamp,
+      "needsReview": $needsReview,
+      "policyDriven": $policyDriven,
+      "policyReference": (if $policyReference == "" then null else $policyReference end),
+      "policyVersion": $policyVersion,
+      "metadata": {
+        "worker": "homedir-sdlc-worker",
+        "workerVersion": $workerVersion
+      }
+    }' > "${decision_file}"
+
+  log "Logged autonomous decision: ${decision_id} for issue #${issue}"
 }
 
 mark_needs_human() {
@@ -1894,6 +1981,84 @@ EOF
 )"
   fi
 
+  # ============================================================================
+  # POLICY-DRIVEN DECISION SUPPORT
+  # ============================================================================
+  # Check if this issue matches any autonomous decision policy
+  local policy_decision=""
+  local policy_guidance=""
+
+  if declare -f get_policy_decision >/dev/null 2>&1; then
+    policy_decision=$(get_policy_decision "${number}" "${title}" "${body}" 2>/dev/null || echo "null")
+
+    if [[ "$policy_decision" != "null" ]] && [[ -n "$policy_decision" ]]; then
+      local policy_category
+      policy_category=$(echo "$policy_decision" | jq -r '.category' 2>/dev/null || echo "")
+
+      local policy_text
+      policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
+
+      local policy_rationale
+      policy_rationale=$(echo "$policy_decision" | jq -r '.rationale' 2>/dev/null || echo "")
+
+      local policy_ref
+      policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
+
+      local requires_approval
+      requires_approval=$(echo "$policy_decision" | jq -r '.requires_approval // false' 2>/dev/null || echo "false")
+
+      if [[ -n "$policy_text" ]] && [[ "$requires_approval" != "true" ]]; then
+        log "INFO: Policy matched for issue #${number}: ${policy_ref}"
+
+        policy_guidance="$(cat <<POLICY_EOF
+
+
+## AUTONOMOUS DECISION POLICY MATCHED
+
+This issue matches a pre-established autonomous decision policy:
+
+**Policy**: ${policy_ref}
+**Category**: ${policy_category}
+**Autonomous Decision**: ${policy_text}
+**Rationale**: ${policy_rationale}
+
+**Your Task**: Implement the policy-defined decision autonomously.
+- Confidence: HIGH (policy-driven decision)
+- Follow the policy guidance above
+- Log your implementation using the decision metadata
+- Document in commit message: "Applied policy ${policy_ref}"
+
+POLICY_EOF
+)"
+
+        # Log that we're using policy-driven approach
+        log "INFO: Autonomous policy will guide SCC for issue #${number}"
+      elif [[ "$requires_approval" == "true" ]]; then
+        log "INFO: Policy matched but requires approval for issue #${number}"
+
+        policy_guidance="$(cat <<POLICY_EOF
+
+
+## POLICY REQUIRES APPROVAL
+
+This issue matches policy: ${policy_ref}
+
+**Policy Recommendation**: ${policy_text}
+**Requires**: Human approval before implementation
+
+**Your Task**: Create an implementation plan and request approval.
+- Comment on the issue with: policy recommendation, pros/cons, approval request
+- Do NOT implement without explicit approval comment
+- If approved, proceed with implementation
+
+POLICY_EOF
+)"
+      fi
+    fi
+  fi
+
+  prompt+="${policy_guidance}"
+
   prompt+="$(cat <<EOF
 
 
@@ -1915,7 +2080,7 @@ You are an autonomous agent implementing this issue. Follow these rules:
 5. CONSTRAINTS:
    - Maximum 5 files changed (if issue needs more, comment and stop)
    - Maximum 100 lines per file (if more, comment and stop)
-   - If ambiguous or blocked, comment on issue and stop (do not guess)
+   - When faced with ambiguity, apply industry best practices and document your decision
 
 6. BRANCH: You are on branch ${branch}. Never push to main. Never force push.
 
@@ -1927,6 +2092,35 @@ You are an autonomous agent implementing this issue. Follow these rules:
 8. SCOPE DISCIPLINE: If you discover additional issues outside this issue's scope, comment on the issue noting them for separate tracking. Do not expand scope.
 
 9. PULL REQUEST: Ensure PR body contains ## Issue Coverage section mapping code changes to acceptance criteria. Do not mark items complete unless code/tests actually satisfy them.
+
+10. AUTONOMOUS DECISION-MAKING: When faced with implementation choices:
+   - FOLLOW codebase patterns (check existing code for naming, structure, style)
+   - APPLY best practices (DRY, SOLID, security-first, performance-aware)
+   - PREFER incremental changes over big-bang rewrites
+   - CHOOSE reversible approaches (can rollback if needed)
+   - DOCUMENT your reasoning in commit messages for complex decisions
+
+   Examples of automatic decisions (DO NOT escalate):
+   - Code style → Follow existing patterns in codebase
+   - Performance optimization → Apply safe optimizations (consolidate files, remove duplicates, add caching)
+   - Error handling → Always add appropriate error handling
+   - Naming → Use descriptive names following codebase conventions
+   - Refactoring → Prefer async/await over callbacks, extract reusable functions
+   - Tests → Add tests following existing test patterns
+   - Dependencies → Update if safe (check CHANGELOG for breaking changes)
+
+   ONLY stop if:
+   - Decision requires business/product judgment (not technical)
+   - Multiple approaches are technically equivalent with different business tradeoffs
+   - High risk of data loss or security breach if wrong
+   - Fundamental architecture change affecting system design
+
+   When you make an autonomous decision, document it:
+   ## Autonomous Decisions
+   - [Decision]: Brief description
+   - [Rationale]: Why this approach was chosen
+   - [Pattern]: What codebase pattern or best practice was followed
+   - [Reversible]: Yes/No and rollback approach if applicable
 
 Begin implementation now. Use tools, do not narrate.
 EOF

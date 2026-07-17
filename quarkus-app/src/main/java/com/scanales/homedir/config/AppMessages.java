@@ -6944,4 +6944,22 @@ public interface AppMessages {
 
   @Message("AUTO-REFRESH 3S")
   String sdlc_dash_autorefresh();
+
+  @Message("Autonomous Decisions")
+  String sdlc_dash_nav_decisions();
+
+  @Message("AI AUTONOMY")
+  String sdlc_dash_decisions_kicker();
+
+  @Message("Autonomous Decisions")
+  String sdlc_dash_decisions_heading();
+
+  @Message("Decisions made autonomously by the AI worker based on best practices")
+  String sdlc_dash_decisions_desc();
+
+  @Message("Recent")
+  String sdlc_dash_decisions_tab_recent();
+
+  @Message("Statistics")
+  String sdlc_dash_decisions_tab_stats();
 }

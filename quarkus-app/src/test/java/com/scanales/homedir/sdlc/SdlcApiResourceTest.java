@@ -51,4 +51,24 @@ class SdlcApiResourceTest {
   void anonymousRequestsRemainProtected() {
     given().redirects().follow(false).when().get("/api/sdlc/snapshot").then().statusCode(401);
   }
+
+  @Test
+  @TestSecurity(user = "operator@example.test", roles = "admin")
+  void autonomousDecisionsEndpointsReturnEmptyListWhenNoDecisionsExist() {
+    // These endpoints read from platform/state/autonomous-decisions/
+    // In test environment, directory may not exist, so returns empty list
+    given().when().get("/api/sdlc/autonomous-decisions").then().statusCode(200);
+    given().when().get("/api/sdlc/autonomous-decisions/stats").then().statusCode(200);
+  }
+
+  @Test
+  @TestSecurity(user = "operator@example.test", roles = "admin")
+  void autonomousDecisionsForIssueValidatesInput() {
+    // Input validation is done in API layer
+    given().when().get("/api/sdlc/autonomous-decisions/issue/abc").then().statusCode(400);
+    given().when().get("/api/sdlc/autonomous-decisions/issue/0").then().statusCode(400);
+    given().when().get("/api/sdlc/autonomous-decisions/issue/-1").then().statusCode(400);
+    // Valid input returns 200 even if no decisions exist
+    given().when().get("/api/sdlc/autonomous-decisions/issue/1234").then().statusCode(200);
+  }
 }

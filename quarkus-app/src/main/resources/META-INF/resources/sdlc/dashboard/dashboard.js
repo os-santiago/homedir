@@ -5,5 +5,3 @@
   script.defer = true;
   document.head.appendChild(script);
 })();
->>>>>>> origin/main
-})();
