@@ -34,53 +34,18 @@ load_policies() {
 
   log "INFO" "Loading policies from: $policy_file"
 
-  # Parse YAML to key-value pairs
-  # We use a simple parser that handles nested keys with dot notation
-  # Example: performance.api_response_time.target_ms = 200
+  if ! command -v yq &>/dev/null; then
+    log "WARN" "yq not found, falling back to simple YAML parsing"
+    _load_policies_fallback "$policy_file"
+    return $?
+  fi
 
-  local section=""
-  local subsection=""
-  local key=""
-  local value=""
-
-  while IFS= read -r line; do
-    # Skip comments and empty lines
-    [[ "$line" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${line// }" ]] && continue
-
-    # Detect section headers (no indentation)
-    if [[ "$line" =~ ^([a-z_]+):$ ]]; then
-      section="${BASH_REMATCH[1]}"
-      subsection=""
-      continue
-    fi
-
-    # Detect subsection headers (2 spaces indentation)
-    if [[ "$line" =~ ^[[:space:]]{2}([a-z_]+):$ ]]; then
-      subsection="${BASH_REMATCH[1]}"
-      continue
-    fi
-
-    # Detect key-value pairs (4+ spaces indentation)
-    if [[ "$line" =~ ^[[:space:]]{4,}([a-z_]+):[[:space:]]*(.+)$ ]]; then
-      key="${BASH_REMATCH[1]}"
-      value="${BASH_REMATCH[2]}"
-
-      # Remove quotes if present
-      value="${value//\"/}"
-      value="${value//\'/}"
-
-      # Build full key path
-      local full_key="$section"
-      [[ -n "$subsection" ]] && full_key="${full_key}.${subsection}"
-      full_key="${full_key}.${key}"
-
-      # Store in associative array
-      POLICIES["$full_key"]="$value"
-
-      log "DEBUG" "Loaded policy: $full_key = $value"
-    fi
-  done < "$policy_file"
+  # Parse YAML to flat dot-notation keys using yq
+  while IFS="=" read -r full_key value; do
+    [[ -z "$full_key" ]] && continue
+    POLICIES["$full_key"]="$value"
+    log "DEBUG" "Loaded policy: $full_key = $value"
+  done < <(yq -r '.. | to_entries | .[] | [.key] + if .value | type == "!!seq" then .value else [.value] end | join("=")' "$policy_file" 2>/dev/null || _load_policies_fallback "$policy_file")
 
   log "INFO" "Loaded ${#POLICIES[@]} policy values"
   return 0

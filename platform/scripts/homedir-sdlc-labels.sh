@@ -21,6 +21,7 @@ COVERAGE_GAP_LABEL="${HOMEDIR_SDLC_COVERAGE_GAP_LABEL:-scc-coverage-gap}"
 APPROVED_LABEL="${HOMEDIR_SDLC_APPROVED_LABEL:-scc-approved}"
 FAILED_LABEL="${HOMEDIR_SDLC_FAILED_LABEL:-scc-failed}"
 NEEDS_HUMAN_LABEL="${HOMEDIR_SDLC_NEEDS_HUMAN_LABEL:-needs-human}"
+LEGAL_REVIEW_LABEL="${HOMEDIR_SDLC_LEGAL_REVIEW_LABEL:-scc-legal-review}"
 MERGED_LABEL="${HOMEDIR_SDLC_MERGED_LABEL:-scc-merged}"
 GH_BIN="${GH_BIN:-${HOME}/.local/bin/gh}"
 
@@ -57,6 +58,7 @@ ensure_label "${COVERAGE_GAP_LABEL}" "FBCA04" "Autonomous SDLC PR lacks issue co
 ensure_label "${APPROVED_LABEL}" "0E8A16" "Autonomous SDLC PR passed checks and review feedback"
 ensure_label "${FAILED_LABEL}" "D73A4A" "Autonomous SCC worker failed and needs inspection"
 ensure_label "${NEEDS_HUMAN_LABEL}" "B60205" "Human decision or intervention required"
+ensure_label "${LEGAL_REVIEW_LABEL}" "B60205" "Legal/compliance review required before implementation"
 ensure_label "${MERGED_LABEL}" "5319E7" "Autonomous SCC PR merged or completed"
 
 echo "Autonomous SDLC labels ensured for ${REPO}"

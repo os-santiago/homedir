@@ -50,8 +50,8 @@ DECISION: PROCEED with consolidation
 **Pattern**: Follows codebase pattern of single CSS file per feature
 **Reversible**: Yes, original files in git history
 
-### Decision 2: Keep retro-theme.css as base
-**Rationale**: retro-theme.css has more specific selectors (54KB > 49KB)
+### Decision 2: Use retro-theme.css as base
+**Rationale**: retro-theme.css has more specific selectors (54KB) than homedir.css (49KB), so using it as the base reduces the number of overrides needed
 **Pattern**: More specific selectors override generic ones
 **Reversible**: Yes, can swap order if issues arise
 
@@ -74,9 +74,8 @@ cat homedir.css >> styles-consolidated.css
 csso styles-consolidated.css -o styles-optimized.css
 
 # 3. Update HTML references
-find . -name "*.html" -o -name "*.qute.html" | xargs sed -i \
-  's|homedir.css|styles-optimized.css|g' \
-  's|retro-theme.css|styles-optimized.css|g'
+find . \( -name "*.html" -o -name "*.qute.html" \) -exec sed -i \
+  's|homedir\.css|styles-optimized.css|g; s|retro-theme\.css|styles-optimized.css|g' {} +
 
 # 4. Validate no visual changes
 # (CI will run screenshot tests)

@@ -15,8 +15,8 @@
 set -euo pipefail
 
 # Requires policy-loader.sh
-if [[ -z "${POLICIES:-}" ]]; then
-  log "ERROR" "Policies not loaded. Source policy-loader.sh first"
+if ! declare -p POLICIES &>/dev/null; then
+  log "WARN" "POLICIES associative array not declared. Load policies first."
   return 1 2>/dev/null || exit 1
 fi
 
@@ -104,7 +104,7 @@ match_performance_policy() {
   local text="$1"
 
   # API response time
-  if [[ "$text" =~ (slow api|api.*slow|performance|api.*latency|response.*time) ]]; then
+  if [[ "$text" =~ (slow api|api.*slow|api.*latency|response.*time) ]]; then
     local target=$(get_policy "performance.api_response_time.target_ms")
     local acceptable=$(get_policy "performance.api_response_time.acceptable_ms")
 
@@ -275,6 +275,7 @@ EOF
   "rationale": "Dependency updates follow auto_update policy",
   "confidence": "HIGH",
   "action": "update_dependencies",
+  "requires_approval": "!major",
   "rules": {
     "patch": true,
     "minor": true,
@@ -400,7 +401,7 @@ match_compliance_policy() {
   local text="$1"
 
   # Data collection requiring legal review
-  if [[ "$text" =~ (store.*ip.*address|collect.*ip|geolocation|biometric|personal.*data) ]]; then
+  if [[ "$text" =~ (store.*ip.*address|collect.*ip|geolocation|biometric|personal.*data|ccpa|gdpr|hipaa|sox|pci.*dss) ]]; then
     cat <<EOF
 {
   "category": "COMPLIANCE",

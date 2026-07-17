@@ -694,7 +694,7 @@ examples:
     title: "Large CSS files (homedir.css 49KB, retro-theme.css 54KB)"
     matched_policy: "performance.frontend_bundle_size"
     decision: "Consolidate CSS files"
-    rationale: "103KB exceeds max_kb (500), consolidate to 70KB"
+    rationale: "103KB exceeds max_kb, consolidate to 70KB"
     confidence: "HIGH"
     reversible: "Yes"
 
