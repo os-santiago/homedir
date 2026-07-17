@@ -7,6 +7,8 @@
 [![Contributors](https://img.shields.io/github/contributors/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/graphs/contributors)
 [![GitHub Stars](https://img.shields.io/github/stars/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/stargazers)
 [![PR Validation](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-check.yml?style=for-the-badge&label=PR%20Validation&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-check.yml)
+[![PR CI Build](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-ci-build-native-sbom.yml?style=for-the-badge&label=PR%20CI%20Build&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-ci-build-native-sbom.yml)
+[![PR Quality](https://img.shields.io/github/actions/workflow/status/os-santiago/homedir/pr-quality-suite.yml?style=for-the-badge&label=PR%20Quality&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/actions/workflows/pr-quality-suite.yml)
 [![Language](https://img.shields.io/github/languages/top/os-santiago/homedir?style=for-the-badge&logo=java&logoColor=white&color=ED8B00)](https://github.com/os-santiago/homedir)
 [![Last Commit](https://img.shields.io/github/last-commit/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/commits/main)
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
