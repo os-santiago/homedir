@@ -393,6 +393,59 @@ comment_issue() {
   gh issue comment "${issue}" --repo "${REPO}" --body "${body}" >/dev/null
 }
 
+log_autonomous_decision() {
+  local issue="$1"
+  local category="$2"
+  local decision="$3"
+  local rationale="$4"
+  local pattern="${5:-Followed existing codebase patterns}"
+  local reversibility="${6:-Yes}"
+  local confidence="${7:-MEDIUM}"
+  local pr_number="${8:-}"
+
+  local decisions_dir="${STATE_DIR}/autonomous-decisions"
+  mkdir -p "${decisions_dir}"
+
+  local timestamp
+  timestamp=$(date +%s%3N)
+  local category_slug
+  category_slug=$(echo "${category}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+  local decision_id="decision-${issue}-${category_slug}-${timestamp: -5}"
+  local decision_file="${decisions_dir}/${decision_id}.json"
+
+  local needs_review="false"
+  if [[ "${confidence}" == "LOW" ]] || [[ "${reversibility}" =~ [Nn]o ]] || [[ "${category}" == "SECURITY" ]]; then
+    needs_review="true"
+  fi
+
+  local pr_num="null"
+  if [[ -n "${pr_number}" ]]; then
+    pr_num="${pr_number}"
+  fi
+
+  cat > "${decision_file}" <<EOF
+{
+  "id": "${decision_id}",
+  "issueNumber": ${issue},
+  "prNumber": ${pr_num},
+  "category": "${category}",
+  "decision": "${decision}",
+  "rationale": "${rationale}",
+  "pattern": "${pattern}",
+  "reversibility": "${reversibility}",
+  "confidence": "${confidence}",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "needsReview": ${needs_review},
+  "metadata": {
+    "worker": "homedir-sdlc-worker",
+    "workerVersion": "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}"
+  }
+}
+EOF
+
+  log "Logged autonomous decision: ${decision_id} for issue #${issue}"
+}
+
 mark_needs_human() {
   local issue="$1"
   local reason="$2"
@@ -1915,7 +1968,7 @@ You are an autonomous agent implementing this issue. Follow these rules:
 5. CONSTRAINTS:
    - Maximum 5 files changed (if issue needs more, comment and stop)
    - Maximum 100 lines per file (if more, comment and stop)
-   - If ambiguous or blocked, comment on issue and stop (do not guess)
+   - When faced with ambiguity, apply industry best practices and document your decision
 
 6. BRANCH: You are on branch ${branch}. Never push to main. Never force push.
 
@@ -1927,6 +1980,35 @@ You are an autonomous agent implementing this issue. Follow these rules:
 8. SCOPE DISCIPLINE: If you discover additional issues outside this issue's scope, comment on the issue noting them for separate tracking. Do not expand scope.
 
 9. PULL REQUEST: Ensure PR body contains ## Issue Coverage section mapping code changes to acceptance criteria. Do not mark items complete unless code/tests actually satisfy them.
+
+10. AUTONOMOUS DECISION-MAKING: When faced with implementation choices:
+   - FOLLOW codebase patterns (check existing code for naming, structure, style)
+   - APPLY best practices (DRY, SOLID, security-first, performance-aware)
+   - PREFER incremental changes over big-bang rewrites
+   - CHOOSE reversible approaches (can rollback if needed)
+   - DOCUMENT your reasoning in commit messages for complex decisions
+
+   Examples of automatic decisions (DO NOT escalate):
+   - Code style → Follow existing patterns in codebase
+   - Performance optimization → Apply safe optimizations (consolidate files, remove duplicates, add caching)
+   - Error handling → Always add appropriate error handling
+   - Naming → Use descriptive names following codebase conventions
+   - Refactoring → Prefer async/await over callbacks, extract reusable functions
+   - Tests → Add tests following existing test patterns
+   - Dependencies → Update if safe (check CHANGELOG for breaking changes)
+
+   ONLY stop if:
+   - Decision requires business/product judgment (not technical)
+   - Multiple approaches are technically equivalent with different business tradeoffs
+   - High risk of data loss or security breach if wrong
+   - Fundamental architecture change affecting system design
+
+   When you make an autonomous decision, document it:
+   ## Autonomous Decisions
+   - [Decision]: Brief description
+   - [Rationale]: Why this approach was chosen
+   - [Pattern]: What codebase pattern or best practice was followed
+   - [Reversible]: Yes/No and rollback approach if applicable
 
 Begin implementation now. Use tools, do not narrate.
 EOF

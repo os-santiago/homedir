@@ -97,6 +97,28 @@ public class SdlcApiResource {
     return read(snapshot.get().get("configuration"));
   }
 
+  @GET
+  @Path("autonomous-decisions")
+  public Response autonomousDecisions() {
+    return read(service.autonomousDecisions());
+  }
+
+  @GET
+  @Path("autonomous-decisions/issue/{id}")
+  public Response autonomousDecisionsForIssue(@PathParam("id") String id) {
+    if (id == null || !id.matches("[1-9][0-9]{0,9}"))
+      return Response.status(400)
+          .entity(Map.of("error", "id must be a positive issue number"))
+          .build();
+    return read(service.autonomousDecisionsForIssue(id));
+  }
+
+  @GET
+  @Path("autonomous-decisions/stats")
+  public Response autonomousDecisionStats() {
+    return read(service.autonomousDecisionStats());
+  }
+
   @POST
   @Path("control/{action}")
   public Response control(@PathParam("action") String action) {
