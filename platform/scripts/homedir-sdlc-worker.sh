@@ -9,6 +9,22 @@ if [[ -f "${ENV_FILE}" ]]; then
   source "${ENV_FILE}"
 fi
 
+# ============================================================================
+# POLICY SYSTEM INTEGRATION
+# ============================================================================
+# Load autonomous decision policies
+PLATFORM_DIR="${PLATFORM_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export PLATFORM_DIR
+
+# Source policy loader and matcher
+# shellcheck source=policy-loader.sh
+source "${PLATFORM_DIR}/scripts/policy-loader.sh" || log "WARN: Policy loader not found"
+# shellcheck source=policy-matcher.sh
+source "${PLATFORM_DIR}/scripts/policy-matcher.sh" || log "WARN: Policy matcher not found"
+
+# Load policies (non-fatal if fails)
+load_policies || log "WARN: Running without policy system"
+
 REPO="${HOMEDIR_SDLC_REPO:-os-santiago/homedir}"
 TRIGGER_LABEL="${HOMEDIR_SDLC_TRIGGER_LABEL:-ready-to-implement}"
 QUEUE_LABEL="${HOMEDIR_SDLC_QUEUE_LABEL:-scc-queued}"
@@ -402,6 +418,7 @@ log_autonomous_decision() {
   local reversibility="${6:-Yes}"
   local confidence="${7:-MEDIUM}"
   local pr_number="${8:-}"
+  local policy_ref="${9:-}"  # NEW: policy reference
 
   local decisions_dir="${STATE_DIR}/autonomous-decisions"
   mkdir -p "${decisions_dir}"
@@ -423,6 +440,17 @@ log_autonomous_decision() {
     pr_num="${pr_number}"
   fi
 
+  # Prepare policy fields
+  local policy_driven="false"
+  local policy_reference="null"
+  local policy_version="null"
+
+  if [[ -n "${policy_ref}" ]]; then
+    policy_driven="true"
+    policy_reference="\"${policy_ref}\""
+    policy_version="\"1.0\""
+  fi
+
   cat > "${decision_file}" <<EOF
 {
   "id": "${decision_id}",
@@ -436,6 +464,9 @@ log_autonomous_decision() {
   "confidence": "${confidence}",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "needsReview": ${needs_review},
+  "policyDriven": ${policy_driven},
+  "policyReference": ${policy_reference},
+  "policyVersion": ${policy_version},
   "metadata": {
     "worker": "homedir-sdlc-worker",
     "workerVersion": "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}"
@@ -1946,6 +1977,84 @@ ${issue_comments}
 EOF
 )"
   fi
+
+  # ============================================================================
+  # POLICY-DRIVEN DECISION SUPPORT
+  # ============================================================================
+  # Check if this issue matches any autonomous decision policy
+  local policy_decision=""
+  local policy_guidance=""
+
+  if declare -f get_policy_decision >/dev/null 2>&1; then
+    policy_decision=$(get_policy_decision "${number}" "${title}" "${body}" 2>/dev/null || echo "null")
+
+    if [[ "$policy_decision" != "null" ]] && [[ -n "$policy_decision" ]]; then
+      local policy_category
+      policy_category=$(echo "$policy_decision" | jq -r '.category' 2>/dev/null || echo "")
+
+      local policy_text
+      policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
+
+      local policy_rationale
+      policy_rationale=$(echo "$policy_decision" | jq -r '.rationale' 2>/dev/null || echo "")
+
+      local policy_ref
+      policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
+
+      local requires_approval
+      requires_approval=$(echo "$policy_decision" | jq -r '.requires_approval // false' 2>/dev/null || echo "false")
+
+      if [[ -n "$policy_text" ]] && [[ "$requires_approval" != "true" ]]; then
+        log "INFO: Policy matched for issue #${number}: ${policy_ref}"
+
+        policy_guidance="$(cat <<POLICY_EOF
+
+
+## AUTONOMOUS DECISION POLICY MATCHED
+
+This issue matches a pre-established autonomous decision policy:
+
+**Policy**: ${policy_ref}
+**Category**: ${policy_category}
+**Autonomous Decision**: ${policy_text}
+**Rationale**: ${policy_rationale}
+
+**Your Task**: Implement the policy-defined decision autonomously.
+- Confidence: HIGH (policy-driven decision)
+- Follow the policy guidance above
+- Log your implementation using the decision metadata
+- Document in commit message: "Applied policy ${policy_ref}"
+
+POLICY_EOF
+)"
+
+        # Log that we're using policy-driven approach
+        log "INFO: Autonomous policy will guide SCC for issue #${number}"
+      elif [[ "$requires_approval" == "true" ]]; then
+        log "INFO: Policy matched but requires approval for issue #${number}"
+
+        policy_guidance="$(cat <<POLICY_EOF
+
+
+## POLICY REQUIRES APPROVAL
+
+This issue matches policy: ${policy_ref}
+
+**Policy Recommendation**: ${policy_text}
+**Requires**: Human approval before implementation
+
+**Your Task**: Create an implementation plan and request approval.
+- Comment on the issue with: policy recommendation, pros/cons, approval request
+- Do NOT implement without explicit approval comment
+- If approved, proceed with implementation
+
+POLICY_EOF
+)"
+      fi
+    fi
+  fi
+
+  prompt+="${policy_guidance}"
 
   prompt+="$(cat <<EOF
 

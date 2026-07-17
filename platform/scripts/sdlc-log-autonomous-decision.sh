@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Log autonomous decision made by AI SDLC worker
-# Usage: sdlc-log-autonomous-decision.sh <issue> <category> <decision> <rationale> <pattern> <reversibility> <confidence> [pr_number]
+# Usage: sdlc-log-autonomous-decision.sh <issue> <category> <decision> <rationale> <pattern> <reversibility> <confidence> [pr_number] [policy_ref]
 
 set -euo pipefail
 
@@ -12,6 +12,7 @@ PATTERN="${5:-}"
 REVERSIBILITY="${6:-Yes}"
 CONFIDENCE="${7:-MEDIUM}"
 PR_NUMBER="${8:-}"
+POLICY_REF="${9:-}"  # NEW: Optional policy reference
 
 STATE_DIR="${HOMEDIR_SDLC_STATE_DIR:-/var/lib/homedir-sdlc}"
 DECISIONS_DIR="${STATE_DIR}/autonomous-decisions"
@@ -31,6 +32,17 @@ DECISION_ID="decision-${ISSUE_NUMBER}-${CATEGORY_SLUG}-${TIMESTAMP: -5}"
 # Create decision JSON
 DECISION_FILE="${DECISIONS_DIR}/${DECISION_ID}.json"
 
+# Prepare policy fields
+POLICY_DRIVEN="false"
+POLICY_REFERENCE="null"
+POLICY_VERSION="null"
+
+if [[ -n "${POLICY_REF}" ]]; then
+  POLICY_DRIVEN="true"
+  POLICY_REFERENCE="\"${POLICY_REF}\""
+  POLICY_VERSION="\"1.0\""
+fi
+
 cat > "${DECISION_FILE}" <<EOF
 {
   "id": "${DECISION_ID}",
@@ -44,6 +56,9 @@ cat > "${DECISION_FILE}" <<EOF
   "confidence": "${CONFIDENCE}",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "needsReview": $(if [[ "${CONFIDENCE}" == "LOW" ]] || [[ "${REVERSIBILITY}" =~ [Nn]o ]] || [[ "${CATEGORY}" == "SECURITY" ]]; then echo "true"; else echo "false"; fi),
+  "policyDriven": ${POLICY_DRIVEN},
+  "policyReference": ${POLICY_REFERENCE},
+  "policyVersion": ${POLICY_VERSION},
   "metadata": {
     "worker": "homedir-sdlc-worker",
     "workerVersion": "${HOMEDIR_SDLC_WORKER_VERSION:-unknown}"
