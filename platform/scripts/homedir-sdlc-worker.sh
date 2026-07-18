@@ -783,15 +783,20 @@ reconcile_stuck_admission_reviews() {
 
     log "reconcile_stuck_admission_reviews: evaluating issue #${number}"
 
-    # Skip if already accepted, or in terminal states
-    if issue_has_label "${labels}" "${ACCEPTED_LABEL}" \
-      || issue_has_label "${labels}" "${REJECTED_LABEL}" \
-      || issue_has_label "${labels}" "${LEGAL_REVIEW_LABEL}" \
-      || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
+    # Skip if already accepted (unless legal/human review was the blocker)
+    if issue_has_label "${labels}" "${ACCEPTED_LABEL}" && \
+      ! issue_has_label "${labels}" "${LEGAL_REVIEW_LABEL}" && \
+      ! issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}"; then
+      log "reconcile_stuck_admission_reviews: issue #${number} already accepted"
+      continue
+    fi
+
+    # Skip other terminal states
+    if issue_has_label "${labels}" "${REJECTED_LABEL}" \
       || issue_has_label "${labels}" "${QUEUE_LABEL}" \
       || issue_has_label "${labels}" "${RUNNING_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
-      log "reconcile_stuck_admission_reviews: skipping issue #${number} (already in terminal state)"
+      log "reconcile_stuck_admission_reviews: skipping issue #${number} (terminal state)"
       continue
     fi
 

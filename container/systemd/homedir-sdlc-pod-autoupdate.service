@@ -1,0 +1,31 @@
+# ============================================================================
+# SystemD Service for Pod Auto-Update
+# ============================================================================
+#
+# Automatically pulls latest images and recreates pod
+# Triggered by homedir-sdlc-pod-autoupdate.timer
+#
+# ============================================================================
+
+[Unit]
+Description=HomeDir SDLC Pod Auto-Update
+Documentation=https://github.com/os-santiago/homedir
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Environment=HOMEDIR_SDLC_ROOT=/opt/homedir
+WorkingDirectory=%E
+ExecStartPre=/usr/bin/podman pull ghcr.io/os-santiago/homedir:latest
+ExecStartPre=/usr/bin/podman pull ghcr.io/os-santiago/homedir-sdlc:latest
+
+# Recreate pod with new images
+ExecStart=/usr/bin/bash -c 'cd "${HOMEDIR_SDLC_ROOT:-/opt/homedir}" && ./container/pod-create.sh production'
+
+# Logging
+SyslogIdentifier=homedir-sdlc-autoupdate
+
+[Install]
+WantedBy=default.target

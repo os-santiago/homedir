@@ -1,0 +1,113 @@
+# ============================================================================
+# HomeDir AI SDLC Worker - Podman/OCI Container Image
+# ============================================================================
+#
+# Autonomous software factory worker that implements GitHub issues
+# using AI-driven development with policy-based decision making.
+#
+# Build:  podman build -f container/Containerfile.sdlc-worker -t homedir-sdlc:latest .
+# Run:    podman run --rm homedir-sdlc:latest
+#
+# ============================================================================
+
+FROM docker.io/library/ubuntu:24.04
+
+LABEL maintainer="scanales-stack"
+LABEL org.opencontainers.image.source="https://github.com/os-santiago/homedir"
+LABEL org.opencontainers.image.description="HomeDir AI SDLC Worker - Autonomous software factory"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# ============================================================================
+# System Dependencies
+# ============================================================================
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    # Core tools
+    bash \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    python3 \
+    python3-pip \
+    # Build tools (for potential compilation in SCC)
+    build-essential \
+    # Cleanup
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# ============================================================================
+# GitHub CLI
+# ============================================================================
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+    dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+    tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y gh && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# SCC (Software Construction Copilot)
+# ============================================================================
+# Install SCC from releases
+ARG SCC_VERSION=latest
+RUN ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
+    curl -L "https://github.com/anthropics/scc/releases/latest/download/scc-linux-${ARCH}" \
+    -o /usr/local/bin/scc && \
+    chmod +x /usr/local/bin/scc || \
+    echo "WARN: SCC download failed, will need to be provided at runtime"
+
+# ============================================================================
+# Worker User (rootless)
+# ============================================================================
+# Create non-root user for worker execution
+# Ubuntu 24.04 allocates UID 1000 to default 'ubuntu' user; remove it first
+RUN userdel -r ubuntu 2>/dev/null; useradd -m -s /bin/bash -u 1000 homedir-sdlc && \
+    mkdir -p /var/lib/homedir-sdlc /srv/homedir-sdlc/worktrees /var/log/homedir-sdlc && \
+    chown -R homedir-sdlc:homedir-sdlc /var/lib/homedir-sdlc /srv/homedir-sdlc /var/log/homedir-sdlc
+
+# ============================================================================
+# Platform Code
+# ============================================================================
+WORKDIR /app
+
+# Copy platform scripts and configs
+COPY --chown=homedir-sdlc:homedir-sdlc platform/ /app/
+
+# Make scripts executable
+RUN chmod +x /app/scripts/*.sh
+
+# ============================================================================
+# Container Entrypoint
+# ============================================================================
+COPY --chown=homedir-sdlc:homedir-sdlc container/worker-entrypoint.sh /app/
+RUN chmod +x /app/worker-entrypoint.sh
+
+# ============================================================================
+# Runtime Configuration
+# ============================================================================
+USER homedir-sdlc
+
+# Environment defaults (override at runtime)
+ENV PLATFORM_DIR=/app
+ENV HOMEDIR_SDLC_STATE_DIR=/var/lib/homedir-sdlc
+ENV HOMEDIR_SDLC_WORKDIR=/srv/homedir-sdlc/worktrees/homedir
+ENV HOMEDIR_SDLC_LOGFILE=/var/log/homedir-sdlc/worker.log
+ENV HOMEDIR_SDLC_REPO=os-santiago/homedir
+ENV SCC_BIN=/usr/local/bin/scc
+
+# Volumes (mount points)
+VOLUME ["/var/lib/homedir-sdlc", "/srv/homedir-sdlc/worktrees", "/var/log/homedir-sdlc"]
+
+# Healthcheck
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+    CMD test -f /var/lib/homedir-sdlc/heartbeat.json && \
+        python3 -c "import json,sys,time; \
+        h=json.load(open('/var/lib/homedir-sdlc/heartbeat.json')); \
+        sys.exit(0 if h.get('status') in ['ok','idle','running','starting'] else 1)"
+
+# Entrypoint
+ENTRYPOINT ["/app/worker-entrypoint.sh"]
+CMD ["reconcile"]

@@ -34,18 +34,25 @@ load_policies() {
 
   log "INFO" "Loading policies from: $policy_file"
 
-  if ! command -v yq &>/dev/null; then
-    log "WARN" "yq not found, falling back to simple YAML parsing"
-    _load_policies_fallback "$policy_file"
-    return $?
+  # Parse YAML to flat dot-notation keys
+  # Uses yq if available (mikefarah/yq v4+), falls back to built-in parser
+  if command -v yq &>/dev/null && yq --version 2>/dev/null | grep -q "mikefarah"; then
+    local loaded
+    loaded=$(yq eval -r '[paths(scalars) as $path | {"key": ($path | join(".")), "value": getpath($path)}] | .[] | [.key, .value] | join("=")' "$policy_file" 2>/dev/null) || loaded=""
+    if [[ -n "$loaded" ]]; then
+      while IFS="=" read -r full_key value; do
+        [[ -z "$full_key" ]] && continue
+        POLICIES["$full_key"]="$value"
+        log "DEBUG" "Loaded policy: $full_key = $value"
+      done <<< "$loaded"
+      log "INFO" "Loaded ${#POLICIES[@]} policy values via yq"
+      return 0
+    fi
+    log "WARN" "yq parse failed, falling back to built-in parser"
   fi
 
-  # Parse YAML to flat dot-notation keys using yq
-  while IFS="=" read -r full_key value; do
-    [[ -z "$full_key" ]] && continue
-    POLICIES["$full_key"]="$value"
-    log "DEBUG" "Loaded policy: $full_key = $value"
-  done < <(yq -r '.. | to_entries | .[] | [.key] + if .value | type == "!!seq" then .value else [.value] end | join("=")' "$policy_file" 2>/dev/null || _load_policies_fallback "$policy_file")
+  _load_policies_fallback "$policy_file"
+  return $?
 
   log "INFO" "Loaded ${#POLICIES[@]} policy values"
   return 0

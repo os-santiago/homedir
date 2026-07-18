@@ -1,0 +1,31 @@
+# ============================================================================
+# SystemD Timer for Pod Auto-Update
+# ============================================================================
+#
+# Triggers pod auto-update every 6 hours
+# Can be manually triggered with: systemctl start homedir-sdlc-pod-autoupdate.service
+#
+# Installation:
+#   sudo cp homedir-sdlc-pod-autoupdate.* /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable homedir-sdlc-pod-autoupdate.timer
+#   sudo systemctl start homedir-sdlc-pod-autoupdate.timer
+#
+# ============================================================================
+
+[Unit]
+Description=HomeDir SDLC Pod Auto-Update Timer
+Documentation=https://github.com/os-santiago/homedir
+
+[Timer]
+# Run every 6 hours
+OnCalendar=*-*-* 00,06,12,18:00:00
+
+# Run 5 minutes after boot if missed
+OnBootSec=5min
+
+# Persist timer across reboots
+Persistent=true
+
+[Install]
+WantedBy=timers.target

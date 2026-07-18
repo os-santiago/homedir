@@ -35,58 +35,59 @@ match_policy_for_issue() {
   log "INFO" "Matching policy for issue #${issue_number}: ${issue_title}"
 
   # Try each policy category in order
+  # Compliance/Legal evaluated first so legal triggers are never masked by auto-approvable categories
   local match=""
 
-  # 1. Performance policies
+  # 1. Compliance/Legal policies (evaluated first to prevent auto-approval of sensitive issues)
+  match=$(match_compliance_policy "$combined_text") && [[ -n "$match" ]] && {
+    echo "$match"
+    return 0
+  }
+
+  # 2. Performance policies
   match=$(match_performance_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 2. Rate limiting policies
+  # 3. Rate limiting policies
   match=$(match_rate_limiting_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 3. Database optimization policies
+  # 4. Database optimization policies
   match=$(match_database_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 4. Dependency update policies
+  # 5. Dependency update policies
   match=$(match_dependency_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 5. Security policies
+  # 6. Security policies
   match=$(match_security_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 6. Error handling policies
+  # 7. Error handling policies
   match=$(match_error_handling_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 7. Testing policies
+  # 8. Testing policies
   match=$(match_testing_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
 
-  # 8. Refactoring policies
+  # 9. Refactoring policies
   match=$(match_refactoring_policy "$combined_text") && [[ -n "$match" ]] && {
-    echo "$match"
-    return 0
-  }
-
-  # 9. Compliance/Legal policies
-  match=$(match_compliance_policy "$combined_text") && [[ -n "$match" ]] && {
     echo "$match"
     return 0
   }
@@ -275,7 +276,7 @@ EOF
   "rationale": "Dependency updates follow auto_update policy",
   "confidence": "HIGH",
   "action": "update_dependencies",
-  "requires_approval": "!major",
+  "requires_approval": true,
   "rules": {
     "patch": true,
     "minor": true,
