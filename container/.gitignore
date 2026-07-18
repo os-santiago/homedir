@@ -1,0 +1,10 @@
+# Environment configs with secrets
+*.local.env
+config/*.local.env
+
+# Local build artifacts
+*.tar
+*.tar.gz
+
+# Backup files
+*backup*
