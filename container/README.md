@@ -239,13 +239,15 @@ podman exec homedir-sdlc-worker whoami
 # Create secret
 echo "ghp_your_token" | podman secret create gh_token -
 
-# Use in pod-create.sh
+# Use in pod-create.sh (NEVER pass tokens via --env or command-line flags)
 podman run -d \
   --secret gh_token,type=env,target=GH_TOKEN \
   ...
 ```
 
 3. **Systemd credentials** (for system-level deployments)
+   - See `container/config/production.env` for all secrets — copy to `production.local.env`, keep it out of git
+   - Use `LoadCredential=` in systemd service files for production deployments
 
 ## 📈 Monitoring
 

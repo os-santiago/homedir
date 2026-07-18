@@ -14,6 +14,8 @@ on:
     paths:
       - 'platform/**'
       - 'container/Containerfile.sdlc-worker'
+      - 'container/worker-entrypoint.sh'
+      - '.github/workflows/build-sdlc-worker-image.yml'
 
   workflow_dispatch:
 
@@ -78,7 +80,7 @@ jobs:
             -e HOMEDIR_SDLC_WORKDIR=/srv/homedir-sdlc/worktrees/homedir \
             -e PLATFORM_DIR=/app \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            --help || echo "Entrypoint validation passed"
+            --help
 
       - name: Push image to registry
         if: github.event_name != 'pull_request'

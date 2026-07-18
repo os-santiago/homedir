@@ -63,7 +63,8 @@ RUN ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
 # Worker User (rootless)
 # ============================================================================
 # Create non-root user for worker execution
-RUN useradd -m -s /bin/bash -u 1000 homedir-sdlc && \
+# Ubuntu 24.04 allocates UID 1000 to default 'ubuntu' user; remove it first
+RUN userdel -r ubuntu 2>/dev/null; useradd -m -s /bin/bash -u 1000 homedir-sdlc && \
     mkdir -p /var/lib/homedir-sdlc /srv/homedir-sdlc/worktrees /var/log/homedir-sdlc && \
     chown -R homedir-sdlc:homedir-sdlc /var/lib/homedir-sdlc /srv/homedir-sdlc /var/log/homedir-sdlc
 
@@ -105,7 +106,7 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
     CMD test -f /var/lib/homedir-sdlc/heartbeat.json && \
         python3 -c "import json,sys,time; \
         h=json.load(open('/var/lib/homedir-sdlc/heartbeat.json')); \
-        sys.exit(0 if h.get('status') in ['ok','idle','running'] else 1)"
+        sys.exit(0 if h.get('status') in ['ok','idle','running','starting'] else 1)"
 
 # Entrypoint
 ENTRYPOINT ["/app/worker-entrypoint.sh"]

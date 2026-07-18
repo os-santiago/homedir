@@ -16,13 +16,13 @@ After=network-online.target
 [Service]
 Type=oneshot
 Environment=PODMAN_SYSTEMD_UNIT=%n
-
-# Pull latest images
+Environment=HOMEDIR_SDLC_ROOT=/opt/homedir
+WorkingDirectory=%E
 ExecStartPre=/usr/bin/podman pull ghcr.io/os-santiago/homedir:latest
 ExecStartPre=/usr/bin/podman pull ghcr.io/os-santiago/homedir-sdlc:latest
 
 # Recreate pod with new images
-ExecStart=/usr/bin/bash -c 'cd /opt/homedir && ./container/pod-create.sh production'
+ExecStart=/usr/bin/bash -c 'cd "${HOMEDIR_SDLC_ROOT:-/opt/homedir}" && ./container/pod-create.sh production'
 
 # Logging
 SyslogIdentifier=homedir-sdlc-autoupdate

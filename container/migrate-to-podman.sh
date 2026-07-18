@@ -160,12 +160,12 @@ if [[ -n "$STATE_DIR" ]] && [[ -d "$STATE_DIR" ]]; then
   log "Step 5: Importing state to Podman volume..."
 
   # Create temporary container to import state
-  if [[ "$DRY_RUN" != "--dry-run" ]]; then
+    if [[ "$DRY_RUN" != "--dry-run" ]]; then
     podman run --rm \
       -v "$STATE_DIR":/source:ro \
       -v homedir-sdlc-state:/dest \
       docker.io/library/alpine:latest \
-      sh -c 'cp -r /source/* /dest/ && ls -la /dest'
+      sh -c 'cp -r /source/* /dest/ && chown -R 1000:1000 /dest/ && ls -la /dest'
 
     log "✓ State imported to volume"
   else
@@ -182,13 +182,18 @@ fi
 log ""
 log "Step 6: Creating environment configuration..."
 
-if [[ ! -f "container/config/production.local.env" ]]; then
-  run_cmd cp container/config/production.env container/config/production.local.env
+# Source base config; allow .local.env to override
+if [[ -f "container/config/production.env" ]]; then
+  set -a; source container/config/production.env; set +a
+fi
 
-  log "⚠ IMPORTANT: Edit container/config/production.local.env and set GH_TOKEN"
-  log "  nano container/config/production.local.env"
+if [[ -f "container/config/production.local.env" ]]; then
+  set -a; source container/config/production.local.env; set +a
+  log "✓ Loaded local overrides from production.local.env"
 else
-  log "✓ Config already exists"
+  run_cmd cp container/config/production.env container/config/production.local.env
+  log "⚠ Created container/config/production.local.env — edit it to set GH_TOKEN"
+  log "  nano container/config/production.local.env"
 fi
 
 # ============================================================================
