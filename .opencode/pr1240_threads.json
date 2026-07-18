@@ -1,1 +1,0 @@
-{"query": "query { repository(owner: \"os-santiago\", name: \"homedir\") { pullRequest(number: 1240) { reviewThreads(first: 50) { nodes { id isResolved comments(first: 1) { nodes { body } } } } } } }"}
