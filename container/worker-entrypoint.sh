@@ -16,6 +16,29 @@ log() {
 
 log "INFO: HomeDir AI SDLC Worker starting..."
 
+# Handle --help and --version before auth
+if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  echo "Usage: worker-entrypoint.sh [command]"
+  echo ""
+  echo "Commands:"
+  echo "  reconcile    Run the SDLC reconciliation loop (default)"
+  echo "  --help       Show this help message"
+  echo "  --version    Show version information"
+  echo ""
+  echo "Environment variables:"
+  echo "  GH_TOKEN                  GitHub token (required)"
+  echo "  HOMEDIR_SDLC_REPO         Repository (default: os-santiago/homedir)"
+  echo "  HOMEDIR_SDLC_STATE_DIR    State directory (default: /var/lib/homedir-sdlc)"
+  echo "  HOMEDIR_SDLC_WORKDIR      Worktree directory"
+  echo "  PLATFORM_DIR              Platform scripts directory (default: /app)"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--version" ]]; then
+  echo "homedir-sdlc-worker 1.0.0"
+  exit 0
+fi
+
 # ============================================================================
 # Environment Validation
 # ============================================================================
