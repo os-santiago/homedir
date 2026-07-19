@@ -67,11 +67,9 @@ log "INFO: Environment validation passed"
 # ============================================================================
 log "INFO: Configuring GitHub CLI..."
 
-# Authenticate gh with token
-if ! echo "$GH_TOKEN" | gh auth login --with-token 2>/dev/null; then
-  log "ERROR: GitHub authentication failed"
-  exit 1
-fi
+# gh CLI automatically uses GH_TOKEN environment variable for authentication
+# No need to call gh auth login - it would fail with "already using GH_TOKEN"
+log "INFO: Using GH_TOKEN for authentication (automatic)"
 
 # Verify authentication
 if ! gh auth status >/dev/null 2>&1; then
