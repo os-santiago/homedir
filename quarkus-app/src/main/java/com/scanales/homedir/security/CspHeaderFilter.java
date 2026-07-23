@@ -38,7 +38,7 @@ public class CspHeaderFilter implements ContainerResponseFilter {
             + "' https://cdn.tailwindcss.com;"
             + " style-src 'self' https://fonts.googleapis.com 'unsafe-inline';"
             + " font-src 'self' https://fonts.gstatic.com;"
-            + " img-src 'self' data: https://cdn.simpleicons.org https://homedir.opensourcesantiago.io;"
+            + " img-src 'self' data: https://cdn.simpleicons.org https://homedir.opensourcesantiago.io https://avatars.githubusercontent.com https://santiago.devopsdayschile.cl;"
             + " connect-src 'self';"
             + " object-src 'none';"
             + " base-uri 'self';"
