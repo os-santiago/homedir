@@ -39,6 +39,25 @@ public class CspHeaderTest {
   }
 
   @Test
+  public void imgSrcAllowsRequiredExternalDomains() {
+    String cspHeader =
+        given()
+            .when()
+            .accept("text/html")
+            .get("/")
+            .then()
+            .statusCode(200)
+            .extract()
+            .header("Content-Security-Policy");
+
+    // Verify all required external image domains are allowed
+    MatcherAssert.assertThat(cspHeader, containsString("img-src"));
+    MatcherAssert.assertThat(cspHeader, containsString("https://cdn.simpleicons.org"));
+    MatcherAssert.assertThat(cspHeader, containsString("https://avatars.githubusercontent.com"));
+    MatcherAssert.assertThat(cspHeader, containsString("https://santiago.devopsdayschile.cl"));
+  }
+
+  @Test
   public void nonceDiffersBetweenRequests() {
     String h1 =
         given()
