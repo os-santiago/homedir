@@ -110,6 +110,15 @@ python3 tools/homedir-cli/mcp_server.py
 ### Events
 
 - `GET /api/localhost-admin/events` - List all events
+- `PUT /api/localhost-admin/events/{eventId}/agenda` - Update event agenda
+
+### Speakers
+
+- `GET /api/localhost-admin/speakers` - List all speakers
+- `GET /api/localhost-admin/speakers/{speakerId}` - Get specific speaker
+- `POST /api/localhost-admin/speakers` - Create a speaker
+- `PUT /api/localhost-admin/speakers/{speakerId}` - Update a speaker
+- `POST /api/localhost-admin/speakers/bulk` - Create multiple speakers at once
 
 ### CFP Management
 
@@ -146,6 +155,100 @@ python3 tools/homedir-cli/mcp_server.py
 ```json
 {
   "questClass": "DEVELOPER"  // DEVELOPER, DESIGNER, WRITER, ORGANIZER
+}
+```
+
+### Speaker Management
+
+**Create Speaker Request Body:**
+```json
+{
+  "id": "matias-sonnleitner",
+  "name": "Matías Sonnleitner",
+  "bio": "Optional biography",
+  "photoUrl": "https://example.com/photo.jpg",
+  "website": "https://example.com",
+  "twitter": "https://twitter.com/handle",
+  "linkedin": "https://linkedin.com/in/handle",
+  "instagram": "https://instagram.com/handle"
+}
+```
+
+**Update Speaker Request Body:**
+```json
+{
+  "name": "Updated Name",
+  "bio": "Updated bio"
+  // Any field from create, all optional
+}
+```
+
+**Bulk Create Speakers Request Body:**
+```json
+{
+  "speakers": [
+    {
+      "id": "speaker-1",
+      "name": "Speaker One",
+      "bio": "Bio for speaker 1"
+    },
+    {
+      "id": "speaker-2",
+      "name": "Speaker Two"
+    }
+  ]
+}
+```
+
+**Bulk Create Response:**
+```json
+{
+  "created": [...],           // Array of successfully created speakers
+  "createdCount": 25,
+  "errorCount": 2,
+  "errors": [                 // Present only if there were errors
+    {
+      "index": "5",
+      "id": "duplicate-speaker",
+      "error": "speaker_exists",
+      "message": "Speaker already exists"
+    }
+  ]
+}
+```
+
+### Event Agenda Management
+
+**Update Event Agenda Request Body:**
+```json
+{
+  "agenda": [
+    {
+      "id": "talk-id",
+      "name": "Talk Title",
+      "description": "Talk description",
+      "speakers": ["speaker-id-1", "speaker-id-2"],
+      "location": "main-stage",
+      "day": 1,
+      "startTime": "09:00:00",
+      "endTime": "09:30:00",
+      "startTimeStr": "09:00",
+      "endTimeStr": "09:30",
+      "durationMinutes": 30,
+      "break": false
+    }
+  ]
+}
+```
+
+**Important:** All speaker IDs must exist before updating the agenda. The endpoint validates speaker references and returns an error if any speaker ID is not found.
+
+**Update Agenda Error Response (Missing Speakers):**
+```json
+{
+  "error": "unresolved_speakers",
+  "message": "The following speaker IDs do not exist: speaker-1, speaker-2",
+  "missingSpeakers": ["speaker-1", "speaker-2"]
 }
 ```
 
