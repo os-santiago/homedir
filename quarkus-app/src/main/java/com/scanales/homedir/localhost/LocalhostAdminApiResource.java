@@ -65,7 +65,9 @@ public class LocalhostAdminApiResource {
     // Check 1: Request must come from localhost
     String remoteHost = request.remoteAddress().host();
     if (!isLocalhost(remoteHost)) {
-      LOG.warnf("Rejected localhost-admin request from non-localhost address: %s", sanitizeLog(remoteHost));
+      LOG.warnf(
+          "Rejected localhost-admin request from non-localhost address: %s",
+          sanitizeLog(remoteHost));
       return Response.status(Response.Status.FORBIDDEN)
           .entity(
               Map.of(
@@ -226,7 +228,8 @@ public class LocalhostAdminApiResource {
               "localhost-admin",
               note != null ? note : "Updated via localhost admin API");
 
-      LOG.infof("CFP %s updated to status %s via localhost admin API", sanitizeLog(cfpId), newStatus);
+      LOG.infof(
+          "CFP %s updated to status %s via localhost admin API", sanitizeLog(cfpId), newStatus);
 
       return Response.ok(Map.of("item", updated)).build();
     } catch (CfpSubmissionService.ValidationException e) {
@@ -330,7 +333,9 @@ public class LocalhostAdminApiResource {
       com.scanales.homedir.model.UserProfile updated =
           userProfileService.addXp(userId, amount, reason, qc);
 
-      LOG.infof("Added %d XP to user %s via localhost admin API: %s", amount, sanitizeLog(userId), sanitizeLog(reason));
+      LOG.infof(
+          "Added %d XP to user %s via localhost admin API: %s",
+          amount, sanitizeLog(userId), sanitizeLog(reason));
 
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
@@ -369,7 +374,8 @@ public class LocalhostAdminApiResource {
       com.scanales.homedir.model.UserProfile updated =
           userProfileService.updateQuestClass(userId, qc);
 
-      LOG.infof("Updated quest class for user %s to %s via localhost admin API", sanitizeLog(userId), qc);
+      LOG.infof(
+          "Updated quest class for user %s to %s via localhost admin API", sanitizeLog(userId), qc);
 
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
@@ -545,7 +551,11 @@ public class LocalhostAdminApiResource {
     if (speakersData == null || speakersData.isEmpty()) {
       return Response.status(Response.Status.BAD_REQUEST)
           .entity(
-              Map.of("error", "missing_speakers", "message", "speakers array is required and cannot be empty"))
+              Map.of(
+                  "error",
+                  "missing_speakers",
+                  "message",
+                  "speakers array is required and cannot be empty"))
           .build();
     }
 
@@ -563,7 +573,12 @@ public class LocalhostAdminApiResource {
         if (id == null || id.isBlank()) {
           errors.add(
               Map.of(
-                  "index", String.valueOf(i), "error", "missing_id", "message", "Speaker id is required"));
+                  "index",
+                  String.valueOf(i),
+                  "error",
+                  "missing_id",
+                  "message",
+                  "Speaker id is required"));
           continue;
         }
 
@@ -660,7 +675,8 @@ public class LocalhostAdminApiResource {
       agendaData = rawAgenda;
     } catch (ClassCastException e) {
       return Response.status(Response.Status.BAD_REQUEST)
-          .entity(Map.of("error", "invalid_agenda", "message", "agenda must be an array of objects"))
+          .entity(
+              Map.of("error", "invalid_agenda", "message", "agenda must be an array of objects"))
           .build();
     }
 
