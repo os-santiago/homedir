@@ -45,6 +45,11 @@ public class LocalhostAdminApiResource {
 
   private static final Logger LOG = Logger.getLogger(LocalhostAdminApiResource.class);
 
+  private static String sanitizeLog(String value) {
+    if (value == null) return "null";
+    return value.replaceAll("[\\p{Cntrl}&&[^\\t]]", "");
+  }
+
   @Inject EventService eventService;
   @Inject CfpSubmissionService cfpSubmissionService;
   @Inject VolunteerApplicationService volunteerApplicationService;
@@ -60,7 +65,7 @@ public class LocalhostAdminApiResource {
     // Check 1: Request must come from localhost
     String remoteHost = request.remoteAddress().host();
     if (!isLocalhost(remoteHost)) {
-      LOG.warnf("Rejected localhost-admin request from non-localhost address: %s", remoteHost);
+      LOG.warnf("Rejected localhost-admin request from non-localhost address: %s", sanitizeLog(remoteHost));
       return Response.status(Response.Status.FORBIDDEN)
           .entity(
               Map.of(
@@ -91,7 +96,7 @@ public class LocalhostAdminApiResource {
     if (!MessageDigest.isEqual(
         providedToken.getBytes(StandardCharsets.UTF_8),
         adminToken.get().getBytes(StandardCharsets.UTF_8))) {
-      LOG.warnf("Invalid localhost admin token attempt from %s", remoteHost);
+      LOG.warnf("Invalid localhost admin token attempt from %s", sanitizeLog(remoteHost));
       return Response.status(Response.Status.FORBIDDEN)
           .entity(Map.of("error", "invalid_token", "message", "Invalid admin token"))
           .build();
@@ -221,7 +226,7 @@ public class LocalhostAdminApiResource {
               "localhost-admin",
               note != null ? note : "Updated via localhost admin API");
 
-      LOG.infof("CFP %s updated to status %s via localhost admin API", cfpId, newStatus);
+      LOG.infof("CFP %s updated to status %s via localhost admin API", sanitizeLog(cfpId), newStatus);
 
       return Response.ok(Map.of("item", updated)).build();
     } catch (CfpSubmissionService.ValidationException e) {
@@ -240,7 +245,7 @@ public class LocalhostAdminApiResource {
           .entity(Map.of("error", msg != null ? msg : "validation_error"))
           .build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to update CFP %s", cfpId);
+      LOG.errorf(e, "Failed to update CFP %s", sanitizeLog(cfpId));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "update_failed"))
           .build();
@@ -325,7 +330,7 @@ public class LocalhostAdminApiResource {
       com.scanales.homedir.model.UserProfile updated =
           userProfileService.addXp(userId, amount, reason, qc);
 
-      LOG.infof("Added %d XP to user %s via localhost admin API: %s", amount, userId, reason);
+      LOG.infof("Added %d XP to user %s via localhost admin API: %s", amount, sanitizeLog(userId), sanitizeLog(reason));
 
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
@@ -333,7 +338,7 @@ public class LocalhostAdminApiResource {
           .entity(Map.of("error", "invalid_quest_class"))
           .build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to add XP to user %s", userId);
+      LOG.errorf(e, "Failed to add XP to user %s", sanitizeLog(userId));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "update_failed"))
           .build();
@@ -364,7 +369,7 @@ public class LocalhostAdminApiResource {
       com.scanales.homedir.model.UserProfile updated =
           userProfileService.updateQuestClass(userId, qc);
 
-      LOG.infof("Updated quest class for user %s to %s via localhost admin API", userId, qc);
+      LOG.infof("Updated quest class for user %s to %s via localhost admin API", sanitizeLog(userId), qc);
 
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
@@ -372,7 +377,7 @@ public class LocalhostAdminApiResource {
           .entity(Map.of("error", "invalid_quest_class"))
           .build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to update quest class for user %s", userId);
+      LOG.errorf(e, "Failed to update quest class for user %s", sanitizeLog(userId));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "update_failed", "message", e.getMessage()))
           .build();
@@ -468,10 +473,10 @@ public class LocalhostAdminApiResource {
 
     try {
       speakerService.saveSpeaker(speaker);
-      LOG.infof("Created speaker %s via localhost admin API", id);
+      LOG.infof("Created speaker %s via localhost admin API", sanitizeLog(id));
       return Response.status(Response.Status.CREATED).entity(speaker).build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to create speaker %s", id);
+      LOG.errorf(e, "Failed to create speaker %s", sanitizeLog(id));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "create_failed", "message", e.getMessage()))
           .build();
@@ -515,10 +520,10 @@ public class LocalhostAdminApiResource {
 
     try {
       speakerService.saveSpeaker(existing);
-      LOG.infof("Updated speaker %s via localhost admin API", speakerId);
+      LOG.infof("Updated speaker %s via localhost admin API", sanitizeLog(speakerId));
       return Response.ok(existing).build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to update speaker %s", speakerId);
+      LOG.errorf(e, "Failed to update speaker %s", sanitizeLog(speakerId));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "update_failed", "message", e.getMessage()))
           .build();
@@ -549,44 +554,46 @@ public class LocalhostAdminApiResource {
 
     for (int i = 0; i < speakersData.size(); i++) {
       Map<String, Object> speakerData = speakersData.get(i);
-      String id = (String) speakerData.get("id");
-      String name = (String) speakerData.get("name");
-
-      if (id == null || id.isBlank()) {
-        errors.add(
-            Map.of(
-                "index", String.valueOf(i), "error", "missing_id", "message", "Speaker id is required"));
-        continue;
-      }
-
-      if (name == null || name.isBlank()) {
-        errors.add(
-            Map.of(
-                "index",
-                String.valueOf(i),
-                "error",
-                "missing_name",
-                "message",
-                "Speaker name is required"));
-        continue;
-      }
-
-      // Skip if already exists
-      if (speakerService.getSpeaker(id) != null) {
-        errors.add(
-            Map.of(
-                "index",
-                String.valueOf(i),
-                "id",
-                id,
-                "error",
-                "speaker_exists",
-                "message",
-                "Speaker already exists"));
-        continue;
-      }
+      String id = null;
 
       try {
+        id = (String) speakerData.get("id");
+        String name = (String) speakerData.get("name");
+
+        if (id == null || id.isBlank()) {
+          errors.add(
+              Map.of(
+                  "index", String.valueOf(i), "error", "missing_id", "message", "Speaker id is required"));
+          continue;
+        }
+
+        if (name == null || name.isBlank()) {
+          errors.add(
+              Map.of(
+                  "index",
+                  String.valueOf(i),
+                  "error",
+                  "missing_name",
+                  "message",
+                  "Speaker name is required"));
+          continue;
+        }
+
+        // Skip if already exists
+        if (speakerService.getSpeaker(id) != null) {
+          errors.add(
+              Map.of(
+                  "index",
+                  String.valueOf(i),
+                  "id",
+                  id,
+                  "error",
+                  "speaker_exists",
+                  "message",
+                  "Speaker already exists"));
+          continue;
+        }
+
         com.scanales.homedir.model.Speaker speaker =
             new com.scanales.homedir.model.Speaker(id, name);
         speaker.setBio((String) speakerData.get("bio"));
@@ -612,7 +619,7 @@ public class LocalhostAdminApiResource {
       }
     }
 
-    LOG.infof("Bulk created %d speakers via localhost admin API", created.size());
+    LOG.infof("Bulk created %d speakers via localhost admin API", Integer.valueOf(created.size()));
 
     Map<String, Object> result = new HashMap<>();
     result.put("created", created);
@@ -646,8 +653,16 @@ public class LocalhostAdminApiResource {
           .build();
     }
 
-    @SuppressWarnings("unchecked")
-    List<Map<String, Object>> agendaData = (List<Map<String, Object>>) body.get("agenda");
+    List<Map<String, Object>> agendaData;
+    try {
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> rawAgenda = (List<Map<String, Object>>) body.get("agenda");
+      agendaData = rawAgenda;
+    } catch (ClassCastException e) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_agenda", "message", "agenda must be an array of objects"))
+          .build();
+    }
 
     if (agendaData == null) {
       return Response.status(Response.Status.BAD_REQUEST)
@@ -657,18 +672,24 @@ public class LocalhostAdminApiResource {
 
     // Validate speaker references before applying
     List<String> missingSpeakers = new ArrayList<>();
-    for (Map<String, Object> talkData : agendaData) {
-      @SuppressWarnings("unchecked")
-      List<String> speakerIds = (List<String>) talkData.get("speakers");
-      if (speakerIds != null) {
-        for (String speakerId : speakerIds) {
-          if (speakerService.getSpeaker(speakerId) == null) {
-            if (!missingSpeakers.contains(speakerId)) {
-              missingSpeakers.add(speakerId);
+    try {
+      for (Map<String, Object> talkData : agendaData) {
+        @SuppressWarnings("unchecked")
+        List<String> speakerIds = (List<String>) talkData.get("speakers");
+        if (speakerIds != null) {
+          for (String speakerId : speakerIds) {
+            if (speakerService.getSpeaker(speakerId) == null) {
+              if (!missingSpeakers.contains(speakerId)) {
+                missingSpeakers.add(speakerId);
+              }
             }
           }
         }
       }
+    } catch (ClassCastException e) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", "invalid_agenda", "message", "Invalid agenda structure"))
+          .build();
     }
 
     if (!missingSpeakers.isEmpty()) {
@@ -704,27 +725,24 @@ public class LocalhostAdminApiResource {
       }
     }
 
-    // Replace agenda
-    event.getAgenda().clear();
-    event.getAgenda().addAll(talks);
-
-    // Sort by day and time
-    event
-        .getAgenda()
-        .sort(
-            java.util.Comparator.comparingInt(com.scanales.homedir.model.Talk::getDay)
-                .thenComparing(
-                    com.scanales.homedir.model.Talk::getStartTime,
-                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
+    // Sort by day and time before saving
+    talks.sort(
+        java.util.Comparator.comparingInt(com.scanales.homedir.model.Talk::getDay)
+            .thenComparing(
+                com.scanales.homedir.model.Talk::getStartTime,
+                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
 
     try {
       eventService.saveEvent(event);
+      // Apply after successful save
+      event.getAgenda().clear();
+      event.getAgenda().addAll(talks);
       LOG.infof(
           "Updated agenda for event %s with %d talks via localhost admin API",
-          eventId, talks.size());
+          sanitizeLog(eventId), Integer.valueOf(talks.size()));
       return Response.ok(Map.of("event", event, "agendaCount", talks.size())).build();
     } catch (Exception e) {
-      LOG.errorf(e, "Failed to update agenda for event %s", eventId);
+      LOG.errorf(e, "Failed to update agenda for event %s", sanitizeLog(eventId));
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(Map.of("error", "save_failed", "message", e.getMessage()))
           .build();

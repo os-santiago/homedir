@@ -64,7 +64,9 @@ echo ""
 
 # Step 2: Create speakers
 echo "[2/4] Creating speakers..."
-cat > /tmp/speakers-bulk.json << 'EOF'
+SPEAKERS_TMP="$(mktemp)"
+trap 'rm -f "$SPEAKERS_TMP"' EXIT
+cat > "$SPEAKERS_TMP" << 'EOF'
 {
   "speakers": [
     {
@@ -221,7 +223,7 @@ cat > /tmp/speakers-bulk.json << 'EOF'
 }
 EOF
 
-BULK_RESULT=$(api_call POST "/speakers/bulk" @/tmp/speakers-bulk.json)
+BULK_RESULT=$(api_call POST "/speakers/bulk" "@$SPEAKERS_TMP")
 CREATED_COUNT=$(echo "$BULK_RESULT" | jq -r '.createdCount')
 ERROR_COUNT=$(echo "$BULK_RESULT" | jq -r '.errorCount')
 
@@ -260,7 +262,7 @@ echo ""
 # Step 4: Verify
 echo "[4/4] Verifying update..."
 EVENT=$(api_call GET "/events")
-EVENT_AGENDA_COUNT=$(echo "$EVENT" | jq -r '.[0].agenda | length')
+EVENT_AGENDA_COUNT=$(echo "$EVENT" | jq -r --arg id "$EVENT_ID" '.[] | select(.id == $id) | .agenda | length')
 
 if [ "$EVENT_AGENDA_COUNT" -eq "$AGENDA_COUNT" ]; then
   echo "✓ Verification successful: Event has $EVENT_AGENDA_COUNT sessions in agenda"
