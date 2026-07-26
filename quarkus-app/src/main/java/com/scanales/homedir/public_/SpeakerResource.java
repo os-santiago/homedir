@@ -4,6 +4,7 @@ import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Speaker;
 import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
+import com.scanales.homedir.service.SpeakerPhotoProxyService;
 import com.scanales.homedir.service.SpeakerService;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
@@ -30,33 +31,30 @@ public class SpeakerResource {
   @GET
   @Path("/{id}/photo")
   @PermitAll
-  public Response getSpeakerPhoto(@PathParam("id") String speakerId) {
+  public Response getSpeakerPhoto(
+      @PathParam("id") String speakerId,
+      @jakarta.ws.rs.HeaderParam("If-None-Match") String ifNoneMatch) {
     if (speakerId == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    String safeSpeakerId = speakerId.replaceAll("[^a-zA-Z0-9_.-]", "_");
-    java.nio.file.Path uploadsRoot =
-        java.nio.file.Paths.get(dataDirPath).resolve("uploads").resolve("speakers").normalize();
 
-    // Check for PNG
-    java.nio.file.Path pngPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".png");
-    if (java.nio.file.Files.exists(pngPath)) {
-      return Response.ok(pngPath.toFile()).type("image/png").build();
+    SpeakerPhotoProxyService.PhotoResult result = photoProxyService.getPhoto(speakerId);
+
+    if (result == null) {
+      return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    // Check for JPG
-    java.nio.file.Path jpgPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".jpg");
-    if (java.nio.file.Files.exists(jpgPath)) {
-      return Response.ok(jpgPath.toFile()).type("image/jpeg").build();
+    // Check ETag for 304 Not Modified
+    if (ifNoneMatch != null && ifNoneMatch.equals(result.etag())) {
+      return Response.notModified().tag(result.etag()).build();
     }
 
-    // Check for JPEG
-    java.nio.file.Path jpegPath = uploadsRoot.resolve("avatar_" + safeSpeakerId + ".jpeg");
-    if (java.nio.file.Files.exists(jpegPath)) {
-      return Response.ok(jpegPath.toFile()).type("image/jpeg").build();
-    }
-
-    return Response.status(Response.Status.NOT_FOUND).build();
+    return Response.ok(result.file().toFile())
+        .type(result.contentType())
+        .header("Cache-Control", "public, max-age=604800, immutable")
+        .header("ETag", result.etag())
+        .header("Vary", "Accept-Encoding")
+        .build();
   }
 
   @CheckedTemplate
@@ -68,6 +66,8 @@ public class SpeakerResource {
   @Inject SpeakerService speakerService;
 
   @Inject EventService eventService;
+
+  @Inject SpeakerPhotoProxyService photoProxyService;
 
   @GET
   @Path("{id}")
