@@ -322,12 +322,89 @@ function setupAgendaToggle() {
             gridBtn.classList.remove('active');
             seqViews.forEach(v => v.classList.remove('hidden'));
             gridViews.forEach(v => v.classList.add('hidden'));
+            seqBtn.style.opacity = '1';
+            gridBtn.style.opacity = '0.7';
         });
         gridBtn.addEventListener('click', () => {
             gridBtn.classList.add('active');
             seqBtn.classList.remove('active');
             gridViews.forEach(v => v.classList.remove('hidden'));
             seqViews.forEach(v => v.classList.add('hidden'));
+            gridBtn.style.opacity = '1';
+            seqBtn.style.opacity = '0.7';
+        });
+    }
+}
+
+function setupAgendaFullscreen() {
+    const fullscreenBtn = document.getElementById('agendaFullscreenBtn');
+    const modal = document.getElementById('agendaFullscreenModal');
+    const closeBtn = document.getElementById('agendaFullscreenCloseBtn');
+    const modalContent = document.getElementById('agendaFullscreenContent');
+    const modalSeqBtn = document.getElementById('agendaFullscreenSeqBtn');
+    const modalGridBtn = document.getElementById('agendaFullscreenGridBtn');
+
+    if (!fullscreenBtn || !modal || !modalContent) return;
+
+    // Open modal
+    fullscreenBtn.addEventListener('click', () => {
+        // Clone agenda content
+        const agendaSection = document.querySelector('[data-agenda-section]');
+        if (agendaSection) {
+            const clone = agendaSection.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            // Set initial view state (grid by default)
+            const clonedSeqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const clonedGridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            clonedSeqViews.forEach(v => v.classList.add('hidden'));
+            clonedGridViews.forEach(v => v.classList.remove('hidden'));
+        }
+
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    });
+
+    // Close modal
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+
+    // Toggle views in modal
+    if (modalSeqBtn && modalGridBtn) {
+        modalSeqBtn.addEventListener('click', () => {
+            const seqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const gridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            seqViews.forEach(v => v.classList.remove('hidden'));
+            gridViews.forEach(v => v.classList.add('hidden'));
+            modalSeqBtn.classList.add('active');
+            modalGridBtn.classList.remove('active');
+            modalSeqBtn.style.opacity = '1';
+            modalGridBtn.style.opacity = '0.7';
+        });
+
+        modalGridBtn.addEventListener('click', () => {
+            const seqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const gridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            gridViews.forEach(v => v.classList.remove('hidden'));
+            seqViews.forEach(v => v.classList.add('hidden'));
+            modalGridBtn.classList.add('active');
+            modalSeqBtn.classList.remove('active');
+            modalGridBtn.style.opacity = '1';
+            modalSeqBtn.style.opacity = '0.7';
         });
     }
 }
@@ -461,6 +538,7 @@ function onDomContentLoaded() {
     setupUserMenu();
     setupUserMenuActiveState();
     setupAgendaToggle();
+    setupAgendaFullscreen();
     setupViewFullAgenda();
     adjustLayout();
     if (!isUltraLiteMode()) {
