@@ -320,19 +320,12 @@ public class AdminEventResource {
     java.time.LocalTime start = java.time.LocalTime.parse(startTime);
     java.time.LocalTime end = start.plusMinutes(base.getDurationMinutes());
     LOG.infof(
-        "accion=charla_crear_intento usuario=%s eventoId=%s charlaTitulo=%s fechaInicio=%s fechaFin=%s dia=%d sala=%s requestId=%s",
+        "accion=charla_guardar_intento usuario=%s eventoId=%s charlaTitulo=%s fechaInicio=%s fechaFin=%s dia=%d sala=%s requestId=%s",
         user, eventId, base.getName(), start, end, day, location, reqId);
-    if (event.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId))) {
-      LOG.warnf(
-          "accion=charla_crear_rechazada motivo=duplicado charlaExistenteId=%s eventoId=%s requestId=%s",
-          talkId, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "Esta charla ya existe para el evento", java.nio.charset.StandardCharsets.UTF_8);
-      return Response.status(Response.Status.SEE_OTHER)
-          .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
-          .build();
-    }
+
+    // Check if talk already exists in agenda (for update vs create detection)
+    boolean isUpdate = event.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId));
+
     Talk talk = new Talk(talkId, base.getName());
     talk.setDescription(base.getDescription());
     talk.setDurationMinutes(base.getDurationMinutes());
@@ -357,11 +350,12 @@ public class AdminEventResource {
     try {
       eventService.saveTalk(eventId, talk);
       LOG.infof(
-          "accion=charla_crear_exito charlaId=%s eventoId=%s requestId=%s", talkId, eventId, reqId);
-      String msg =
-          java.net.URLEncoder.encode(
-              "✅ Charla '" + base.getName() + "' agregada al evento.",
-              java.nio.charset.StandardCharsets.UTF_8);
+          "accion=charla_guardar_exito operacion=%s charlaId=%s eventoId=%s requestId=%s",
+          isUpdate ? "actualizar" : "crear", talkId, eventId, reqId);
+      String successMessage = isUpdate
+          ? "✅ Charla '" + base.getName() + "' actualizada correctamente."
+          : "✅ Charla '" + base.getName() + "' agregada al evento.";
+      String msg = java.net.URLEncoder.encode(successMessage, java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
