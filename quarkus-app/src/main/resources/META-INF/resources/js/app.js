@@ -322,12 +322,127 @@ function setupAgendaToggle() {
             gridBtn.classList.remove('active');
             seqViews.forEach(v => v.classList.remove('hidden'));
             gridViews.forEach(v => v.classList.add('hidden'));
+            seqBtn.style.opacity = '1';
+            gridBtn.style.opacity = '0.7';
         });
         gridBtn.addEventListener('click', () => {
             gridBtn.classList.add('active');
             seqBtn.classList.remove('active');
             gridViews.forEach(v => v.classList.remove('hidden'));
             seqViews.forEach(v => v.classList.add('hidden'));
+            gridBtn.style.opacity = '1';
+            seqBtn.style.opacity = '0.7';
+        });
+    }
+}
+
+function setupAgendaFullscreen() {
+    const fullscreenBtn = document.getElementById('agendaFullscreenBtn');
+    const modal = document.getElementById('agendaFullscreenModal');
+    const closeBtn = document.getElementById('agendaFullscreenCloseBtn');
+    const modalContent = document.getElementById('agendaFullscreenContent');
+    const modalSeqBtn = document.getElementById('agendaFullscreenSeqBtn');
+    const modalGridBtn = document.getElementById('agendaFullscreenGridBtn');
+
+    if (!fullscreenBtn || !modal || !modalContent) return;
+
+    let lastFocus = null;
+
+    const getFocusableElements = () => {
+        return modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    };
+
+    const trapFocus = (e) => {
+        const focusable = getFocusableElements();
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    };
+
+    const resetModalButtons = () => {
+        if (modalSeqBtn && modalGridBtn) {
+            modalSeqBtn.classList.remove('active');
+            modalGridBtn.classList.add('active');
+            modalSeqBtn.style.opacity = '0.7';
+            modalGridBtn.style.opacity = '1';
+        }
+    };
+
+    const openModal = () => {
+        lastFocus = document.activeElement;
+        const agendaSection = document.querySelector('[data-agenda-section]');
+        if (agendaSection) {
+            const clone = agendaSection.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const clonedSeqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const clonedGridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            clonedSeqViews.forEach(v => v.classList.add('hidden'));
+            clonedGridViews.forEach(v => v.classList.remove('hidden'));
+        }
+
+        resetModalButtons();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        modal.addEventListener('keydown', trapFocus);
+        const focusable = getFocusableElements();
+        if (focusable.length > 0) focusable[0].focus();
+    };
+
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        modal.removeEventListener('keydown', trapFocus);
+        if (lastFocus) lastFocus.focus();
+    };
+
+    fullscreenBtn.addEventListener('click', openModal);
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+
+    if (modalSeqBtn && modalGridBtn) {
+        modalSeqBtn.addEventListener('click', () => {
+            const seqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const gridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            seqViews.forEach(v => v.classList.remove('hidden'));
+            gridViews.forEach(v => v.classList.add('hidden'));
+            modalSeqBtn.classList.add('active');
+            modalGridBtn.classList.remove('active');
+            modalSeqBtn.style.opacity = '1';
+            modalGridBtn.style.opacity = '0.7';
+        });
+
+        modalGridBtn.addEventListener('click', () => {
+            const seqViews = modalContent.querySelectorAll('[data-agenda-seq]');
+            const gridViews = modalContent.querySelectorAll('[data-agenda-grid]');
+            gridViews.forEach(v => v.classList.remove('hidden'));
+            seqViews.forEach(v => v.classList.add('hidden'));
+            modalGridBtn.classList.add('active');
+            modalSeqBtn.classList.remove('active');
+            modalGridBtn.style.opacity = '1';
+            modalSeqBtn.style.opacity = '0.7';
         });
     }
 }
@@ -461,6 +576,7 @@ function onDomContentLoaded() {
     setupUserMenu();
     setupUserMenuActiveState();
     setupAgendaToggle();
+    setupAgendaFullscreen();
     setupViewFullAgenda();
     adjustLayout();
     if (!isUltraLiteMode()) {

@@ -243,11 +243,15 @@
         <div class="section-header" style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h2>{i18n:events_detail_agenda_title}</h2>
             <div class="view-toggle">
-                <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav active" type="button">{i18n:events_detail_agenda_sequential}</button>
-                <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n:events_detail_agenda_by_scenario}</button>
+                <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n:events_detail_agenda_sequential}</button>
+                <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav active" type="button">{i18n:events_detail_agenda_by_scenario}</button>
+                <button id="agendaFullscreenBtn" data-agenda-fullscreen-btn class="btn login-btn-nav" type="button" title="{i18n:events_detail_agenda_fullscreen}" aria-label="{i18n:events_detail_agenda_fullscreen}">
+                    <span class="material-symbols-outlined" style="font-size: 1.2em; vertical-align: middle;">fullscreen</span>
+                </button>
             </div>
         </div>
 
+        <div data-agenda-section>
         {#for d in event.dayList}
         <div class="section-card" style="margin-bottom: 2rem;">
             <h3 style="margin-bottom: 1.5rem; color: var(--color-accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
@@ -255,7 +259,7 @@
             </h3>
             
             <!-- Sequential View -->
-            <div id="agenda-seq-{d}" class="agenda-view agenda-seq" data-agenda-seq>
+            <div id="agenda-seq-{d}" class="agenda-view agenda-seq hidden" data-agenda-seq>
                 <table class="hd-table agenda-table">
                     <thead>
                         <tr>
@@ -308,7 +312,7 @@
             </div>
 
             <!-- Grid View -->
-            <div id="agenda-grid-{d}" class="agenda-view agenda-grid hidden" data-agenda-grid>
+            <div id="agenda-grid-{d}" class="agenda-view agenda-grid" data-agenda-grid>
                 <div style="overflow-x: auto;">
                     <table class="hd-table agenda-grid-table">
                         <thead>
@@ -353,11 +357,32 @@
             </div>
         </div>
         {/for}
+        </div>
     </div>
     {/if}
 
 </div>
 </section>
+
+<!-- Fullscreen Agenda Modal -->
+<div id="agendaFullscreenModal" class="agenda-fullscreen-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="{i18n:events_detail_agenda_title}">
+    <div class="agenda-fullscreen-header">
+        <h2 id="agendaFullscreenTitle">{i18n:events_detail_agenda_title}</h2>
+        <div class="agenda-fullscreen-controls">
+            <div class="view-toggle">
+                <button id="agendaFullscreenSeqBtn" class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n:events_detail_agenda_sequential}</button>
+                <button id="agendaFullscreenGridBtn" class="btn login-btn-nav active" type="button">{i18n:events_detail_agenda_by_scenario}</button>
+            </div>
+            <button id="agendaFullscreenCloseBtn" class="btn login-btn-nav" type="button" title="{i18n:events_detail_agenda_fullscreen_close}" aria-label="{i18n:events_detail_agenda_fullscreen_close}">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </div>
+    <div class="agenda-fullscreen-content" id="agendaFullscreenContent">
+        <!-- Content will be cloned from main agenda -->
+    </div>
+</div>
+
 {#else}
 <div class="page-container" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
     <div class="section-card" style="text-align: center;">

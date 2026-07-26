@@ -7008,4 +7008,11 @@ public interface AppMessages {
 
   @Message("✅ Talk '{name}' added to event.")
   String admin_event_talk_created(String name);
+
+  // --- Event Detail - Fullscreen Agenda ---
+  @Message("View in fullscreen")
+  String events_detail_agenda_fullscreen();
+
+  @Message("Close")
+  String events_detail_agenda_fullscreen_close();
 }
