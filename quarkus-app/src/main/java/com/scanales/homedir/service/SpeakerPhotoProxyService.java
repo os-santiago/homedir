@@ -281,10 +281,7 @@ public class SpeakerPhotoProxyService {
       }
 
       // PNG: 89 50 4E 47 0D 0A 1A 0A
-      if (header[0] == (byte) 0x89
-          && header[1] == 0x50
-          && header[2] == 0x4E
-          && header[3] == 0x47) {
+      if (header[0] == (byte) 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) {
         return true;
       }
 
