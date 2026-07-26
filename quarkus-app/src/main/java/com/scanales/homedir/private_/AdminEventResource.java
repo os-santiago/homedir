@@ -352,10 +352,12 @@ public class AdminEventResource {
       LOG.infof(
           "accion=charla_guardar_exito operacion=%s charlaId=%s eventoId=%s requestId=%s",
           isUpdate ? "actualizar" : "crear", talkId, eventId, reqId);
-      String successMessage = isUpdate
-          ? "✅ Charla '" + base.getName() + "' actualizada correctamente."
-          : "✅ Charla '" + base.getName() + "' agregada al evento.";
-      String msg = java.net.URLEncoder.encode(successMessage, java.nio.charset.StandardCharsets.UTF_8);
+      String successMessage =
+          isUpdate
+              ? "✅ Charla '" + base.getName() + "' actualizada correctamente."
+              : "✅ Charla '" + base.getName() + "' agregada al evento.";
+      String msg =
+          java.net.URLEncoder.encode(successMessage, java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
