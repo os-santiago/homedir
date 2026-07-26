@@ -413,6 +413,7 @@
     let listRequestSequence = 0;
     let currentEventConfigPayload = null;
     let currentReviewerItems = [];
+    let currentStatsPayload = null;
 
     function openCfpAdminSection(panelId, updateHash = true) {
       if (!panelId) return;
@@ -595,6 +596,7 @@
 
     function applyStats(payload) {
       if (!statTotalEl) return;
+      currentStatsPayload = payload;
       statTotalEl.textContent = String(payload?.total ?? 0);
       statPendingEl.textContent = String(payload?.pending ?? 0);
       statUnderReviewEl.textContent = String(payload?.under_review ?? 0);
@@ -1221,8 +1223,8 @@
       if (effective.results_published_by) {
         parts.push(i18n.resultsPublishedBy + " " + effective.results_published_by);
       }
-      const acceptedCount = Number.parseInt(String(statAcceptedEl?.textContent || "0"), 10) || 0;
-      const rejectedCount = Number.parseInt(String(statRejectedEl?.textContent || "0"), 10) || 0;
+      const acceptedCount = currentStatsPayload?.accepted ?? 0;
+      const rejectedCount = currentStatsPayload?.rejected ?? 0;
       parts.push(i18n.resultsAcceptCount + " " + acceptedCount);
       parts.push(i18n.resultsRejectCount + " " + rejectedCount);
       resultsSummary.textContent = parts.join(" · ");
