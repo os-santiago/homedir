@@ -2,6 +2,7 @@ package com.scanales.homedir.private_;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.EventType;
 import com.scanales.homedir.model.Scenario;
@@ -12,6 +13,7 @@ import com.scanales.homedir.service.SpeakerService;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.qute.i18n.MessageBundles;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -352,10 +354,11 @@ public class AdminEventResource {
       LOG.infof(
           "accion=charla_guardar_exito operacion=%s charlaId=%s eventoId=%s requestId=%s",
           isUpdate ? "actualizar" : "crear", talkId, eventId, reqId);
+      AppMessages i18n = MessageBundles.get(AppMessages.class);
       String successMessage =
           isUpdate
-              ? "✅ Charla '" + base.getName() + "' actualizada correctamente."
-              : "✅ Charla '" + base.getName() + "' agregada al evento.";
+              ? i18n.admin_event_talk_updated(base.getName())
+              : i18n.admin_event_talk_created(base.getName());
       String msg =
           java.net.URLEncoder.encode(successMessage, java.nio.charset.StandardCharsets.UTF_8);
       return Response.status(Response.Status.SEE_OTHER)

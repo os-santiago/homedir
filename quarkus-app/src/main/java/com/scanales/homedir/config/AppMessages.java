@@ -7001,4 +7001,11 @@ public interface AppMessages {
 
   @Message("Abstract")
   String events_cfp_field_abstract();
+
+  // --- Admin - Event Talk Management ---
+  @Message("✅ Talk '{name}' updated successfully.")
+  String admin_event_talk_updated(String name);
+
+  @Message("✅ Talk '{name}' added to event.")
+  String admin_event_talk_created(String name);
 }
