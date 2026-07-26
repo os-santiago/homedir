@@ -103,8 +103,8 @@ public class SpeakerPhotoProxyService {
       String safeId = speakerId.replaceAll("[^a-zA-Z0-9_.-]", "_");
       String hash = hashUrl(url);
       Path cacheDir = getCacheDir();
-      Path cachedFile = cacheDir.resolve(safeId + "_" + hash + ".jpg");
-      Path metaFile = cacheDir.resolve(safeId + "_" + hash + ".meta");
+      Path cachedFile = safeResolve(cacheDir, safeId + "_" + hash + ".jpg");
+      Path metaFile = safeResolve(cacheDir, safeId + "_" + hash + ".meta");
 
       if (!Files.exists(cachedFile) || !Files.exists(metaFile)) {
         return null;
@@ -140,7 +140,7 @@ public class SpeakerPhotoProxyService {
 
       String[] extensions = {".png", ".jpg", ".jpeg"};
       for (String ext : extensions) {
-        Path file = uploadsRoot.resolve("avatar_" + safeSpeakerId + ext);
+        Path file = safeResolve(uploadsRoot, "avatar_" + safeSpeakerId + ext);
         if (Files.exists(file)) {
           String contentType = ext.equals(".png") ? "image/png" : "image/jpeg";
           String etag = generateETag(file);
@@ -207,8 +207,8 @@ public class SpeakerPhotoProxyService {
         Path cacheDir = getCacheDir();
         Files.createDirectories(cacheDir);
 
-        Path cachedFile = cacheDir.resolve(safeId + "_" + hash + ".jpg");
-        Path metaFile = cacheDir.resolve(safeId + "_" + hash + ".meta");
+        Path cachedFile = safeResolve(cacheDir, safeId + "_" + hash + ".jpg");
+        Path metaFile = safeResolve(cacheDir, safeId + "_" + hash + ".meta");
 
         if (optimizeEnabled) {
           optimizeImage(tempFile, cachedFile);
@@ -418,7 +418,7 @@ public class SpeakerPhotoProxyService {
 
             if (daysSinceFetch > cacheTtlDays) {
               String baseName = metaFile.getFileName().toString().replace(".meta", "");
-              Path imageFile = cacheDir.resolve(baseName + ".jpg");
+              Path imageFile = safeResolve(cacheDir, baseName + ".jpg");
 
               Files.deleteIfExists(metaFile);
               Files.deleteIfExists(imageFile);
@@ -437,5 +437,13 @@ public class SpeakerPhotoProxyService {
     } catch (Exception e) {
       Log.errorf(e, "Error cleaning expired cache");
     }
+  }
+
+  private static Path safeResolve(Path base, String child) {
+    Path resolved = base.resolve(child).normalize();
+    if (!resolved.startsWith(base.normalize())) {
+      throw new SecurityException("Path traversal detected: " + child);
+    }
+    return resolved;
   }
 }
