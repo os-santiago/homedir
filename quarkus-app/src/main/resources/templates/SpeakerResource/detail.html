@@ -92,8 +92,8 @@
     <ul class="talk-list">
       {#for t in speaker.talks}
       <li class="card talk-card">
-        <h3 class="talk-title">{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
-        {#if t.speakers.size() > 1}
+        <h3 class="talk-title">{t.name}{#if t.speakers != null && !t.speakers.isEmpty() && t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
+        {#if t.speakers != null && t.speakers.size() > 1}
         <div class="talk-speakers">
           <strong>{i18n:speaker_detail_talk_speakers_label}</strong>
           {#for sp in t.speakers}
