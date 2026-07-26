@@ -7015,4 +7015,11 @@ public interface AppMessages {
 
   @Message("Close")
   String events_detail_agenda_fullscreen_close();
+
+  // --- Admin - Agenda Cleanup ---
+  @Message("Event not found")
+  String admin_cleanup_event_not_found();
+
+  @Message("Agenda cleared and will be re-seeded")
+  String admin_cleanup_agenda_cleared();
 }

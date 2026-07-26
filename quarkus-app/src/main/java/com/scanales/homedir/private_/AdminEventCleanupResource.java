@@ -1,8 +1,10 @@
 package com.scanales.homedir.private_;
 
+import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.Event;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.util.AdminUtils;
+import io.quarkus.qute.i18n.MessageBundles;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -15,8 +17,8 @@ import java.util.Map;
 /**
  * Temporary admin endpoint to clean corrupted event data.
  *
- * This resource provides utilities to fix data corruption issues
- * that cannot be resolved through normal admin UI.
+ * <p>This resource provides utilities to fix data corruption issues that cannot be resolved through
+ * normal admin UI.
  */
 @Path("/private/admin/events/cleanup")
 public class AdminEventCleanupResource {
@@ -32,11 +34,11 @@ public class AdminEventCleanupResource {
   /**
    * Clear event agenda to force re-seeding.
    *
-   * Use this when event agenda has corrupted data (e.g., phantom talks
-   * that don't exist in admin but appear in public view).
+   * <p>Use this when event agenda has corrupted data (e.g., phantom talks that don't exist in admin
+   * but appear in public view).
    *
-   * The agenda will be regenerated automatically on next save/load
-   * if the event has seeding logic in EventService.
+   * <p>The agenda will be regenerated automatically on next save/load if the event has seeding
+   * logic in EventService.
    */
   @POST
   @Path("{id}/clear-agenda")
@@ -48,8 +50,9 @@ public class AdminEventCleanupResource {
 
     Event event = eventService.getEvent(eventId);
     if (event == null) {
+      AppMessages i18n = MessageBundles.get(AppMessages.class);
       return Response.status(Response.Status.NOT_FOUND)
-          .entity(Map.of("error", "Event not found"))
+          .entity(Map.of("error", i18n.admin_cleanup_event_not_found()))
           .build();
     }
 
@@ -61,13 +64,14 @@ public class AdminEventCleanupResource {
     // Save - this will trigger re-seeding if event has seeding logic
     eventService.saveEvent(event);
 
+    AppMessages i18n = MessageBundles.get(AppMessages.class);
     return Response.ok()
         .entity(
             Map.of(
                 "success",
                 true,
                 "message",
-                "Agenda cleared and will be re-seeded",
+                i18n.admin_cleanup_agenda_cleared(),
                 "eventId",
                 eventId,
                 "previousAgendaSize",
