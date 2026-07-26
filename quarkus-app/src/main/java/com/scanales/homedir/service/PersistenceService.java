@@ -205,6 +205,53 @@ public class PersistenceService {
   private final AtomicLong cfpChecksumMismatches = new AtomicLong();
   private final AtomicLong cfpChecksumHydrations = new AtomicLong();
 
+  // Universal backup system configuration
+  @ConfigProperty(name = "persistence.backups.enabled", defaultValue = "true")
+  boolean universalBackupsEnabled = true;
+
+  @ConfigProperty(name = "persistence.backups.max-files", defaultValue = "100")
+  int universalBackupsMaxFiles = 100;
+
+  @ConfigProperty(name = "persistence.backups.min-interval-ms", defaultValue = "300000")
+  long universalBackupsMinIntervalMs = 300_000L;
+
+  @ConfigProperty(name = "persistence.backups.include-events", defaultValue = "true")
+  boolean backupEvents = true;
+
+  @ConfigProperty(name = "persistence.backups.include-speakers", defaultValue = "true")
+  boolean backupSpeakers = true;
+
+  @ConfigProperty(name = "persistence.backups.include-profiles", defaultValue = "true")
+  boolean backupProfiles = true;
+
+  @ConfigProperty(name = "persistence.backups.include-economy", defaultValue = "true")
+  boolean backupEconomy = true;
+
+  @ConfigProperty(name = "persistence.backups.include-challenges", defaultValue = "true")
+  boolean backupChallenges = true;
+
+  @ConfigProperty(name = "persistence.backups.include-campaigns", defaultValue = "true")
+  boolean backupCampaigns = true;
+
+  @ConfigProperty(name = "persistence.backups.include-community", defaultValue = "true")
+  boolean backupCommunity = true;
+
+  @ConfigProperty(name = "persistence.backups.include-volunteers", defaultValue = "true")
+  boolean backupVolunteers = true;
+
+  // Universal backup directories
+  private Path eventsBackupsDir;
+  private Path speakersBackupsDir;
+  private Path profilesBackupsDir;
+  private Path economyBackupsDir;
+  private Path challengesBackupsDir;
+  private Path campaignsBackupsDir;
+  private Path communityBackupsDir;
+  private Path volunteersBackupsDir;
+
+  // Track last backup time per type
+  private final ConcurrentHashMap<String, AtomicLong> lastBackupTimes = new ConcurrentHashMap<>();
+
   @PostConstruct
   void init() {
     String sysProp = System.getProperty("homedir.data.dir");
@@ -250,6 +297,27 @@ public class PersistenceService {
     try {
       Files.createDirectories(dataDir);
       Files.createDirectories(cfpBackupsDir);
+
+      // Initialize universal backup directories
+      Path backupsRoot = dataDir.resolve("backups");
+      eventsBackupsDir = backupsRoot.resolve("events");
+      speakersBackupsDir = backupsRoot.resolve("speakers");
+      profilesBackupsDir = backupsRoot.resolve("profiles");
+      economyBackupsDir = backupsRoot.resolve("economy");
+      challengesBackupsDir = backupsRoot.resolve("challenges");
+      campaignsBackupsDir = backupsRoot.resolve("campaigns");
+      communityBackupsDir = backupsRoot.resolve("community");
+      volunteersBackupsDir = backupsRoot.resolve("volunteers");
+
+      Files.createDirectories(eventsBackupsDir);
+      Files.createDirectories(speakersBackupsDir);
+      Files.createDirectories(profilesBackupsDir);
+      Files.createDirectories(economyBackupsDir);
+      Files.createDirectories(challengesBackupsDir);
+      Files.createDirectories(campaignsBackupsDir);
+      Files.createDirectories(communityBackupsDir);
+      Files.createDirectories(volunteersBackupsDir);
+
       LOG.infov("Using data directory {0}", dataDir.toAbsolutePath());
       try (var stream = Files.list(dataDir)) {
         if (stream.findAny().isPresent()) {
@@ -320,16 +388,19 @@ public class PersistenceService {
 
   /** Persists all events asynchronously. */
   public void saveEvents(Map<String, Event> events) {
+    maybeBackup("events", eventsFile, eventsBackupsDir, backupEvents);
     scheduleWrite(eventsFile, events);
   }
 
   /** Persists all speakers asynchronously. */
   public void saveSpeakers(Map<String, Speaker> speakers) {
+    maybeBackup("speakers", speakersFile, speakersBackupsDir, backupSpeakers);
     scheduleWrite(speakersFile, speakers);
   }
 
   /** Persists user profiles asynchronously. */
   public void saveUserProfiles(Map<String, UserProfile> profiles) {
+    maybeBackup("user-profiles", profilesFile, profilesBackupsDir, backupProfiles);
     scheduleWrite(profilesFile, profiles);
   }
 
@@ -372,6 +443,7 @@ public class PersistenceService {
 
   /** Persists economy state asynchronously. */
   public void saveEconomyState(EconomyStateSnapshot state) {
+    maybeBackup("economy-state", economyStateFile, economyBackupsDir, backupEconomy);
     scheduleWrite(economyStateFile, state == null ? EconomyStateSnapshot.empty() : state);
   }
 
@@ -418,6 +490,7 @@ public class PersistenceService {
 
   /** Persists challenge state asynchronously. */
   public void saveChallengeState(ChallengeStateSnapshot state) {
+    maybeBackup("challenge-state", challengeStateFile, challengesBackupsDir, backupChallenges);
     scheduleWrite(challengeStateFile, state == null ? ChallengeStateSnapshot.empty() : state);
   }
 
@@ -522,6 +595,7 @@ public class PersistenceService {
 
   /** Persists campaign state asynchronously. */
   public void saveCampaignState(CampaignStateSnapshot state) {
+    maybeBackup("campaign-state", campaignStateFile, campaignsBackupsDir, backupCampaigns);
     scheduleWrite(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
   }
 
@@ -599,6 +673,8 @@ public class PersistenceService {
 
   /** Persists community submissions asynchronously. */
   public void saveCommunitySubmissions(Map<String, CommunitySubmission> submissions) {
+    maybeBackup(
+        "community-submissions", communitySubmissionsFile, communityBackupsDir, backupCommunity);
     scheduleWrite(communitySubmissionsFile, submissions);
   }
 
@@ -753,6 +829,11 @@ public class PersistenceService {
 
   /** Persists volunteer applications asynchronously. */
   public void saveVolunteerApplications(Map<String, VolunteerApplication> submissions) {
+    maybeBackup(
+        "volunteer-applications",
+        volunteerSubmissionsFile,
+        volunteersBackupsDir,
+        backupVolunteers);
     scheduleWrite(
         volunteerSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
   }
@@ -2065,6 +2146,77 @@ public class PersistenceService {
     } catch (IOException e) {
       LOG.warn("Failed to recover CFP submissions from WAL", e);
       return null;
+    }
+  }
+
+  /**
+   * Generic backup method for any file type. Creates time-stamped backups with debouncing and
+   * automatic pruning.
+   *
+   * @param type Backup type identifier (e.g., "events", "speakers")
+   * @param sourceFile File to backup
+   * @param backupsDir Directory for backups
+   * @param enabled Whether backups are enabled for this type
+   */
+  private void maybeBackup(String type, Path sourceFile, Path backupsDir, boolean enabled) {
+    if (!universalBackupsEnabled || !enabled || !Files.exists(sourceFile)) {
+      return;
+    }
+
+    long now = System.currentTimeMillis();
+    AtomicLong lastBackup = lastBackupTimes.computeIfAbsent(type, k -> new AtomicLong(0));
+    long previous = lastBackup.get();
+
+    // Debounce: respect minimum interval
+    if (previous > 0 && (now - previous) < universalBackupsMinIntervalMs) {
+      return;
+    }
+
+    // CAS to prevent concurrent backups
+    if (!lastBackup.compareAndSet(previous, now)) {
+      return;
+    }
+
+    try {
+      Files.createDirectories(backupsDir);
+      String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now());
+      String random = String.format("%03d", ThreadLocalRandom.current().nextInt(1000));
+      String filename = type + "-" + timestamp + "-" + random + ".json";
+      Path backup = backupsDir.resolve(filename);
+
+      Files.copy(sourceFile, backup, StandardCopyOption.REPLACE_EXISTING);
+
+      pruneOldBackups(backupsDir, universalBackupsMaxFiles);
+
+      LOG.infof("Backed up %s to %s", type, backup.getFileName());
+
+    } catch (IOException e) {
+      LOG.warnf(e, "Failed to backup %s", type);
+      lastBackup.compareAndSet(now, previous); // Revert timestamp on failure
+    }
+  }
+
+  /**
+   * Generic backup pruning. Keeps last N files sorted by filename (timestamp-based).
+   *
+   * @param backupsDir Directory containing backups
+   * @param maxFiles Maximum number of backups to keep
+   */
+  private void pruneOldBackups(Path backupsDir, int maxFiles) {
+    int keep = Math.max(1, maxFiles);
+    try (var stream = Files.list(backupsDir)) {
+      var backups =
+          stream
+              .filter(Files::isRegularFile)
+              .filter(p -> p.getFileName().toString().endsWith(".json"))
+              .sorted((a, b) -> b.getFileName().toString().compareTo(a.getFileName().toString()))
+              .toList();
+
+      for (int i = keep; i < backups.size(); i++) {
+        Files.deleteIfExists(backups.get(i));
+      }
+    } catch (IOException e) {
+      LOG.warnf(e, "Failed to prune backups in %s", backupsDir);
     }
   }
 
