@@ -483,6 +483,7 @@ public class ProfileResource {
         .data("challengeOverview", challengeOverview)
         .data("profileChallenges", profileChallenges)
         .data("challengeCopy", challengeCopy)
+        .data("speaker", speakerService.getSpeaker(email))
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -763,6 +764,116 @@ public class ProfileResource {
       speakerService.saveSpeaker(sp);
     }
     return redirectWithStatus(target, "photoSaved", "1");
+  }
+
+  @POST
+  @Path("speaker/talk")
+  @Authenticated
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response updateTalk(
+      @FormParam("talkId") String talkId,
+      @FormParam("title") String title,
+      @FormParam("description") String description,
+      @FormParam("durationMinutes") Integer duration,
+      @FormParam("coSpeakers") String coSpeakersJson,
+      @FormParam("redirect") String redirect) {
+
+    String email = getEmail();
+    if (email == null || email.isBlank()) {
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+
+    // Get user's speaker
+    com.scanales.homedir.model.Speaker speaker = speakerService.getSpeaker(email);
+    if (speaker == null) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("error", "no_speaker_profile"))
+          .build();
+    }
+
+    // Find talk
+    com.scanales.homedir.model.Talk talk = speaker.getTalks().stream()
+        .filter(t -> t.getId().equals(talkId))
+        .findFirst()
+        .orElse(null);
+
+    if (talk == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(Map.of("error", "talk_not_found"))
+          .build();
+    }
+
+    // Update talk fields
+    if (title != null && !title.isBlank()) {
+      talk.setName(title.substring(0, Math.min(title.length(), 120)));
+    }
+    if (description != null) {
+      talk.setDescription(description.substring(0, Math.min(description.length(), 2000)));
+    }
+    if (duration != null && duration > 0) {
+      talk.setDurationMinutes(duration);
+    }
+
+    // Update co-speakers if provided
+    if (coSpeakersJson != null && !coSpeakersJson.isBlank()) {
+      try {
+        java.util.List<String> coSpeakerIds = parseCoSpeakers(coSpeakersJson);
+        java.util.List<com.scanales.homedir.model.Speaker> allSpeakers = new java.util.ArrayList<>();
+        allSpeakers.add(speaker); // Main speaker first
+
+        for (String csId : coSpeakerIds) {
+          com.scanales.homedir.model.Speaker cs = speakerService.getSpeaker(csId);
+          if (cs != null) {
+            allSpeakers.add(cs);
+          }
+        }
+        talk.setSpeakers(allSpeakers);
+      } catch (Exception e) {
+        // Invalid JSON, skip co-speakers update
+      }
+    }
+
+    // Save via SpeakerService (propagates to all speakers + events)
+    speakerService.saveTalk(speaker.getId(), talk);
+
+    String target = redirect != null && !redirect.isBlank()
+        ? redirect
+        : "/private/profile#speaker-panel";
+    return redirectWithStatus(target, "talkSaved", "1");
+  }
+
+  @GET
+  @Path("speaker/search")
+  @Authenticated
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response searchSpeakers(@QueryParam("q") String query) {
+    if (query == null || query.length() < 2) {
+      return Response.ok(java.util.List.of()).build();
+    }
+
+    java.util.List<com.scanales.homedir.model.Speaker> all = speakerService.getAllSpeakers();
+    java.util.List<java.util.Map<String, String>> results = all.stream()
+        .filter(s -> s.getName().toLowerCase().contains(query.toLowerCase()))
+        .limit(10)
+        .map(s -> java.util.Map.of(
+            "id", s.getId(),
+            "name", s.getName(),
+            "bio", s.getBio() != null ? s.getBio() : ""
+        ))
+        .toList();
+
+    return Response.ok(results).build();
+  }
+
+  private java.util.List<String> parseCoSpeakers(String json) {
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper mapper =
+          new com.fasterxml.jackson.databind.ObjectMapper();
+      return mapper.readValue(json,
+          new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
+    } catch (Exception e) {
+      return java.util.List.of();
+    }
   }
 
   @POST

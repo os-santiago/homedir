@@ -599,6 +599,197 @@
                     <button type="submit" class="hd-btn hd-btn-primary">{i18n:profile_speaker_save}</button>
                 </div>
             </form>
+
+            {#if speakerActive && speaker != null && !speaker.talks.isEmpty()}
+            <div class="hd-talks-section">
+                <h3 class="hd-section-subtitle">{i18n:profile_speaker_talks_title}</h3>
+                <div class="hd-talks-list">
+                    {#for talk in speaker.talks}
+                    <article class="hd-talk-card">
+                        <h4 class="hd-talk-title">{talk.name}</h4>
+                        <div class="hd-talk-meta">
+                            <span class="hd-talk-duration">{i18n:profile_speaker_talk_duration}: {talk.durationMinutes} min</span>
+                            {#if talk.speakers.size() > 1}
+                            <span class="hd-talk-cospeakers">Co-speakers: {talk.speakerNames}</span>
+                            {/if}
+                        </div>
+                        {#if talk.description != null && !talk.description.isBlank()}
+                        <p class="hd-talk-description">{talk.description}</p>
+                        {/if}
+                        <div class="hd-talk-actions">
+                            <button type="button" class="hd-btn hd-btn-small" data-edit-talk="{talk.id}">{i18n:profile_speaker_talk_edit}</button>
+                        </div>
+                    </article>
+                    {/for}
+                </div>
+            </div>
+            {/if}
+
+            <!-- Talk Edit Modal -->
+            <div id="talkEditModal" class="hd-modal" style="display:none;">
+                <div class="hd-modal-content">
+                    <div class="hd-modal-header">
+                        <h3>{i18n:profile_speaker_talk_edit}</h3>
+                        <button type="button" class="hd-modal-close" data-close-modal>&times;</button>
+                    </div>
+                    <form id="talkEditForm" action="/private/profile/speaker/talk" method="POST">
+                        {#include fragments/csrf-token.html /}
+                        <input type="hidden" name="talkId" id="editTalkId">
+                        <input type="hidden" name="redirect" value="/private/profile#speaker-panel">
+                        <input type="hidden" name="coSpeakers" id="editCoSpeakers">
+
+                        <div class="form-group">
+                            <label for="editTalkTitle">{i18n:events_cfp_field_title}</label>
+                            <input type="text" id="editTalkTitle" name="title" class="form-input" maxlength="120" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editTalkDescription">{i18n:events_cfp_field_abstract}</label>
+                            <textarea id="editTalkDescription" name="description" class="form-input" maxlength="2000" rows="5"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editTalkDuration">{i18n:profile_speaker_talk_duration} (min)</label>
+                            <input type="number" id="editTalkDuration" name="durationMinutes" class="form-input" min="5" max="180">
+                        </div>
+
+                        <div class="form-group">
+                            <label>{i18n:profile_speaker_talk_add_cospeaker}</label>
+                            <input type="text" id="coSpeakerSearch" class="form-input" placeholder="{i18n:profile_speaker_talk_search_speakers}">
+                            <div id="coSpeakerResults" class="hd-search-results" style="display:none;"></div>
+                            <div id="selectedCoSpeakers" class="hd-selected-list"></div>
+                        </div>
+
+                        <div class="hd-modal-actions">
+                            <button type="submit" class="hd-btn hd-btn-primary">{i18n:profile_speaker_talk_save}</button>
+                            <button type="button" class="hd-btn" data-close-modal>{i18n:profile_speaker_talk_cancel}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+            (function() {
+                const modal = document.getElementById('talkEditModal');
+                const form = document.getElementById('talkEditForm');
+                const searchInput = document.getElementById('coSpeakerSearch');
+                const resultsDiv = document.getElementById('coSpeakerResults');
+                const selectedDiv = document.getElementById('selectedCoSpeakers');
+                let selectedCoSpeakers = [];
+                let currentTalkData = null;
+
+                // Edit talk buttons
+                document.querySelectorAll('[data-edit-talk]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const talkId = this.getAttribute('data-edit-talk');
+                        openEditModal(talkId);
+                    });
+                });
+
+                function openEditModal(talkId) {
+                    {#if speaker != null}
+                    const talks = {speaker.talks:json};
+                    currentTalkData = talks.find(t => t.id === talkId);
+                    if (!currentTalkData) return;
+
+                    document.getElementById('editTalkId').value = talkId;
+                    document.getElementById('editTalkTitle').value = currentTalkData.name || '';
+                    document.getElementById('editTalkDescription').value = currentTalkData.description || '';
+                    document.getElementById('editTalkDuration').value = currentTalkData.durationMinutes || 30;
+
+                    // Load co-speakers
+                    selectedCoSpeakers = (currentTalkData.speakers || [])
+                        .filter((s, i) => i > 0) // Skip main speaker
+                        .map(s => ({ id: s.id, name: s.name }));
+                    renderSelectedCoSpeakers();
+
+                    modal.style.display = 'flex';
+                    {/if}
+                }
+
+                // Close modal
+                document.querySelectorAll('[data-close-modal]').forEach(btn => {
+                    btn.addEventListener('click', () => modal.style.display = 'none');
+                });
+
+                // Co-speaker search
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+                    if (query.length < 2) {
+                        resultsDiv.style.display = 'none';
+                        return;
+                    }
+                    searchTimeout = setTimeout(() => searchSpeakers(query), 300);
+                });
+
+                async function searchSpeakers(query) {
+                    try {
+                        const response = await fetch(`/private/profile/speaker/search?q=$\{encodeURIComponent(query)}`);
+                        const results = await response.json();
+                        displayResults(results);
+                    } catch (e) {
+                        console.error('Search failed:', e);
+                    }
+                }
+
+                function displayResults(results) {
+                    if (!results || results.length === 0) {
+                        resultsDiv.style.display = 'none';
+                        return;
+                    }
+                    resultsDiv.innerHTML = results.map(s => `
+                        <div class="hd-search-result" data-speaker-id="${s.id}" data-speaker-name="${s.name}">
+                            <strong>${s.name}</strong>
+                            ${s.bio ? `<small>${s.bio}</small>` : ''}
+                        </div>
+                    `).join('');
+                    resultsDiv.style.display = 'block';
+
+                    resultsDiv.querySelectorAll('.hd-search-result').forEach(el => {
+                        el.addEventListener('click', function() {
+                            addCoSpeaker({
+                                id: this.getAttribute('data-speaker-id'),
+                                name: this.getAttribute('data-speaker-name')
+                            });
+                            searchInput.value = '';
+                            resultsDiv.style.display = 'none';
+                        });
+                    });
+                }
+
+                function addCoSpeaker(speaker) {
+                    if (!selectedCoSpeakers.find(s => s.id === speaker.id)) {
+                        selectedCoSpeakers.push(speaker);
+                        renderSelectedCoSpeakers();
+                    }
+                }
+
+                function removeCoSpeaker(speakerId) {
+                    selectedCoSpeakers = selectedCoSpeakers.filter(s => s.id !== speakerId);
+                    renderSelectedCoSpeakers();
+                }
+
+                function renderSelectedCoSpeakers() {
+                    selectedDiv.innerHTML = selectedCoSpeakers.map(s => `
+                        <div class="hd-selected-item">
+                            ${s.name}
+                            <button type="button" class="hd-remove-btn" data-remove-speaker="${s.id}">&times;</button>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('editCoSpeakers').value =
+                        JSON.stringify(selectedCoSpeakers.map(s => s.id));
+
+                    selectedDiv.querySelectorAll('[data-remove-speaker]').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            removeCoSpeaker(this.getAttribute('data-remove-speaker'));
+                        });
+                    });
+                }
+            })();
+            </script>
             {/if}
         </section>
 
