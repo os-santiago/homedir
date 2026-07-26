@@ -95,7 +95,7 @@
         <h3 class="talk-title">{t.name}{#if t.speakers[0].id != speaker.id} (Co Speaker){/if}</h3>
         {#if t.speakers.size() > 1}
         <div class="talk-speakers">
-          <strong>Speakers:</strong>
+          <strong>{i18n:speaker_detail_talk_speakers_label}</strong>
           {#for sp in t.speakers}
             <a href="/speaker/{sp.id}">{sp.name}</a>{#if !sp_isLast}, {/if}
           {/for}

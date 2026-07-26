@@ -40,11 +40,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -60,6 +62,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -291,6 +294,7 @@ public class ProfileResource {
     var userProfile = userProfiles.upsert(email, name, email);
     var speakerProfile = userProfile.getSpeakerProfile();
     boolean speakerActive = speakerProfile != null && speakerProfile.active();
+    com.scanales.homedir.model.Speaker speaker = speakerService.getSpeaker(email);
     String avatarUrl =
         firstNonBlank(
             picture,
@@ -466,15 +470,14 @@ public class ProfileResource {
         .data("photoError", photoError)
         .data(
             "speakerPhoto",
-            speakerService.getSpeaker(email) != null
-                    && speakerService.getSpeaker(email).getPhotoUrl() != null
-                ? speakerService.getSpeaker(email).getPhotoUrl()
+            speaker != null && speaker.getPhotoUrl() != null
+                ? speaker.getPhotoUrl()
                 : getClaim("picture"))
         .data(
             "hasCustomPhoto",
-            speakerService.getSpeaker(email) != null
-                && speakerService.getSpeaker(email).getPhotoUrl() != null
-                && speakerService.getSpeaker(email).getPhotoUrl().startsWith("/speaker/"))
+            speaker != null
+                && speaker.getPhotoUrl() != null
+                && speaker.getPhotoUrl().startsWith("/speaker/"))
         .data("selectionReadiness", selectionReadiness)
         .data("selectionLocked", selectionLocked)
         .data("volunteerOverview", volunteerOverview)
@@ -483,7 +486,7 @@ public class ProfileResource {
         .data("challengeOverview", challengeOverview)
         .data("profileChallenges", profileChallenges)
         .data("challengeCopy", challengeCopy)
-        .data("speaker", speakerService.getSpeaker(email))
+        .data("speaker", speaker)
         .setAttribute("locale", java.util.Locale.forLanguageTag(finalLang));
   }
 
@@ -792,10 +795,8 @@ public class ProfileResource {
     }
 
     // Find talk
-    com.scanales.homedir.model.Talk talk = speaker.getTalks().stream()
-        .filter(t -> t.getId().equals(talkId))
-        .findFirst()
-        .orElse(null);
+    com.scanales.homedir.model.Talk talk =
+        speaker.getTalks().stream().filter(t -> t.getId().equals(talkId)).findFirst().orElse(null);
 
     if (talk == null) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -818,13 +819,33 @@ public class ProfileResource {
     if (coSpeakersJson != null && !coSpeakersJson.isBlank()) {
       try {
         java.util.List<String> coSpeakerIds = parseCoSpeakers(coSpeakersJson);
-        java.util.List<com.scanales.homedir.model.Speaker> allSpeakers = new java.util.ArrayList<>();
-        allSpeakers.add(speaker); // Main speaker first
+        java.util.List<com.scanales.homedir.model.Speaker> existingSpeakers = talk.getSpeakers();
+        java.util.List<com.scanales.homedir.model.Speaker> allSpeakers =
+            new java.util.ArrayList<>();
+        java.util.Set<String> seenIds = new java.util.HashSet<>();
 
+        // Preserve original primary speaker
+        com.scanales.homedir.model.Speaker primary =
+            (existingSpeakers != null && !existingSpeakers.isEmpty())
+                ? existingSpeakers.get(0)
+                : speaker;
+        allSpeakers.add(primary);
+        seenIds.add(primary.getId());
+
+        // Add current speaker if not already the primary
+        if (!seenIds.contains(speaker.getId())) {
+          allSpeakers.add(speaker);
+          seenIds.add(speaker.getId());
+        }
+
+        // Add co-speakers from form, avoiding duplicates
         for (String csId : coSpeakerIds) {
-          com.scanales.homedir.model.Speaker cs = speakerService.getSpeaker(csId);
-          if (cs != null) {
-            allSpeakers.add(cs);
+          if (!seenIds.contains(csId)) {
+            com.scanales.homedir.model.Speaker cs = speakerService.getSpeaker(csId);
+            if (cs != null) {
+              seenIds.add(csId);
+              allSpeakers.add(cs);
+            }
           }
         }
         talk.setSpeakers(allSpeakers);
@@ -836,9 +857,8 @@ public class ProfileResource {
     // Save via SpeakerService (propagates to all speakers + events)
     speakerService.saveTalk(speaker.getId(), talk);
 
-    String target = redirect != null && !redirect.isBlank()
-        ? redirect
-        : "/private/profile#speaker-panel";
+    String target =
+        redirect != null && !redirect.isBlank() ? redirect : "/private/profile#speaker-panel";
     return redirectWithStatus(target, "talkSaved", "1");
   }
 
@@ -851,16 +871,19 @@ public class ProfileResource {
       return Response.ok(java.util.List.of()).build();
     }
 
-    java.util.List<com.scanales.homedir.model.Speaker> all = speakerService.getAllSpeakers();
-    java.util.List<java.util.Map<String, String>> results = all.stream()
-        .filter(s -> s.getName().toLowerCase().contains(query.toLowerCase()))
-        .limit(10)
-        .map(s -> java.util.Map.of(
-            "id", s.getId(),
-            "name", s.getName(),
-            "bio", s.getBio() != null ? s.getBio() : ""
-        ))
-        .toList();
+    java.util.List<com.scanales.homedir.model.Speaker> all = speakerService.listSpeakers();
+    java.util.List<java.util.Map<String, String>> results =
+        all.stream()
+            .filter(
+                s -> s.getName() != null && s.getName().toLowerCase().contains(query.toLowerCase()))
+            .limit(10)
+            .map(
+                s ->
+                    java.util.Map.of(
+                        "id", s.getId(),
+                        "name", s.getName(),
+                        "bio", s.getBio() != null ? s.getBio() : ""))
+            .toList();
 
     return Response.ok(results).build();
   }
@@ -869,8 +892,8 @@ public class ProfileResource {
     try {
       com.fasterxml.jackson.databind.ObjectMapper mapper =
           new com.fasterxml.jackson.databind.ObjectMapper();
-      return mapper.readValue(json,
-          new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
+      return mapper.readValue(
+          json, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
     } catch (Exception e) {
       return java.util.List.of();
     }

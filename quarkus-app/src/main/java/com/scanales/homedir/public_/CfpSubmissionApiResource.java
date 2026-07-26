@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1108,7 +1109,9 @@ public class CfpSubmissionApiResource {
 
     if (submission.panelists() != null && !submission.panelists().isEmpty()) {
       for (CfpPanelist panelist : submission.panelists()) {
-        if ("linked".equals(panelist.status()) && panelist.userId() != null) {
+        if ("linked".equals(panelist.status())
+            && panelist.userId() != null
+            && !panelist.userId().isBlank()) {
           // Create/update speaker for panelist
           String panelistSpeakerId = buildSpeakerId(panelist.id(), panelist.name());
           Speaker panelistSpeaker = speakerService.getSpeaker(panelistSpeakerId);
@@ -1122,9 +1125,7 @@ public class CfpSubmissionApiResource {
 
           // Activate speaker profile for panelist user
           userProfileService.activateSpeakerProfile(
-              panelist.userId(),
-              panelist.name(),
-              panelist.email());
+              panelist.userId(), panelist.name(), panelist.email());
         }
       }
     }
