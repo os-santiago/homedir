@@ -6962,4 +6962,43 @@ public interface AppMessages {
 
   @Message("Statistics")
   String sdlc_dash_decisions_tab_stats();
+
+  // --- Profile - Speaker Talks ---
+  @Message("My Talks")
+  String profile_speaker_talks_title();
+
+  @Message("Duration")
+  String profile_speaker_talk_duration();
+
+  @Message("Edit")
+  String profile_speaker_talk_edit();
+
+  @Message("Save")
+  String profile_speaker_talk_save();
+
+  @Message("Cancel")
+  String profile_speaker_talk_cancel();
+
+  @Message("Add co-speaker")
+  String profile_speaker_talk_add_cospeaker();
+
+  @Message("Search speakers...")
+  String profile_speaker_talk_search_speakers();
+
+  @Message("Talk updated successfully")
+  String profile_speaker_talk_saved();
+
+  @Message("Co-speakers:")
+  String profile_speaker_talk_cospeakers_label();
+
+  // --- Speaker Detail ---
+  @Message("Speakers:")
+  String speaker_detail_talk_speakers_label();
+
+  // --- CFP form fields reused in profile ---
+  @Message("Talk title")
+  String events_cfp_field_title();
+
+  @Message("Abstract")
+  String events_cfp_field_abstract();
 }

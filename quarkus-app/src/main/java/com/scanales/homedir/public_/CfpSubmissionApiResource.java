@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1101,6 +1102,36 @@ public class CfpSubmissionApiResource {
     talk.setName(submission.title());
     talk.setDescription(buildTalkDescription(submission));
     talk.setDurationMinutes(submission.durationMin() != null ? submission.durationMin() : 30);
+
+    // Process panelists as co-speakers
+    List<Speaker> allSpeakers = new ArrayList<>();
+    allSpeakers.add(speaker); // Main speaker first
+
+    if (submission.panelists() != null && !submission.panelists().isEmpty()) {
+      for (CfpPanelist panelist : submission.panelists()) {
+        if ("linked".equals(panelist.status())
+            && panelist.userId() != null
+            && !panelist.userId().isBlank()) {
+          // Create/update speaker for panelist
+          String panelistSpeakerId = buildSpeakerId(panelist.id(), panelist.name());
+          Speaker panelistSpeaker = speakerService.getSpeaker(panelistSpeakerId);
+          if (panelistSpeaker == null) {
+            panelistSpeaker = new Speaker(panelistSpeakerId, panelist.name());
+            panelistSpeaker.setBio("CFP panelist for event " + submission.eventId());
+          }
+          panelistSpeaker.setName(panelist.name());
+          speakerService.saveSpeaker(panelistSpeaker);
+          allSpeakers.add(panelistSpeaker);
+
+          // Activate speaker profile for panelist user
+          userProfileService.activateSpeakerProfile(
+              panelist.userId(), panelist.name(), panelist.email());
+        }
+      }
+    }
+
+    // Set all speakers on the talk
+    talk.setSpeakers(allSpeakers);
     speakerService.saveTalk(speakerId, talk);
     cfpInsightsService.recordPromoted(submission, speakerId, talkId);
 
@@ -1563,6 +1594,10 @@ public class CfpSubmissionApiResource {
 
   private static String buildSpeakerId(CfpSubmission submission) {
     return "cfp-speaker-" + sanitizeIdToken(submission.id(), 32);
+  }
+
+  private static String buildSpeakerId(String panelistId, String panelistName) {
+    return "cfp-panelist-" + sanitizeIdToken(panelistId, 32);
   }
 
   private static String buildTalkId(CfpSubmission submission) {
