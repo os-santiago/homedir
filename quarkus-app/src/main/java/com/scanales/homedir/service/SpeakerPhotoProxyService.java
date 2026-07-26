@@ -100,10 +100,11 @@ public class SpeakerPhotoProxyService {
 
   private PhotoResult getCached(String speakerId, String url) {
     try {
+      String safeId = speakerId.replaceAll("[^a-zA-Z0-9_.-]", "_");
       String hash = hashUrl(url);
       Path cacheDir = getCacheDir();
-      Path cachedFile = cacheDir.resolve(speakerId + "_" + hash + ".jpg");
-      Path metaFile = cacheDir.resolve(speakerId + "_" + hash + ".meta");
+      Path cachedFile = cacheDir.resolve(safeId + "_" + hash + ".jpg");
+      Path metaFile = cacheDir.resolve(safeId + "_" + hash + ".meta");
 
       if (!Files.exists(cachedFile) || !Files.exists(metaFile)) {
         return null;
@@ -201,12 +202,13 @@ public class SpeakerPhotoProxyService {
 
       // Optimize and cache
       if (cacheEnabled) {
+        String safeId = speakerId.replaceAll("[^a-zA-Z0-9_.-]", "_");
         String hash = hashUrl(url);
         Path cacheDir = getCacheDir();
         Files.createDirectories(cacheDir);
 
-        Path cachedFile = cacheDir.resolve(speakerId + "_" + hash + ".jpg");
-        Path metaFile = cacheDir.resolve(speakerId + "_" + hash + ".meta");
+        Path cachedFile = cacheDir.resolve(safeId + "_" + hash + ".jpg");
+        Path metaFile = cacheDir.resolve(safeId + "_" + hash + ".meta");
 
         if (optimizeEnabled) {
           optimizeImage(tempFile, cachedFile);
