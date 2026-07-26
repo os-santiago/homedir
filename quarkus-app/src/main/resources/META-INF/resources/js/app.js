@@ -346,44 +346,82 @@ function setupAgendaFullscreen() {
 
     if (!fullscreenBtn || !modal || !modalContent) return;
 
-    // Open modal
-    fullscreenBtn.addEventListener('click', () => {
-        // Clone agenda content
+    let lastFocus = null;
+
+    const getFocusableElements = () => {
+        return modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    };
+
+    const trapFocus = (e) => {
+        const focusable = getFocusableElements();
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    };
+
+    const resetModalButtons = () => {
+        if (modalSeqBtn && modalGridBtn) {
+            modalSeqBtn.classList.remove('active');
+            modalGridBtn.classList.add('active');
+            modalSeqBtn.style.opacity = '0.7';
+            modalGridBtn.style.opacity = '1';
+        }
+    };
+
+    const openModal = () => {
+        lastFocus = document.activeElement;
         const agendaSection = document.querySelector('[data-agenda-section]');
         if (agendaSection) {
             const clone = agendaSection.cloneNode(true);
             modalContent.innerHTML = '';
             modalContent.appendChild(clone);
 
-            // Set initial view state (grid by default)
             const clonedSeqViews = modalContent.querySelectorAll('[data-agenda-seq]');
             const clonedGridViews = modalContent.querySelectorAll('[data-agenda-grid]');
             clonedSeqViews.forEach(v => v.classList.add('hidden'));
             clonedGridViews.forEach(v => v.classList.remove('hidden'));
         }
 
+        resetModalButtons();
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-    });
+        modal.addEventListener('keydown', trapFocus);
+        const focusable = getFocusableElements();
+        if (focusable.length > 0) focusable[0].focus();
+    };
 
-    // Close modal
     const closeModal = () => {
         modal.style.display = 'none';
         document.body.style.overflow = '';
+        modal.removeEventListener('keydown', trapFocus);
+        if (lastFocus) lastFocus.focus();
     };
+
+    fullscreenBtn.addEventListener('click', openModal);
 
     if (closeBtn) {
         closeBtn.addEventListener('click', closeModal);
     }
 
-    // Close on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'block') {
             closeModal();
         }
     });
 
-    // Toggle views in modal
     if (modalSeqBtn && modalGridBtn) {
         modalSeqBtn.addEventListener('click', () => {
             const seqViews = modalContent.querySelectorAll('[data-agenda-seq]');

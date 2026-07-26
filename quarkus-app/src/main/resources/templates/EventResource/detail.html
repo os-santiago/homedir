@@ -245,7 +245,7 @@
             <div class="view-toggle">
                 <button id="agendaSeqBtn" data-agenda-seq-btn class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n:events_detail_agenda_sequential}</button>
                 <button id="agendaGridBtn" data-agenda-grid-btn class="btn login-btn-nav active" type="button">{i18n:events_detail_agenda_by_scenario}</button>
-                <button id="agendaFullscreenBtn" data-agenda-fullscreen-btn class="btn login-btn-nav" type="button" title="Ver en pantalla completa">
+                <button id="agendaFullscreenBtn" data-agenda-fullscreen-btn class="btn login-btn-nav" type="button" title="{i18n:events_detail_agenda_fullscreen}" aria-label="{i18n:events_detail_agenda_fullscreen}">
                     <span class="material-symbols-outlined" style="font-size: 1.2em; vertical-align: middle;">fullscreen</span>
                 </button>
             </div>
@@ -365,15 +365,15 @@
 </section>
 
 <!-- Fullscreen Agenda Modal -->
-<div id="agendaFullscreenModal" class="agenda-fullscreen-modal" style="display: none;">
+<div id="agendaFullscreenModal" class="agenda-fullscreen-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="{i18n:events_detail_agenda_title}">
     <div class="agenda-fullscreen-header">
-        <h2>{i18n:events_detail_agenda_title}</h2>
+        <h2 id="agendaFullscreenTitle">{i18n:events_detail_agenda_title}</h2>
         <div class="agenda-fullscreen-controls">
             <div class="view-toggle">
                 <button id="agendaFullscreenSeqBtn" class="btn login-btn-nav" type="button" style="opacity: 0.7;">{i18n:events_detail_agenda_sequential}</button>
                 <button id="agendaFullscreenGridBtn" class="btn login-btn-nav active" type="button">{i18n:events_detail_agenda_by_scenario}</button>
             </div>
-            <button id="agendaFullscreenCloseBtn" class="btn login-btn-nav" type="button" title="Cerrar">
+            <button id="agendaFullscreenCloseBtn" class="btn login-btn-nav" type="button" title="{i18n:events_detail_agenda_fullscreen_close}" aria-label="{i18n:events_detail_agenda_fullscreen_close}">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
