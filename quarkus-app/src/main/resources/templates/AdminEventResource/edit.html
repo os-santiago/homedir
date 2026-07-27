@@ -530,7 +530,7 @@ Nuevo Evento · Homedir
         showImportResult('info', 'Procesando archivo...');
 
         try {
-          const eventId = '{event.id}';
+          const eventId = '{eventId}';
           const response = await fetch(`/private/admin/events/${eventId}/import-agenda`, {
             method: 'POST',
             body: formData

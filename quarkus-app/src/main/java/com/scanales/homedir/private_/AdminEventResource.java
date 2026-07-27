@@ -42,7 +42,8 @@ public class AdminEventResource {
         Event event,
         java.util.List<Speaker> speakers,
         java.util.List<EventType> types,
-        String message);
+        String message,
+        String eventId);
   }
 
   @Inject SecurityIdentity identity;
@@ -84,7 +85,7 @@ public class AdminEventResource {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
     return Response.ok(
-            Templates.edit(new Event(), speakerService.listSpeakers(), eventTypes(), message))
+            Templates.edit(new Event(), speakerService.listSpeakers(), eventTypes(), message, null))
         .build();
   }
 
@@ -100,7 +101,9 @@ public class AdminEventResource {
     if (event == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(Templates.edit(event, speakerService.listSpeakers(), eventTypes(), message))
+    return Response.ok(
+            Templates.edit(
+                event, speakerService.listSpeakers(), eventTypes(), message, event.getId()))
         .build();
   }
 
@@ -671,8 +674,7 @@ public class AdminEventResource {
         for (var scenarioDTO : agendaData.scenarios()) {
           // Check if scenario already exists
           boolean exists =
-              existingScenarios.stream()
-                  .anyMatch(s -> s.getId().equals(scenarioDTO.id()));
+              existingScenarios.stream().anyMatch(s -> s.getId().equals(scenarioDTO.id()));
           if (!exists) {
             var scenario = new Scenario();
             scenario.setId(scenarioDTO.id());
@@ -696,15 +698,12 @@ public class AdminEventResource {
       if (agendaData.talks() != null) {
         for (var talkDTO : agendaData.talks()) {
           // Check if talk already exists
-          boolean exists =
-              existingAgenda.stream()
-                  .anyMatch(t -> t.getId().equals(talkDTO.id()));
+          boolean exists = existingAgenda.stream().anyMatch(t -> t.getId().equals(talkDTO.id()));
           if (!exists) {
             var talk = new Talk();
             talk.setId(talkDTO.id());
             talk.setName(talkDTO.name());
-            talk.setDescription(
-                talkDTO.description() != null ? talkDTO.description() : "");
+            talk.setDescription(talkDTO.description() != null ? talkDTO.description() : "");
             talk.setLocation(talkDTO.scenarioId());
             talk.setDurationMinutes(talkDTO.durationMinutes());
             talk.setDay(talkDTO.day());
@@ -724,7 +723,9 @@ public class AdminEventResource {
               }
               talk.setStartTime(startTime);
             } catch (Exception e) {
-              LOG.warnf("Failed to parse time %s for talk %s, using midnight", talkDTO.startTime(), talkDTO.id());
+              LOG.warnf(
+                  "Failed to parse time %s for talk %s, using midnight",
+                  talkDTO.startTime(), talkDTO.id());
               talk.setStartTime(java.time.LocalTime.MIDNIGHT);
             }
 
@@ -742,9 +743,7 @@ public class AdminEventResource {
       if (agendaData.breaks() != null) {
         for (var breakDTO : agendaData.breaks()) {
           // Check if break already exists
-          boolean exists =
-              existingAgenda.stream()
-                  .anyMatch(t -> t.getId().equals(breakDTO.id()));
+          boolean exists = existingAgenda.stream().anyMatch(t -> t.getId().equals(breakDTO.id()));
           if (!exists) {
             var talk = new Talk();
             talk.setId(breakDTO.id());
@@ -767,7 +766,9 @@ public class AdminEventResource {
               }
               talk.setStartTime(startTime);
             } catch (Exception e) {
-              LOG.warnf("Failed to parse time %s for break %s, using midnight", breakDTO.startTime(), breakDTO.id());
+              LOG.warnf(
+                  "Failed to parse time %s for break %s, using midnight",
+                  breakDTO.startTime(), breakDTO.id());
               talk.setStartTime(java.time.LocalTime.MIDNIGHT);
             }
 
@@ -803,8 +804,7 @@ public class AdminEventResource {
     } catch (Exception e) {
       LOG.error("Failed to import agenda", e);
       return Response.status(Response.Status.BAD_REQUEST)
-          .entity(
-              java.util.Map.of("success", false, "error", "JSON inválido: " + e.getMessage()))
+          .entity(java.util.Map.of("success", false, "error", "JSON inválido: " + e.getMessage()))
           .build();
     }
   }
