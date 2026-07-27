@@ -1,0 +1,11 @@
+[Unit]
+Description=Run homedir git pull every minute
+
+[Timer]
+OnUnitActiveSec=1min
+OnBootSec=15sec
+Persistent=true
+Unit=homedir-git-pull.service
+
+[Install]
+WantedBy=timers.target

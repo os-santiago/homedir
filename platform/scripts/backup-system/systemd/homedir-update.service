@@ -1,0 +1,16 @@
+[Unit]
+Description=Update HomeDir container (tag provided via DEPLOY_TAG or CLI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+KillMode=process
+EnvironmentFile=-/etc/homedir.env
+ExecStart=/usr/local/bin/homedir-update.sh $DEPLOY_TAG
+StandardOutput=journal
+StandardError=journal
+User=root
+
+[Install]
+WantedBy=multi-user.target
