@@ -205,6 +205,27 @@ Nuevo Evento · Homedir
   </div>
 
   {#if event.id}
+  <!-- Import Agenda Section -->
+  <div id="import-agenda" class="card">
+    <h2 class="card-title">Importar Agenda</h2>
+    <p class="form-hint" style="margin-bottom: 1rem;">
+      Importa escenarios, charlas y breaks desde un archivo JSON. Los elementos duplicados (mismo ID) serán ignorados.
+    </p>
+    <form id="import-agenda-form" enctype="multipart/form-data" style="margin-bottom: 1rem;">
+      {#include fragments/csrf-token.html /}
+      <div style="display: flex; gap: 1rem; align-items: end;">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="agenda-file-input">Archivo JSON</label>
+          <input type="file" id="agenda-file-input" name="file" accept="application/json,.json" class="form-input" required>
+        </div>
+        <button type="submit" class="btn btn--primary" id="import-agenda-btn">
+          Importar Agenda
+        </button>
+      </div>
+    </form>
+    <div id="import-result" style="display: none; padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem;"></div>
+  </div>
+
   <div id="scenarios" class="card">
     <h2 class="card-title">Escenarios</h2>
     {#for sc in event.scenarios}
@@ -487,6 +508,69 @@ Nuevo Evento · Homedir
       input.addEventListener('change', syncColorPreview);
       syncColorPreview();
     });
+
+    // Import agenda form handler
+    const importForm = document.getElementById('import-agenda-form');
+    const importResult = document.getElementById('import-result');
+    const importBtn = document.getElementById('import-agenda-btn');
+
+    if (importForm && importResult && importBtn) {
+      importForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('agenda-file-input');
+        if (!fileInput.files.length) {
+          showImportResult('error', 'Por favor selecciona un archivo');
+          return;
+        }
+
+        const formData = new FormData(importForm);
+        importBtn.disabled = true;
+        importBtn.textContent = 'Importando...';
+        showImportResult('info', 'Procesando archivo...');
+
+        try {
+          const eventId = '{event.id}';
+          const response = await fetch(`/private/admin/events/${eventId}/import-agenda`, {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showImportResult('success', result.message || 'Importación exitosa');
+            // Reload page after 2 seconds to show imported items
+            setTimeout(() => window.location.reload(), 2000);
+          } else {
+            showImportResult('error', result.error || 'Error en la importación');
+          }
+        } catch (error) {
+          showImportResult('error', 'Error de red: ' + error.message);
+        } finally {
+          importBtn.disabled = false;
+          importBtn.textContent = 'Importar Agenda';
+        }
+      });
+
+      function showImportResult(type, message) {
+        importResult.style.display = 'block';
+        if (type === 'success') {
+          importResult.style.background = 'rgba(46, 213, 115, 0.1)';
+          importResult.style.border = '1px solid rgba(46, 213, 115, 0.3)';
+          importResult.style.color = '#2ed573';
+        } else if (type === 'error') {
+          importResult.style.background = 'rgba(255, 71, 87, 0.1)';
+          importResult.style.border = '1px solid rgba(255, 71, 87, 0.3)';
+          importResult.style.color = '#ff4757';
+        } else {
+          importResult.style.background = 'rgba(255, 165, 0, 0.1)';
+          importResult.style.border = '1px solid rgba(255, 165, 0, 0.3)';
+          importResult.style.color = '#ffa500';
+        }
+        importResult.textContent = message;
+      }
+    }
   })();
 </script>
 {/body}

@@ -621,6 +621,194 @@ public class AdminEventResource {
     }
   }
 
+  @POST
+  @Path("{id}/import-agenda")
+  @Authenticated
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response importAgenda(
+      @PathParam("id") String eventId, @FormParam("file") FileUpload file) {
+    if (!canManageAdminBackoffice()) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(java.util.Map.of("success", false, "error", "Unauthorized"))
+          .build();
+    }
+
+    if (file == null) {
+      LOG.warn("No file received for agenda import");
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(java.util.Map.of("success", false, "error", "Archivo requerido"))
+          .build();
+    }
+
+    LOG.infov("Importing agenda for event {0} from file {1}", eventId, file.fileName());
+
+    Event event = eventService.getEvent(eventId);
+    if (event == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(java.util.Map.of("success", false, "error", "Evento no encontrado"))
+          .build();
+    }
+
+    try {
+      java.nio.file.Path path = file.uploadedFile();
+      AgendaImportDTO agendaData;
+      try (var is = java.nio.file.Files.newInputStream(path)) {
+        agendaData = objectMapper.readValue(is, AgendaImportDTO.class);
+      }
+
+      int scenariosAdded = 0;
+      int talksAdded = 0;
+      int breaksAdded = 0;
+
+      // Import scenarios
+      if (agendaData.scenarios() != null) {
+        var existingScenarios = event.getScenarios();
+        if (existingScenarios == null) {
+          existingScenarios = new java.util.ArrayList<>();
+          event.setScenarios(existingScenarios);
+        }
+        for (var scenarioDTO : agendaData.scenarios()) {
+          // Check if scenario already exists
+          boolean exists =
+              existingScenarios.stream()
+                  .anyMatch(s -> s.getId().equals(scenarioDTO.id()));
+          if (!exists) {
+            var scenario = new Scenario();
+            scenario.setId(scenarioDTO.id());
+            scenario.setName(scenarioDTO.name());
+            scenario.setFeatures(scenarioDTO.features());
+            scenario.setLocation(scenarioDTO.location());
+            existingScenarios.add(scenario);
+            scenariosAdded++;
+          }
+        }
+      }
+
+      // Import talks and breaks
+      var existingAgenda = event.getAgenda();
+      if (existingAgenda == null) {
+        existingAgenda = new java.util.ArrayList<>();
+        event.setAgenda(existingAgenda);
+      }
+
+      // Import talks
+      if (agendaData.talks() != null) {
+        for (var talkDTO : agendaData.talks()) {
+          // Check if talk already exists
+          boolean exists =
+              existingAgenda.stream()
+                  .anyMatch(t -> t.getId().equals(talkDTO.id()));
+          if (!exists) {
+            var talk = new Talk();
+            talk.setId(talkDTO.id());
+            talk.setName(talkDTO.name());
+            talk.setDescription(
+                talkDTO.description() != null ? talkDTO.description() : "");
+            talk.setLocation(talkDTO.scenarioId());
+            talk.setDurationMinutes(talkDTO.durationMinutes());
+            talk.setDay(talkDTO.day());
+
+            // Parse start time (format: "HH:MM AM/PM" or "HH:MM")
+            try {
+              String timeStr = talkDTO.startTime().trim();
+              java.time.LocalTime startTime;
+              if (timeStr.contains("AM") || timeStr.contains("PM")) {
+                // 12-hour format
+                startTime =
+                    java.time.LocalTime.parse(
+                        timeStr, java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+              } else {
+                // 24-hour format
+                startTime = java.time.LocalTime.parse(timeStr);
+              }
+              talk.setStartTime(startTime);
+            } catch (Exception e) {
+              LOG.warnf("Failed to parse time %s for talk %s, using midnight", talkDTO.startTime(), talkDTO.id());
+              talk.setStartTime(java.time.LocalTime.MIDNIGHT);
+            }
+
+            // Create speaker
+            var speaker = new Speaker(talkDTO.speakerId(), talkDTO.speakerName());
+            talk.setSpeakers(java.util.List.of(speaker));
+
+            existingAgenda.add(talk);
+            talksAdded++;
+          }
+        }
+      }
+
+      // Import breaks
+      if (agendaData.breaks() != null) {
+        for (var breakDTO : agendaData.breaks()) {
+          // Check if break already exists
+          boolean exists =
+              existingAgenda.stream()
+                  .anyMatch(t -> t.getId().equals(breakDTO.id()));
+          if (!exists) {
+            var talk = new Talk();
+            talk.setId(breakDTO.id());
+            talk.setName(breakDTO.name());
+            talk.setDescription("Break");
+            talk.setLocation(breakDTO.scenarioId());
+            talk.setDurationMinutes(breakDTO.durationMinutes());
+            talk.setDay(breakDTO.day());
+
+            // Parse start time
+            try {
+              String timeStr = breakDTO.startTime().trim();
+              java.time.LocalTime startTime;
+              if (timeStr.contains("AM") || timeStr.contains("PM")) {
+                startTime =
+                    java.time.LocalTime.parse(
+                        timeStr, java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+              } else {
+                startTime = java.time.LocalTime.parse(timeStr);
+              }
+              talk.setStartTime(startTime);
+            } catch (Exception e) {
+              LOG.warnf("Failed to parse time %s for break %s, using midnight", breakDTO.startTime(), breakDTO.id());
+              talk.setStartTime(java.time.LocalTime.MIDNIGHT);
+            }
+
+            // Mark as break
+            talk.setSpeakers(java.util.List.of());
+
+            existingAgenda.add(talk);
+            breaksAdded++;
+          }
+        }
+      }
+
+      // Save event
+      eventService.saveEvent(event);
+
+      LOG.infov(
+          "Agenda import completed for event {0}: {1} scenarios, {2} talks, {3} breaks",
+          eventId, scenariosAdded, talksAdded, breaksAdded);
+
+      return Response.ok()
+          .entity(
+              java.util.Map.of(
+                  "success", true,
+                  "scenariosAdded", scenariosAdded,
+                  "talksAdded", talksAdded,
+                  "breaksAdded", breaksAdded,
+                  "message",
+                      String.format(
+                          "Importación exitosa: %d escenarios, %d charlas, %d breaks",
+                          scenariosAdded, talksAdded, breaksAdded)))
+          .build();
+
+    } catch (Exception e) {
+      LOG.error("Failed to import agenda", e);
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(
+              java.util.Map.of("success", false, "error", "JSON inválido: " + e.getMessage()))
+          .build();
+    }
+  }
+
   private java.util.List<EventType> eventTypes() {
     return java.util.List.of(EventType.values());
   }

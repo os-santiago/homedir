@@ -1,0 +1,320 @@
+{
+  "scenarios": [
+    {
+      "id": "main-stage",
+      "name": "Auditorio Principal",
+      "features": "700+ personas",
+      "location": "Centro de Extension UC - Alameda, Santiago, Chile"
+    },
+    {
+      "id": "devopsdays-santiago-2026-sala-20260726015926",
+      "name": "Sala A",
+      "features": "100 personas",
+      "location": "Centro de Extension UC - Alameda, Santiago, Chile"
+    },
+    {
+      "id": "devopsdays-santiago-2026-sala-20260726015940",
+      "name": "Sala B",
+      "features": "100 personas",
+      "location": "Centro de Extension UC - Alameda, Santiago, Chile"
+    },
+    {
+      "id": "devopsdays-santiago-2026-sala-20260726020549",
+      "name": "Plaza Principal",
+      "features": "Área de Patrocinadores, Comunidades y Recreación",
+      "location": "Centro de Extension UC - Alameda, Santiago, Chile"
+    }
+  ],
+  "talks": [
+    {
+      "id": "20260726030415-talk-20260726031310",
+      "name": "DevOps ha muerto, larga vida al DevOps: de servir aplicaciones a servir modelos",
+      "speakerId": "matias-sonnleitner",
+      "speakerName": "Matias Sonnleitner",
+      "scenarioId": "main-stage",
+      "startTime": "09:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726031955-talk-20260726032027",
+      "name": "Platinum - Trabajando con IA: Cómo cambiarán los equipos tecnológicos en los próximos 5 años",
+      "speakerId": "panel",
+      "speakerName": "Panel",
+      "scenarioId": "main-stage",
+      "startTime": "09:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726032807-talk-20260726032835",
+      "name": "Por confirmar",
+      "speakerId": "platinum-mondini",
+      "speakerName": "Platinum: Mondini IT",
+      "scenarioId": "main-stage",
+      "startTime": "10:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726032520-talk-20260726033021",
+      "name": "Conoce a nuestro Patrocinadores Día 1",
+      "speakerId": "actividad",
+      "speakerName": "Actividad",
+      "scenarioId": "main-stage",
+      "startTime": "11:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726031955-talk-20260726033453",
+      "name": "Organizadores - Más allá de la IA: la evolución de las comunidades DevOps en LATAM en un mundo de IA",
+      "speakerId": "panel-organizadores",
+      "speakerName": "Panel",
+      "scenarioId": "main-stage",
+      "startTime": "12:00",
+      "day": 1,
+      "durationMinutes": 60
+    },
+    {
+      "id": "devopsdays-santiag-cfp-f452cd67-716f-4d05-b18c",
+      "name": "El pod que tumbó la cadena: descubriendo fallas en cascada con Chaos Engineering en Kubernetes",
+      "speakerId": "alvaro-navarro",
+      "speakerName": "Álvaro Nicolas Navarro Castro",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015926",
+      "startTime": "12:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "devopsdays-santiag-cfp-3be12da8-cf69-45ad-9754",
+      "name": "Tu LLM es un Nodo Bizantino: Patrones de Consenso para DevOps con IA",
+      "speakerId": "felipe-carvajal",
+      "speakerName": "Felipe Carvajal Brown",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015940",
+      "startTime": "12:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726024614-talk-20260726024844",
+      "name": "Infraestructura Cognitiva: De Alertas a Investigación Autónoma con AWS y Agentes de IA",
+      "speakerId": "gabriel-grobier",
+      "speakerName": "Gabriel Grobier Romo",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015926",
+      "startTime": "12:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "devopsdays-santiag-cfp-8f3bfc19-f034-4257-997c",
+      "name": "Hardening Cloud-Native CI/CD: Applying OWASPs Top 10 CI/CD Risks in Kubernetes",
+      "speakerId": "xavier-llauca",
+      "speakerName": "Xavier Llauca",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015940",
+      "startTime": "12:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726030330-talk-20260726160854",
+      "name": "Supercharging DevOps with Google Antigravity and Claude AI",
+      "speakerId": "camilla-martins",
+      "speakerName": "Camilla Martins",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015926",
+      "startTime": "14:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726022751-talk-20260726023507",
+      "name": "Semantic Routing: El Corazón Inteligente de los Agentes",
+      "speakerId": "carlos-estay",
+      "speakerName": "Carlos Estay González",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015940",
+      "startTime": "14:30",
+      "day": 1,
+      "durationMinutes": 60
+    },
+    {
+      "id": "20260726033816-talk-20260726033840",
+      "name": "De ClickOps a GitOps: Cómo operar IA Privada en Producción con SUSE AI Factory y SUSE Rancher",
+      "speakerId": "cesar-lorca",
+      "speakerName": "César Lorca Bacian",
+      "scenarioId": "main-stage",
+      "startTime": "14:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "german.blanch@gmail.com-talk-20260726021220",
+      "name": "Cuando la fábrica del software se vuelve el objetivo",
+      "speakerId": "german-blanch",
+      "speakerName": "Germán Blanch",
+      "scenarioId": "main-stage",
+      "startTime": "15:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "devopsdays-santiag-cfp-58cbdabc-87a6-4c82-8435",
+      "name": "Un caso real con Wide Events: Cómo mejoramos nuestra observabilidad y detectamos problemas en tiempo real",
+      "speakerId": "alonso-utreras",
+      "speakerName": "Alonso Utreras",
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726015926",
+      "startTime": "15:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726033151-talk-20260726033213",
+      "name": "Por confirmar",
+      "speakerId": "platinum-dynatrace",
+      "speakerName": "Platinum: Dynatrace",
+      "scenarioId": "main-stage",
+      "startTime": "15:30",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726032520-talk-20260726034331",
+      "name": "Cierre Día 1 + Anuncios + Llamado a Networking",
+      "speakerId": "actividad",
+      "speakerName": "Actividad",
+      "scenarioId": "main-stage",
+      "startTime": "16:00",
+      "day": 1,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726032520-talk-20260726164513",
+      "name": "Apertura oficial Día 2",
+      "speakerId": "actividad",
+      "speakerName": "Actividad",
+      "scenarioId": "main-stage",
+      "startTime": "08:45",
+      "day": 2,
+      "durationMinutes": 15
+    },
+    {
+      "id": "20260726030340-talk-20260726165154",
+      "name": "Evolucion de DevOps a DevSecOps, IA como empuje de coversion laboral",
+      "speakerId": "andres-barrientos",
+      "speakerName": "Andres Barrientos",
+      "scenarioId": "main-stage",
+      "startTime": "09:00",
+      "day": 2,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726170516-talk-20260726170540",
+      "name": "Por confirmar",
+      "speakerId": "platinum-tgcorp",
+      "speakerName": "Platinum: TG Corp",
+      "scenarioId": "main-stage",
+      "startTime": "09:30",
+      "day": 2,
+      "durationMinutes": 60
+    },
+    {
+      "id": "20260726025213-talk-20260726025454",
+      "name": "El idioma también es infraestructura: Preparar a Latinoamérica para la próxima ola tecnológica",
+      "speakerId": "johan-prieto",
+      "speakerName": "Johan Prieto",
+      "scenarioId": "main-stage",
+      "startTime": "10:30",
+      "day": 2,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726032520-talk-20260726164599",
+      "name": "Conoce a nuestro Patrocinadores Día 2",
+      "speakerId": "actividad",
+      "speakerName": "Actividad",
+      "scenarioId": "main-stage",
+      "startTime": "11:00",
+      "day": 2,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726170900-talk-20260726170922",
+      "name": "Platinum: Jarvis bot Always on-Call",
+      "speakerId": "melisa-arenas",
+      "speakerName": "Melisa Arenas",
+      "scenarioId": "main-stage",
+      "startTime": "11:30",
+      "day": 2,
+      "durationMinutes": 30
+    },
+    {
+      "id": "20260726030305-talk-20260726163628",
+      "name": "AgentOps: el futuro que ya llegó",
+      "speakerId": "axel-labruna",
+      "speakerName": "Axel Labruna",
+      "scenarioId": "main-stage",
+      "startTime": "12:00",
+      "day": 2,
+      "durationMinutes": 30
+    },
+    {
+      "id": "devopsdays-santiag-cfp-7489da18-fc74-480d-935b",
+      "name": "Los agentes necesitan plata: x402 como infraestructura para la web3",
+      "speakerId": "boris-quiroz",
+      "speakerName": "Boris Quiroz",
+      "scenarioId": "main-stage",
+      "startTime": "12:30",
+      "day": 2,
+      "durationMinutes": 30
+    }
+  ],
+  "breaks": [
+    {
+      "id": "devopsdays-santiago-2026-break-20260726020102",
+      "name": "Registro y Café + Networking",
+      "durationMinutes": 45,
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726020549",
+      "startTime": "08:00",
+      "day": 1
+    },
+    {
+      "id": "dod-2026-day1-coffee-break",
+      "name": "Coffee Break, Patrocinadores, y Comunidades",
+      "durationMinutes": 30,
+      "scenarioId": "main-stage",
+      "startTime": "10:00",
+      "day": 1
+    },
+    {
+      "id": "dod-2026-day1-lunch-break",
+      "name": "Almuerzo + Networking",
+      "durationMinutes": 90,
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726020549",
+      "startTime": "13:00",
+      "day": 1
+    },
+    {
+      "id": "devopsdays-santiago-2026-break-20260726020403",
+      "name": "Registro y Café + Networking",
+      "durationMinutes": 45,
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726020549",
+      "startTime": "08:00",
+      "day": 2
+    },
+    {
+      "id": "dod-2026-day2-coffee-break",
+      "name": "Coffee Break, Patrocinadores, y Comunidades",
+      "durationMinutes": 30,
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726020549",
+      "startTime": "10:30",
+      "day": 2
+    },
+    {
+      "id": "dod-2026-day2-lunch-break",
+      "name": "Almuerzo + Networking",
+      "durationMinutes": 90,
+      "scenarioId": "devopsdays-santiago-2026-sala-20260726020549",
+      "startTime": "13:00",
+      "day": 2
+    }
+  ]
+}
