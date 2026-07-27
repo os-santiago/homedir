@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cleanup DevOpsDays Agenda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #e91c26;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background: #c71820;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧹 Cleanup DevOpsDays Agenda</h1>
+        <p><strong>Importante:</strong> Esto eliminará la agenda actual y forzará re-seeding desde el código.</p>
+        <p>Evento: <code>devopsdays-santiago-2026</code></p>
+        <p>⚠️ Se perderán todas las ediciones manuales de la agenda.</p>
+
+        <button id="cleanupBtn" onclick="cleanupAgenda()">
+            Limpiar Agenda y Re-seed
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function cleanupAgenda() {
+            const btn = document.getElementById('cleanupBtn');
+            const resultDiv = document.getElementById('result');
+
+            btn.disabled = true;
+            btn.textContent = 'Limpiando...';
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(
+                    'https://homedir.opensourcesantiago.io/private/admin/events/cleanup/devopsdays-santiago-2026/clear-agenda',
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                resultDiv.className = 'success';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>✅ Agenda Limpiada Exitosamente</h3>
+                    <pre></pre>
+                    <p><strong>Próximos pasos:</strong></p>
+                    <ol>
+                        <li>Refresca la página del evento</li>
+                        <li>Verifica que el break de 08:30 ya no aparece</li>
+                        <li>La agenda ahora empieza a las 09:00 (Welcome)</li>
+                    </ol>
+                `;
+                resultDiv.querySelector('pre').textContent = JSON.stringify(data, null, 2);
+
+                btn.textContent = '✅ Completado';
+
+            } catch (error) {
+                console.error('Error:', error);
+
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+                const errorTitle = document.createElement('h3');
+                errorTitle.textContent = '❌ Error';
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(errorTitle);
+                const errorMsg = document.createElement('p');
+                errorMsg.textContent = error.message;
+                resultDiv.appendChild(errorMsg);
+                const staticHtml = `
+                    <p><strong>Posibles causas:</strong></p>
+                    <p><strong>Posibles causas:</strong></p>
+                    <ul>
+                        <li>No estás autenticado como admin</li>
+                        <li>La sesión expiró</li>
+                        <li>Problemas de red</li>
+                    </ul>
+                    <p><strong>Solución:</strong> Autentica en <a href="https://homedir.opensourcesantiago.io" target="_blank">homedir.opensourcesantiago.io</a> y vuelve a intentar.</p>
+                `;
+
+                btn.disabled = false;
+                btn.textContent = 'Reintentar';
+            }
+        }
+    </script>
+</body>
+</html>

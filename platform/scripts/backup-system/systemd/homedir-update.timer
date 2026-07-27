@@ -1,0 +1,10 @@
+[Unit]
+Description=Poll HomeDir container image and reload if new release (disabled by default)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

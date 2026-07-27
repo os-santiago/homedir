@@ -1,0 +1,13 @@
+[Unit]
+Description=Auto git pull homedir repo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/homedir
+ExecStart=/usr/bin/git pull --ff-only origin main
+ExecStartPost=/bin/systemctl restart homedir-dev.service
+
+[Install]
+WantedBy=multi-user.target
