@@ -1,2 +1,7 @@
-Warning: Identity file C:/Program Files/Git/home/scanales/.ssh/id_ed25519 not accessible: No such file or directory.
-cat: /opt/homedir/data/events.json: No such file or directory
+{
+  "diagnostics": [
+    "Warning: Identity file not accessible - SSH key not found",
+    "cat: /opt/homedir/data/events.json: No such file or directory"
+  ],
+  "note": "SSH identity file path redacted for security. This file documents a recovery attempt where events.json was not found on the target host."
+}

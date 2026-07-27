@@ -102,7 +102,7 @@
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = `
                     <h3>✅ Agenda Limpiada Exitosamente</h3>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <pre></pre>
                     <p><strong>Próximos pasos:</strong></p>
                     <ol>
                         <li>Refresca la página del evento</li>
@@ -110,6 +110,7 @@
                         <li>La agenda ahora empieza a las 09:00 (Welcome)</li>
                     </ol>
                 `;
+                resultDiv.querySelector('pre').textContent = JSON.stringify(data, null, 2);
 
                 btn.textContent = '✅ Completado';
 
@@ -118,9 +119,15 @@
 
                 resultDiv.className = 'error';
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = `
-                    <h3>❌ Error</h3>
-                    <p>${error.message}</p>
+                const errorTitle = document.createElement('h3');
+                errorTitle.textContent = '❌ Error';
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(errorTitle);
+                const errorMsg = document.createElement('p');
+                errorMsg.textContent = error.message;
+                resultDiv.appendChild(errorMsg);
+                const staticHtml = `
+                    <p><strong>Posibles causas:</strong></p>
                     <p><strong>Posibles causas:</strong></p>
                     <ul>
                         <li>No estás autenticado como admin</li>

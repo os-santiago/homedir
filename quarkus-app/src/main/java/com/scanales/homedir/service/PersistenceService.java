@@ -449,6 +449,7 @@ public class PersistenceService {
 
   /** Persists economy state synchronously. */
   public void saveEconomyStateSync(EconomyStateSnapshot state) {
+    maybeBackup("economy-state", economyStateFile, economyBackupsDir, backupEconomy);
     writeSync(economyStateFile, state == null ? EconomyStateSnapshot.empty() : state);
   }
 
@@ -496,6 +497,7 @@ public class PersistenceService {
 
   /** Persists challenge state synchronously. */
   public void saveChallengeStateSync(ChallengeStateSnapshot state) {
+    maybeBackup("challenge-state", challengeStateFile, challengesBackupsDir, backupChallenges);
     writeSync(challengeStateFile, state == null ? ChallengeStateSnapshot.empty() : state);
   }
 
@@ -601,6 +603,7 @@ public class PersistenceService {
 
   /** Persists campaign state synchronously. */
   public void saveCampaignStateSync(CampaignStateSnapshot state) {
+    maybeBackup("campaign-state", campaignStateFile, campaignsBackupsDir, backupCampaigns);
     writeSync(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
   }
 
@@ -680,6 +683,8 @@ public class PersistenceService {
 
   /** Persists community submissions synchronously. */
   public void saveCommunitySubmissionsSync(Map<String, CommunitySubmission> submissions) {
+    maybeBackup(
+        "community-submissions", communitySubmissionsFile, communityBackupsDir, backupCommunity);
     writeSync(communitySubmissionsFile, submissions);
   }
 
@@ -830,16 +835,15 @@ public class PersistenceService {
   /** Persists volunteer applications asynchronously. */
   public void saveVolunteerApplications(Map<String, VolunteerApplication> submissions) {
     maybeBackup(
-        "volunteer-applications",
-        volunteerSubmissionsFile,
-        volunteersBackupsDir,
-        backupVolunteers);
+        "volunteer-applications", volunteerSubmissionsFile, volunteersBackupsDir, backupVolunteers);
     scheduleWrite(
         volunteerSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
   }
 
   /** Persists volunteer applications synchronously. */
   public void saveVolunteerApplicationsSync(Map<String, VolunteerApplication> submissions) {
+    maybeBackup(
+        "volunteer-applications", volunteerSubmissionsFile, volunteersBackupsDir, backupVolunteers);
     writeSync(volunteerSubmissionsFile, submissions == null ? Map.of() : Map.copyOf(submissions));
   }
 
@@ -2188,7 +2192,7 @@ public class PersistenceService {
 
       pruneOldBackups(backupsDir, universalBackupsMaxFiles);
 
-      LOG.infof("Backed up %s to %s", type, backup.getFileName());
+      LOG.infof("Backed up %s", type);
 
     } catch (IOException e) {
       LOG.warnf(e, "Failed to backup %s", type);
@@ -2216,7 +2220,7 @@ public class PersistenceService {
         Files.deleteIfExists(backups.get(i));
       }
     } catch (IOException e) {
-      LOG.warnf(e, "Failed to prune backups in %s", backupsDir);
+      LOG.warnf(e, "Failed to prune old backups");
     }
   }
 
