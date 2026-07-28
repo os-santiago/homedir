@@ -65,7 +65,7 @@ function updateEquipmentDisplay(equipment = []) {
   document.querySelector('.equipment-count').textContent = `${filledCount} / 6 ITEMS`;
 }
 
-var defaultConfig = {
+var retroDefaultConfig = {
   platform_name: "HomeDir",
   tagline: "by OpenSourceSantiago",
   community_title: "Community",
@@ -110,26 +110,26 @@ async function initDataSdk() {
 async function onConfigChange(newConfig) {
   config = newConfig;
 
-  document.getElementById('navPlatformName').textContent = config.platform_name || defaultConfig.platform_name;
-  document.getElementById('navTagline').textContent = config.tagline || defaultConfig.tagline;
-  document.getElementById('mainTitle').textContent = config.platform_name || defaultConfig.platform_name;
-  document.getElementById('mainTagline').textContent = (config.tagline || defaultConfig.tagline) + ' - The community platform to scale your teams and projects';
-  document.getElementById('communityTitle').textContent = config.community_title || defaultConfig.community_title;
-  document.getElementById('communityDescription').textContent = config.community_description || defaultConfig.community_description;
-  document.getElementById('eventsTitle').textContent = config.events_title || defaultConfig.events_title;
-  document.getElementById('eventsDescription').textContent = config.events_description || defaultConfig.events_description;
-  document.getElementById('projectsTitle').textContent = config.projects_title || defaultConfig.projects_title;
-  document.getElementById('projectsDescription').textContent = config.projects_description || defaultConfig.projects_description;
+  document.getElementById('navPlatformName').textContent = config.platform_name || retroDefaultConfig.platform_name;
+  document.getElementById('navTagline').textContent = config.tagline || retroDefaultConfig.tagline;
+  document.getElementById('mainTitle').textContent = config.platform_name || retroDefaultConfig.platform_name;
+  document.getElementById('mainTagline').textContent = (config.tagline || retroDefaultConfig.tagline) + ' - The community platform to scale your teams and projects';
+  document.getElementById('communityTitle').textContent = config.community_title || retroDefaultConfig.community_title;
+  document.getElementById('communityDescription').textContent = config.community_description || retroDefaultConfig.community_description;
+  document.getElementById('eventsTitle').textContent = config.events_title || retroDefaultConfig.events_title;
+  document.getElementById('eventsDescription').textContent = config.events_description || retroDefaultConfig.events_description;
+  document.getElementById('projectsTitle').textContent = config.projects_title || retroDefaultConfig.projects_title;
+  document.getElementById('projectsDescription').textContent = config.projects_description || retroDefaultConfig.projects_description;
 
-  document.body.style.background = `linear-gradient(135deg, ${config.background_start || defaultConfig.background_start} 0%, ${config.background_end || defaultConfig.background_end} 100%)`;
-  document.body.style.color = config.text_color || defaultConfig.text_color;
+  document.body.style.background = `linear-gradient(135deg, ${config.background_start || retroDefaultConfig.background_start} 0%, ${config.background_end || retroDefaultConfig.background_end} 100%)`;
+  document.body.style.color = config.text_color || retroDefaultConfig.text_color;
 }
 
 function mapToCapabilities(config) {
   return {
     recolorables: [
       {
-        get: () => config.background_start || defaultConfig.background_start,
+        get: () => config.background_start || retroDefaultConfig.background_start,
         set: (value) => {
           config.background_start = value;
           if (window.elementSdk) {
@@ -138,7 +138,7 @@ function mapToCapabilities(config) {
         }
       },
       {
-        get: () => config.background_end || defaultConfig.background_end,
+        get: () => config.background_end || retroDefaultConfig.background_end,
         set: (value) => {
           config.background_end = value;
           if (window.elementSdk) {
@@ -147,7 +147,7 @@ function mapToCapabilities(config) {
         }
       },
       {
-        get: () => config.card_background || defaultConfig.card_background,
+        get: () => config.card_background || retroDefaultConfig.card_background,
         set: (value) => {
           config.card_background = value;
           if (window.elementSdk) {
@@ -156,7 +156,7 @@ function mapToCapabilities(config) {
         }
       },
       {
-        get: () => config.text_color || defaultConfig.text_color,
+        get: () => config.text_color || retroDefaultConfig.text_color,
         set: (value) => {
           config.text_color = value;
           if (window.elementSdk) {
@@ -165,7 +165,7 @@ function mapToCapabilities(config) {
         }
       },
       {
-        get: () => config.accent_color || defaultConfig.accent_color,
+        get: () => config.accent_color || retroDefaultConfig.accent_color,
         set: (value) => {
           config.accent_color = value;
           if (window.elementSdk) {
@@ -182,14 +182,14 @@ function mapToCapabilities(config) {
 
 function mapToEditPanelValues(config) {
   return new Map([
-    ["platform_name", config.platform_name || defaultConfig.platform_name],
-    ["tagline", config.tagline || defaultConfig.tagline],
-    ["community_title", config.community_title || defaultConfig.community_title],
-    ["community_description", config.community_description || defaultConfig.community_description],
-    ["events_title", config.events_title || defaultConfig.events_title],
-    ["events_description", config.events_description || defaultConfig.events_description],
-    ["projects_title", config.projects_title || defaultConfig.projects_title],
-    ["projects_description", config.projects_description || defaultConfig.projects_description]
+    ["platform_name", config.platform_name || retroDefaultConfig.platform_name],
+    ["tagline", config.tagline || retroDefaultConfig.tagline],
+    ["community_title", config.community_title || retroDefaultConfig.community_title],
+    ["community_description", config.community_description || retroDefaultConfig.community_description],
+    ["events_title", config.events_title || retroDefaultConfig.events_title],
+    ["events_description", config.events_description || retroDefaultConfig.events_description],
+    ["projects_title", config.projects_title || retroDefaultConfig.projects_title],
+    ["projects_description", config.projects_description || retroDefaultConfig.projects_description]
   ]);
 }
 
@@ -226,9 +226,11 @@ function updateNavigation() {
 }
 
 function updateCharacterSheet() {
+  const noviceWarning = document.getElementById('noviceWarning');
   if (currentUser) {
-    // Hide novice warning
-    document.getElementById('noviceWarning').style.display = 'none';
+    if (noviceWarning) {
+      noviceWarning.style.display = 'none';
+    }
 
     // Update character info
     document.getElementById('characterName').textContent = currentUser.display_name.toUpperCase();
@@ -272,8 +274,9 @@ function updateCharacterSheet() {
     document.getElementById('loginCharacterBtn').style.display = 'none';
     document.getElementById('logoutCharacterBtn').style.display = 'block';
   } else {
-    // Show novice warning
-    document.getElementById('noviceWarning').style.display = 'block';
+    if (noviceWarning) {
+      noviceWarning.style.display = 'block';
+    }
 
     // Reset to novice state
     document.getElementById('characterName').textContent = 'NOVICE GUEST';
