@@ -531,7 +531,7 @@ Nuevo Evento · Homedir
 
         try {
           const eventId = importForm.dataset.eventId;
-          const response = await fetch(`/private/admin/events/${eventId}/import-agenda`, {
+          const response = await fetch('/private/admin/events/' + eventId + '/import-agenda', {
             method: 'POST',
             body: formData
           });
