@@ -211,7 +211,7 @@ Nuevo Evento · Homedir
     <p class="form-hint" style="margin-bottom: 1rem;">
       Importa escenarios, charlas y breaks desde un archivo JSON. Los elementos duplicados (mismo ID) serán ignorados.
     </p>
-    <form id="import-agenda-form" data-event-id="{event.id}" enctype="multipart/form-data" style="margin-bottom: 1rem;">
+    <form id="import-agenda-form" data-event-id="{event.getId()}" enctype="multipart/form-data" style="margin-bottom: 1rem;">
       {#include fragments/csrf-token.html /}
       <div style="display: flex; gap: 1rem; align-items: end;">
         <div class="form-group" style="flex: 1;">
