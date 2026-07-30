@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
 /** Periodically evaluates registered talks to emit runtime notifications. */
@@ -47,7 +48,7 @@ public class TalkStateEvaluator {
     ZoneId zone =
         info.event() != null && info.event().getTimezone() != null
             ? ZoneId.of(info.event().getTimezone())
-            : ZoneId.of("America/Santiago");
+            : defaultZoneId();
     ZonedDateTime now = clock.now(zone);
 
     if (info.event() == null || info.event().getDate() == null) return;
@@ -78,5 +79,21 @@ public class TalkStateEvaluator {
     n.title = info.talk().getName();
     n.message = message;
     notifications.enqueue(n);
+  }
+
+  /**
+   * Resolves the platform default time zone from the {@code homedir.default-timezone} config
+   * property (default: {@code America/Santiago}).
+   */
+  private static ZoneId defaultZoneId() {
+    String tz =
+        ConfigProvider.getConfig()
+            .getOptionalValue("homedir.default-timezone", String.class)
+            .orElse("America/Santiago");
+    try {
+      return ZoneId.of(tz);
+    } catch (Exception e) {
+      return ZoneId.of("America/Santiago");
+    }
   }
 }

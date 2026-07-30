@@ -65,6 +65,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
@@ -1307,7 +1308,7 @@ public class ProfileResource {
     if (eventIds.isEmpty()) {
       return null;
     }
-    LocalDate today = LocalDate.now(ZoneId.of("America/Santiago"));
+    LocalDate today = LocalDate.now(defaultZoneId());
     com.scanales.homedir.model.Event selectedEvent = null;
     String selectedEventId = null;
     long bestScore = Long.MAX_VALUE;
@@ -1367,7 +1368,7 @@ public class ProfileResource {
   }
 
   private java.util.List<VolunteerEventItem> listVolunteerOpenEvents() {
-    LocalDate today = LocalDate.now(ZoneId.of("America/Santiago"));
+    LocalDate today = LocalDate.now(defaultZoneId());
     return eventService.listEvents().stream()
         .filter(event -> event != null && event.getId() != null && !event.getId().isBlank())
         .filter(event -> event.getDate() == null || !event.getDate().isBefore(today.minusDays(1)))
@@ -1533,6 +1534,22 @@ public class ProfileResource {
     String normalized = raw.trim().toLowerCase(Locale.ROOT);
     if (!normalized.isBlank()) {
       ids.add(normalized);
+    }
+  }
+
+  /**
+   * Resolves the platform default time zone from the {@code homedir.default-timezone} config
+   * property (default: {@code America/Santiago}).
+   */
+  private static ZoneId defaultZoneId() {
+    String tz =
+        ConfigProvider.getConfig()
+            .getOptionalValue("homedir.default-timezone", String.class)
+            .orElse("America/Santiago");
+    try {
+      return ZoneId.of(tz);
+    } catch (Exception e) {
+      return ZoneId.of("America/Santiago");
     }
   }
 }

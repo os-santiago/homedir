@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 @RegisterForReflection
 @JsonIgnoreProperties(value = "dayList", allowGetters = true)
@@ -383,12 +384,26 @@ public class Event {
     return t == null ? "" : t.toString();
   }
 
-  /** Returns the time zone of the event or America/Santiago by default. */
+  /** Returns the time zone of the event or the configured default. */
   public ZoneId getZoneId() {
     try {
-      return timezone != null && !timezone.isBlank()
-          ? ZoneId.of(timezone)
-          : ZoneId.of("America/Santiago");
+      return timezone != null && !timezone.isBlank() ? ZoneId.of(timezone) : defaultZoneId();
+    } catch (Exception e) {
+      return defaultZoneId();
+    }
+  }
+
+  /**
+   * Resolves the platform default time zone from the {@code homedir.default-timezone} config
+   * property (default: {@code America/Santiago}).
+   */
+  private static ZoneId defaultZoneId() {
+    String tz =
+        ConfigProvider.getConfig()
+            .getOptionalValue("homedir.default-timezone", String.class)
+            .orElse("America/Santiago");
+    try {
+      return ZoneId.of(tz);
     } catch (Exception e) {
       return ZoneId.of("America/Santiago");
     }

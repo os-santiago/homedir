@@ -6,6 +6,7 @@ import com.scanales.homedir.model.Event;
 import com.scanales.homedir.model.Talk;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.Test;
 
 public class AppTemplateExtensionsTalkStateTest {
@@ -26,5 +27,23 @@ public class AppTemplateExtensionsTalkStateTest {
 
     String state = AppTemplateExtensions.talkState(talk, event);
     assertEquals("Finalizada", state);
+  }
+
+  @Test
+  void eventGetZoneIdFallsBackToConfigProperty() {
+    Event event = new Event();
+    // No timezone set -> should use homedir.default-timezone config (defaults to America/Santiago)
+    String configuredTz =
+        ConfigProvider.getConfig()
+            .getOptionalValue("homedir.default-timezone", String.class)
+            .orElse("America/Santiago");
+    assertEquals(ZoneId.of(configuredTz), event.getZoneId());
+  }
+
+  @Test
+  void eventGetZoneIdUsesEventTimezoneWhenSet() {
+    Event event = new Event();
+    event.setTimezone("Europe/Madrid");
+    assertEquals(ZoneId.of("Europe/Madrid"), event.getZoneId());
   }
 }
