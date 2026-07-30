@@ -74,6 +74,9 @@ public class BackupArchiveService {
           zis.closeEntry();
           continue;
         }
+        if (rawName.contains("\0")) {
+          throw new IOException("null_byte_in_entry_name");
+        }
         if ("backup-manifest.json".equals(rawName)) {
           zis.closeEntry();
           continue;
@@ -94,8 +97,13 @@ public class BackupArchiveService {
             verifyInsideRoot(parent, root);
           }
         }
-        Files.copy(zis, target, StandardCopyOption.REPLACE_EXISTING);
+        // Reject symlinks: a symlink in the data dir could point outside root.
+        if (Files.isSymbolicLink(target)) {
+          throw new IOException("symbolic_link_not_allowed:" + rawName);
+        }
+        // Verify target is inside root BEFORE writing, not after.
         verifyInsideRoot(target, root);
+        Files.copy(zis, target, StandardCopyOption.REPLACE_EXISTING);
         restoredFiles++;
         zis.closeEntry();
       }
@@ -125,7 +133,15 @@ public class BackupArchiveService {
   }
 
   private static void verifyInsideRoot(Path target, Path root) throws IOException {
-    if (!target.toRealPath().startsWith(root)) {
+    // Use toRealPath() when the file exists (post-write check), otherwise
+    // fall back to toAbsolutePath().normalize() (pre-write check).
+    Path resolved;
+    if (Files.exists(target)) {
+      resolved = target.toRealPath();
+    } else {
+      resolved = target.toAbsolutePath().normalize();
+    }
+    if (!resolved.startsWith(root)) {
       throw new IOException("zip_outside_data_dir");
     }
   }

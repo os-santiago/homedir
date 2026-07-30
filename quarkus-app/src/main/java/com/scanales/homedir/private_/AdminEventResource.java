@@ -50,6 +50,9 @@ public class AdminEventResource {
 
   private static final Logger LOG = Logger.getLogger(AdminEventResource.class);
 
+  /** Maximum allowed size for imported JSON files (10 MB). */
+  private static final long MAX_IMPORT_FILE_SIZE_BYTES = 10L * 1024 * 1024;
+
   @Inject EventService eventService;
 
   @Inject SpeakerService speakerService;
@@ -322,7 +325,18 @@ public class AdminEventResource {
           .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
           .build();
     }
-    java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+    java.time.LocalTime start;
+    try {
+      start = java.time.LocalTime.parse(startTime);
+    } catch (Exception e) {
+      LOG.warnf("Invalid startTime format: %s", startTime);
+      String msg =
+          java.net.URLEncoder.encode(
+              "Formato de hora inv\u00e1lido (use HH:MM)", java.nio.charset.StandardCharsets.UTF_8);
+      return Response.status(Response.Status.SEE_OTHER)
+          .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+          .build();
+    }
     java.time.LocalTime end = start.plusMinutes(base.getDurationMinutes());
     LOG.infof(
         "accion=charla_guardar_intento usuario=%s eventoId=%s charlaTitulo=%s fechaInicio=%s fechaFin=%s dia=%d sala=%s requestId=%s",
@@ -446,7 +460,19 @@ public class AdminEventResource {
     talk.setDurationMinutes(duration);
     talk.setSpeakers(java.util.List.of());
     talk.setLocation(location);
-    talk.setStartTime(java.time.LocalTime.parse(startTime));
+    java.time.LocalTime breakStart;
+    try {
+      breakStart = java.time.LocalTime.parse(startTime);
+    } catch (Exception e) {
+      LOG.warnf("Invalid break startTime format: %s", startTime);
+      String msg =
+          java.net.URLEncoder.encode(
+              "Formato de hora inv\u00e1lido (use HH:MM)", java.nio.charset.StandardCharsets.UTF_8);
+      return Response.status(Response.Status.SEE_OTHER)
+          .header("Location", "/private/admin/events/" + eventId + "/edit?msg=" + msg)
+          .build();
+    }
+    talk.setStartTime(breakStart);
     talk.setDay(day);
     talk.setBreak(true);
     Talk overlap = eventService.findOverlap(eventId, talk);
@@ -497,6 +523,17 @@ public class AdminEventResource {
       var events = eventService.listEvents();
       return Response.status(Response.Status.BAD_REQUEST)
           .entity(Templates.list(events, "Importaci\u00f3n fallida: archivo requerido"))
+          .build();
+    }
+
+    if (file.size() > MAX_IMPORT_FILE_SIZE_BYTES) {
+      LOG.warnf(
+          "Import file too large: %d bytes (max=%d)", file.size(), MAX_IMPORT_FILE_SIZE_BYTES);
+      var events = eventService.listEvents();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(
+              Templates.list(
+                  events, "Importaci\u00f3n fallida: archivo demasiado grande (m\u00e1x 10MB)"))
           .build();
     }
 
@@ -641,6 +678,17 @@ public class AdminEventResource {
       LOG.warn("No file received for agenda import");
       return Response.status(Response.Status.BAD_REQUEST)
           .entity(java.util.Map.of("success", false, "error", "Archivo requerido"))
+          .build();
+    }
+
+    if (file.size() > MAX_IMPORT_FILE_SIZE_BYTES) {
+      LOG.warnf(
+          "Agenda import file too large: %d bytes (max=%d)",
+          file.size(), MAX_IMPORT_FILE_SIZE_BYTES);
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(
+              java.util.Map.of(
+                  "success", false, "error", "Archivo demasiado grande (m\u00e1x 10MB)"))
           .build();
     }
 

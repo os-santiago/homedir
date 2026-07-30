@@ -330,7 +330,11 @@ public class Event {
 
   public void setDateStr(String value) {
     if (value != null && !value.isBlank()) {
-      this.date = LocalDate.parse(value);
+      try {
+        this.date = LocalDate.parse(value);
+      } catch (Exception e) {
+        this.date = null;
+      }
     } else {
       this.date = null;
     }
@@ -502,8 +506,11 @@ public class Event {
 
   /** Retrieves the name of a scenario given its id, or {@code null} if not found. */
   public String getScenarioName(String scenarioId) {
+    if (scenarios == null || scenarioId == null) {
+      return null;
+    }
     return scenarios.stream()
-        .filter(s -> s.getId().equals(scenarioId))
+        .filter(s -> s != null && s.getId() != null && s.getId().equals(scenarioId))
         .map(Scenario::getName)
         .findFirst()
         .orElse(null);
@@ -511,9 +518,13 @@ public class Event {
 
   /** Returns the list of talks for the given day ordered by start time. */
   public java.util.List<Talk> getAgendaForDay(int day) {
+    if (agenda == null) return java.util.List.of();
     return agenda.stream()
-        .filter(t -> t.getDay() == day)
-        .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+        .filter(t -> t != null && t.getDay() == day)
+        .sorted(
+            java.util.Comparator.comparing(
+                Talk::getStartTime,
+                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
@@ -522,9 +533,18 @@ public class Event {
    * time. An empty list is returned when there are no talks matching the provided parameters.
    */
   public java.util.List<Talk> getAgendaForDayAndScenario(int day, String scenarioId) {
+    if (agenda == null || scenarioId == null) return java.util.List.of();
     return agenda.stream()
-        .filter(t -> t.getDay() == day && scenarioId.equals(t.getLocation()))
-        .sorted(java.util.Comparator.comparing(Talk::getStartTime))
+        .filter(
+            t ->
+                t != null
+                    && t.getDay() == day
+                    && t.getLocation() != null
+                    && scenarioId.equals(t.getLocation()))
+        .sorted(
+            java.util.Comparator.comparing(
+                Talk::getStartTime,
+                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
         .toList();
   }
 
@@ -536,8 +556,9 @@ public class Event {
    */
   public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByStartTime(
       int day) {
+    if (agenda == null) return java.util.Collections.emptyMap();
     return agenda.stream()
-        .filter(t -> t.getDay() == day)
+        .filter(t -> t != null && t.getDay() == day && t.getStartTime() != null)
         .collect(
             java.util.stream.Collectors.groupingBy(
                 Talk::getStartTime, java.util.TreeMap::new, java.util.stream.Collectors.toList()));
@@ -551,7 +572,13 @@ public class Event {
    */
   public java.util.Map<java.time.LocalTime, java.util.List<Talk>> getAgendaGroupedByTimeSlot(
       int day) {
-    java.util.List<Talk> dayTalks = agenda.stream().filter(t -> t.getDay() == day).toList();
+    if (agenda == null) {
+      return java.util.Collections.emptyMap();
+    }
+    java.util.List<Talk> dayTalks =
+        agenda.stream()
+            .filter(t -> t != null && t.getDay() == day && t.getStartTime() != null)
+            .toList();
     if (dayTalks.isEmpty()) {
       return java.util.Collections.emptyMap();
     }
