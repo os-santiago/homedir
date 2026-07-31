@@ -59,6 +59,10 @@ public class AdminBackupResource {
   String dataDirPath;
 
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
+
+  /** Maximum allowed size for backup uploads (500 MB). */
+  private static final long MAX_BACKUP_FILE_SIZE_BYTES = 500L * 1024 * 1024;
+
   private static final Pattern BACKUP_VERSION =
       Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
@@ -127,6 +131,15 @@ public class AdminBackupResource {
       LOG.warn("No file uploaded for restore");
       return Response.seeOther(
               UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo inválido.").build())
+          .build();
+    }
+    if (file.size() > MAX_BACKUP_FILE_SIZE_BYTES) {
+      LOG.warnf(
+          "Backup file too large: %d bytes (max=%d)", file.size(), MAX_BACKUP_FILE_SIZE_BYTES);
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect)
+                  .queryParam("msg", "\u274c Archivo demasiado grande (m\u00e1x 500MB).")
+                  .build())
           .build();
     }
     String fileName = file.fileName();
