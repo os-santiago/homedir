@@ -127,4 +127,49 @@ public class BackupArchiveServiceTest {
     assertTrue(version.isPresent());
     assertEquals("3.403.1", version.get());
   }
+
+  @Test
+  void restoreArchiveRejectsNullByteInEntryName() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {
+      zos.putNextEntry(new ZipEntry("evil\0.txt"));
+      zos.write("bad".getBytes(StandardCharsets.UTF_8));
+      zos.closeEntry();
+    }
+
+    byte[] zip = baos.toByteArray();
+    Path restoreDir = tempDir.resolve("restore-nullbyte");
+    Files.createDirectories(restoreDir);
+
+    assertThrows(
+        Exception.class, () -> service.restoreArchive(new ByteArrayInputStream(zip), restoreDir));
+  }
+
+  @Test
+  void restoreArchiveRejectsSymlinkAtTarget() throws Exception {
+    Path restoreDir = tempDir.resolve("restore-symlink");
+    Files.createDirectories(restoreDir);
+    // Create a symlink inside the restore dir pointing outside
+    Path outsideFile = tempDir.resolve("outside-secret.txt");
+    Files.writeString(outsideFile, "secret", StandardCharsets.UTF_8);
+    Path link = restoreDir.resolve("stolen-link.txt");
+    try {
+      Files.createSymbolicLink(link, outsideFile);
+    } catch (UnsupportedOperationException | java.nio.file.FileSystemException e) {
+      // Symlinks not supported on this filesystem - skip test
+      return;
+    }
+
+    // Create a ZIP that tries to write to the symlink path
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {
+      zos.putNextEntry(new ZipEntry("stolen-link.txt"));
+      zos.write("overwritten".getBytes(StandardCharsets.UTF_8));
+      zos.closeEntry();
+    }
+
+    assertThrows(
+        Exception.class,
+        () -> service.restoreArchive(new ByteArrayInputStream(baos.toByteArray()), restoreDir));
+  }
 }

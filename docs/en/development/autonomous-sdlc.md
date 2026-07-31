@@ -339,3 +339,5 @@ The autonomous SDLC does not deploy directly. It merges through the normal PR
 path. The existing `Production Release` GitHub Actions workflow owns build,
 image publishing, SSH deployment, fallback timer reconciliation, and production
 health verification.
+
+<!-- ADEV E2E test completed successfully -->
