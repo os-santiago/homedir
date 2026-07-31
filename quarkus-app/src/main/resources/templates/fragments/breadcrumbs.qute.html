@@ -2,7 +2,7 @@
 {@ String currentHref = ""}
 <span>{i18n:nav_home}</span> /
 {#if currentHref != ""}
-<a href="{currentHref}">{currentLabel}</a>
+<a href="{currentHref}" aria-current="location">{currentLabel}</a>
 {#else}
-<strong>{currentLabel}</strong>
+<strong aria-current="page">{currentLabel}</strong>
 {/if}

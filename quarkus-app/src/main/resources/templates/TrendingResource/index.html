@@ -37,11 +37,11 @@
                 {#for repo in repos}
                 <article class="hd-card trending-repo-card">
                     <div class="trending-repo-header">
-                        <h3 class="trending-repo-name">
+                        <h2 class="trending-repo-name">
                             <a href="{repo.url}" target="_blank" rel="noopener noreferrer">
                                 <span class="trending-repo-owner">{repo.owner}</span> / <span class="trending-repo-title">{repo.name}</span>
                             </a>
-                        </h3>
+                        </h2>
                     </div>
 
                     {#if repo.description}
