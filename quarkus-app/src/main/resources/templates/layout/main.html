@@ -65,11 +65,13 @@
 
   <div class="app-container">
     {#if noNav != true}
-    {#include fragments/header /}
+    <header class="site-header">
+      {#include fragments/header /}
+    </header>
     {/if}
 
     {#if showBreadcrumbs}
-    <nav class="breadcrumbs" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
+    <nav class="breadcrumbs" role="navigation" aria-label="{i18n:layout_breadcrumbs_aria}">{#insert breadcrumbs}{/}</nav>
     {/if}
 
     <main id="main-content" class="homedir-main {mainClass}" role="main">
