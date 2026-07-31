@@ -48,6 +48,7 @@ El idioma canonico para mantenimiento es **ingles**.
 - [Codex Optimization Notes (stub)](development/codex-optimization-notes.md)
 - [Production-Safe Delivery Playbook (stub)](development/production-safe-delivery-playbook.md)
 - [Release Stage Gates (stub)](development/release-stage-gates.md)
+- [Cobertura de codigo con Codecov](development/codecov-coverage.md)
 
 ## Contexto AI
 
