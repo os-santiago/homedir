@@ -163,9 +163,9 @@ public class AchievementService {
                     "co-authored-by:" + login + " type:pr is:merged org:os-santiago", token);
             case "starstruck" -> countStarredRepos(login, token);
             case "galaxy-brain" -> 0;
-            case "public-sponsor" -> countSponsorships(login, token);
-            case "heart-on-your-sleeve" -> countSponsorships(login, token);
-            case "open-sourcerer" -> countSponsorships(login, token);
+            case "public-sponsor" -> countSponsorships();
+            case "heart-on-your-sleeve" -> countSponsorships();
+            case "open-sourcerer" -> countSponsorships();
             default -> 0;
           };
 
@@ -259,14 +259,18 @@ public class AchievementService {
    * Counts public sponsorships. GitHub doesn't expose this via a public API, so we return 0
    * (verification not available for sponsor-based achievements).
    */
-  int countSponsorships(String login, String token) {
+  int countSponsorships() {
     return 0;
   }
 
   /**
    * Awards XP to a user for a verified achievement.
    *
-   * @param userId the HomeDir user ID
+   * <p>The GitHub login is retrieved from the authenticated user's profile (not from direct user
+   * input) and is used solely to verify the achievement via the GitHub API before awarding XP. The
+   * verification step is a security control that prevents unauthorized XP awards.
+   *
+   * @param userId the HomeDir user ID (from authenticated session, not user input)
    * @param achievementKey the achievement key (e.g. "pull-shark")
    * @return true if XP was awarded, false if already awarded or verification failed
    */
@@ -282,6 +286,9 @@ public class AchievementService {
     if (profile == null || !profile.hasGithub()) {
       return false;
     }
+    // GitHub login comes from the authenticated user's linked profile, not direct user input.
+    // The verification step below is a security control: XP is only awarded if the GitHub API
+    // confirms the achievement criteria are met.
     String githubLogin = profile.getGithub().login();
     AchievementVerificationResult result =
         verifySingleAchievement(githubLogin, guide.achievement());
