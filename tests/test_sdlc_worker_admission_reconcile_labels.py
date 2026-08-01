@@ -121,3 +121,25 @@ def test_policy_branches_in_reconcile_stuck_guard_add_label() -> None:
     assert len(truly_bare) == 0, (
         f"Found unguarded add_label calls in reconcile_stuck_admission_reviews: {truly_bare}"
     )
+
+
+def test_policy_branches_in_reconcile_admission_requests_guard_add_label() -> None:
+    """Policy-driven branches in reconcile_admission_requests must also guard
+    add_label calls (parallel coverage to the stuck-review test)."""
+    requests_section = re.search(
+        r"reconcile_admission_requests\(\)(.*?)\n\}",
+        WORKER,
+        re.DOTALL,
+    )
+    assert requests_section, "reconcile_admission_requests function not found"
+    requests_body = requests_section.group(1)
+
+    add_label_calls = re.findall(r'add_label "\$\{number\}"', requests_body)
+    assert len(add_label_calls) > 0, (
+        "reconcile_admission_requests must contain add_label calls"
+    )
+    bare_calls = re.findall(r'(?<!if )add_label "\$\{number\}"', requests_body)
+    truly_bare = [c for c in bare_calls if "if " + c not in requests_body]
+    assert len(truly_bare) == 0, (
+        f"Found unguarded add_label calls in reconcile_admission_requests: {truly_bare}"
+    )
