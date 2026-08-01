@@ -19,6 +19,7 @@
       btn.disabled = true;
       try {
         const response = await fetch("/api/achievements/claim/" + encodeURIComponent(key), {
+          method: "POST",
           headers: { Accept: "application/json" },
           credentials: "same-origin"
         });

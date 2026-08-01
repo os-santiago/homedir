@@ -114,7 +114,7 @@
             </a>
           </details>
 
-          {#if userAuthenticated && githubLinked}
+          {#if userAuthenticated && githubLinked && userSnapshot}
             {#for status in userSnapshot.statuses}
               {#if status.key == guide.achievement.key && status.unlocked}
                 <button class="btn btn--primary achievement-claim-btn"

@@ -141,11 +141,48 @@ public class AchievementService {
   }
 
   /**
+   * Verifies a single achievement, populating the per-user cache on a cache miss. This is the
+   * safe entry point for request-triggered verification (verify/claim endpoints, XP awarding):
+   * repeated calls within the TTL window are served from {@code verificationCache} and never hit
+   * the GitHub API, so a shared token cannot be exhausted by unbounded live calls.
+   */
+  public AchievementVerificationResult verifySingleAchievementCached(
+      String login, Achievement achievement) {
+    if (verificationCache.get(login) == null) {
+      verifyAchievements(login);
+    }
+    return verifySingleAchievement(login, achievement);
+  }
+
+  /**
    * Verifies a single achievement by querying the GitHub API. Uses the GitHub Search API to count
    * merged PRs, closed issues, etc.
+   *
+   * <p>Results are served from the per-user {@code verificationCache} when a fresh snapshot
+   * exists, so repeated single-achievement verification (e.g. from the verify/claim endpoints)
+   * does not trigger live GitHub API calls for every request. When no cached snapshot is present
+   * the underlying live verification is computed and stored for the current TTL window.
    */
   public AchievementVerificationResult verifySingleAchievement(
       String login, Achievement achievement) {
+    if (login == null || login.isBlank() || achievement == null) {
+      return new AchievementVerificationResult(false, 0, "Verification unavailable");
+    }
+
+    AchievementVerificationCache cached = verificationCache.get(login);
+    if (cached != null && !cached.isExpired()) {
+      for (AchievementStatus status : cached.statuses()) {
+        if (status.key().equals(achievement.key())) {
+          String message =
+              status.unlocked()
+                  ? "Achievement unlocked!"
+                  : "Progress: " + status.progress() + "/" + status.threshold();
+          return new AchievementVerificationResult(
+              status.unlocked(), status.progress(), message);
+        }
+      }
+    }
+
     String token = getGithubApiToken();
     try {
       int progress =
@@ -154,13 +191,9 @@ public class AchievementService {
                 countSearchResults("author:" + login + " type:pr is:merged org:os-santiago", token);
             case "yolo" ->
                 countSearchResults(
-                    "author:" + login + " type:pr is:merged is:unmerged org:os-santiago", token);
-            case "quickdraw" ->
-                countSearchResults(
-                    "author:" + login + " type:issue closed:>=2024-01-01 org:os-santiago", token);
-            case "pair-extraordinaire" ->
-                countSearchResults(
-                    "co-authored-by:" + login + " type:pr is:merged org:os-santiago", token);
+                    "author:" + login + " type:pr is:merged review:none org:os-santiago", token);
+            case "quickdraw" -> countQuickdraw(login, token);
+            case "pair-extraordinaire" -> countCoAuthoredCommits(login, token);
             case "starstruck" -> countStarredRepos(login, token);
             case "galaxy-brain" -> 0;
             case "public-sponsor" -> countSponsorships();
@@ -178,6 +211,107 @@ public class AchievementService {
     } catch (Exception e) {
       LOG.warnf(e, "Failed to verify achievement %s for %s", achievement.key(), login);
       return new AchievementVerificationResult(false, 0, "Verification unavailable");
+    }
+  }
+
+  /** Counts issues/PRs closed within 5 minutes of being opened (Quickdraw achievement). */
+  private int countQuickdraw(String login, String token) {
+    String query = "author:" + login + " type:issue is:closed org:os-santiago";
+    int count = 0;
+    int page = 1;
+    while (page <= 10) {
+      String url =
+          "https://api.github.com/search/issues?q="
+              + urlEncode(query)
+              + "&per_page=100&page="
+              + page;
+      HttpRequest.Builder builder =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(REQUEST_TIMEOUT)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .header("User-Agent", "homedir-achievements");
+      if (token != null && !token.isBlank()) {
+        builder.header("Authorization", "Bearer " + token);
+      }
+      try {
+        HttpResponse<String> response =
+            httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 400) {
+          LOG.warnf("GitHub quickdraw search failed status=%d", response.statusCode());
+          return count;
+        }
+        JsonNode json = objectMapper.readTree(response.body());
+        JsonNode items = json.path("items");
+        if (!items.isArray() || items.isEmpty()) {
+          break;
+        }
+        for (JsonNode item : items) {
+          String createdAt = item.path("created_at").asText(null);
+          String closedAt = item.path("closed_at").asText(null);
+          if (createdAt == null || closedAt == null || createdAt.isBlank() || closedAt.isBlank()) {
+            continue;
+          }
+          try {
+            Instant created = Instant.parse(createdAt);
+            Instant closed = Instant.parse(closedAt);
+            long minutes = Duration.between(created, closed).toMinutes();
+            if (minutes >= 0 && minutes <= 5) {
+              count++;
+            }
+          } catch (Exception ignored) {
+            // skip items with unparseable dates
+          }
+        }
+        if (items.size() < 100) {
+          break;
+        }
+        page++;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return count;
+      } catch (Exception e) {
+        LOG.warnf(e, "GitHub quickdraw search failed query=%s", query);
+        return count;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Counts commits in the org that contain a Co-authored-by trailer naming the user (Pair
+   * Extraordinaire achievement). GitHub's Issues search API does not index {@code co-authored-by:},
+   * so this uses the Commit search API which indexes commit message trailers.
+   */
+  private int countCoAuthoredCommits(String login, String token) {
+    String query = "repo:os-santiago co-authored-by:" + login;
+    String url = "https://api.github.com/search/commits?q=" + urlEncode(query) + "&per_page=1";
+    HttpRequest.Builder builder =
+        HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .timeout(REQUEST_TIMEOUT)
+            .header("Accept", "application/vnd.github.cloak-preview+json")
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .header("User-Agent", "homedir-achievements");
+    if (token != null && !token.isBlank()) {
+      builder.header("Authorization", "Bearer " + token);
+    }
+    try {
+      HttpResponse<String> response =
+          httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 400) {
+        LOG.warnf("GitHub co-authored commit search failed status=%d", response.statusCode());
+        return 0;
+      }
+      JsonNode json = objectMapper.readTree(response.body());
+      return Math.max(0, json.path("total_count").asInt(0));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return 0;
+    } catch (Exception e) {
+      LOG.warnf(e, "GitHub co-authored commit search failed query=%s", query);
+      return 0;
     }
   }
 
@@ -231,20 +365,13 @@ public class AchievementService {
       if (response.statusCode() >= 400) {
         return 0;
       }
-      // Parse the List header which contains pagination info
+      // Parse the Link header which contains pagination info
       String linkHeader = response.headers().firstValue("link").orElse("");
-      if (linkHeader.contains("page=")) {
-        // Extract last page number
-        String[] parts = linkHeader.split(",");
-        for (String part : parts) {
-          if (part.contains("rel=\"last\"")) {
-            int idx = part.indexOf("page=") + 6;
-            int end = part.indexOf("&", idx);
-            if (end == -1) end = part.indexOf(">", idx);
-            if (end == -1) end = part.length();
-            return Integer.parseInt(part.substring(idx, end).trim());
-          }
-        }
+      java.util.regex.Matcher matcher =
+          java.util.regex.Pattern.compile("[?&]page=(\\d+)[^>]*>;\\s*rel=\"last\"")
+              .matcher(linkHeader);
+      if (matcher.find()) {
+        return Integer.parseInt(matcher.group(1));
       }
       // No pagination header — count the array
       JsonNode json = objectMapper.readTree(response.body());
@@ -293,7 +420,7 @@ public class AchievementService {
     }
     // Award XP using only the authenticated userId and static enum constants.
     // No user-controlled data is passed to the gamification service.
-    return gamificationService.award(userId, activity, activity.title());
+    return gamificationService.award(userId, activity);
   }
 
   /**
@@ -311,7 +438,7 @@ public class AchievementService {
     // GitHub login comes from the authenticated user's linked profile, not direct user input.
     String githubLogin = profile.getGithub().login();
     AchievementVerificationResult result =
-        verifySingleAchievement(githubLogin, guide.achievement());
+        verifySingleAchievementCached(githubLogin, guide.achievement());
     return result.verified();
   }
 
@@ -370,8 +497,7 @@ public class AchievementService {
     entries.sort(
         Comparator.comparingInt(LeaderboardEntry::unlockedCount)
             .reversed()
-            .thenComparingInt(LeaderboardEntry::totalXp)
-            .reversed()
+            .thenComparing(Comparator.comparingInt(LeaderboardEntry::totalXp).reversed())
             .thenComparing(LeaderboardEntry::githubLogin, Comparator.nullsLast(String::compareTo)));
 
     // Assign ranks

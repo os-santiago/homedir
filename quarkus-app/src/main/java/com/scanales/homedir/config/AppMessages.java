@@ -7040,8 +7040,7 @@ public interface AppMessages {
   @Message("Unlocked")
   String achievements_unlocked();
 
-  @Message(
-      "Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
+  @Message("Link your GitHub account to start unlocking achievements.")
   String achievements_link_github();
 
   @Message("Unlocked")
@@ -7082,4 +7081,16 @@ public interface AppMessages {
 
   @Message("Showing top {count} of {total} participants")
   String achievements_leaderboard_total(int count, int total);
+
+  @Message("GitHub account not linked")
+  String achievements_api_no_github();
+
+  @Message("Achievement not found")
+  String achievements_api_not_found();
+
+  @Message("XP awarded successfully")
+  String achievements_api_award_success();
+
+  @Message("Achievement not verified or already claimed")
+  String achievements_api_award_failure();
 }

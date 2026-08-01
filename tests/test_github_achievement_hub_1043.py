@@ -72,6 +72,59 @@ def test_achievement_service_awards_xp() -> None:
     service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
     assert "awardAchievementXp" in service, "Service must have awardAchievementXp method"
     assert "gamificationService.award" in service, "Service must call gamificationService.award"
+    assert "verifySingleAchievementCached" in service, \
+        "Service must route single-achievement verification through the cache"
+
+
+def test_yolo_query_uses_review_none() -> None:
+    """The yolo query must use review:none (is:merged and is:unmerged are
+    mutually exclusive GitHub search qualifiers)."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    assert "review:none" in service, "yolo query must use review:none"
+    assert "is:merged is:unmerged" not in service, \
+        "yolo query must not combine mutually exclusive is:merged is:unmerged"
+
+
+def test_quickdraw_enforces_five_minute_window() -> None:
+    """Quickdraw must filter closed issues to the 5-minute window instead of
+    counting everything closed after a fixed date."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    assert "countQuickdraw" in service, "Service must have countQuickdraw"
+    assert "Duration.between" in service, \
+        "Quickdraw must compute created/closed duration server-side"
+    assert "closed:>=2024-01-01" not in service, \
+        "Quickdraw must not count every issue closed after a fixed date"
+
+
+def test_pair_extraordinaire_uses_commit_search() -> None:
+    """Pair Extraordinaire must use the Commit search API since GitHub Issues
+    search does not index co-authored-by: trailers."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    assert "countCoAuthoredCommits" in service, \
+        "Service must have countCoAuthoredCommits"
+    assert "/search/commits" in service, \
+        "Pair Extraordinaire must use the Commit search API"
+
+
+def test_starstruck_link_header_parsing_is_correct() -> None:
+    """Starstruck pagination must parse the page query parameter at a query
+    boundary, not the page= suffix inside per_page."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    assert 'rel=\\"last\\"' in service, "Service must parse the rel=last link header"
+    assert "page=(\\\\d+)" in service, \
+        "Service must parse the page number at a query boundary"
+    assert "part.indexOf(\"page=\") + 6" not in service, \
+        "Service must not parse page= at the wrong offset"
+
+
+def test_leaderboard_sorts_unlocked_desc_then_xp_desc() -> None:
+    """Leaderboard must sort by unlocked count descending, then total XP
+    descending, without a second reversed() flipping the whole comparator."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    assert "Comparator.comparingInt(LeaderboardEntry::totalXp).reversed()" in service, \
+        "totalXp must be reversed independently"
+    assert ".thenComparingInt(LeaderboardEntry::totalXp)\n            .reversed()" not in service, \
+        "the cumulative comparator must not be reversed a second time"
 
 
 def test_achievement_resource_serves_page() -> None:
@@ -89,6 +142,45 @@ def test_achievement_api_resource_has_verify_and_claim() -> None:
     assert '@Path("/api/achievements")' in resource, "API must be at /api/achievements"
     assert "/verify/" in resource, "API must have verify endpoint"
     assert "/claim/" in resource, "API must have claim endpoint"
+
+
+def test_claim_endpoint_uses_post() -> None:
+    """Claiming an achievement must be a POST request (awarding XP via GET is
+    non-idempotent and can be triggered by link prefetching)."""
+    resource = (JAVA_DIR / "public_/AchievementApiResource.java").read_text()
+    assert re.search(
+        r"@POST\s*\n\s*@Path\(\"/claim/", resource
+    ), "claim endpoint must be annotated @POST"
+
+
+def test_api_error_messages_are_localized() -> None:
+    """API error/success messages must come from AppMessages, not hardcoded
+    English strings."""
+    resource = (JAVA_DIR / "public_/AchievementApiResource.java").read_text()
+    assert "achievements_api_no_github" in resource, \
+        "no-github error must use AppMessages"
+    assert "achievements_api_award_success" in resource, \
+        "award-success message must use AppMessages"
+    assert "achievements_api_award_failure" in resource, \
+        "award-failure message must use AppMessages"
+
+
+def test_js_claim_uses_post() -> None:
+    """The claim XP fetch must use method POST."""
+    js = (JS_DIR / "achievements.js").read_text()
+    assert re.search(
+        r'fetch\("/api/achievements/claim/.*method:\s*"POST"',
+        js,
+        re.DOTALL,
+    ), "claim fetch must use POST method"
+
+
+def test_template_guards_user_snapshot_in_claim_block() -> None:
+    """The claim-button block must guard on userSnapshot to avoid a Qute
+    rendering error when GitHub verification fails."""
+    template = (TEMPLATES_DIR / "AchievementResource/index.html").read_text()
+    assert "userAuthenticated && githubLinked && userSnapshot" in template, \
+        "claim block must guard on userSnapshot"
 
 
 def test_gamification_activity_has_achievement_entries() -> None:
