@@ -2885,6 +2885,9 @@ public interface AppMessages {
   @Message("No notifications for now.")
   String notifications_center_empty();
 
+  @Message("Could not load notifications. Local storage may be unavailable or corrupted.")
+  String notifications_center_error();
+
   @Message("You will see new events, schedule changes, and key project updates here.")
   String notifications_center_empty_hint();
 

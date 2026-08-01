@@ -296,6 +296,7 @@
     }
     submitBtn.disabled = true;
     submitBtn.textContent = i18n.postSubmitting;
+    submitBtn.classList.add("is-loading");
     showFeedback("", false);
     try {
       const response = await fetch("/api/community/lightning/threads", {
@@ -320,6 +321,7 @@
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = i18n.postSubmit;
+      submitBtn.classList.remove("is-loading");
     }
   }
 

@@ -27,6 +27,8 @@
   const UNREAD_KEY = 'ef_global_unread_count';
   const listEl  = document.getElementById('notif-list');
   const emptyEl = document.getElementById('empty');
+  const skeletonEl = document.getElementById('notif-skeleton');
+  const errorEl = document.getElementById('notif-error');
   const markAllBtn = document.getElementById('markAllRead');
   const deleteBtn  = document.getElementById('deleteSelected');
   const selectAllBtn = document.getElementById('selectAll');
@@ -46,9 +48,14 @@
   let currentFilter = 'all';
 
   // Utilidades de almacenamiento
+  let storageError = false;
   function getAll() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-    catch (e) { console.warn('notifications-center: failed to read storage', e); return []; }
+    catch (e) {
+      console.warn('notifications-center: failed to read storage', e);
+      storageError = true;
+      return [];
+    }
   }
   function saveAll(arr) {
     try {
@@ -86,7 +93,22 @@
 
   // Render de la lista aplicando filtro y preservando selección
   function render() {
+    // Hide skeleton once JS has loaded and is rendering (progressive enhancement)
+    if (skeletonEl) skeletonEl.classList.add('hidden');
+
     const all = getAll();
+
+    // Show error state if localStorage failed
+    if (storageError) {
+      if (errorEl) errorEl.classList.remove('hidden');
+      if (listEl) listEl.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+      if (actionsRight) actionsRight.classList.add('hidden');
+      return;
+    }
+    if (errorEl) errorEl.classList.add('hidden');
+    if (listEl) listEl.classList.remove('hidden');
+
     syncUnread(all);
     let items = all.filter(n => !n.dismissedAt);
 

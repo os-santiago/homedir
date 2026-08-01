@@ -28,6 +28,22 @@
         </div>
       </div>
 
+      <div id="notif-skeleton" class="hd-skeleton no-js" aria-hidden="true">
+        <div class="hd-skeleton-card"></div>
+        <div class="hd-skeleton-card"></div>
+        <div class="hd-skeleton-card"></div>
+      </div>
+      <script nonce="{app:cspNonce}">
+        // Progressive enhancement: remove no-js so the skeleton is visible
+        // during page load. The deferred notifications-center.js hides it
+        // once data is rendered (issue #1022).
+        var __notifSkeleton = document.getElementById('notif-skeleton');
+        if (__notifSkeleton) __notifSkeleton.classList.remove('no-js');
+      </script>
+      <div id="notif-error" class="notif-error hidden" role="alert">
+        {#include fragments/empty-state message=i18n:notifications_center_error icon="error" hintClass="notifications-empty-hint"}
+        {/include}
+      </div>
       <div id="notif-list" aria-live="polite"></div>
       <div id="empty" class="hidden">
         {#include fragments/empty-state message=i18n:notifications_center_empty icon="notifications_off" hint=i18n:notifications_center_empty_hint hintClass="notifications-empty-hint"}

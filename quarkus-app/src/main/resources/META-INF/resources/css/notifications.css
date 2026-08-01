@@ -106,6 +106,35 @@
   flex: 1;
 }
 
+#notif-list.hidden {
+  display: none;
+}
+
+/* Error state: visually distinct from loading (skeleton) and empty.
+   The reusable skeleton pattern (.hd-skeleton / .hd-skeleton-card) is
+   defined in homedir.css and shared across templates (issue #1022). */
+.notif-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 300px;
+  flex: 1;
+  color: rgba(var(--white-rgb), 0.85);
+}
+
+.notif-error.hidden {
+  display: none;
+}
+
+.notif-error .material-symbols-outlined {
+  font-size: 3rem;
+  opacity: 0.7;
+  margin-bottom: 1rem;
+  color: var(--danger, #e5484d);
+}
+
 #empty {
   display: flex;
   flex-direction: column;
