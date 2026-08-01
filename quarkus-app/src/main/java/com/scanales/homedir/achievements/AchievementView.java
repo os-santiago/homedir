@@ -29,13 +29,6 @@ public record AchievementView(
     String desc = isEn ? a.description() : a.descriptionEs();
     List<String> steps = isEn ? a.steps() : a.stepsEs();
     return new AchievementView(
-        a.key(),
-        a.title(),
-        desc,
-        a.category(),
-        a.docUrl(),
-        a.threshold(),
-        steps,
-        guide.repos());
+        a.key(), a.title(), desc, a.category(), a.docUrl(), a.threshold(), steps, guide.repos());
   }
 }
