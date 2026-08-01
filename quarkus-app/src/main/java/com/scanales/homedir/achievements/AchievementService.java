@@ -38,12 +38,14 @@ public class AchievementService {
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(1);
   private static final String ORG = "os-santiago";
+
   /**
    * GitHub usernames may contain only alphanumeric characters and hyphens, max 39 chars, and cannot
    * start or end with a hyphen. This pattern is used to sanitize login values before they are
    * interpolated into GitHub Search API queries to prevent query injection.
    */
-  private static final Pattern GITHUB_LOGIN_PATTERN = Pattern.compile("^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$");
+  private static final Pattern GITHUB_LOGIN_PATTERN =
+      Pattern.compile("^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$");
 
   @Inject AchievementCatalog catalog;
   @Inject GamificationService gamificationService;
