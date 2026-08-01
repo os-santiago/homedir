@@ -17,7 +17,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  // CI forces a single worker to serialize against the one Quarkus instance,
+  // so there is no parallelism there; only parallelize locally.
+  fullyParallel: !process.env.CI,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,

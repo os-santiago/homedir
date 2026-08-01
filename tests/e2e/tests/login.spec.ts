@@ -15,8 +15,8 @@ test.describe('login flow', () => {
     await expect(page.locator('h1.dev-login-title')).toHaveText('HomeDir');
     await expect(page.locator('form.dev-login-form')).toBeVisible();
 
-    await page.fill('#username', 'user@example.com');
-    await page.fill('#password', 'userpass');
+    await page.locator('#username').fill('user@example.com');
+    await page.locator('#password').fill('userpass');
     await Promise.all([
       page.waitForURL('**/profile'),
       page.locator('button[type="submit"]').click(),
@@ -28,8 +28,8 @@ test.describe('login flow', () => {
   test('rejects invalid credentials', async ({ page }) => {
     await page.goto('/login.html');
 
-    await page.fill('#username', 'user@example.com');
-    await page.fill('#password', 'wrong-password');
+    await page.locator('#username').fill('user@example.com');
+    await page.locator('#password').fill('wrong-password');
     await page.locator('button[type="submit"]').click();
 
     // Form auth redirects back to the error page on failure.

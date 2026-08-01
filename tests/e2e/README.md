@@ -9,7 +9,7 @@ notifications WebSocket, and the local dev login flow.
 
 - JDK 21
 - Maven (or the included wrapper)
-- Node.js 20+ with npm
+- Node.js 22 with npm (CI uses Node 22)
 
 ## Run locally
 
@@ -51,7 +51,8 @@ Quarkus. This is the entrypoint used by the CI job.
 ## CI
 
 The `e2e` job in `.github/workflows/pr-check.yml` runs the full-stack runner on
-every PR. A Playwright HTML report is uploaded as a build artifact.
+every PR. A Playwright HTML report and the Quarkus dev log are uploaded as
+build artifacts.
 
 ## Maintainer notes
 

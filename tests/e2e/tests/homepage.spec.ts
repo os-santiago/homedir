@@ -34,15 +34,8 @@ test.describe('homepage and main pages', () => {
     }
   });
 
-  test('navigates between public pages', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    for (const [label, path] of [
-      ['/eventos', '/eventos'],
-      ['/comunidad', '/comunidad'],
-      ['/proyectos', '/proyectos'],
-    ] as const) {
+  test('loads public pages', async ({ page }) => {
+    for (const path of ['/eventos', '/comunidad', '/proyectos'] as const) {
       await page.goto(path);
       await expect(page).toHaveURL(new RegExp(path.replace('/', '\\/')));
       await page.waitForLoadState('networkidle');

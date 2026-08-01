@@ -14,13 +14,23 @@ fi
 
 echo "🚀 Starting Quarkus (dev profile) for E2E tests..."
 cd quarkus-app
-./mvnw quarkus:dev -Ddebug=false -Dquarkus.http.port="${E2E_PORT}" "${MAVEN_ARGS[@]}" > quarkus-dev.log 2>&1 &
+# Run in a new process group (when setsid is available, e.g. Linux CI) so we
+# can kill the forked JVM that quarkus:dev spawns, not just the mvnw wrapper.
+if command -v setsid >/dev/null 2>&1; then
+  setsid ./mvnw quarkus:dev -Ddebug=false -Dquarkus.http.port="${E2E_PORT}" "${MAVEN_ARGS[@]}" > quarkus-dev.log 2>&1 &
+else
+  ./mvnw quarkus:dev -Ddebug=false -Dquarkus.http.port="${E2E_PORT}" "${MAVEN_ARGS[@]}" > quarkus-dev.log 2>&1 &
+fi
 QUARKUS_PID=$!
 cd ..
 
 cleanup() {
   if [ -n "${QUARKUS_PID:-}" ]; then
     echo "🛑 Stopping Quarkus (PID: $QUARKUS_PID)..."
+    # Kill the whole process group (wrapper + forked JVM) so the dev server
+    # does not linger and hold the port after the script exits.
+    kill -- "-${QUARKUS_PID}" 2>/dev/null || true
+    pkill -P "${QUARKUS_PID}" 2>/dev/null || true
     kill "$QUARKUS_PID" 2>/dev/null || true
     wait "$QUARKUS_PID" 2>/dev/null || true
   fi
@@ -52,4 +62,12 @@ fi
 cd ../..
 
 echo "🧪 Running Playwright E2E tests..."
+set +e
 E2E_BASE_URL="${E2E_BASE_URL}" npm --prefix tests/e2e run test:e2e
+test_exit=$?
+set -e
+if [ "$test_exit" -ne 0 ]; then
+  echo "❌ Playwright E2E tests failed (exit code $test_exit). Dumping Quarkus dev log..."
+  tail -n 100 quarkus-app/quarkus-dev.log
+fi
+exit "$test_exit"
