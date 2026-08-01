@@ -4,14 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.homedir.achievements.AchievementCatalog.Achievement;
 import com.scanales.homedir.achievements.AchievementCatalog.AchievementGuide;
-import com.scanales.homedir.achievements.AchievementCatalog.OrgRepo;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UserProfileService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -22,12 +20,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.Config;
 import org.jboss.logging.Logger;
 
@@ -59,8 +53,15 @@ public class AchievementService {
   private final ConcurrentHashMap<String, AchievementVerificationCache> verificationCache =
       new ConcurrentHashMap<>();
 
-  public record AchievementStatus(String key, String title, boolean unlocked, int progress,
-      int threshold, String category, String docUrl, int xpReward) {}
+  public record AchievementStatus(
+      String key,
+      String title,
+      boolean unlocked,
+      int progress,
+      int threshold,
+      String category,
+      String docUrl,
+      int xpReward) {}
 
   public record UserAchievementSnapshot(
       String githubLogin,
@@ -82,8 +83,7 @@ public class AchievementService {
 
   public record AchievementVerificationResult(boolean verified, int progress, String message) {}
 
-  private record AchievementVerificationCache(
-      List<AchievementStatus> statuses, Instant cachedAt) {
+  private record AchievementVerificationCache(List<AchievementStatus> statuses, Instant cachedAt) {
     boolean isExpired() {
       return cachedAt != null && Instant.now().isAfter(cachedAt.plus(CACHE_TTL));
     }
@@ -103,58 +103,77 @@ public class AchievementService {
     AchievementVerificationCache cached = verificationCache.get(githubLogin);
     if (cached != null && !cached.isExpired()) {
       int unlocked = (int) cached.statuses().stream().filter(AchievementStatus::unlocked).count();
-      int xp = cached.statuses().stream().filter(AchievementStatus::unlocked)
-          .mapToInt(AchievementStatus::xpReward).sum();
-      return new UserAchievementSnapshot(githubLogin, cached.statuses(), unlocked,
-          cached.statuses().size(), xp);
+      int xp =
+          cached.statuses().stream()
+              .filter(AchievementStatus::unlocked)
+              .mapToInt(AchievementStatus::xpReward)
+              .sum();
+      return new UserAchievementSnapshot(
+          githubLogin, cached.statuses(), unlocked, cached.statuses().size(), xp);
     }
 
     List<AchievementStatus> statuses = new ArrayList<>();
     for (AchievementGuide guide : catalog.guides()) {
       Achievement achievement = guide.achievement();
       AchievementVerificationResult result = verifySingleAchievement(githubLogin, achievement);
-      statuses.add(new AchievementStatus(
-          achievement.key(), achievement.title(), result.verified(),
-          result.progress(), achievement.threshold(), achievement.category(),
-          achievement.docUrl(), achievement.xpReward()));
+      statuses.add(
+          new AchievementStatus(
+              achievement.key(),
+              achievement.title(),
+              result.verified(),
+              result.progress(),
+              achievement.threshold(),
+              achievement.category(),
+              achievement.docUrl(),
+              achievement.xpReward()));
     }
 
     verificationCache.put(githubLogin, new AchievementVerificationCache(statuses, Instant.now()));
 
     int unlocked = (int) statuses.stream().filter(AchievementStatus::unlocked).count();
-    int xp = statuses.stream().filter(AchievementStatus::unlocked)
-        .mapToInt(AchievementStatus::xpReward).sum();
+    int xp =
+        statuses.stream()
+            .filter(AchievementStatus::unlocked)
+            .mapToInt(AchievementStatus::xpReward)
+            .sum();
 
     return new UserAchievementSnapshot(githubLogin, statuses, unlocked, statuses.size(), xp);
   }
 
   /**
-   * Verifies a single achievement by querying the GitHub API.
-   * Uses the GitHub Search API to count merged PRs, closed issues, etc.
+   * Verifies a single achievement by querying the GitHub API. Uses the GitHub Search API to count
+   * merged PRs, closed issues, etc.
    */
-  public AchievementVerificationResult verifySingleAchievement(String login, Achievement achievement) {
+  public AchievementVerificationResult verifySingleAchievement(
+      String login, Achievement achievement) {
     String token = getGithubApiToken();
     try {
-      int progress = switch (achievement.key()) {
-        case "pull-shark" -> countSearchResults(
-            "author:" + login + " type:pr is:merged org:os-santiago", token);
-        case "yolo" -> countSearchResults(
-            "author:" + login + " type:pr is:merged is:unmerged org:os-santiago", token);
-        case "quickdraw" -> countSearchResults(
-            "author:" + login + " type:issue closed:>=2024-01-01 org:os-santiago", token);
-        case "pair-extraordinaire" -> countSearchResults(
-            "co-authored-by:" + login + " type:pr is:merged org:os-santiago", token);
-        case "starstruck" -> countStarredRepos(login, token);
-        case "galaxy-brain" -> 0;
-        case "public-sponsor" -> countSponsorships(login, token);
-        case "heart-on-your-sleeve" -> countSponsorships(login, token);
-        case "open-sourcerer" -> countSponsorships(login, token);
-        default -> 0;
-      };
+      int progress =
+          switch (achievement.key()) {
+            case "pull-shark" ->
+                countSearchResults("author:" + login + " type:pr is:merged org:os-santiago", token);
+            case "yolo" ->
+                countSearchResults(
+                    "author:" + login + " type:pr is:merged is:unmerged org:os-santiago", token);
+            case "quickdraw" ->
+                countSearchResults(
+                    "author:" + login + " type:issue closed:>=2024-01-01 org:os-santiago", token);
+            case "pair-extraordinaire" ->
+                countSearchResults(
+                    "co-authored-by:" + login + " type:pr is:merged org:os-santiago", token);
+            case "starstruck" -> countStarredRepos(login, token);
+            case "galaxy-brain" -> 0;
+            case "public-sponsor" -> countSponsorships(login, token);
+            case "heart-on-your-sleeve" -> countSponsorships(login, token);
+            case "open-sourcerer" -> countSponsorships(login, token);
+            default -> 0;
+          };
 
       boolean verified = progress >= achievement.threshold();
-      String message = verified ? "Achievement unlocked!" : "Progress: " + progress + "/"
-          + achievement.threshold();
+      String message =
+          verified
+              ? "Achievement unlocked!"
+              : "Progress: " + progress + "/" + achievement.threshold();
       return new AchievementVerificationResult(verified, progress, message);
     } catch (Exception e) {
       LOG.warnf(e, "Failed to verify achievement %s for %s", achievement.key(), login);
@@ -162,23 +181,22 @@ public class AchievementService {
     }
   }
 
-  /**
-   * Counts GitHub Search API results for a given query.
-   */
+  /** Counts GitHub Search API results for a given query. */
   int countSearchResults(String query, String token) {
     try {
       String url = "https://api.github.com/search/issues?q=" + urlEncode(query) + "&per_page=1";
-      HttpRequest.Builder builder = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(REQUEST_TIMEOUT)
-          .header("Accept", "application/vnd.github+json")
-          .header("X-GitHub-Api-Version", "2022-11-28")
-          .header("User-Agent", "homedir-achievements");
+      HttpRequest.Builder builder =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(REQUEST_TIMEOUT)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .header("User-Agent", "homedir-achievements");
       if (token != null && !token.isBlank()) {
         builder.header("Authorization", "Bearer " + token);
       }
-      HttpResponse<String> response = httpClient.send(builder.build(),
-          HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
         LOG.warnf("GitHub search failed status=%d query=%s", response.statusCode(), query);
         return 0;
@@ -194,23 +212,22 @@ public class AchievementService {
     }
   }
 
-  /**
-   * Counts the number of starred repositories for a user.
-   */
+  /** Counts the number of starred repositories for a user. */
   int countStarredRepos(String login, String token) {
     try {
       String url = "https://api.github.com/users/" + urlEncode(login) + "/starred?per_page=1";
-      HttpRequest.Builder builder = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(REQUEST_TIMEOUT)
-          .header("Accept", "application/vnd.github+json")
-          .header("X-GitHub-Api-Version", "2022-11-28")
-          .header("User-Agent", "homedir-achievements");
+      HttpRequest.Builder builder =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(REQUEST_TIMEOUT)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .header("User-Agent", "homedir-achievements");
       if (token != null && !token.isBlank()) {
         builder.header("Authorization", "Bearer " + token);
       }
-      HttpResponse<String> response = httpClient.send(builder.build(),
-          HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
         return 0;
       }
@@ -239,8 +256,8 @@ public class AchievementService {
   }
 
   /**
-   * Counts public sponsorships. GitHub doesn't expose this via a public API,
-   * so we return 0 (verification not available for sponsor-based achievements).
+   * Counts public sponsorships. GitHub doesn't expose this via a public API, so we return 0
+   * (verification not available for sponsor-based achievements).
    */
   int countSponsorships(String login, String token) {
     return 0;
@@ -266,7 +283,8 @@ public class AchievementService {
       return false;
     }
     String githubLogin = profile.getGithub().login();
-    AchievementVerificationResult result = verifySingleAchievement(githubLogin, guide.achievement());
+    AchievementVerificationResult result =
+        verifySingleAchievement(githubLogin, guide.achievement());
     if (!result.verified()) {
       return false;
     }
@@ -277,9 +295,7 @@ public class AchievementService {
     return gamificationService.award(userId, activity, guide.achievement().title());
   }
 
-  /**
-   * Maps an achievement key to a GamificationActivity.
-   */
+  /** Maps an achievement key to a GamificationActivity. */
   GamificationActivity activityForAchievement(String achievementKey) {
     return switch (achievementKey) {
       case "pull-shark" -> GamificationActivity.ACHIEVEMENT_PULL_SHARK;
@@ -296,8 +312,8 @@ public class AchievementService {
   }
 
   /**
-   * Builds the achievement leaderboard from all user profiles that have GitHub linked.
-   * The leaderboard is sorted by unlocked achievement count (descending), then by total XP.
+   * Builds the achievement leaderboard from all user profiles that have GitHub linked. The
+   * leaderboard is sorted by unlocked achievement count (descending), then by total XP.
    */
   public Leaderboard buildLeaderboard() {
     List<UserProfile> allProfileList = new ArrayList<>(userProfiles.allProfiles().values());
@@ -312,64 +328,79 @@ public class AchievementService {
       if (cached == null) {
         continue;
       }
-      int unlocked = (int) cached.statuses().stream()
-          .filter(AchievementStatus::unlocked).count();
-      int xp = cached.statuses().stream()
-          .filter(AchievementStatus::unlocked)
-          .mapToInt(AchievementStatus::xpReward).sum();
+      int unlocked = (int) cached.statuses().stream().filter(AchievementStatus::unlocked).count();
+      int xp =
+          cached.statuses().stream()
+              .filter(AchievementStatus::unlocked)
+              .mapToInt(AchievementStatus::xpReward)
+              .sum();
       if (unlocked > 0) {
-        entries.add(new LeaderboardEntry(
-            0,
-            profile.getUserId(),
-            profile.getName() != null ? profile.getName() : githubLogin,
-            githubLogin,
-            profile.getGithub().avatarUrl(),
-            unlocked,
-            xp));
+        entries.add(
+            new LeaderboardEntry(
+                0,
+                profile.getUserId(),
+                profile.getName() != null ? profile.getName() : githubLogin,
+                githubLogin,
+                profile.getGithub().avatarUrl(),
+                unlocked,
+                xp));
       }
     }
 
-    entries.sort(Comparator.comparingInt(LeaderboardEntry::unlockedCount).reversed()
-        .thenComparingInt(LeaderboardEntry::totalXp).reversed()
-        .thenComparing(LeaderboardEntry::githubLogin, Comparator.nullsLast(String::compareTo)));
+    entries.sort(
+        Comparator.comparingInt(LeaderboardEntry::unlockedCount)
+            .reversed()
+            .thenComparingInt(LeaderboardEntry::totalXp)
+            .reversed()
+            .thenComparing(LeaderboardEntry::githubLogin, Comparator.nullsLast(String::compareTo)));
 
     // Assign ranks
     List<LeaderboardEntry> ranked = new ArrayList<>();
     for (int i = 0; i < Math.min(entries.size(), LEADERBOARD_LIMIT); i++) {
       LeaderboardEntry e = entries.get(i);
-      ranked.add(new LeaderboardEntry(
-          i + 1, e.userId(), e.displayName(), e.githubLogin(), e.avatarUrl(),
-          e.unlockedCount(), e.totalXp()));
+      ranked.add(
+          new LeaderboardEntry(
+              i + 1,
+              e.userId(),
+              e.displayName(),
+              e.githubLogin(),
+              e.avatarUrl(),
+              e.unlockedCount(),
+              e.totalXp()));
     }
 
     return new Leaderboard(ranked, entries.size());
   }
 
-  /**
-   * Returns the full catalog data for rendering the page.
-   */
+  /** Returns the full catalog data for rendering the page. */
   public AchievementCatalog catalog() {
     return catalog;
   }
 
-  /**
-   * Returns the list of GitHub highlights (badges that appear on the profile).
-   */
+  /** Returns the list of GitHub highlights (badges that appear on the profile). */
   public List<Highlight> highlights() {
     return List.of(
-        new Highlight("pro", "GitHub Pro",
+        new Highlight(
+            "pro",
+            "GitHub Pro",
             "GitHub Pro is a paid subscription that gives you access to private repositories, "
                 + "advanced insights, and more. It appears as a badge on your profile.",
             "https://docs.github.com/en/get-started/learning-about-github/githubs-products"),
-        new Highlight("developer-program", "Developer Program Member",
+        new Highlight(
+            "developer-program",
+            "Developer Program Member",
             "The GitHub Developer Program is for developers who build integrations with the "
                 + "GitHub API. Join at developer.github.com to get the badge.",
             "https://docs.github.com/en/developers/overview/github-developer-program"),
-        new Highlight("security-bounty", "Security Bug Bounty Hunter",
+        new Highlight(
+            "security-bounty",
+            "Security Bug Bounty Hunter",
             "Report security vulnerabilities to GitHub's bug bounty program. Accepted reports "
                 + "earn a special badge on your profile.",
             "https://bounty.github.com/"),
-        new Highlight("galaxy-brain-highlight", "Galaxy Brain (Discussions)",
+        new Highlight(
+            "galaxy-brain-highlight",
+            "Galaxy Brain (Discussions)",
             "Answer questions in GitHub Discussions. When your answer is accepted by the "
                 + "question author, you earn the Galaxy Brain badge.",
             "https://docs.github.com/en/discussions"));

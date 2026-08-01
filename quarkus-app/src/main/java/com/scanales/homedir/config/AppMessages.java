@@ -7033,13 +7033,15 @@ public interface AppMessages {
   @Message("GitHub Achievement Hub")
   String achievements_heading();
 
-  @Message("Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
+  @Message(
+      "Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
   String achievements_subtitle();
 
   @Message("Unlocked")
   String achievements_unlocked();
 
-  @Message("Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
+  @Message(
+      "Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
   String achievements_link_github();
 
   @Message("Unlocked")

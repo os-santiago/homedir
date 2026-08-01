@@ -264,7 +264,15 @@ public class AchievementCatalog {
       List<String> stepsEs) {
     Achievement achievement =
         new Achievement(
-            key, title, description, descriptionEs, category, docUrl, threshold, xpReward, steps,
+            key,
+            title,
+            description,
+            descriptionEs,
+            category,
+            docUrl,
+            threshold,
+            xpReward,
+            steps,
             stepsEs);
     List<OrgRepo> relevantRepos = reposForCategory(category);
     return new AchievementGuide(achievement, relevantRepos);
@@ -288,9 +296,6 @@ public class AchievementCatalog {
   }
 
   public AchievementGuide guideForKey(String key) {
-    return guides.stream()
-        .filter(g -> g.achievement().key().equals(key))
-        .findFirst()
-        .orElse(null);
+    return guides.stream().filter(g -> g.achievement().key().equals(key)).findFirst().orElse(null);
   }
 }
