@@ -2,10 +2,13 @@
 operations across the frontend.
 
 This PR focuses on the actual gaps:
-1. A reusable ``.hd-btn.is-loading`` CSS class in ``homedir.css`` for button
-   loading states during async operations (disabled + animated dots).
-2. Button loading states applied to ``community-submissions.js``,
-   ``community-content.js``, and ``home-lightning.js``.
+1. A reusable ``button.is-loading`` CSS class in ``homedir.css`` for button
+   loading states during async operations (disabled + CSS spinner).
+2. Button loading states applied to ``community-bundle.js`` — the only JS
+   file loaded by the community page template. The standalone files
+   (``home-lightning.js``, ``community-content.js``, ``community-submissions.js``)
+   are served as static resources but NOT referenced by any template, so
+   adding loading states there would be dead code.
 3. A visual loading indicator for community board ``fetchAndSwap`` operations
    via ``body.community-board-loading`` in ``community-page.css``.
 
@@ -21,17 +24,14 @@ HOMEDIR_CSS = Path("quarkus-app/src/main/resources/META-INF/resources/css/homedi
 COMMUNITY_PAGE_CSS = Path(
     "quarkus-app/src/main/resources/META-INF/resources/css/community-page.css"
 ).read_text()
-COMMUNITY_SUBMISSIONS_JS = Path(
-    "quarkus-app/src/main/resources/META-INF/resources/js/community-submissions.js"
-).read_text()
-COMMUNITY_CONTENT_JS = Path(
-    "quarkus-app/src/main/resources/META-INF/resources/js/community-content.js"
-).read_text()
-HOME_LIGHTNING_JS = Path(
-    "quarkus-app/src/main/resources/META-INF/resources/js/home-lightning.js"
+COMMUNITY_BUNDLE_JS = Path(
+    "quarkus-app/src/main/resources/META-INF/resources/js/community-bundle.js"
 ).read_text()
 COMMUNITY_BOARD_JS = Path(
     "quarkus-app/src/main/resources/META-INF/resources/js/community-board.js"
+).read_text()
+COMMUNITY_HTML = Path(
+    "quarkus-app/src/main/resources/templates/CommunityResource/community.html"
 ).read_text()
 
 
@@ -41,12 +41,30 @@ COMMUNITY_BOARD_JS = Path(
 
 
 def test_reusable_button_loading_class_in_homedir_css() -> None:
-    """The .hd-btn.is-loading class must be defined in the shared homedir.css
+    """The button.is-loading class must be defined in the shared homedir.css
     so any page can use it (criterion: reusable loading pattern)."""
-    assert ".hd-btn.is-loading" in HOMEDIR_CSS
+    assert "button.is-loading" in HOMEDIR_CSS
     assert "pointer-events: none" in HOMEDIR_CSS
-    assert "hd-loading-dots" in HOMEDIR_CSS
-    assert "@keyframes hd-loading-dots" in HOMEDIR_CSS
+    assert "hd-btn-spin" in HOMEDIR_CSS
+    assert "@keyframes hd-btn-spin" in HOMEDIR_CSS
+
+
+def test_button_loading_uses_standard_animatable_property() -> None:
+    """The spinner animation must use ``transform`` (a standard animatable
+    property), not ``content`` (which is non-standard and only works in
+    Chromium browsers)."""
+    keyframe_block = re.search(
+        r"@keyframes hd-btn-spin\s*\{([^}]*)\}", HOMEDIR_CSS
+    )
+    assert keyframe_block is not None, "hd-btn-spin keyframe must exist"
+    assert "transform" in keyframe_block.group(1)
+    assert "content" not in keyframe_block.group(1)
+
+
+def test_button_loading_respects_reduced_motion() -> None:
+    """The spinner animation must be disabled under prefers-reduced-motion
+    per the project CSS style guide."""
+    assert "prefers-reduced-motion" in HOMEDIR_CSS
 
 
 def test_no_unused_skeleton_css() -> None:
@@ -57,47 +75,72 @@ def test_no_unused_skeleton_css() -> None:
     assert ".hd-skeleton-card" not in HOMEDIR_CSS
 
 
+def test_no_old_hd_btn_selector() -> None:
+    """The old ``.hd-btn.is-loading`` selector must NOT remain — the buttons
+    that receive ``is-loading`` use ``btn``, ``btn--primary``, or ``btn-primary``
+    classes, not ``hd-btn``. The selector is now ``button.is-loading`` which
+    matches any button element."""
+    assert ".hd-btn.is-loading" not in HOMEDIR_CSS
+
+
 # ---------------------------------------------------------------------------
-# Button loading state applied to async operations
+# Button loading state applied to async operations in community-bundle.js
+# (the only JS file loaded by the community page template)
 # ---------------------------------------------------------------------------
 
 
-def test_community_submissions_apply_is_loading_on_moderate() -> None:
+def test_community_bundle_has_lightning_submit_is_loading() -> None:
+    """The lightning talk submit button must get the is-loading class during
+    the async post operation."""
+    assert 'submitBtn.classList.add("is-loading")' in COMMUNITY_BUNDLE_JS
+    assert 'submitBtn.classList.remove("is-loading")' in COMMUNITY_BUNDLE_JS
+
+
+def test_community_bundle_has_load_more_is_loading() -> None:
+    """The load-more button must toggle the is-loading class based on
+    state.loading."""
+    assert 'loadMoreBtn.classList.toggle("is-loading"' in COMMUNITY_BUNDLE_JS
+    assert "state.loading" in COMMUNITY_BUNDLE_JS
+
+
+def test_community_bundle_has_moderation_is_loading() -> None:
     """The moderate (approve/reject) buttons must get the is-loading class
     during the async moderation operation."""
-    assert 'classList.add("is-loading")' in COMMUNITY_SUBMISSIONS_JS
-    assert 'classList.remove("is-loading")' in COMMUNITY_SUBMISSIONS_JS
+    assert 'target.classList.add("is-loading")' in COMMUNITY_BUNDLE_JS
+    assert 'target.classList.remove("is-loading")' in COMMUNITY_BUNDLE_JS
 
 
-def test_community_submissions_apply_is_loading_on_submit() -> None:
-    """The submit button must get the is-loading class during the async
-    submission operation."""
+def test_community_bundle_has_submit_is_loading() -> None:
+    """The community submit button must get the is-loading class during the
+    async submission operation."""
     submit_match = re.search(
         r'form\.addEventListener\("submit".*?submitBtn\.classList\.add\("is-loading"\)',
-        COMMUNITY_SUBMISSIONS_JS,
+        COMMUNITY_BUNDLE_JS,
         re.DOTALL,
     )
     assert submit_match is not None, "submit button must get is-loading class"
     finally_match = re.search(
         r'finally\s*\{[^}]*submitBtn\.classList\.remove\("is-loading"\)',
-        COMMUNITY_SUBMISSIONS_JS,
+        COMMUNITY_BUNDLE_JS,
         re.DOTALL,
     )
     assert finally_match is not None, "is-loading must be removed in finally block"
 
 
-def test_community_content_load_more_has_is_loading() -> None:
-    """The load-more button must toggle the is-loading class based on
-    state.loading."""
-    assert 'loadMoreBtn.classList.toggle("is-loading"' in COMMUNITY_CONTENT_JS
-    assert "state.loading" in COMMUNITY_CONTENT_JS
+def test_dead_js_files_do_not_have_is_loading() -> None:
+    """The standalone JS files (home-lightning.js, community-content.js,
+    community-submissions.js) are NOT loaded by any template. Adding
+    is-loading there would be dead code."""
+    for filename in ("home-lightning.js", "community-content.js", "community-submissions.js"):
+        path = Path(f"quarkus-app/src/main/resources/META-INF/resources/js/{filename}")
+        content = path.read_text()
+        assert "is-loading" not in content, f"{filename} should not have is-loading (dead code)"
 
 
-def test_home_lightning_submit_has_is_loading() -> None:
-    """The lightning talk submit button must get the is-loading class during
-    the async post operation."""
-    assert 'submitBtn.classList.add("is-loading")' in HOME_LIGHTNING_JS
-    assert 'submitBtn.classList.remove("is-loading")' in HOME_LIGHTNING_JS
+def test_community_page_loads_community_bundle() -> None:
+    """The community page template must load community-bundle.js (the file
+    where is-loading is applied)."""
+    assert "community-bundle.js" in COMMUNITY_HTML
 
 
 # ---------------------------------------------------------------------------
@@ -166,8 +209,5 @@ def test_community_page_has_skeleton() -> None:
     """The community page must have a skeleton loader.
     The community page already had a page-specific skeleton
     (``community-skeleton``)."""
-    community_html = Path(
-        "quarkus-app/src/main/resources/templates/CommunityResource/community.html"
-    ).read_text()
-    assert "community-skeleton" in community_html
-    assert "community-skeleton-card" in community_html
+    assert "community-skeleton" in COMMUNITY_HTML
+    assert "community-skeleton-card" in COMMUNITY_HTML

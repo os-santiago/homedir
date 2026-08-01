@@ -202,7 +202,6 @@
         }
         approveBtn.disabled = true;
         rejectBtn.disabled = true;
-        target.classList.add("is-loading");
         try {
           hideFeedback();
           await moderateSubmission(submissionId, action, note.value.trim());
@@ -221,7 +220,6 @@
         } finally {
           approveBtn.disabled = false;
           rejectBtn.disabled = false;
-          target.classList.remove("is-loading");
         }
       });
 
@@ -317,7 +315,6 @@
       event.preventDefault();
       hideFeedback();
       submitBtn.disabled = true;
-      submitBtn.classList.add("is-loading");
 
       const formData = new FormData(form);
       const payload = {
@@ -358,7 +355,6 @@
         showFeedback(error instanceof Error ? error.message : i18n.errorSubmit);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.classList.remove("is-loading");
       }
     });
   }

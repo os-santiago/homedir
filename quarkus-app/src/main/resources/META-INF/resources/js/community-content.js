@@ -203,7 +203,6 @@
     const hasMore = state.items.length < state.total;
     loadMoreBtn.classList.toggle("hidden", !hasMore || state.loading);
     loadMoreBtn.disabled = state.loading;
-    loadMoreBtn.classList.toggle("is-loading", state.loading);
   }
 
   function cacheKey(view, filter, media, offset) {
