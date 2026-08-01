@@ -1362,3 +1362,11 @@
       transition: none;
     }
   }
+
+/* Community board loading state (issue #1022) — dims the main content
+   during fetchAndSwap to give visual feedback during async navigation. */
+body.community-board-loading #main-content {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}

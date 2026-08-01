@@ -2619,6 +2619,66 @@ footer {
 }
 
 /* ===========================================
+   REUSABLE BUTTON LOADING STATE (issue #1022)
+   Apply .is-loading to any button during async operations.
+   The button is disabled and shows a CSS spinner via ::before.
+   =========================================== */
+button.is-loading,
+.btn.is-loading,
+.btn--primary.is-loading,
+.btn--secondary.is-loading,
+.btn--danger.is-loading,
+.btn--success.is-loading,
+.btn--warning.is-loading,
+.btn--ghost.is-loading,
+.btn-primary.is-loading {
+  cursor: wait;
+  pointer-events: none;
+  opacity: 0.7;
+  position: relative;
+}
+
+button.is-loading::before,
+.btn.is-loading::before,
+.btn--primary.is-loading::before,
+.btn--secondary.is-loading::before,
+.btn--danger.is-loading::before,
+.btn--success.is-loading::before,
+.btn--warning.is-loading::before,
+.btn--ghost.is-loading::before,
+.btn-primary.is-loading::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: hd-btn-spin 0.6s linear infinite;
+}
+
+@keyframes hd-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::before,
+  .btn.is-loading::before,
+  .btn--primary.is-loading::before,
+  .btn--secondary.is-loading::before,
+  .btn--danger.is-loading::before,
+  .btn--success.is-loading::before,
+  .btn--warning.is-loading::before,
+  .btn--ghost.is-loading::before,
+  .btn-primary.is-loading::before {
+    animation: none;
+  }
+}
+
+/* ===========================================
    FOOTER
    =========================================== */
 
