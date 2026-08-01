@@ -12,16 +12,52 @@ Validates that:
    referenced by any template
 """
 
+from html.parser import HTMLParser
 from pathlib import Path
 import re
 
 JS_DIR = Path("quarkus-app/src/main/resources/META-INF/resources/js")
 TEMPLATE_DIR = Path("quarkus-app/src/main/resources/templates")
 
+# Scripts loaded globally from the layout head (or legacy top-level scripts).
+# They intentionally expose globals instead of using an IIFE, so they are
+# excluded from the page-script IIFE validation.
+SHARED_GLOBAL_SCRIPTS = {"utils.js", "core-bundle.js", "retro-theme.js"}
+
 
 def _read_js(name: str) -> str:
     """Read a JavaScript source file from the JS resource directory."""
     return (JS_DIR / name).read_text()
+
+
+def _template_script_srcs() -> set[str]:
+    """Collect basenames of every /js/ script referenced by templates.
+
+    Parses ``<script src="...">`` attributes so quoting, whitespace, relative
+    paths, and version query strings are all handled. Returns a set of script
+    basenames with any query/version suffix stripped.
+    """
+
+    class ScriptSrcParser(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.srcs: list[str] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            if tag != "script":
+                return
+            for name, value in attrs:
+                if name == "src" and value:
+                    self.srcs.append(value)
+
+    srcs: set[str] = set()
+    for template_file in TEMPLATE_DIR.rglob("*.html"):
+        parser = ScriptSrcParser()
+        parser.feed(template_file.read_text())
+        for src in parser.srcs:
+            if src.startswith("/js/"):
+                srcs.add(src.rsplit("/", 1)[-1].split("?", 1)[0])
+    return srcs
 
 
 def test_utils_exposes_shared_utilities() -> None:
@@ -79,41 +115,150 @@ def test_community_bundle_escape_text_delegates_to_homedirutils() -> None:
     )
     assert first_func, "First escapeText function body not found"
     body = first_func.group(1)
-    assert "HomeDirUtils" in body and "escapeHtml" in body, \
-        "First escapeText must delegate to HomeDirUtils.escapeHtml"
+    assert re.search(
+        r"return\s+window\.HomeDirUtils\.escapeHtml\(value\)",
+        body,
+    ), "First escapeText must delegate to HomeDirUtils.escapeHtml"
 
 
 def test_dead_js_files_not_referenced_by_templates() -> None:
     """Dead JS files must not be referenced by any template."""
-    dead_files = [
+    dead_files = {
         "homedir.js",
         "app.js",
         "community-content.js",
         "community-submissions.js",
         "home-lightning.js",
         "home-lta-preview.js",
-    ]
-    for template_file in TEMPLATE_DIR.rglob("*.html"):
-        content = template_file.read_text()
-        for dead in dead_files:
-            # Check for script src references (not just mentions in comments)
-            assert f'src="/js/{dead}' not in content, \
-                f"{template_file} references dead JS file {dead}"
+    }
+    referenced = _template_script_srcs()
+    overlap = sorted(referenced & dead_files)
+    assert not overlap, (
+        f"templates reference dead JS files: {overlap}"
+    )
+
+
+def _js_skeleton(content: str) -> str:
+    """Return JS content with strings, comments, and regex literals blanked.
+
+    Used to validate file structure (paren/brace balance, IIFE framing) without
+    being confused by parentheses that appear inside literals.
+    """
+    out = list(content)
+    REGEX_PRECEDING_KEYWORDS = {
+        "return", "typeof", "instanceof", "in", "of", "new", "delete",
+        "void", "throw", "yield", "await", "case", "do", "else",
+    }
+
+    def is_ident_char(c: str) -> bool:
+        return c.isalnum() or c in "_$"
+
+    i = 0
+    n = len(content)
+    while i < n:
+        ch = content[i]
+        nxt = content[i + 1] if i + 1 < n else ""
+        if ch == "/" and nxt == "/":
+            while i < n and content[i] != "\n":
+                out[i] = " "
+                i += 1
+            continue
+        if ch == "/" and nxt == "*":
+            while i + 1 < n and not (content[i] == "*" and content[i + 1] == "/"):
+                if content[i] != "\n":
+                    out[i] = " "
+                i += 1
+            if i + 1 < n:
+                out[i] = " "
+                out[i + 1] = " "
+                i += 2
+            continue
+        if ch in "\"'`":
+            quote = ch
+            out[i] = " "
+            i += 1
+            if quote == "`":
+                while i < n:
+                    if content[i] == "\\":
+                        out[i] = " "
+                        if i + 1 < n:
+                            out[i + 1] = " "
+                        i += 2
+                        continue
+                    out[i] = " "
+                    if content[i] == "`":
+                        i += 1
+                        break
+                    i += 1
+            else:
+                while i < n:
+                    if content[i] == "\\":
+                        out[i] = " "
+                        if i + 1 < n:
+                            out[i + 1] = " "
+                        i += 2
+                        continue
+                    out[i] = " "
+                    if content[i] == quote:
+                        i += 1
+                        break
+                    i += 1
+            continue
+        if ch == "/":
+            j = i - 1
+            while j >= 0 and content[j].isspace():
+                j -= 1
+            prev = content[j] if j >= 0 else ""
+            if is_ident_char(prev):
+                k = j
+                while k >= 0 and is_ident_char(content[k]):
+                    k -= 1
+                is_regex = content[k + 1:j + 1] in REGEX_PRECEDING_KEYWORDS
+            else:
+                is_regex = prev != ")" and prev != "]" and prev != "}" and prev != ""
+            if is_regex:
+                out[i] = " "
+                i += 1
+                while i < n:
+                    if content[i] == "\\":
+                        out[i] = " "
+                        if i + 1 < n:
+                            out[i + 1] = " "
+                        i += 2
+                        continue
+                    out[i] = " "
+                    if content[i] == "/":
+                        i += 1
+                        break
+                    i += 1
+            else:
+                i += 1
+            continue
+        i += 1
+    return "".join(out)
 
 
 def test_all_loaded_scripts_use_iife_or_async_iife() -> None:
-    """All loaded page scripts must use IIFE pattern (no bare top-level code)."""
-    loaded_scripts = [
-        "admin-notifications.js",
-        "admin-notifications-sim.js",
-        "notifications-center.js",
-        "community-bundle.js",
-        "community-board.js",
-        "reputation-hub-vitals.js",
-        "reputation-recognition.js",
-        "beta-map.js",
-    ]
+    """All loaded page scripts must be a single IIFE (no bare top-level code).
+
+    The script inventory is derived from template ``<script>`` src attributes
+    (excluding the globally-loaded shared modules) so newly-added scripts are
+    covered automatically. Each file must be a complete IIFE invocation: it
+    starts with an IIFE wrapper, ends with an invocation ``)();``, and its
+    parentheses and braces balance — with no statements outside the wrapper.
+    """
+    loaded_scripts = sorted(
+        _template_script_srcs() - SHARED_GLOBAL_SCRIPTS
+    )
     for name in loaded_scripts:
-        content = _read_js(name).strip()
-        assert content.startswith("(function") or content.startswith("(async function") or content.startswith("(()"), \
-            f"{name} must start with IIFE or async IIFE, got: {content[:50]}"
+        content = _read_js(name)
+        stripped = content.strip()
+        skeleton = _js_skeleton(stripped)
+        assert stripped.startswith("("), \
+            f"{name} must start with an IIFE wrapper, got: {stripped[:50]}"
+        assert skeleton.rstrip().endswith(")();"), \
+            f"{name} must end with an IIFE invocation, got: {stripped[-30:]}"
+        assert skeleton.count("(") == skeleton.count(")"), \
+            f"{name} has unbalanced parentheses"
+        assert skeleton.count("{") == skeleton.count("}"), \
+            f"{name} has unbalanced braces"
