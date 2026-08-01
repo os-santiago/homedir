@@ -2191,6 +2191,9 @@ public interface AppMessages {
   @Message("Trending")
   String nav_trending();
 
+  @Message("Achievements")
+  String nav_achievements();
+
   @Message("Reputation Hub")
   String nav_reputation_hub();
 
@@ -6672,6 +6675,78 @@ public interface AppMessages {
 
   @Message("Trending Repositories")
   String trending_heading();
+
+  // GitHub Achievement Hub (issue #1043, Phase 1)
+  @Message("GitHub Achievements · Homedir")
+  String achievements_page_title();
+
+  @Message("GitHub Achievement Hub")
+  String achievements_heading();
+
+  @Message(
+      "Unlock GitHub achievements and highlights using the os-santiago open-source repositories.")
+  String achievements_subtitle();
+
+  @Message("Locked")
+  String achievements_status_locked();
+
+  @Message("In Progress")
+  String achievements_status_in_progress();
+
+  @Message("Completed")
+  String achievements_status_completed();
+
+  @Message("How to earn it")
+  String achievements_how_to_earn();
+
+  @Message("os-santiago repositories that help you earn them")
+  String achievements_org_repos_title();
+
+  @Message("Verify My Achievements")
+  String achievements_verify_button();
+
+  @Message("Link your GitHub account to verify and track your achievement progress.")
+  String achievements_link_github();
+
+  @Message("Mark as Completed")
+  String achievements_claim_button();
+
+  @Message("Self-claimed")
+  String achievements_self_claimed();
+
+  @Message("Verified via GitHub")
+  String achievements_verified();
+
+  @Message("GitHub Highlights")
+  String achievements_highlights_title();
+
+  @Message(
+      "GitHub Pro is a paid subscription that gives you access to private repositories, advanced insights, and more. It appears as a badge on your profile.")
+  String achievements_highlight_pro_desc();
+
+  @Message(
+      "The GitHub Developer Program is for developers who build integrations with the GitHub API. Join at developer.github.com to get the badge.")
+  String achievements_highlight_dev_program_desc();
+
+  @Message(
+      "Report security vulnerabilities to GitHub's bug bounty program. Accepted reports earn a special badge on your profile.")
+  String achievements_highlight_security_bounty_desc();
+
+  @Message(
+      "Answer questions in GitHub Discussions. When your answer is accepted by the question author, you earn the Galaxy Brain badge.")
+  String achievements_highlight_galaxy_brain_desc();
+
+  @Message("Community Leaderboard")
+  String achievements_leaderboard_title();
+
+  @Message("No achievements have been verified yet. Be the first!")
+  String achievements_leaderboard_empty();
+
+  @Message("User")
+  String achievements_leaderboard_user();
+
+  @Message("Achievements Completed")
+  String achievements_leaderboard_count();
 
   @Message("Daily")
   String trending_period_daily();

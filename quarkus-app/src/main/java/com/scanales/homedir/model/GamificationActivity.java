@@ -76,7 +76,60 @@ public enum GamificationActivity {
   VOLUNTEER_WITHDRAW(
       "volunteer_withdraw", 6, QuestClass.WARRIOR, true, false, "Volunteer application withdrawn"),
   SESSION_EVALUATION(
-      "session_evaluation", 12, QuestClass.WARRIOR, false, false, "Session evaluation");
+      "session_evaluation", 12, QuestClass.WARRIOR, false, false, "Session evaluation"),
+  ACHIEVEMENT_PULL_SHARK(
+      "achievement_pull_shark",
+      50,
+      QuestClass.ENGINEER,
+      false,
+      true,
+      "GitHub Achievement: Pull Shark"),
+  ACHIEVEMENT_PAIR_EXTRAORDINAIRE(
+      "achievement_pair_extraordinaire",
+      50,
+      QuestClass.ENGINEER,
+      false,
+      true,
+      "GitHub Achievement: Pair Extraordinaire"),
+  ACHIEVEMENT_YOLO(
+      "achievement_yolo", 30, QuestClass.WARRIOR, false, true, "GitHub Achievement: YOLO"),
+  ACHIEVEMENT_STARSTRUCK(
+      "achievement_starstruck",
+      60,
+      QuestClass.ENGINEER,
+      false,
+      true,
+      "GitHub Achievement: Starstruck"),
+  ACHIEVEMENT_QUICKDRAW(
+      "achievement_quickdraw", 20, QuestClass.MAGE, false, true, "GitHub Achievement: Quickdraw"),
+  ACHIEVEMENT_GALAXY_BRAIN(
+      "achievement_galaxy_brain",
+      50,
+      QuestClass.SCIENTIST,
+      false,
+      true,
+      "GitHub Achievement: Galaxy Brain"),
+  ACHIEVEMENT_PUBLIC_SPONSOR(
+      "achievement_public_sponsor",
+      40,
+      QuestClass.MAGE,
+      false,
+      true,
+      "GitHub Achievement: Public Sponsor"),
+  ACHIEVEMENT_HEART_ON_SLEEVE(
+      "achievement_heart_on_sleeve",
+      30,
+      QuestClass.MAGE,
+      false,
+      true,
+      "GitHub Achievement: Heart On Your Sleeve"),
+  ACHIEVEMENT_OPEN_SOURCERER(
+      "achievement_open_sourcerer",
+      80,
+      QuestClass.ENGINEER,
+      false,
+      true,
+      "GitHub Achievement: Open Sourcerer");
 
   private final String key;
   private final int xp;

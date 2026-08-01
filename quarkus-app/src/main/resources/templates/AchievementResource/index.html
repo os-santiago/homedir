@@ -1,0 +1,149 @@
+{#include layout/main activePage="achievements"}
+
+{#title}{i18n:achievements_page_title}{/title}
+
+{#head}
+<link rel="stylesheet" href="/css/achievements.css?v={app:version()}" />
+{/#head}
+
+{#body}
+<section class="hd-section">
+  <div class="hd-page">
+    <div class="hd-card achievements-card">
+      <h1 class="hd-page-title">{i18n:achievements_heading}</h1>
+      <p class="hd-section-subtitle">{i18n:achievements_subtitle}</p>
+
+      {#if userAuthenticated}
+      <div class="achievements-user-bar">
+        <span class="achievements-user-github">{githubLogin}</span>
+        <a href="/achievements/verify" class="btn btn--primary btn--sm">{i18n:achievements_verify_button}</a>
+      </div>
+      {#else}
+      <p class="achievements-link-github">{i18n:achievements_link_github}</p>
+      {/if}
+
+      <div class="achievements-progress-summary">
+        <div class="achievements-progress-bar">
+          <div class="achievements-progress-fill" style="width: {completedCount * 100 / totalCount}%"></div>
+        </div>
+        <span class="achievements-progress-text">{completedCount} / {totalCount}</span>
+      </div>
+
+      <div class="hd-grid achievements-grid">
+        {#for achievement in achievements}
+        <article class="hd-card achievements-item achievements-{achievement.status}"
+                 data-category="{achievement.category}">
+          <header class="achievements-item-header">
+            <h2 class="achievements-item-title">{achievement.title}</h2>
+            <span class="achievements-badge achievements-badge--{achievement.status}">
+              {#if achievement.status == 'completed'}{i18n:achievements_status_completed}
+              {#else if achievement.status == 'in_progress'}{i18n:achievements_status_in_progress}
+              {#else}{i18n:achievements_status_locked}{/if}
+            </span>
+          </header>
+          <p class="achievements-item-desc">{achievement.description}</p>
+
+          {#if achievement.status == 'in_progress'}
+          <div class="achievements-progress-mini">
+            <span>{achievement.progressCount} / {achievement.progressTarget}</span>
+          </div>
+          {/if}
+
+          {#if achievement.status == 'completed'}
+          <div class="achievements-verified-tag">
+            {#if achievement.verifiedVia == 'self_claimed'}{i18n:achievements_self_claimed}
+            {#else}{i18n:achievements_verified}{/if}
+          </div>
+          {/if}
+
+          <div class="achievements-guide">
+            <h3 class="achievements-guide-title">{i18n:achievements_how_to_earn}</h3>
+            <ol class="achievements-guide-steps">
+              {#for step in achievement.steps}
+              <li>{step}</li>
+              {/for}
+            </ol>
+          </div>
+
+          <ul class="achievements-repos">
+            {#for repo in achievement.repos}
+            <li>
+              <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+              <span class="achievements-repo-usage">{repo.usage}</span>
+            </li>
+            {/for}
+          </ul>
+
+          {#if userAuthenticated && achievement.status != 'completed'}
+          <a class="btn btn--sm btn--primary achievements-claim-btn"
+             href="/achievements/claim?achievement={achievement.key}">
+            {i18n:achievements_claim_button}
+          </a>
+          {/if}
+
+          <a class="achievements-doc-link" href="{achievement.docUrl}"
+             target="_blank" rel="noopener noreferrer">
+            {i18n:achievements_how_to_earn}
+          </a>
+        </article>
+        {/for}
+      </div>
+
+      <h2 class="achievements-org-title">{i18n:achievements_org_repos_title}</h2>
+      <ul class="achievements-org-list">
+        {#for repo in orgRepos}
+        <li>
+          <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+          <span class="achievements-repo-usage">{repo.usage}</span>
+        </li>
+        {/for}
+      </ul>
+
+      <h2 class="achievements-highlights-title">{i18n:achievements_highlights_title}</h2>
+      <div class="hd-grid achievements-highlights-grid">
+        <article class="hd-card achievements-highlight-item">
+          <h3>Pro</h3>
+          <p>{i18n:achievements_highlight_pro_desc}</p>
+        </article>
+        <article class="hd-card achievements-highlight-item">
+          <h3>Developer Program Member</h3>
+          <p>{i18n:achievements_highlight_dev_program_desc}</p>
+        </article>
+        <article class="hd-card achievements-highlight-item">
+          <h3>Security Bug Bounty Hunter</h3>
+          <p>{i18n:achievements_highlight_security_bounty_desc}</p>
+        </article>
+        <article class="hd-card achievements-highlight-item">
+          <h3>Galaxy Brain (Discussions)</h3>
+          <p>{i18n:achievements_highlight_galaxy_brain_desc}</p>
+        </article>
+      </div>
+
+      <h2 class="achievements-leaderboard-title">{i18n:achievements_leaderboard_title}</h2>
+      {#if leaderboard.empty}
+      <p class="achievements-leaderboard-empty">{i18n:achievements_leaderboard_empty}</p>
+      {#else}
+      <table class="achievements-leaderboard-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{i18n:achievements_leaderboard_user}</th>
+            <th>{i18n:achievements_leaderboard_count}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#for entry in leaderboard}
+          <tr>
+            <td>{count_index}</td>
+            <td>{entry.githubLogin ?: entry.userId}</td>
+            <td>{entry.completedCount}</td>
+          </tr>
+          {/for}
+        </tbody>
+      </table>
+      {/if}
+    </div>
+  </div>
+</section>
+{/body}
+{/include}
