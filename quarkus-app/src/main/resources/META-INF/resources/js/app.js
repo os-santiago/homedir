@@ -597,6 +597,7 @@ let domContentLoadedHandler;
 let resizeHandler;
 let scrollHandler;
 let beforeUnloadHandler;
+let pageShowHandler;
 let unloadHandler;
 
 function initListeners() {
@@ -612,6 +613,13 @@ function initListeners() {
 
         beforeUnloadHandler = () => showLoading(APP_I18N.loadingPage, false);
         window.addEventListener('beforeunload', beforeUnloadHandler);
+
+        pageShowHandler = (event) => {
+            if (event.persisted) {
+                hideLoading();
+            }
+        };
+        window.addEventListener('pageshow', pageShowHandler);
 
         unloadHandler = () => removeListeners();
         window.addEventListener('unload', unloadHandler);
@@ -634,6 +642,10 @@ function removeListeners() {
     if (beforeUnloadHandler) {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         beforeUnloadHandler = null;
+    }
+    if (pageShowHandler) {
+        window.removeEventListener('pageshow', pageShowHandler);
+        pageShowHandler = null;
     }
     if (unloadHandler) {
         window.removeEventListener('unload', unloadHandler);
