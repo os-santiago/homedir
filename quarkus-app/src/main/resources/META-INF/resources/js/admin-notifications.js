@@ -1,6 +1,9 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
+  if (!listEl) {
+    return;
+  }
   function esc(s) {
     if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
       return window.HomeDirUtils.escapeHtml(s);
