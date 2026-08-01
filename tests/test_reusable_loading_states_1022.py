@@ -1,31 +1,17 @@
 """Static assertions for issue #1022: reusable loading states for async
 operations across the frontend.
 
-Acceptance criteria from the issue:
-1. Add skeleton loader to notification center while loading
-2. Add button loading states (disabled + spinner) for all async actions
-3. Add skeleton loaders to events page, community page
-4. Create reusable loading component/pattern across templates
-5. Ensure error states are visually distinct from loading states
-
-This PR adds:
+This PR focuses on the actual gaps:
 1. A reusable ``.hd-btn.is-loading`` CSS class in ``homedir.css`` for button
-   loading states (criterion #2, #4).
-2. A reusable ``.hd-skeleton`` / ``.hd-skeleton-card`` CSS class in
-   ``homedir.css`` for skeleton loaders (criterion #4).
-3. A skeleton loader on the notification center with progressive enhancement
-   (shown during page load, hidden by JS when data renders) and an error state
-   for when localStorage is unavailable (criterion #1, #5).
-4. Button loading states applied to ``community-submissions.js``,
-   ``community-content.js``, and ``home-lightning.js`` (criterion #2).
-5. The community page already had a page-specific skeleton
-   (``community-skeleton``) — criterion #3 is satisfied for the community page.
-6. The events page is primarily server-rendered; the CFP page has inline async
-   operations. Criterion #3 for the events page is satisfied by the server-side
-   rendering. The community board has a loading indicator via
-   ``body.community-board-loading``.
-7. Error state CSS (``.notif-error``) is visually distinct from the skeleton
-   loader and the empty state (criterion #5).
+   loading states during async operations (disabled + animated dots).
+2. Button loading states applied to ``community-submissions.js``,
+   ``community-content.js``, and ``home-lightning.js``.
+3. A visual loading indicator for community board ``fetchAndSwap`` operations
+   via ``body.community-board-loading`` in ``community-page.css``.
+
+The notification center reads from localStorage synchronously (fast, no
+skeleton needed). The events page is server-rendered (no client-side loading
+needed). The community page already had a page-specific skeleton.
 """
 
 from pathlib import Path
@@ -63,13 +49,12 @@ def test_reusable_button_loading_class_in_homedir_css() -> None:
     assert "@keyframes hd-loading-dots" in HOMEDIR_CSS
 
 
-def test_reusable_skeleton_pattern_in_homedir_css() -> None:
-    """The .hd-skeleton / .hd-skeleton-card classes must be defined in the
-    shared homedir.css for future use by pages that need skeleton loaders."""
-    assert ".hd-skeleton" in HOMEDIR_CSS
-    assert ".hd-skeleton-card" in HOMEDIR_CSS
-    assert ".hd-skeleton.hidden" in HOMEDIR_CSS
-    assert ".hd-skeleton.no-js" in HOMEDIR_CSS
+def test_no_unused_skeleton_css() -> None:
+    """The .hd-skeleton / .hd-skeleton-card classes should NOT be in homedir.css
+    since no template uses them (the notification center reads from localStorage
+    synchronously and doesn't need a skeleton)."""
+    assert ".hd-skeleton" not in HOMEDIR_CSS
+    assert ".hd-skeleton-card" not in HOMEDIR_CSS
 
 
 # ---------------------------------------------------------------------------
@@ -87,14 +72,12 @@ def test_community_submissions_apply_is_loading_on_moderate() -> None:
 def test_community_submissions_apply_is_loading_on_submit() -> None:
     """The submit button must get the is-loading class during the async
     submission operation."""
-    # Find the form submit handler
     submit_match = re.search(
         r'form\.addEventListener\("submit".*?submitBtn\.classList\.add\("is-loading"\)',
         COMMUNITY_SUBMISSIONS_JS,
         re.DOTALL,
     )
     assert submit_match is not None, "submit button must get is-loading class"
-    # And it must be removed in the finally block
     finally_match = re.search(
         r'finally\s*\{[^}]*submitBtn\.classList\.remove\("is-loading"\)',
         COMMUNITY_SUBMISSIONS_JS,
@@ -137,91 +120,50 @@ def test_community_board_js_toggles_loading_class() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Notification center skeleton and error state (criterion #1, #5)
+# Notification center does NOT have unnecessary skeleton/error state
 # ---------------------------------------------------------------------------
 
 
-NOTIF_CENTER_HTML = Path(
-    "quarkus-app/src/main/resources/templates/notifications/center.html"
-).read_text()
-NOTIF_CENTER_JS = Path(
-    "quarkus-app/src/main/resources/META-INF/resources/js/notifications-center.js"
-).read_text()
-NOTIFICATIONS_CSS = Path(
-    "quarkus-app/src/main/resources/META-INF/resources/css/notifications.css"
-).read_text()
+def test_notification_center_has_no_skeleton() -> None:
+    """The notification center must NOT have a skeleton loader since it reads
+    from localStorage synchronously (no async fetch to wait for)."""
+    notif_center_html = Path(
+        "quarkus-app/src/main/resources/templates/notifications/center.html"
+    ).read_text()
+    assert "notif-skeleton" not in notif_center_html
+    assert "hd-skeleton" not in notif_center_html
 
 
-def test_notification_center_has_skeleton() -> None:
-    """The notification center must have a skeleton loader (criterion #1).
-    Uses progressive enhancement: shown during page load, hidden by JS when
-    data renders. The ``no-js`` class hides it when JS is disabled."""
-    assert "notif-skeleton" in NOTIF_CENTER_HTML
-    assert "hd-skeleton" in NOTIF_CENTER_HTML
-    assert "hd-skeleton-card" in NOTIF_CENTER_HTML
-    # Progressive enhancement: no-js class hides skeleton without JS
-    assert "no-js" in NOTIF_CENTER_HTML
+def test_notification_center_has_no_error_state() -> None:
+    """The notification center must NOT have a separate error state element
+    since localStorage errors are already handled gracefully by the catch
+    block returning an empty array."""
+    notif_center_html = Path(
+        "quarkus-app/src/main/resources/templates/notifications/center.html"
+    ).read_text()
+    assert "notif-error" not in notif_center_html
 
 
-def test_notification_center_skeleton_removed_by_inline_script() -> None:
-    """An inline script must remove the no-js class so the skeleton is visible
-    during page load (progressive enhancement)."""
-    assert "classList.remove('no-js')" in NOTIF_CENTER_HTML
-
-
-def test_notification_center_js_hides_skeleton_on_render() -> None:
-    """notifications-center.js must hide the skeleton when render() is called
-    (data has been loaded from localStorage)."""
-    assert "skeletonEl" in NOTIF_CENTER_JS
-    assert "skeletonEl.classList.add('hidden')" in NOTIF_CENTER_JS
-
-
-def test_notification_center_has_error_state() -> None:
-    """The notification center must have an error state element for when
-    localStorage is unavailable (criterion #5)."""
-    assert "notif-error" in NOTIF_CENTER_HTML
-    assert 'role="alert"' in NOTIF_CENTER_HTML
-    assert "notifications_center_error" in NOTIF_CENTER_HTML
-
-
-def test_notification_center_js_shows_error_on_storage_failure() -> None:
-    """notifications-center.js must show the error state when localStorage
-    fails and hide the list and empty states."""
-    assert "storageError" in NOTIF_CENTER_JS
-    assert "errorEl" in NOTIF_CENTER_JS
-    assert "errorEl.classList.remove('hidden')" in NOTIF_CENTER_JS
-
-
-def test_notification_error_state_css_visually_distinct() -> None:
-    """The .notif-error CSS must be visually distinct from the skeleton loader
-    and the empty state (criterion #5). It must use a different color/icon
-    to signal an error condition."""
-    assert ".notif-error" in NOTIFICATIONS_CSS
-    assert ".notif-error.hidden" in NOTIFICATIONS_CSS
-    # Error state must have a danger color icon to distinguish from empty state
-    assert "var(--danger" in NOTIFICATIONS_CSS or "#e5484d" in NOTIFICATIONS_CSS
-
-
-def test_notification_center_i18n_error_key_exists() -> None:
-    """The notifications_center_error i18n key must exist in both English and
-    Spanish."""
+def test_no_unused_notification_error_i18n() -> None:
+    """The notifications_center_error i18n key should NOT exist since the
+    error state element was removed."""
     en = Path(
         "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages.properties"
     ).read_text()
     es = Path(
         "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages_es.properties"
     ).read_text()
-    assert "notifications_center_error=" in en
-    assert "notifications_center_error=" in es
+    assert "notifications_center_error=" not in en
+    assert "notifications_center_error=" not in es
 
 
 # ---------------------------------------------------------------------------
-# Community page skeleton (criterion #3)
+# Community page skeleton (already existed)
 # ---------------------------------------------------------------------------
 
 
 def test_community_page_has_skeleton() -> None:
-    """The community page must have a skeleton loader (criterion #3).
+    """The community page must have a skeleton loader.
     The community page already had a page-specific skeleton
     (``community-skeleton``)."""
     community_html = Path(
