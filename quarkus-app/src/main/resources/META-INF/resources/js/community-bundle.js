@@ -68,6 +68,9 @@
     if (value == null) {
       return "";
     }
+    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
+      return window.HomeDirUtils.escapeHtml(value);
+    }
     return String(value).replace(/[&<>"']/g, (match) => {
       switch (match) {
         case "&":
