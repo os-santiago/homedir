@@ -6422,3 +6422,60 @@ footer {
     padding: 0.5rem;
   }
 }
+
+/* =========================================================
+   Reusable Loading Pattern (issue #1022)
+   - Skeleton cards for initial content load
+   - Button loading state (disabled + visual feedback)
+   - Designed for progressive enhancement: add the `no-js`
+     class in HTML so the skeleton is hidden without JS,
+     then JS removes it on load.
+   ========================================================= */
+
+.hd-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.hd-skeleton.hidden {
+  display: none;
+}
+
+/* Hide skeleton by default when JS is disabled */
+.hd-skeleton.no-js {
+  display: none;
+}
+
+.hd-skeleton-card {
+  min-height: 92px;
+  border: 3px solid rgba(var(--white-rgb), 0.7);
+  border-bottom: 6px solid rgba(var(--black-rgb), 0.7);
+  border-right: 5px solid rgba(var(--black-rgb), 0.6);
+  background: rgba(var(--black-rgb), 0.45);
+  box-shadow: 0 6px 0 rgba(var(--black-rgb), 0.6);
+  opacity: 0.6;
+  border-radius: 10px;
+}
+
+/* Button loading state: disables interaction and shows visual feedback */
+.hd-btn.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  position: relative;
+}
+
+.hd-btn.is-loading::after {
+  content: '...';
+  display: inline-block;
+  margin-left: 0.25rem;
+  animation: hd-loading-dots 1s steps(4, end) infinite;
+}
+
+@keyframes hd-loading-dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
