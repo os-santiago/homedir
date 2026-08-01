@@ -1,13 +1,15 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
-  function esc(s) {
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(s);
-    }
-    return String(s).replace(/[&<>"']/g, function(m) {
-      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
-    });
+  // Early-return when the admin notifications list is not on the page
+  // (consistent with notifications-center.js). This script is loaded with
+  // `defer`, so the DOM is fully parsed when it runs.
+  if (!listEl) {
+    return;
+  }
+  if (!window.HomeDirUtils) {
+    console.error('admin-notifications: HomeDirUtils not loaded');
+    return;
   }
   async function load(){
     const res = await fetch('/admin/api/notifications/latest?limit=50', { cache:'no-store' });
@@ -17,14 +19,14 @@
     items.forEach(n=>{
       const row = document.createElement('div');
       row.className = 'card row justify-between items-center';
-      const audienceInfo = n.audience ? ` — Audiencia: ${esc(n.audience)}` : ' — Global';
+      const audienceInfo = n.audience ? ` — Audiencia: ${window.HomeDirUtils.escapeHtml(n.audience)}` : ' — Global';
       row.innerHTML = `
         <div class="grow">
-          <div class="font-medium">${esc(n.title)}</div>
-          <div class="text-sm text-muted-foreground">${esc(n.message)}</div>
-          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${esc(n.type)}${n.eventId? ' — '+esc(n.eventId):''}${audienceInfo}</div>
+          <div class="font-medium">${window.HomeDirUtils.escapeHtml(n.title)}</div>
+          <div class="text-sm text-muted-foreground">${window.HomeDirUtils.escapeHtml(n.message)}</div>
+          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${window.HomeDirUtils.escapeHtml(n.type)}${n.eventId? ' — '+window.HomeDirUtils.escapeHtml(n.eventId):''}${audienceInfo}</div>
         </div>
-        <button class="btn-danger" data-id="${esc(n.id)}">Eliminar</button>`;
+        <button class="btn-danger" data-id="${window.HomeDirUtils.escapeHtml(n.id)}">Eliminar</button>`;
       listEl.appendChild(row);
     });
   }

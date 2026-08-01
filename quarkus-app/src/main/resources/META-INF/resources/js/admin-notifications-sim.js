@@ -1,18 +1,21 @@
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
   const eventId = document.getElementById('eventId');
   const pivot = document.getElementById('pivot');
   const states = document.getElementById('states');
   const resultsTable = document.getElementById('results');
-  const resultsBody = resultsTable.querySelector('tbody');
   const optin = document.getElementById('optin');
-  function esc(s) {
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(s);
-    }
-    return String(s).replace(/[&<>"']/g, function(m) {
-      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
-    });
+  // This script is loaded with `defer`, so the DOM is fully parsed when it
+  // runs; the previous DOMContentLoaded wrapper was redundant. Early-return
+  // when the simulator controls are not on the page (consistent with
+  // notifications-center.js).
+  if (!eventId || !pivot || !states || !resultsTable || !optin) {
+    return;
   }
+  if (!window.HomeDirUtils) {
+    console.error('admin-notifications-sim: HomeDirUtils not loaded');
+    return;
+  }
+  const resultsBody = resultsTable.querySelector('tbody');
 
   // initialise opt-in state
   optin.checked = localStorage.getItem('ef_notif_test_optin') === '1';
@@ -42,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsBody.textContent = '';
     data.forEach(row => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="border px-2 py-1">${esc(row.recipient)}</td><td class="border px-2 py-1">${esc(row.message)}</td>`;
+      tr.innerHTML = `<td class="border px-2 py-1">${window.HomeDirUtils.escapeHtml(row.recipient)}</td><td class="border px-2 py-1">${window.HomeDirUtils.escapeHtml(row.message)}</td>`;
       resultsBody.appendChild(tr);
     });
     resultsTable.classList.remove('hidden');
@@ -51,4 +54,4 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('preview').addEventListener('click', () => call('/admin/api/notifications/sim/dry-run'));
   document.getElementById('execute').addEventListener('click', () => call('/admin/api/notifications/sim/execute'));
   document.getElementById('replay').addEventListener('click', () => call('/admin/api/notifications/sim/execute?mode=sequential'));
-});
+})();
