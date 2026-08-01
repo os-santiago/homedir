@@ -37,6 +37,14 @@
     <loc>{publicUrl}/proyectos</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="{publicUrl}/projects" />
+  </url>
+
+  <url>
+    <loc>{publicUrl}/projects</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="{publicUrl}/proyectos" />
   </url>
 
   <url>

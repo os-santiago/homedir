@@ -406,7 +406,7 @@ public interface AppMessages {
   @Message("Events - HomeDir")
   String events_title();
 
-  @Message("Agenda · HomeDir")
+  @Message("Events · HomeDir")
   String events_subtitle();
 
   @Message("Events and talks")
@@ -1197,11 +1197,20 @@ public interface AppMessages {
   @Message("Live")
   String events_cfp_live_badge();
 
+  @Message("Closed")
+  String events_cfp_closed_badge();
+
   @Message("Call for Papers is officially open")
   String events_cfp_live_title();
 
+  @Message("Call for Papers has ended")
+  String events_cfp_closed_title();
+
   @Message("Submit your proposal and follow moderation updates from this page.")
   String events_cfp_live_desc();
+
+  @Message("The Call for Papers window has closed. Check back for results.")
+  String events_cfp_closed_desc();
 
   @Message("CFP official status notice")
   String events_cfp_live_aria();
@@ -6703,10 +6712,10 @@ public interface AppMessages {
   @Message("Show less")
   String trending_show_less();
 
-  @Message("Last updated {0}")
+  @Message("Last updated {timestamp}")
   String trending_last_updated(String timestamp);
 
-  @Message("{0} stars")
+  @Message("{count} stars")
   String trending_stars(int count);
 
   @Message("Unable to load trending repositories")

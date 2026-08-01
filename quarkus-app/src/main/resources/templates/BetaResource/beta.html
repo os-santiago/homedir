@@ -115,7 +115,7 @@
           {/if}
         </article>
 
-        <article data-zone-model="cityhall" data-label="{i18n:beta_zone_cityhall}" data-description="{i18n:beta_zone_cityhall_desc}" data-link="/proyectos">
+        <article data-zone-model="cityhall" data-label="{i18n:beta_zone_cityhall}" data-description="{i18n:beta_zone_cityhall_desc}" data-link="{#if resolvedLocaleCode == 'en'}/projects{#else}/proyectos{/if}">
           <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_release}" data-value="{world.releaseVersion}"></div>
           <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_github_users}" data-value="{world.boardSummary.githubUsers}"></div>
           <div data-item-kind="stat" data-title="{i18n:beta_cityhall_stat_discord_users}" data-value="{world.boardSummary.discordUsers}"></div>
