@@ -5,14 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsTable = document.getElementById('results');
   const resultsBody = resultsTable.querySelector('tbody');
   const optin = document.getElementById('optin');
-  function esc(s) {
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(s);
-    }
-    return String(s).replace(/[&<>"']/g, function(m) {
-      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
-    });
-  }
+  // Shared escaping lives in utils.js (window.HomeDirUtils), loaded first in
+  // the layout <head> before any deferred page script. No local fallback.
 
   // initialise opt-in state
   optin.checked = localStorage.getItem('ef_notif_test_optin') === '1';
@@ -42,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsBody.textContent = '';
     data.forEach(row => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="border px-2 py-1">${esc(row.recipient)}</td><td class="border px-2 py-1">${esc(row.message)}</td>`;
+      tr.innerHTML = `<td class="border px-2 py-1">${window.HomeDirUtils.escapeHtml(row.recipient)}</td><td class="border px-2 py-1">${window.HomeDirUtils.escapeHtml(row.message)}</td>`;
       resultsBody.appendChild(tr);
     });
     resultsTable.classList.remove('hidden');

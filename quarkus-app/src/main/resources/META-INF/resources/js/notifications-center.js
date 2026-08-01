@@ -132,13 +132,13 @@
         <div class="row items-start gap-3">
           <input type="checkbox" class="sel js-select" data-id="${n.id}" ${checked}>
           <div class="grow">
-            <div class="title">${escapeHtml(n.title || i18n.defaultTitle)}</div>
-            <div class="msg">${escapeHtml(n.message || '')}</div>
+            <div class="title">${window.HomeDirUtils.escapeHtml(n.title || i18n.defaultTitle)}</div>
+            <div class="msg">${window.HomeDirUtils.escapeHtml(n.message || '')}</div>
             <div class="meta text-xs">${fmt(n.createdAt)} ${chip}</div>
           </div>
           <div class="col shrink">
             <button class="btn-link js-read" data-id="${n.id}">${readLabel}</button>
-            <a class="btn-link js-open" data-id="${n.id}" href="${escapeAttr(url)}" rel="nofollow">${linkLabel}</a>
+            <a class="btn-link js-open" data-id="${n.id}" href="${window.HomeDirUtils.escapeHtml(url)}" rel="nofollow">${linkLabel}</a>
           </div>
         </div>`;
       listEl.appendChild(div);
@@ -163,31 +163,17 @@
     const sample = document.createElement('div');
     sample.className = 'notifications-sample';
     sample.innerHTML = `
-      <h3 class="notifications-sample-title">${escapeHtml(i18n.sampleTitle)}</h3>
+      <h3 class="notifications-sample-title">${window.HomeDirUtils.escapeHtml(i18n.sampleTitle)}</h3>
       <ul class="notifications-sample-list">
-        <li>${escapeHtml(i18n.sampleEvent)}</li>
-        <li>${escapeHtml(i18n.sampleCommunity)}</li>
-        <li>${escapeHtml(i18n.sampleProject)}</li>
+        <li>${window.HomeDirUtils.escapeHtml(i18n.sampleEvent)}</li>
+        <li>${window.HomeDirUtils.escapeHtml(i18n.sampleCommunity)}</li>
+        <li>${window.HomeDirUtils.escapeHtml(i18n.sampleProject)}</li>
       </ul>`;
     listEl.appendChild(sample);
   }
 
-  // Escapes básicos (shared util con fallback defensivo)
-  function escapeHtml(s) {
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(s);
-    }
-    return String(s).replace(/[&<>"']/g, m => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "\"": "&quot;",
-      "'": "&#039;"
-    }[m]));
-  }
-  function escapeAttr(s) {
-    return escapeHtml(s);
-  }
+  // Shared escaping lives in utils.js (window.HomeDirUtils), loaded first in
+  // the layout <head> before any deferred page script. No local fallback.
 
   function isValidUrl(str) {
     try {

@@ -1,14 +1,8 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
-  function esc(s) {
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(s);
-    }
-    return String(s).replace(/[&<>"']/g, function(m) {
-      return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
-    });
-  }
+  // Shared escaping lives in utils.js (window.HomeDirUtils), loaded first in
+  // the layout <head> before any deferred page script. No local fallback.
   async function load(){
     const res = await fetch('/admin/api/notifications/latest?limit=50', { cache:'no-store' });
     if(!res.ok) return;
@@ -17,14 +11,14 @@
     items.forEach(n=>{
       const row = document.createElement('div');
       row.className = 'card row justify-between items-center';
-      const audienceInfo = n.audience ? ` — Audiencia: ${esc(n.audience)}` : ' — Global';
+      const audienceInfo = n.audience ? ` — Audiencia: ${window.HomeDirUtils.escapeHtml(n.audience)}` : ' — Global';
       row.innerHTML = `
         <div class="grow">
-          <div class="font-medium">${esc(n.title)}</div>
-          <div class="text-sm text-muted-foreground">${esc(n.message)}</div>
-          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${esc(n.type)}${n.eventId? ' — '+esc(n.eventId):''}${audienceInfo}</div>
+          <div class="font-medium">${window.HomeDirUtils.escapeHtml(n.title)}</div>
+          <div class="text-sm text-muted-foreground">${window.HomeDirUtils.escapeHtml(n.message)}</div>
+          <div class="text-xs">${new Date(n.createdAt).toLocaleString()} — ${window.HomeDirUtils.escapeHtml(n.type)}${n.eventId? ' — '+window.HomeDirUtils.escapeHtml(n.eventId):''}${audienceInfo}</div>
         </div>
-        <button class="btn-danger" data-id="${esc(n.id)}">Eliminar</button>`;
+        <button class="btn-danger" data-id="${window.HomeDirUtils.escapeHtml(n.id)}">Eliminar</button>`;
       listEl.appendChild(row);
     });
   }
