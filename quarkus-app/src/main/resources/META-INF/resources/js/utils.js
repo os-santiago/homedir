@@ -14,5 +14,38 @@
   function escapeAttr(s) {
     return escapeHtml(s);
   }
-  window.HomeDirUtils = { escapeHtml, escapeAttr };
+  function formatDate(raw) {
+    if (!raw) {
+      return '';
+    }
+    try {
+      var d = new Date(raw);
+      if (isNaN(d.getTime())) {
+        return '';
+      }
+      var locale = document.documentElement.lang || navigator.language || undefined;
+      return d.toLocaleDateString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return '';
+    }
+  }
+  function formatDateTime(raw) {
+    if (!raw) {
+      return '';
+    }
+    try {
+      var d = new Date(raw);
+      if (isNaN(d.getTime())) {
+        return '';
+      }
+      return d.toLocaleString();
+    } catch (e) {
+      return '';
+    }
+  }
+  window.HomeDirUtils = { escapeHtml, escapeAttr, formatDate, formatDateTime };
 })();
