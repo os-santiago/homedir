@@ -1,48 +1,38 @@
 {#include layout/main}
 
-{#title}Contacto · Homedir{/title}
+{#title}{i18n:contacto_title} · Homedir{/title}
 
 {#body}
 
 <section class="hd-section hd-section-page-header">
   <div class="hd-page">
-    <h1 class="hd-page-title">Contacto</h1>
+    <h1 class="hd-page-title">{i18n:contacto_title}</h1>
     <p class="hd-page-intro">
-      @-- TODO --
-      Si quieres usar Homedir en tu comunidad o evento, conversemos.
+      {i18n:contacto_intro}
     </p>
   </div>
 </section>
 
 <section class="hd-section hd-section-page-content">
   <div class="hd-page">
-    <form class="hd-form hd-contact-form" method="post">
-            {#include fragments/csrf-token.html /}
-      @-- TODO: conectar este formulario a un mecanismo real (correo / backend) en otra iteración --
-      <div class="hd-form-field">
-        <label for="name" class="hd-form-label">Nombre</label>
-        <input id="name" type="text" class="hd-form-input" placeholder="Tu nombre" />
+    <div class="hd-contact-channels">
+      <div class="hd-contact-channel">
+        <span class="material-symbols-outlined hd-contact-icon" aria-hidden="true">forum</span>
+        <h2 class="hd-contact-title">{i18n:contacto_discord_title}</h2>
+        <p class="hd-contact-desc">{i18n:contacto_discord_desc}</p>
+        <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener" class="hd-btn hd-btn-primary">
+          {i18n:contacto_discord_btn}
+        </a>
       </div>
-      <div class="hd-form-field">
-        <label for="email" class="hd-form-label">Correo electrónico</label>
-        <input id="email" type="email" class="hd-form-input" placeholder="tu@correo.com" />
+      <div class="hd-contact-channel">
+        <span class="material-symbols-outlined hd-contact-icon" aria-hidden="true">code</span>
+        <h2 class="hd-contact-title">{i18n:contacto_github_title}</h2>
+        <p class="hd-contact-desc">{i18n:contacto_github_desc}</p>
+        <a href="https://github.com/os-santiago/homedir/issues" target="_blank" rel="noopener" class="hd-btn hd-btn-secondary">
+          {i18n:contacto_github_btn}
+        </a>
       </div>
-      <div class="hd-form-field">
-        <label for="message" class="hd-form-label">Mensaje</label>
-        <textarea id="message" class="hd-form-input" rows="4"
-          placeholder="Cuéntanos sobre tu evento o comunidad"></textarea>
-      </div>
-      <div class="hd-form-actions">
-        <button type="submit" class="hd-btn hd-btn-primary" disabled>
-          Enviar mensaje
-        </button>
-      </div>
-      <p class="hd-form-hint">
-        @-- aclaración --
-        Este formulario es solo de demostración por ahora. En una próxima iteración se conectará con un canal real de
-        contacto.
-      </p>
-    </form>
+    </div>
   </div>
 </section>
 {/body}
