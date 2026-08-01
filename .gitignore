@@ -62,6 +62,11 @@ dist/
 build/
 node_modules/
 
+# Playwright E2E artifacts
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/blob-report/
+
 # Eclipse m2e generated files
 # Eclipse Core
 .project

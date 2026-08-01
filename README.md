@@ -136,3 +136,4 @@ Thanks to all our contributors!
 
 ---
 *Homedir: Where code finds its home.*<!-- Test comment -->
+<!-- Last AI-SDLC local test: 2026-08-01 -->
