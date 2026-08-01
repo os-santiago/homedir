@@ -2191,6 +2191,9 @@ public interface AppMessages {
   @Message("Trending")
   String nav_trending();
 
+  @Message("Achievements")
+  String nav_achievements();
+
   @Message("Reputation Hub")
   String nav_reputation_hub();
 
@@ -6672,6 +6675,41 @@ public interface AppMessages {
 
   @Message("Trending Repositories")
   String trending_heading();
+
+  // GitHub Achievement Hub (issue #1043)
+  @Message("GitHub Achievements · Homedir")
+  String achievements_page_title();
+
+  @Message("GitHub Achievement Hub")
+  String achievements_heading();
+
+  @Message(
+      "Unlock GitHub achievements and highlights using the os-santiago open-source repositories.")
+  String achievements_subtitle();
+
+  @Message("Verify My Achievements")
+  String achievements_verify_button();
+
+  @Message("Link your GitHub account to verify and track your achievements.")
+  String achievements_link_github();
+
+  @Message("Locked")
+  String achievements_status_locked();
+
+  @Message("In Progress")
+  String achievements_status_in_progress();
+
+  @Message("Completed")
+  String achievements_status_completed();
+
+  @Message("How to earn it")
+  String achievements_how_to_earn();
+
+  @Message("os-santiago repositories that help you earn them")
+  String achievements_org_repos_title();
+
+  @Message("Achievement Leaderboard")
+  String achievements_leaderboard_title();
 
   @Message("Daily")
   String trending_period_daily();

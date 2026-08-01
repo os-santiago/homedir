@@ -1,0 +1,113 @@
+{@java.lang.String resolvedLocaleCode}
+{#include layout/main activePage="achievements"}
+
+{#title}{i18n:achievements_page_title}{/title}
+
+{#head}
+<link rel="stylesheet" href="/css/achievements.css?v={app:version()}" />
+{/head}
+
+{#body}
+<section class="hd-section">
+  <div class="hd-page">
+    <div class="hd-card achievements-card">
+      <h1 class="hd-page-title">{i18n:achievements_heading}</h1>
+      <p class="hd-section-subtitle">{i18n:achievements_subtitle}</p>
+
+      {#if userAuthenticated && githubLinked}
+      <div class="achievements-verify-bar">
+        <span class="achievements-github-login">
+          <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+          {githubLogin}
+        </span>
+        <button id="verifyAchievements" class="hd-btn hd-btn-primary" data-verify-url="/achievements/api/verify">
+          {i18n:achievements_verify_button}
+        </button>
+      </div>
+      {#else if userAuthenticated && !githubLinked}
+      <div class="hd-alert hd-alert-info achievements-link-prompt">
+        <span class="material-symbols-outlined" aria-hidden="true">link</span>
+        {i18n:achievements_link_github}
+      </div>
+      {/if}
+
+      <div class="hd-grid achievements-grid">
+        {#for guide in guides}
+        <article class="hd-card achievements-item" data-category="{guide.achievement.category}">
+          <header class="achievements-item-header">
+            <h2 class="achievements-item-title">{guide.achievement.title}</h2>
+            {#if progressMap.containsKey(guide.achievement.key)}
+              {#let p = progressMap.get(guide.achievement.key)}
+              <span class="achievements-badge achievements-badge--{p.status.name().toLowerCase()}">
+                {#if p.status == 'COMPLETED'}{i18n:achievements_status_completed}
+                {#else if p.status == 'IN_PROGRESS'}{i18n:achievements_status_in_progress}
+                {#else}{i18n:achievements_status_locked}{/if}
+              </span>
+              {/let}
+            {#else}
+            <span class="achievements-badge achievements-badge--locked">{i18n:achievements_status_locked}</span>
+            {/if}
+          </header>
+          <p class="achievements-item-desc">
+            {#if resolvedLocaleCode == 'en'}{guide.achievement.description}{#else}{guide.achievement.descriptionEs}{/if}
+          </p>
+
+          {#if progressMap.containsKey(guide.achievement.key)}
+            {#let p = progressMap.get(guide.achievement.key)}
+            {#if p.status != 'LOCKED'}
+            <div class="achievements-progress">
+              <div class="achievements-progress-bar">
+                <div class="achievements-progress-fill" style="width: {p.percent}%;"></div>
+              </div>
+              <span class="achievements-progress-text">{p.current} / {p.threshold}</span>
+            </div>
+            {/if}
+            {/let}
+          {/if}
+
+          <ul class="achievements-repos">
+            {#for repo in guide.repos}
+            <li>
+              <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+              <span class="achievements-repo-usage">{repo.usage}</span>
+            </li>
+            {/for}
+          </ul>
+          <a class="achievements-doc-link" href="{guide.achievement.docUrl}" target="_blank" rel="noopener noreferrer">
+            {i18n:achievements_how_to_earn}
+          </a>
+        </article>
+        {/for}
+      </div>
+
+      <h2 class="achievements-org-title">{i18n:achievements_org_repos_title}</h2>
+      <ul class="achievements-org-list">
+        {#for repo in orgRepos}
+        <li>
+          <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+          <span class="achievements-repo-usage">{repo.usage}</span>
+        </li>
+        {/for}
+      </ul>
+
+      {#if !leaderboard.isEmpty()}
+      <h2 class="achievements-leaderboard-title">{i18n:achievements_leaderboard_title}</h2>
+      <ol class="achievements-leaderboard">
+        {#for entry in leaderboard}
+        <li class="achievements-leaderboard-row">
+          <span class="achievements-leaderboard-rank">#{entry.rank}</span>
+          {#if entry.avatarUrl}
+          <img src="{entry.avatarUrl}" alt="" class="avatar-circle achievements-leaderboard-avatar">
+          {/if}
+          <span class="achievements-leaderboard-name">{entry.displayName}</span>
+          <span class="achievements-leaderboard-count">{entry.completedCount}</span>
+        </li>
+        {/for}
+      </ol>
+      {/if}
+    </div>
+  </div>
+</section>
+<script src="/js/achievements.js?v={app:version()}" defer></script>
+{/body}
+{/include}
