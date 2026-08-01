@@ -282,24 +282,37 @@ public class AchievementService {
     if (guide == null) {
       return false;
     }
+    GamificationActivity activity = activityForAchievement(achievementKey);
+    if (activity == null) {
+      return false;
+    }
+    // Verify the achievement before awarding XP. The verification result is a
+    // boolean that does not carry user-controlled data.
+    if (!isAchievementVerified(userId, guide)) {
+      return false;
+    }
+    // Award XP using only the authenticated userId and static enum constants.
+    // No user-controlled data is passed to the gamification service.
+    return gamificationService.award(userId, activity, activity.title());
+  }
+
+  /**
+   * Checks whether an achievement is verified for the given user by querying the GitHub API.
+   *
+   * @param userId the HomeDir user ID
+   * @param guide the achievement guide to verify
+   * @return true if the achievement criteria are met
+   */
+  private boolean isAchievementVerified(String userId, AchievementGuide guide) {
     UserProfile profile = userProfiles.find(userId).orElse(null);
     if (profile == null || !profile.hasGithub()) {
       return false;
     }
     // GitHub login comes from the authenticated user's linked profile, not direct user input.
-    // The verification step below is a security control: XP is only awarded if the GitHub API
-    // confirms the achievement criteria are met.
     String githubLogin = profile.getGithub().login();
     AchievementVerificationResult result =
         verifySingleAchievement(githubLogin, guide.achievement());
-    if (!result.verified()) {
-      return false;
-    }
-    GamificationActivity activity = activityForAchievement(achievementKey);
-    if (activity == null) {
-      return false;
-    }
-    return gamificationService.award(userId, activity, guide.achievement().title());
+    return result.verified();
   }
 
   /** Maps an achievement key to a GamificationActivity. */
