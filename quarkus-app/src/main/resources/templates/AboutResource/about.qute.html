@@ -13,6 +13,7 @@
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_runtime_version_label}:</strong> <span>{version}</span>
                 </div>
+                {#if isAdmin}
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_commit_hash_label}:</strong> <code>{commitId}</code>
                 </div>
@@ -22,6 +23,7 @@
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_environment_label}:</strong> <span class="badge">{environment}</span>
                 </div>
+                {/if}
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_version_source_label}:</strong> <span>{i18n:about_version_source_value}</span>
                 </div>

@@ -1,9 +1,12 @@
 package com.scanales.homedir.public_;
 
+import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -17,6 +20,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @PermitAll
 public class AboutResource {
 
+  @Inject SecurityIdentity identity;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance about(
@@ -25,12 +30,15 @@ public class AboutResource {
         String buildTime,
         String environment,
         boolean oidcConfigured,
-        boolean githubConfigured);
+        boolean githubConfigured,
+        boolean isAdmin);
   }
 
   @GET
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance get(@jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+    boolean isAdmin = AdminUtils.isAdmin(identity);
+
     String version =
         ConfigProvider.getConfig()
             .getOptionalValue("quarkus.application.version", String.class)
@@ -45,10 +53,14 @@ public class AboutResource {
       // Ignore
     }
 
-    String commitId = gitProps.getProperty("git.commit.id.abbrev", "dev");
-    String buildTime = gitProps.getProperty("git.build.time", "now");
+    String commitId = isAdmin ? gitProps.getProperty("git.commit.id.abbrev", "dev") : "";
+    String buildTime = isAdmin ? gitProps.getProperty("git.build.time", "now") : "";
     String environment =
-        ConfigProvider.getConfig().getOptionalValue("quarkus.profile", String.class).orElse("dev");
+        isAdmin
+            ? ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.profile", String.class)
+                .orElse("dev")
+            : "";
 
     String oidcClientId =
         ConfigProvider.getConfig()
@@ -63,7 +75,7 @@ public class AboutResource {
 
     return TemplateLocaleUtil.apply(
         Templates.about(
-            version, commitId, buildTime, environment, oidcConfigured, githubConfigured),
+            version, commitId, buildTime, environment, oidcConfigured, githubConfigured, isAdmin),
         localeCookie);
   }
 }

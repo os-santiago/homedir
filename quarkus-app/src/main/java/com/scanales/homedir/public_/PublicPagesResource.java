@@ -273,7 +273,7 @@ public class PublicPagesResource {
   @GET
   @Path("/community/feed")
   public Response communityFeed() {
-    return Response.seeOther(URI.create("/comunidad/feed")).build();
+    return Response.seeOther(URI.create("/comunidad/propose")).build();
   }
 
   @GET
