@@ -6632,6 +6632,21 @@ public interface AppMessages {
   @Message("Community and system signals combine to surface useful contributions.")
   String reputation_hub_how_quality_desc();
 
+  @Message("Showing up in events, threads and picks builds the participation signal that the hub tracks weekly and monthly.")
+  String reputation_hub_strength_participation_desc();
+
+  @Message("Code, content, talks and proposals are weighted by impact, not by raw count of actions.")
+  String reputation_hub_strength_contribution_desc();
+
+  @Message("Endorsements from other members and system-verified milestones feed into the recognition score.")
+  String reputation_hub_strength_recognition_desc();
+
+  @Message("Sustained activity across weeks matters more than a single burst of contributions.")
+  String reputation_hub_strength_consistency_desc();
+
+  @Message("Top strengths explained")
+  String reputation_hub_how_strengths_title();
+
   @Message("Skip to content")
   String skip_to_content();
 
