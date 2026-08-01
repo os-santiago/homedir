@@ -6422,3 +6422,39 @@ footer {
     padding: 0.5rem;
   }
 }
+
+/* =========================================================
+   Reusable Button Loading Pattern (issue #1022)
+   button.is-loading: loading state for any button during async
+   operations. Sets pointer-events: none so the button cannot be
+   clicked again mid-request, and shows a CSS spinner via ::after.
+   ========================================================= */
+
+button.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  position: relative;
+}
+
+button.is-loading::after {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: 0.25rem;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: hd-btn-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes hd-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::after {
+    animation: none;
+  }
+}
