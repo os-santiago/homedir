@@ -20,6 +20,7 @@ TEMPLATE_DIR = Path("quarkus-app/src/main/resources/templates")
 
 
 def _read_js(name: str) -> str:
+    """Read a JavaScript source file from the JS resource directory."""
     return (JS_DIR / name).read_text()
 
 
