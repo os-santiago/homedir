@@ -141,10 +141,10 @@ public class AchievementService {
   }
 
   /**
-   * Verifies a single achievement, populating the per-user cache on a cache miss. This is the
-   * safe entry point for request-triggered verification (verify/claim endpoints, XP awarding):
-   * repeated calls within the TTL window are served from {@code verificationCache} and never hit
-   * the GitHub API, so a shared token cannot be exhausted by unbounded live calls.
+   * Verifies a single achievement, populating the per-user cache on a cache miss. This is the safe
+   * entry point for request-triggered verification (verify/claim endpoints, XP awarding): repeated
+   * calls within the TTL window are served from {@code verificationCache} and never hit the GitHub
+   * API, so a shared token cannot be exhausted by unbounded live calls.
    */
   public AchievementVerificationResult verifySingleAchievementCached(
       String login, Achievement achievement) {
@@ -158,10 +158,10 @@ public class AchievementService {
    * Verifies a single achievement by querying the GitHub API. Uses the GitHub Search API to count
    * merged PRs, closed issues, etc.
    *
-   * <p>Results are served from the per-user {@code verificationCache} when a fresh snapshot
-   * exists, so repeated single-achievement verification (e.g. from the verify/claim endpoints)
-   * does not trigger live GitHub API calls for every request. When no cached snapshot is present
-   * the underlying live verification is computed and stored for the current TTL window.
+   * <p>Results are served from the per-user {@code verificationCache} when a fresh snapshot exists,
+   * so repeated single-achievement verification (e.g. from the verify/claim endpoints) does not
+   * trigger live GitHub API calls for every request. When no cached snapshot is present the
+   * underlying live verification is computed and stored for the current TTL window.
    */
   public AchievementVerificationResult verifySingleAchievement(
       String login, Achievement achievement) {
@@ -177,8 +177,7 @@ public class AchievementService {
               status.unlocked()
                   ? "Achievement unlocked!"
                   : "Progress: " + status.progress() + "/" + status.threshold();
-          return new AchievementVerificationResult(
-              status.unlocked(), status.progress(), message);
+          return new AchievementVerificationResult(status.unlocked(), status.progress(), message);
         }
       }
     }
