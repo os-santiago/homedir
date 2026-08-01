@@ -1,6 +1,12 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
+  // Early-return when the admin notifications list is not on the page
+  // (consistent with notifications-center.js). This script is loaded with
+  // `defer`, so the DOM is fully parsed when it runs.
+  if (!listEl) {
+    return;
+  }
   function esc(s) {
     if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
       return window.HomeDirUtils.escapeHtml(s);
