@@ -11,7 +11,12 @@
     btn.disabled = true;
     var originalText = btn.textContent;
     btn.textContent = '...';
-    fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+    fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      cache: 'no-store'
+    })
       .then(function (res) {
         if (!res.ok) {
           throw new Error('HTTP ' + res.status);

@@ -27,6 +27,48 @@ def test_achievement_resource_exists():
     assert "/api/verify" in resource
 
 
+def test_verify_endpoint_uses_post_not_get():
+    """The /api/verify endpoint awards XP (state-changing) and must use POST,
+    not GET, to prevent CSRF attacks via <img> tags or crafted links."""
+    resource = (JAVA / "public_/AchievementResource.java").read_text()
+    # Find the verify method and assert it uses @POST
+    assert "@POST" in resource
+    verify_section = resource[resource.index("/api/verify"):]
+    assert "@POST" in resource[:resource.index("/api/verify") + 200]
+    # The verify endpoint must NOT use @GET
+    verify_method_start = resource.index("@POST")
+    verify_method_end = resource.index("}", resource.index("public Response verify()"))
+    verify_method = resource[verify_method_start:verify_method_end + 1]
+    assert "@GET" not in verify_method, (
+        "The /api/verify endpoint must not use @GET — it awards XP and is "
+        "vulnerable to CSRF via GET. Use @POST instead."
+    )
+
+
+def test_verify_endpoint_no_exception_leak():
+    """The verify endpoint's error response must not leak internal exception
+    messages to clients. Log statements may use e.getMessage() but the
+    client-facing JSON response must use a generic message."""
+    resource = (JAVA / "public_/AchievementResource.java").read_text()
+    # Extract only the verify method body (between public Response verify and the next method)
+    verify_start = resource.index("public Response verify()")
+    verify_end = resource.index("}", resource.index("return Response.serverError()", verify_start)) + 1
+    verify_body = resource[verify_start:verify_end]
+    assert "e.getMessage()" not in verify_body, (
+        "Exception messages must not be included in client-facing error "
+        "responses — they can leak internal implementation details."
+    )
+    assert "Please try again later" in verify_body
+
+
+def test_leaderboard_gated_behind_authentication():
+    """The leaderboard must not be built for anonymous users to avoid exposing
+    all community members' GitHub identities on a @PermitAll page."""
+    resource = (JAVA / "public_/AchievementResource.java").read_text()
+    assert "authenticated ? buildLeaderboard()" in resource
+    assert "List.of()" in resource
+
+
 def test_achievement_service_does_real_verification():
     """AchievementService must call the GitHub API (not just return static data)."""
     service = (JAVA / "achievements/AchievementService.java").read_text()
@@ -169,11 +211,13 @@ def test_achievements_css_exists():
 
 
 def test_achievements_js_exists():
-    """The achievements JS must wire up the verify button."""
+    """The achievements JS must wire up the verify button with a POST request."""
     js = (RESOURCES / "META-INF/resources/js/achievements.js").read_text()
     assert "verifyAchievements" in js
     assert "data-verify-url" in js
     assert "fetch" in js
+    assert "method: 'POST'" in js or 'method: "POST"' in js
+    assert "credentials: 'same-origin'" in js
 
 
 # ---------------------------------------------------------------------------
