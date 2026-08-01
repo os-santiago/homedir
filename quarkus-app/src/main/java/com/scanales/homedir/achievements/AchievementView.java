@@ -3,14 +3,14 @@ package com.scanales.homedir.achievements;
 import com.scanales.homedir.achievements.AchievementCatalog.Achievement;
 import com.scanales.homedir.achievements.AchievementCatalog.AchievementGuide;
 import com.scanales.homedir.achievements.AchievementCatalog.OrgRepo;
-import com.scanales.homedir.achievements.AchievementProgress.AchievementState;
 import java.util.List;
 
 /**
  * View model for a single achievement card in the Achievement Hub template.
  *
- * <p>Pre-computes the display data (status, progress, localized description and steps) so the Qute
- * template stays simple.
+ * <p>Pre-computes the display data (localized description, steps, threshold) so the Qute template
+ * stays simple. Phase 1 is read-only: all achievements display as "locked" since there is no
+ * per-user progress tracking or API verification yet.
  */
 public record AchievementView(
     String key,
@@ -18,21 +18,13 @@ public record AchievementView(
     String description,
     String category,
     String docUrl,
-    String status,
-    int progressCount,
-    int progressTarget,
-    String verifiedVia,
+    int threshold,
     List<String> steps,
     List<OrgRepo> repos) {
 
-  /** Builds a view model from a guide and the user's progress state (may be null). */
-  public static AchievementView from(
-      AchievementGuide guide, AchievementState state, String locale) {
+  /** Builds a read-only view model from a guide. Locale selects EN or ES descriptions/steps. */
+  public static AchievementView from(AchievementGuide guide, String locale) {
     Achievement a = guide.achievement();
-    String status = state != null ? state.status() : "locked";
-    int count = state != null ? state.progressCount() : 0;
-    int target = a.threshold();
-    String via = state != null ? state.verifiedVia() : null;
     boolean isEn = "en".equals(locale);
     String desc = isEn ? a.description() : a.descriptionEs();
     List<String> steps = isEn ? a.steps() : a.stepsEs();
@@ -42,10 +34,7 @@ public record AchievementView(
         desc,
         a.category(),
         a.docUrl(),
-        status,
-        count,
-        target,
-        via,
+        a.threshold(),
         steps,
         guide.repos());
   }

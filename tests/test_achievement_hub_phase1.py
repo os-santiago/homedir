@@ -1,30 +1,16 @@
-"""Static assertions for issue #1043: GitHub Achievement Hub.
+"""Static assertions for issue #1043: GitHub Achievement Hub (Phase 1).
 
-The Achievement Hub is an interactive section that guides community members to
-unlock GitHub achievements using the os-santiago open-source repositories.
-
-Full scope (issue #1043):
-1. Achievement Hub page at /achievements with progress tracking
-2. Interactive step-by-step guides per achievement
-3. GitHub API integration for verification (Pull Shark, Pair Extraordinaire, etc.)
-4. Gamification integration (XP awards when achievements are completed)
-5. Highlights section (Pro, Developer Program, Security Bounty, Galaxy Brain)
-6. Community leaderboard (who has the most completed achievements)
-7. Progress states: locked / in-progress / completed
-8. Self-claim mechanism for achievements without a public API
+Phase 1 is a read-only catalog page at /achievements that displays the 9 GitHub
+achievements with bilingual step-by-step guides, the os-santiago repositories
+that help earn each one, and a highlights section. Per-user progress tracking,
+GitHub API verification, XP awards, and the community leaderboard are deferred
+to Phase 2+.
 """
 
 from pathlib import Path
-import re
 
 CATALOG_JAVA = Path(
     "quarkus-app/src/main/java/com/scanales/homedir/achievements/AchievementCatalog.java"
-).read_text()
-SERVICE_JAVA = Path(
-    "quarkus-app/src/main/java/com/scanales/homedir/achievements/AchievementService.java"
-).read_text()
-PROGRESS_JAVA = Path(
-    "quarkus-app/src/main/java/com/scanales/homedir/achievements/AchievementProgress.java"
 ).read_text()
 VIEW_JAVA = Path(
     "quarkus-app/src/main/java/com/scanales/homedir/achievements/AchievementView.java"
@@ -46,12 +32,6 @@ APP_MESSAGES = Path(
 ).read_text()
 CSS = Path(
     "quarkus-app/src/main/resources/META-INF/resources/css/achievements.css"
-).read_text()
-GAMIFICATION_ACTIVITY = Path(
-    "quarkus-app/src/main/java/com/scanales/homedir/model/GamificationActivity.java"
-).read_text()
-GAMIFICATION_SERVICE = Path(
-    "quarkus-app/src/main/java/com/scanales/homedir/service/GamificationService.java"
 ).read_text()
 
 
@@ -104,140 +84,69 @@ def test_catalog_find_method_exists() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 2. AchievementService with GitHub API verification (criterion #3)
+# 2. AchievementView is read-only (Phase 1 scope)
 # ---------------------------------------------------------------------------
 
 
-def test_achievement_service_exists() -> None:
-    """AchievementService must exist and be ApplicationScoped."""
-    assert "@ApplicationScoped" in SERVICE_JAVA
-    assert "class AchievementService" in SERVICE_JAVA
+def test_achievement_view_is_read_only() -> None:
+    """AchievementView must not reference AchievementState or progress tracking."""
+    assert "AchievementState" not in VIEW_JAVA
+    assert "status" not in VIEW_JAVA
+    assert "progressCount" not in VIEW_JAVA
+    assert "verifiedVia" not in VIEW_JAVA
 
 
-def test_achievement_service_verifies_via_github_api() -> None:
-    """The service must use the GitHub API to verify achievements (criterion #3)."""
-    assert "api.github.com" in SERVICE_JAVA
-    assert "countMergedPRs" in SERVICE_JAVA
-    assert "countCoAuthoredCommits" in SERVICE_JAVA
-    assert "checkQuickdraw" in SERVICE_JAVA
-
-
-def test_achievement_service_persists_progress() -> None:
-    """The service must persist achievement progress to a JSON file."""
-    assert "achievement-progress.json" in SERVICE_JAVA
-    assert "saveProgress" in SERVICE_JAVA
-    assert "loadProgress" in SERVICE_JAVA
-
-
-def test_achievement_service_has_verify_endpoint_support() -> None:
-    """The service must have a verifyAchievements method."""
-    assert "verifyAchievements" in SERVICE_JAVA
-
-
-def test_achievement_service_has_self_claim() -> None:
-    """The service must support self-claiming achievements without a public API."""
-    assert "selfClaim" in SERVICE_JAVA
-
-
-def test_achievement_service_has_leaderboard() -> None:
-    """The service must provide a leaderboard (criterion #6)."""
-    assert "getLeaderboard" in SERVICE_JAVA
-    assert "LeaderboardEntry" in SERVICE_JAVA
+def test_achievement_view_has_locale_aware_from() -> None:
+    """AchievementView.from must accept a guide and locale for bilingual display."""
+    assert "from(AchievementGuide guide, String locale)" in VIEW_JAVA
 
 
 # ---------------------------------------------------------------------------
-# 3. AchievementProgress model (criterion #7)
-# ---------------------------------------------------------------------------
-
-
-def test_achievement_progress_model_exists() -> None:
-    """AchievementProgress must exist with states map."""
-    assert "class AchievementProgress" in PROGRESS_JAVA
-    assert "AchievementState" in PROGRESS_JAVA
-
-
-def test_achievement_progress_has_three_states() -> None:
-    """AchievementState must support locked, in_progress, and completed states."""
-    assert "locked" in PROGRESS_JAVA
-    assert "in_progress" in PROGRESS_JAVA
-    assert "completed" in PROGRESS_JAVA
-    assert "isCompleted" in PROGRESS_JAVA
-
-
-# ---------------------------------------------------------------------------
-# 4. Gamification integration (criterion #4)
-# ---------------------------------------------------------------------------
-
-
-def test_gamification_has_achievement_activities() -> None:
-    """GamificationActivity must include entries for all 9 achievements."""
-    for key in [
-        "ACHIEVEMENT_PULL_SHARK",
-        "ACHIEVEMENT_PAIR_EXTRAORDINAIRE",
-        "ACHIEVEMENT_YOLO",
-        "ACHIEVEMENT_STARSTRUCK",
-        "ACHIEVEMENT_QUICKDRAW",
-        "ACHIEVEMENT_GALAXY_BRAIN",
-        "ACHIEVEMENT_PUBLIC_SPONSOR",
-        "ACHIEVEMENT_HEART_ON_SLEEVE",
-        "ACHIEVEMENT_OPEN_SOURCERER",
-    ]:
-        assert key in GAMIFICATION_ACTIVITY, f"GamificationActivity {key} missing"
-
-
-def test_achievement_service_awards_xp() -> None:
-    """The service must award XP via GamificationService when achievements are completed."""
-    assert "gamificationService" in SERVICE_JAVA
-    assert "gamificationService.award" in SERVICE_JAVA
-
-
-def test_gamification_service_has_achievement_routes() -> None:
-    """GamificationService must have route mappings for achievement activities."""
-    assert "ACHIEVEMENT_PULL_SHARK" in GAMIFICATION_SERVICE
-    assert "ACHIEVEMENT_OPEN_SOURCERER" in GAMIFICATION_SERVICE
-
-
-# ---------------------------------------------------------------------------
-# 5. AchievementResource with verify and claim endpoints (criterion #1, #3, #8)
+# 3. AchievementResource is read-only (Phase 1 scope — no verify/claim)
 # ---------------------------------------------------------------------------
 
 
 def test_resource_has_index_page() -> None:
     """The resource must serve the index page at /achievements."""
-    assert "@Path(\"/achievements\")" in RESOURCE_JAVA
+    assert '@Path("/achievements")' in RESOURCE_JAVA
     assert "index" in RESOURCE_JAVA
 
 
-def test_resource_has_verify_endpoint() -> None:
-    """The resource must have a /verify endpoint for GitHub API verification."""
-    assert "/verify" in RESOURCE_JAVA
-    assert "verify" in RESOURCE_JAVA
+def test_resource_has_no_verify_endpoint() -> None:
+    """Phase 1 must NOT include a /verify endpoint (deferred to Phase 2)."""
+    assert "/verify" not in RESOURCE_JAVA
+    assert "verifyAchievements" not in RESOURCE_JAVA
 
 
-def test_resource_has_claim_endpoint() -> None:
-    """The resource must have a /claim endpoint for self-claiming achievements."""
-    assert "/claim" in RESOURCE_JAVA
-    assert "claim" in RESOURCE_JAVA
+def test_resource_has_no_claim_endpoint() -> None:
+    """Phase 1 must NOT include a /claim endpoint (deferred to Phase 2)."""
+    assert "/claim" not in RESOURCE_JAVA
+    assert "selfClaim" not in RESOURCE_JAVA
 
 
-def test_resource_passes_progress_and_leaderboard() -> None:
-    """The resource must pass progress, leaderboard, and auth state to the template."""
-    assert "leaderboard" in RESOURCE_JAVA
-    assert "completedCount" in RESOURCE_JAVA
-    assert "userAuthenticated" in RESOURCE_JAVA
+def test_resource_has_no_leaderboard() -> None:
+    """Phase 1 must NOT include leaderboard data (deferred to Phase 2)."""
+    assert "getLeaderboard" not in RESOURCE_JAVA
+    assert "LeaderboardEntry" not in RESOURCE_JAVA
+
+
+def test_resource_has_no_progress_tracking() -> None:
+    """Phase 1 must NOT reference AchievementProgress or AchievementService."""
+    assert "AchievementProgress" not in RESOURCE_JAVA
+    assert "AchievementService" not in RESOURCE_JAVA
+    assert "completedCount" not in RESOURCE_JAVA
+    assert "userAuthenticated" not in RESOURCE_JAVA
 
 
 # ---------------------------------------------------------------------------
-# 6. Template renders all sections (criterion #1, #2, #5, #6)
+# 4. Template renders catalog, guides, org repos, and highlights only
 # ---------------------------------------------------------------------------
 
 
-def test_template_has_progress_states() -> None:
-    """The template must render achievement status (locked/in_progress/completed)."""
-    assert "achievements-{achievement.status}" in TEMPLATE
-    assert "achievements_status_completed" in TEMPLATE
-    assert "achievements_status_in_progress" in TEMPLATE
-    assert "achievements_status_locked" in TEMPLATE
+def test_template_has_correct_head_section() -> None:
+    """The template must use {/head} (not the broken {/#head})."""
+    assert "{/#head}" not in TEMPLATE
+    assert "{/head}" in TEMPLATE
 
 
 def test_template_has_interactive_guides() -> None:
@@ -247,23 +156,35 @@ def test_template_has_interactive_guides() -> None:
     assert "achievement.steps" in TEMPLATE
 
 
-def test_template_has_progress_bar() -> None:
-    """The template must show a progress bar summary."""
-    assert "achievements-progress-summary" in TEMPLATE
-    assert "achievements-progress-bar" in TEMPLATE
-    assert "completedCount" in TEMPLATE
+def test_template_has_locked_badge() -> None:
+    """The template must show a 'locked' badge for each achievement (Phase 1)."""
+    assert "achievements-badge--locked" in TEMPLATE
+    assert "achievements_status_locked" in TEMPLATE
 
 
-def test_template_has_verify_button() -> None:
-    """The template must have a verify button for authenticated users."""
-    assert "/achievements/verify" in TEMPLATE
-    assert "achievements_verify_button" in TEMPLATE
+def test_template_has_no_progress_bar() -> None:
+    """Phase 1 must NOT show a progress bar (no per-user progress)."""
+    assert "achievements-progress-summary" not in TEMPLATE
+    assert "completedCount" not in TEMPLATE
 
 
-def test_template_has_claim_button() -> None:
-    """The template must have a claim button for self-claiming achievements."""
-    assert "/achievements/claim" in TEMPLATE
-    assert "achievements_claim_button" in TEMPLATE
+def test_template_has_no_verify_button() -> None:
+    """Phase 1 must NOT have a verify button (deferred to Phase 2)."""
+    assert "/achievements/verify" not in TEMPLATE
+    assert "achievements_verify_button" not in TEMPLATE
+
+
+def test_template_has_no_claim_button() -> None:
+    """Phase 1 must NOT have a claim button (deferred to Phase 2)."""
+    assert "/achievements/claim" not in TEMPLATE
+    assert "achievements_claim_button" not in TEMPLATE
+
+
+def test_template_has_no_leaderboard() -> None:
+    """Phase 1 must NOT render a leaderboard (deferred to Phase 2)."""
+    assert "achievements-leaderboard" not in TEMPLATE
+    assert "achievements_leaderboard_title" not in TEMPLATE
+    assert "leaderboard" not in TEMPLATE
 
 
 def test_template_has_highlights_section() -> None:
@@ -275,46 +196,42 @@ def test_template_has_highlights_section() -> None:
     assert "achievements_highlight_galaxy_brain_desc" in TEMPLATE
 
 
-def test_template_has_leaderboard() -> None:
-    """The template must render a leaderboard table (criterion #6)."""
-    assert "achievements-leaderboard" in TEMPLATE
-    assert "achievements_leaderboard_title" in TEMPLATE
-    assert "leaderboard" in TEMPLATE
-
-
 def test_template_has_org_repos() -> None:
     """The template must list os-santiago org repos."""
     assert "achievements-org" in TEMPLATE
     assert "orgRepos" in TEMPLATE
 
 
+def test_template_external_links_are_safe() -> None:
+    """External links must use rel=noopener noreferrer."""
+    assert 'rel="noopener noreferrer"' in TEMPLATE
+
+
 # ---------------------------------------------------------------------------
-# 7. CSS for all UI elements
+# 5. CSS for Phase 1 UI elements only
 # ---------------------------------------------------------------------------
 
 
-def test_css_has_progress_state_styles() -> None:
-    """CSS must style locked, in_progress, and completed badges differently."""
+def test_css_has_locked_badge_style() -> None:
+    """CSS must style the locked badge."""
     assert ".achievements-badge--locked" in CSS
-    assert ".achievements-badge--in_progress" in CSS
-    assert ".achievements-badge--completed" in CSS
 
 
-def test_css_has_progress_bar() -> None:
-    """CSS must style the progress bar."""
-    assert ".achievements-progress-bar" in CSS
-    assert ".achievements-progress-fill" in CSS
+def test_css_has_no_progress_bar() -> None:
+    """Phase 1 CSS must NOT include progress bar styles."""
+    assert ".achievements-progress-bar" not in CSS
+    assert ".achievements-progress-fill" not in CSS
+
+
+def test_css_has_no_leaderboard_styles() -> None:
+    """Phase 1 CSS must NOT include leaderboard styles."""
+    assert ".achievements-leaderboard-table" not in CSS
 
 
 def test_css_has_guide_styles() -> None:
     """CSS must style the interactive guides."""
     assert ".achievements-guide" in CSS
     assert ".achievements-guide-steps" in CSS
-
-
-def test_css_has_leaderboard_styles() -> None:
-    """CSS must style the leaderboard table."""
-    assert ".achievements-leaderboard-table" in CSS
 
 
 def test_css_has_highlights_styles() -> None:
@@ -324,73 +241,112 @@ def test_css_has_highlights_styles() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 8. i18n keys in all languages
+# 6. i18n keys in all languages (Phase 1 only)
 # ---------------------------------------------------------------------------
 
 
-def test_i18n_has_all_achievement_keys_english() -> None:
-    """All achievement i18n keys must exist in English."""
+def test_i18n_has_phase1_keys_english() -> None:
+    """All Phase 1 achievement i18n keys must exist in English."""
     required = [
         "achievements_page_title",
         "achievements_heading",
         "achievements_subtitle",
         "achievements_status_locked",
-        "achievements_status_in_progress",
-        "achievements_status_completed",
         "achievements_how_to_earn",
         "achievements_org_repos_title",
-        "achievements_verify_button",
-        "achievements_link_github",
-        "achievements_claim_button",
-        "achievements_self_claimed",
-        "achievements_verified",
         "achievements_highlights_title",
         "achievements_highlight_pro_desc",
         "achievements_highlight_dev_program_desc",
         "achievements_highlight_security_bounty_desc",
         "achievements_highlight_galaxy_brain_desc",
-        "achievements_leaderboard_title",
-        "achievements_leaderboard_empty",
-        "achievements_leaderboard_user",
-        "achievements_leaderboard_count",
     ]
     for key in required:
         assert f"{key}=" in I18N, f"i18n.properties missing key: {key}"
         assert f"{key}=" in I18N_EN, f"i18n_en.properties missing key: {key}"
 
 
-def test_i18n_has_all_achievement_keys_spanish() -> None:
-    """All achievement i18n keys must exist in Spanish."""
+def test_i18n_has_phase1_keys_spanish() -> None:
+    """All Phase 1 achievement i18n keys must exist in Spanish."""
     required = [
         "achievements_page_title",
         "achievements_heading",
-        "achievements_status_in_progress",
-        "achievements_status_completed",
-        "achievements_verify_button",
-        "achievements_claim_button",
+        "achievements_subtitle",
+        "achievements_status_locked",
+        "achievements_how_to_earn",
+        "achievements_org_repos_title",
         "achievements_highlights_title",
-        "achievements_leaderboard_title",
+        "achievements_highlight_pro_desc",
+        "achievements_highlight_dev_program_desc",
+        "achievements_highlight_security_bounty_desc",
+        "achievements_highlight_galaxy_brain_desc",
     ]
     for key in required:
         assert f"{key}=" in I18N_ES, f"i18n_es.properties missing key: {key}"
 
 
-def test_app_messages_has_achievement_methods() -> None:
-    """AppMessages.java must have methods for all achievement i18n keys."""
-    required = [
+def test_i18n_does_not_have_phase2_keys() -> None:
+    """Phase 2 keys (verify, claim, leaderboard, progress) must NOT be present."""
+    phase2_keys = [
         "achievements_status_in_progress",
         "achievements_status_completed",
         "achievements_verify_button",
+        "achievements_link_github",
         "achievements_claim_button",
-        "achievements_highlights_title",
+        "achievements_self_claimed",
+        "achievements_verified",
         "achievements_leaderboard_title",
+        "achievements_leaderboard_empty",
+        "achievements_leaderboard_user",
+        "achievements_leaderboard_count",
+    ]
+    for key in phase2_keys:
+        assert f"{key}=" not in I18N, f"Phase 2 key '{key}' should not be in i18n.properties"
+        assert f"{key}=" not in I18N_EN, f"Phase 2 key '{key}' should not be in i18n_en.properties"
+        assert f"{key}=" not in I18N_ES, f"Phase 2 key '{key}' should not be in i18n_es.properties"
+
+
+def test_app_messages_has_phase1_methods() -> None:
+    """AppMessages.java must have methods for Phase 1 achievement i18n keys."""
+    required = [
+        "achievements_page_title",
+        "achievements_heading",
+        "achievements_subtitle",
+        "achievements_status_locked",
+        "achievements_how_to_earn",
+        "achievements_org_repos_title",
+        "achievements_highlights_title",
+        "achievements_highlight_pro_desc",
+        "achievements_highlight_dev_program_desc",
+        "achievements_highlight_security_bounty_desc",
+        "achievements_highlight_galaxy_brain_desc",
     ]
     for key in required:
         assert f"String {key}()" in APP_MESSAGES, f"AppMessages.java missing method: {key}"
 
 
+def test_app_messages_does_not_have_phase2_methods() -> None:
+    """AppMessages.java must NOT have Phase 2 methods."""
+    phase2_methods = [
+        "achievements_status_in_progress",
+        "achievements_status_completed",
+        "achievements_verify_button",
+        "achievements_link_github",
+        "achievements_claim_button",
+        "achievements_self_claimed",
+        "achievements_verified",
+        "achievements_leaderboard_title",
+        "achievements_leaderboard_empty",
+        "achievements_leaderboard_user",
+        "achievements_leaderboard_count",
+    ]
+    for key in phase2_methods:
+        assert f"String {key}()" not in APP_MESSAGES, (
+            f"Phase 2 method '{key}' should not be in AppMessages.java"
+        )
+
+
 # ---------------------------------------------------------------------------
-# 9. Header navigation link
+# 7. Header navigation link
 # ---------------------------------------------------------------------------
 
 

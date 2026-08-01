@@ -6690,32 +6690,11 @@ public interface AppMessages {
   @Message("Locked")
   String achievements_status_locked();
 
-  @Message("In Progress")
-  String achievements_status_in_progress();
-
-  @Message("Completed")
-  String achievements_status_completed();
-
   @Message("How to earn it")
   String achievements_how_to_earn();
 
   @Message("os-santiago repositories that help you earn them")
   String achievements_org_repos_title();
-
-  @Message("Verify My Achievements")
-  String achievements_verify_button();
-
-  @Message("Link your GitHub account to verify and track your achievement progress.")
-  String achievements_link_github();
-
-  @Message("Mark as Completed")
-  String achievements_claim_button();
-
-  @Message("Self-claimed")
-  String achievements_self_claimed();
-
-  @Message("Verified via GitHub")
-  String achievements_verified();
 
   @Message("GitHub Highlights")
   String achievements_highlights_title();
@@ -6735,18 +6714,6 @@ public interface AppMessages {
   @Message(
       "Answer questions in GitHub Discussions. When your answer is accepted by the question author, you earn the Galaxy Brain badge.")
   String achievements_highlight_galaxy_brain_desc();
-
-  @Message("Community Leaderboard")
-  String achievements_leaderboard_title();
-
-  @Message("No achievements have been verified yet. Be the first!")
-  String achievements_leaderboard_empty();
-
-  @Message("User")
-  String achievements_leaderboard_user();
-
-  @Message("Achievements Completed")
-  String achievements_leaderboard_count();
 
   @Message("Daily")
   String trending_period_daily();

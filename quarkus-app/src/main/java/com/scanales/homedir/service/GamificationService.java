@@ -226,15 +226,6 @@ public class GamificationService {
       case VOLUNTEER_LOUNGE_POST -> "volunteer-lounge";
       case VOLUNTEER_WITHDRAW -> "volunteer-withdraw";
       case SESSION_EVALUATION -> "session-evaluation";
-      case ACHIEVEMENT_PULL_SHARK -> "achievement-pull-shark";
-      case ACHIEVEMENT_PAIR_EXTRAORDINAIRE -> "achievement-pair-extraordinaire";
-      case ACHIEVEMENT_YOLO -> "achievement-yolo";
-      case ACHIEVEMENT_STARSTRUCK -> "achievement-starstruck";
-      case ACHIEVEMENT_QUICKDRAW -> "achievement-quickdraw";
-      case ACHIEVEMENT_GALAXY_BRAIN -> "achievement-galaxy-brain";
-      case ACHIEVEMENT_PUBLIC_SPONSOR -> "achievement-public-sponsor";
-      case ACHIEVEMENT_HEART_ON_SLEEVE -> "achievement-heart-on-sleeve";
-      case ACHIEVEMENT_OPEN_SOURCERER -> "achievement-open-sourcerer";
       default -> activity.key();
     };
   }

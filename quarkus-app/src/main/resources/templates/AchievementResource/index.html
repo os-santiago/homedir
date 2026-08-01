@@ -4,7 +4,7 @@
 
 {#head}
 <link rel="stylesheet" href="/css/achievements.css?v={app:version()}" />
-{/#head}
+{/head}
 
 {#body}
 <section class="hd-section">
@@ -13,48 +13,17 @@
       <h1 class="hd-page-title">{i18n:achievements_heading}</h1>
       <p class="hd-section-subtitle">{i18n:achievements_subtitle}</p>
 
-      {#if userAuthenticated}
-      <div class="achievements-user-bar">
-        <span class="achievements-user-github">{githubLogin}</span>
-        <a href="/achievements/verify" class="btn btn--primary btn--sm">{i18n:achievements_verify_button}</a>
-      </div>
-      {#else}
-      <p class="achievements-link-github">{i18n:achievements_link_github}</p>
-      {/if}
-
-      <div class="achievements-progress-summary">
-        <div class="achievements-progress-bar">
-          <div class="achievements-progress-fill" style="width: {completedCount * 100 / totalCount}%"></div>
-        </div>
-        <span class="achievements-progress-text">{completedCount} / {totalCount}</span>
-      </div>
-
       <div class="hd-grid achievements-grid">
         {#for achievement in achievements}
-        <article class="hd-card achievements-item achievements-{achievement.status}"
+        <article class="hd-card achievements-item"
                  data-category="{achievement.category}">
           <header class="achievements-item-header">
             <h2 class="achievements-item-title">{achievement.title}</h2>
-            <span class="achievements-badge achievements-badge--{achievement.status}">
-              {#if achievement.status == 'completed'}{i18n:achievements_status_completed}
-              {#else if achievement.status == 'in_progress'}{i18n:achievements_status_in_progress}
-              {#else}{i18n:achievements_status_locked}{/if}
+            <span class="achievements-badge achievements-badge--locked">
+              {i18n:achievements_status_locked}
             </span>
           </header>
           <p class="achievements-item-desc">{achievement.description}</p>
-
-          {#if achievement.status == 'in_progress'}
-          <div class="achievements-progress-mini">
-            <span>{achievement.progressCount} / {achievement.progressTarget}</span>
-          </div>
-          {/if}
-
-          {#if achievement.status == 'completed'}
-          <div class="achievements-verified-tag">
-            {#if achievement.verifiedVia == 'self_claimed'}{i18n:achievements_self_claimed}
-            {#else}{i18n:achievements_verified}{/if}
-          </div>
-          {/if}
 
           <div class="achievements-guide">
             <h3 class="achievements-guide-title">{i18n:achievements_how_to_earn}</h3>
@@ -73,13 +42,6 @@
             </li>
             {/for}
           </ul>
-
-          {#if userAuthenticated && achievement.status != 'completed'}
-          <a class="btn btn--sm btn--primary achievements-claim-btn"
-             href="/achievements/claim?achievement={achievement.key}">
-            {i18n:achievements_claim_button}
-          </a>
-          {/if}
 
           <a class="achievements-doc-link" href="{achievement.docUrl}"
              target="_blank" rel="noopener noreferrer">
@@ -118,30 +80,6 @@
           <p>{i18n:achievements_highlight_galaxy_brain_desc}</p>
         </article>
       </div>
-
-      <h2 class="achievements-leaderboard-title">{i18n:achievements_leaderboard_title}</h2>
-      {#if leaderboard.empty}
-      <p class="achievements-leaderboard-empty">{i18n:achievements_leaderboard_empty}</p>
-      {#else}
-      <table class="achievements-leaderboard-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>{i18n:achievements_leaderboard_user}</th>
-            <th>{i18n:achievements_leaderboard_count}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#for entry in leaderboard}
-          <tr>
-            <td>{count_index}</td>
-            <td>{entry.githubLogin ?: entry.userId}</td>
-            <td>{entry.completedCount}</td>
-          </tr>
-          {/for}
-        </tbody>
-      </table>
-      {/if}
     </div>
   </div>
 </section>
