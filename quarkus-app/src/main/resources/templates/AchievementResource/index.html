@@ -1,0 +1,206 @@
+{@java.lang.String resolvedLocaleCode}
+{#include layout/main activePage="achievements"}
+
+{#title}{i18n:achievements_page_title}{/title}
+
+{#head}
+<link rel="stylesheet" href="/css/achievements.css?v={app:version()}" />
+{/head}
+
+{#body}
+<section class="hd-section achievements-section">
+  <div class="hd-page">
+    <div class="hd-card achievements-card">
+      <h1 class="hd-page-title">{i18n:achievements_heading}</h1>
+      <p class="achievements-subtitle">{i18n:achievements_subtitle}</p>
+
+      {#if userAuthenticated && githubLinked && userSnapshot}
+      <div class="achievements-progress-overview">
+        <div class="achievement-progress-bar">
+          <div class="achievement-progress-fill"
+               style="--progress: {(userSnapshot.unlockedCount * 100) / userSnapshot.totalCount}%;"></div>
+        </div>
+        <p class="achievement-progress-text">
+          {userSnapshot.unlockedCount} / {userSnapshot.totalCount} {i18n:achievements_unlocked}
+          · {userSnapshot.totalXpEarned} XP
+        </p>
+      </div>
+      {/if}
+
+      {#if userAuthenticated && !githubLinked}
+      <div class="hd-alert hd-alert-info achievements-link-prompt">
+        <span class="material-symbols-outlined">link</span>
+        <p>{i18n:achievements_link_github}</p>
+        <a href="/private/github/start?redirect=/achievements" class="btn btn--primary">
+          {i18n:btn_link_github}
+        </a>
+      </div>
+      {/if}
+
+      <div class="achievements-grid">
+        {#for guide in guides}
+        <article class="achievement-card {#if userSnapshot}
+            {#for status in userSnapshot.statuses}
+              {#if status.key == guide.achievement.key}
+                {#if status.unlocked}achievement-unlocked{#else}achievement-locked{/if}
+              {/if}
+            {/for}
+          {#else}achievement-locked{/if}">
+
+          <div class="achievement-card-header">
+            <h2 class="achievement-title">{guide.achievement.title}</h2>
+            {#if userSnapshot}
+              {#for status in userSnapshot.statuses}
+                {#if status.key == guide.achievement.key}
+                  <span class="achievement-status {#if status.unlocked}status-unlocked{#else}status-locked{/if}">
+                    {#if status.unlocked}
+                      <span class="material-symbols-outlined">check_circle</span>
+                      {i18n:achievements_status_unlocked}
+                    {#else}
+                      <span class="material-symbols-outlined">lock</span>
+                      {i18n:achievements_status_locked}
+                    {/if}
+                  </span>
+                {/if}
+              {/for}
+            {#else}
+              <span class="achievement-status status-locked">
+                <span class="material-symbols-outlined">lock</span>
+                {i18n:achievements_status_locked}
+              </span>
+            {/if}
+          </div>
+
+          <p class="achievement-description">
+            {#if resolvedLocaleCode == 'es' && guide.achievement.descriptionEs}
+              {guide.achievement.descriptionEs}
+            {#else}
+              {guide.achievement.description}
+            {/if}
+          </p>
+
+          {#if userSnapshot}
+            {#for status in userSnapshot.statuses}
+              {#if status.key == guide.achievement.key && !status.unlocked}
+                <div class="achievement-progress">
+                  <span>{i18n:achievements_progress}: {status.progress} / {status.threshold}</span>
+                </div>
+              {/if}
+            {/for}
+          {/if}
+
+          <div class="achievement-xp">
+            <span class="material-symbols-outlined">bolt</span>
+            {guide.achievement.xpReward} XP
+          </div>
+
+          <details class="achievement-guide">
+            <summary>{i18n:achievements_how_to_earn}</summary>
+            <ol class="achievement-steps">
+              {#if resolvedLocaleCode == 'es' && guide.achievement.stepsEs}
+                {#for step in guide.achievement.stepsEs}
+                  <li>{step}</li>
+                {/for}
+              {#else}
+                {#for step in guide.achievement.steps}
+                  <li>{step}</li>
+                {/for}
+              {/if}
+            </ol>
+            <a href="{guide.achievement.docUrl}" target="_blank" rel="noopener noreferrer"
+               class="achievement-doc-link">
+              {i18n:achievements_read_docs}
+              <span class="material-symbols-outlined">open_in_new</span>
+            </a>
+          </details>
+
+          {#if userAuthenticated && githubLinked}
+            {#for status in userSnapshot.statuses}
+              {#if status.key == guide.achievement.key && status.unlocked}
+                <button class="btn btn--primary achievement-claim-btn"
+                        data-achievement-key="{guide.achievement.key}"
+                        data-claimed="false">
+                  {i18n:achievements_claim_xp}
+                </button>
+              {/if}
+            {/for}
+          {/if}
+        </article>
+        {/for}
+      </div>
+
+      <div class="achievements-org-repos">
+        <h2 class="achievements-section-title">{i18n:achievements_org_repos_title}</h2>
+        <div class="org-repos-grid">
+          {#for repo in orgRepos}
+          <a href="{repo.url}" target="_blank" rel="noopener noreferrer"
+             class="org-repo-card">
+            <span class="material-symbols-outlined">folder</span>
+            <span class="org-repo-name">{repo.name}</span>
+            <span class="org-repo-usage">{repo.usage}</span>
+          </a>
+          {/for}
+        </div>
+      </div>
+
+      <div class="achievements-highlights">
+        <h2 class="achievements-section-title">{i18n:achievements_highlights_title}</h2>
+        <div class="highlights-grid">
+          {#for highlight in highlights}
+          <article class="highlight-card">
+            <h3 class="highlight-title">{highlight.title}</h3>
+            <p class="highlight-description">{highlight.description}</p>
+            <a href="{highlight.docUrl}" target="_blank" rel="noopener noreferrer"
+               class="highlight-doc-link">
+              {i18n:achievements_read_docs}
+              <span class="material-symbols-outlined">open_in_new</span>
+            </a>
+          </article>
+          {/for}
+        </div>
+      </div>
+
+      <div class="achievements-leaderboard">
+        <h2 class="achievements-section-title">{i18n:achievements_leaderboard_title}</h2>
+        {#if leaderboard.entries.isEmpty()}
+          <p class="achievements-leaderboard-empty">{i18n:achievements_leaderboard_empty}</p>
+        {#else}
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{i18n:achievements_leaderboard_member}</th>
+                <th>{i18n:achievements_leaderboard_achievements}</th>
+                <th>XP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#for entry in leaderboard.entries}
+              <tr>
+                <td class="leaderboard-rank">{entry.rank}</td>
+                <td class="leaderboard-member">
+                  {#if entry.avatarUrl}
+                    <img src="{entry.avatarUrl}" alt="{entry.githubLogin}" class="leaderboard-avatar">
+                  {/if}
+                  <span class="leaderboard-name">{entry.displayName}</span>
+                  {#if entry.githubLogin}
+                    <span class="leaderboard-handle">@{entry.githubLogin}</span>
+                  {/if}
+                </td>
+                <td class="leaderboard-count">{entry.unlockedCount}</td>
+                <td class="leaderboard-xp">{entry.totalXp}</td>
+              </tr>
+              {/for}
+            </tbody>
+          </table>
+          {#if leaderboard.totalParticipants > leaderboard.entries.size()}
+            <p class="leaderboard-total">{i18n:achievements_leaderboard_total(leaderboard.entries.size(), leaderboard.totalParticipants)}</p>
+          {/if}
+        {/if}
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/js/achievements.js?v={app:version()}" defer></script>
+{/body}
+{/include}

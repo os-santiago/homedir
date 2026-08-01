@@ -7022,4 +7022,62 @@ public interface AppMessages {
 
   @Message("Agenda cleared and will be re-seeded")
   String admin_cleanup_agenda_cleared();
+
+  // --- GitHub Achievement Hub (#1043) ---
+  @Message("Achievements")
+  String nav_achievements();
+
+  @Message("GitHub Achievement Hub · Homedir")
+  String achievements_page_title();
+
+  @Message("GitHub Achievement Hub")
+  String achievements_heading();
+
+  @Message("Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
+  String achievements_subtitle();
+
+  @Message("Unlocked")
+  String achievements_unlocked();
+
+  @Message("Unlock GitHub achievements with the os-santiago community. Follow guides, verify your progress, and earn XP.")
+  String achievements_link_github();
+
+  @Message("Unlocked")
+  String achievements_status_unlocked();
+
+  @Message("Locked")
+  String achievements_status_locked();
+
+  @Message("Progress")
+  String achievements_progress();
+
+  @Message("How to earn")
+  String achievements_how_to_earn();
+
+  @Message("Read docs")
+  String achievements_read_docs();
+
+  @Message("Claim XP")
+  String achievements_claim_xp();
+
+  @Message("os-santiago Repositories")
+  String achievements_org_repos_title();
+
+  @Message("GitHub Highlights")
+  String achievements_highlights_title();
+
+  @Message("Leaderboard")
+  String achievements_leaderboard_title();
+
+  @Message("No achievements unlocked yet. Be the first!")
+  String achievements_leaderboard_empty();
+
+  @Message("Member")
+  String achievements_leaderboard_member();
+
+  @Message("Achievements")
+  String achievements_leaderboard_achievements();
+
+  @Message("Showing top {count} of {total} participants")
+  String achievements_leaderboard_total(int count, int total);
 }
