@@ -51,7 +51,10 @@ public class AchievementResource {
         Map<String, AchievementProgress> progressMap,
         boolean githubLinked,
         String githubLogin,
-        List<LeaderboardEntry> leaderboard);
+        List<LeaderboardEntry> leaderboard,
+        boolean userAuthenticated,
+        String userName,
+        String userInitial);
   }
 
   @GET
@@ -79,6 +82,8 @@ public class AchievementResource {
     }
 
     List<LeaderboardEntry> leaderboard = buildLeaderboard();
+    String userName = currentUserName();
+    String userInitial = initialFrom(userName);
 
     TemplateInstance template =
         Templates.index(
@@ -87,13 +92,12 @@ public class AchievementResource {
             progressMap,
             githubLinked,
             githubLogin,
-            leaderboard);
+            leaderboard,
+            authenticated,
+            userName,
+            userInitial);
 
-    return TemplateLocaleUtil.apply(template, localeCookie)
-        .data("activePage", "achievements")
-        .data("userAuthenticated", authenticated)
-        .data("userName", currentUserName())
-        .data("userInitial", initialFrom(currentUserName()));
+    return TemplateLocaleUtil.apply(template, localeCookie).data("activePage", "achievements");
   }
 
   /** Triggers a re-verification of the authenticated user's GitHub achievements. */
