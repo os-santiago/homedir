@@ -43,9 +43,19 @@ COMMUNITY_HTML = Path(
 def test_reusable_button_loading_class_in_homedir_css() -> None:
     """The button.is-loading class must be defined in the shared homedir.css
     so any page can use it (criterion: reusable loading pattern)."""
-    assert "button.is-loading" in HOMEDIR_CSS
-    assert "pointer-events: none" in HOMEDIR_CSS
-    assert "hd-btn-spin" in HOMEDIR_CSS
+    rule = re.search(
+        r"button\.is-loading\s*\{([^}]*)\}", HOMEDIR_CSS
+    )
+    assert rule is not None, "button.is-loading rule must exist"
+    rule_body = rule.group(1)
+    assert "pointer-events: none" in rule_body
+    assert "position: relative" in rule_body
+    spinner = re.search(
+        r"button\.is-loading::after\s*\{([^}]*)\}", HOMEDIR_CSS
+    )
+    assert spinner is not None, "button.is-loading::after rule must exist"
+    assert "border-top-color: transparent" in spinner.group(1)
+    assert "animation: hd-btn-spin" in spinner.group(1)
     assert "@keyframes hd-btn-spin" in HOMEDIR_CSS
 
 
@@ -64,7 +74,32 @@ def test_button_loading_uses_standard_animatable_property() -> None:
 def test_button_loading_respects_reduced_motion() -> None:
     """The spinner animation must be disabled under prefers-reduced-motion
     per the project CSS style guide."""
-    assert "prefers-reduced-motion" in HOMEDIR_CSS
+    media_blocks = re.finditer(
+        r"@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{",
+        HOMEDIR_CSS,
+    )
+    inner_blocks = []
+    for media in media_blocks:
+        start = media.end()
+        depth = 1
+        i = start
+        while i < len(HOMEDIR_CSS) and depth > 0:
+            if HOMEDIR_CSS[i] == "{":
+                depth += 1
+            elif HOMEDIR_CSS[i] == "}":
+                depth -= 1
+            i += 1
+        inner_blocks.append(HOMEDIR_CSS[start:i - 1])
+    assert inner_blocks, "prefers-reduced-motion block must exist"
+    matched = any(
+        re.search(r"button\.is-loading::after\s*\{([^}]*)\}", inner) is not None
+        and re.search(r"button\.is-loading::after\s*\{([^}]*animation:\s*none[^}]*)\}", inner)
+        is not None
+        for inner in inner_blocks
+    )
+    assert matched, (
+        "button.is-loading::after must be disabled under prefers-reduced-motion"
+    )
 
 
 def test_no_unused_skeleton_css() -> None:
@@ -92,22 +127,50 @@ def test_no_old_hd_btn_selector() -> None:
 def test_community_bundle_has_lightning_submit_is_loading() -> None:
     """The lightning talk submit button must get the is-loading class during
     the async post operation."""
-    assert 'submitBtn.classList.add("is-loading")' in COMMUNITY_BUNDLE_JS
-    assert 'submitBtn.classList.remove("is-loading")' in COMMUNITY_BUNDLE_JS
+    handler = re.search(
+        r"async function postThread\(event\)\s*\{(.*?)\n  \}",
+        COMMUNITY_BUNDLE_JS,
+        re.DOTALL,
+    )
+    assert handler is not None, "postThread handler must exist"
+    body = handler.group(1)
+    assert 'submitBtn.classList.add("is-loading")' in body
+    assert 'submitBtn.classList.remove("is-loading")' in body
+    assert re.search(
+        r"finally\s*\{[^}]*submitBtn\.classList\.remove\(\"is-loading\"\)", body
+    ) is not None, "is-loading must be removed in the finally block"
 
 
 def test_community_bundle_has_load_more_is_loading() -> None:
     """The load-more button must toggle the is-loading class based on
-    state.loading."""
-    assert 'loadMoreBtn.classList.toggle("is-loading"' in COMMUNITY_BUNDLE_JS
-    assert "state.loading" in COMMUNITY_BUNDLE_JS
+    state.loading, while remaining visible (not hidden) during the request."""
+    handler = re.search(
+        r"function updateLoadMoreState\(\)\s*\{(.*?)\n  \}",
+        COMMUNITY_BUNDLE_JS,
+        re.DOTALL,
+    )
+    assert handler is not None, "updateLoadMoreState handler must exist"
+    body = handler.group(1)
+    assert 'loadMoreBtn.classList.toggle("is-loading"' in body
+    assert 'loadMoreBtn.classList.toggle("hidden", !hasMore)' in body
+    assert "!hasMore || state.loading" not in body
 
 
 def test_community_bundle_has_moderation_is_loading() -> None:
     """The moderate (approve/reject) buttons must get the is-loading class
     during the async moderation operation."""
-    assert 'target.classList.add("is-loading")' in COMMUNITY_BUNDLE_JS
-    assert 'target.classList.remove("is-loading")' in COMMUNITY_BUNDLE_JS
+    handler = re.search(
+        r'actions\.addEventListener\("click", async \(event\) => \{(.*?)\n      \}\);',
+        COMMUNITY_BUNDLE_JS,
+        re.DOTALL,
+    )
+    assert handler is not None, "moderation click handler must exist"
+    body = handler.group(1)
+    assert 'target.classList.add("is-loading")' in body
+    assert 'target.classList.remove("is-loading")' in body
+    assert re.search(
+        r"finally\s*\{[^}]*target\.classList\.remove\(\"is-loading\"\)", body
+    ) is not None, "is-loading must be removed in the finally block"
 
 
 def test_community_bundle_has_submit_is_loading() -> None:
@@ -151,9 +214,15 @@ def test_community_page_loads_community_bundle() -> None:
 def test_community_board_loading_indicator_css() -> None:
     """The community-board-loading body class must have a CSS rule that
     provides visual feedback during fetchAndSwap operations."""
-    assert "body.community-board-loading" in COMMUNITY_PAGE_CSS
-    assert "opacity" in COMMUNITY_PAGE_CSS
-    assert "pointer-events: none" in COMMUNITY_PAGE_CSS
+    rule = re.search(
+        r"body\.community-board-loading\s+[^\s{]*\s*\{([^}]*)\}",
+        COMMUNITY_PAGE_CSS,
+    )
+    assert rule is not None, "body.community-board-loading rule must exist"
+    rule_body = rule.group(1)
+    assert "opacity" in rule_body
+    assert "pointer-events: none" in rule_body
+    assert "transition" in rule_body or "pointer-events" in rule_body
 
 
 def test_community_board_js_toggles_loading_class() -> None:

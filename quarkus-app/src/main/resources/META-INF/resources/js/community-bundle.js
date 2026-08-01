@@ -707,7 +707,7 @@
 
   function updateLoadMoreState() {
     const hasMore = state.items.length < state.total;
-    loadMoreBtn.classList.toggle("hidden", !hasMore || state.loading);
+    loadMoreBtn.classList.toggle("hidden", !hasMore);
     loadMoreBtn.disabled = state.loading;
     loadMoreBtn.classList.toggle("is-loading", state.loading);
   }

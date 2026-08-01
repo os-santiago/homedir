@@ -6442,7 +6442,7 @@ button.is-loading::after {
   width: 0.75rem;
   height: 0.75rem;
   margin-left: 0.25rem;
-  border: 2px solid currentColor;
+  border: 2px solid currentcolor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: hd-btn-spin 0.6s linear infinite;
