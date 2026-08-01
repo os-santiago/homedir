@@ -1,14 +1,14 @@
 {#include layout/main}
 
-{#title}Contacto · Homedir{/title}
+{#title}{i18n:contacto_title} · Homedir{/title}
 
 {#body}
 
 <section class="hd-section hd-section-page-header">
   <div class="hd-page">
-    <h1 class="hd-page-title">Contacto</h1>
+    <h1 class="hd-page-title">{i18n:contacto_title}</h1>
     <p class="hd-page-intro">
-      Si quieres usar Homedir en tu comunidad o evento, conversemos.
+      {i18n:contacto_intro}
     </p>
   </div>
 </section>
@@ -18,18 +18,18 @@
     <div class="hd-contact-channels">
       <div class="hd-contact-channel">
         <span class="material-symbols-outlined hd-contact-icon" aria-hidden="true">forum</span>
-        <h2 class="hd-contact-title">Discord</h2>
-        <p class="hd-contact-desc">Únete a nuestro servidor de Discord para conversar sobre eventos, CFP, voluntariado o cualquier duda.</p>
+        <h2 class="hd-contact-title">{i18n:contacto_discord_title}</h2>
+        <p class="hd-contact-desc">{i18n:contacto_discord_desc}</p>
         <a href="https://discord.gg/3eawzc9ybc" target="_blank" rel="noopener" class="hd-btn hd-btn-primary">
-          Abrir Discord
+          {i18n:contacto_discord_btn}
         </a>
       </div>
       <div class="hd-contact-channel">
         <span class="material-symbols-outlined hd-contact-icon" aria-hidden="true">code</span>
-        <h2 class="hd-contact-title">GitHub</h2>
-        <p class="hd-contact-desc">Reporta bugs, sugiere mejoras o contribuye código en el repositorio oficial.</p>
+        <h2 class="hd-contact-title">{i18n:contacto_github_title}</h2>
+        <p class="hd-contact-desc">{i18n:contacto_github_desc}</p>
         <a href="https://github.com/os-santiago/homedir/issues" target="_blank" rel="noopener" class="hd-btn hd-btn-secondary">
-          Abrir un issue
+          {i18n:contacto_github_btn}
         </a>
       </div>
     </div>

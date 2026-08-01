@@ -57,7 +57,9 @@ public class AboutResource {
     String buildTime = isAdmin ? gitProps.getProperty("git.build.time", "now") : "";
     String environment =
         isAdmin
-            ? ConfigProvider.getConfig().getOptionalValue("quarkus.profile", String.class).orElse("dev")
+            ? ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.profile", String.class)
+                .orElse("dev")
             : "";
 
     String oidcClientId =

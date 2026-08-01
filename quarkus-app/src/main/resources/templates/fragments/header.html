@@ -140,7 +140,7 @@
     <a href="/login.html" class="login-btn-nav">{i18n:nav_login}</a>
     {#else}
     <a
-      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'reputation-hub'}/reputation-hub{#else if activePage == 'proyectos'}{#if resolvedLocaleCode == 'en'}/projects{#else}/proyectos{/if}{#else if activePage == 'beta'}/beta{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
+      href="/private/login-callback?redirect={#if activePage == 'comunidad'}/comunidad{#else if activePage == 'eventos'}/eventos{#else if activePage == 'reputation-hub'}/comunidad/reputation-hub{#else if activePage == 'proyectos'}{#if resolvedLocaleCode == 'en'}/projects{#else}/proyectos{/if}{#else if activePage == 'beta'}/beta{#else if activePage == 'notifications'}/notifications/center{#else}/{/if}"
       class="login-btn-nav"
       data-login-return-current="true">{i18n:nav_login}</a>
     {/if}

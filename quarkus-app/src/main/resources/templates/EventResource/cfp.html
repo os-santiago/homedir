@@ -808,7 +808,8 @@
         return;
       }
       const hasKnownState = !!payload && typeof payload.currently_open === "boolean";
-      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open);
+      const cfpEnded = {cfpTimeline && cfpTimeline.ended};
+      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open) && !cfpEnded;
     }
 
     async function fetchConfigPayload() {
