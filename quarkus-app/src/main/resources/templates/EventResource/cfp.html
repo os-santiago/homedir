@@ -808,7 +808,7 @@
         return;
       }
       const hasKnownState = !!payload && typeof payload.currently_open === "boolean";
-      const cfpEnded = {cfpTimeline && cfpTimeline.ended};
+      const cfpEnded = {#if cfpTimeline && cfpTimeline.ended}true{#else}false{/if};
       cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open) && !cfpEnded;
     }
 
