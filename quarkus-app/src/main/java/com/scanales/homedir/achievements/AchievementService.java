@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.service.GamificationService;
-import com.scanales.homedir.service.UserProfileService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -21,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.Config;
 import org.jboss.logging.Logger;
 
@@ -28,9 +28,8 @@ import org.jboss.logging.Logger;
  * Verifies per-user progress toward GitHub achievements using the GitHub REST/Search API and awards
  * XP via {@link GamificationService} when an achievement is completed.
  *
- * <p>Results are cached per GitHub login with a configurable TTL (default 1 hour, per issue #1043).
- * The service uses the server-side {@code GH_TOKEN} for API authentication, following the same
- * pattern as {@code GithubService}.
+ * <p>Results are cached per GitHub login with a 1-hour TTL. The service uses the server-side {@code
+ * GH_TOKEN} for API authentication, following the same pattern as {@code GithubService}.
  */
 @ApplicationScoped
 public class AchievementService {
@@ -39,9 +38,14 @@ public class AchievementService {
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
   private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(1);
   private static final String ORG = "os-santiago";
+  /**
+   * GitHub usernames may contain only alphanumeric characters and hyphens, max 39 chars, and cannot
+   * start or end with a hyphen. This pattern is used to sanitize login values before they are
+   * interpolated into GitHub Search API queries to prevent query injection.
+   */
+  private static final Pattern GITHUB_LOGIN_PATTERN = Pattern.compile("^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$");
 
   @Inject AchievementCatalog catalog;
-  @Inject UserProfileService userProfiles;
   @Inject GamificationService gamificationService;
   @Inject ObjectMapper objectMapper;
   @Inject Config config;
@@ -83,6 +87,10 @@ public class AchievementService {
    */
   public VerificationResult verify(String githubLogin, String userId) {
     if (githubLogin == null || githubLogin.isBlank()) {
+      return new VerificationResult(githubLogin, allLocked(), List.of(), Instant.now());
+    }
+    if (!GITHUB_LOGIN_PATTERN.matcher(githubLogin).matches()) {
+      LOG.warnf("achievement_verify_rejected_invalid_login login=%s", githubLogin);
       return new VerificationResult(githubLogin, allLocked(), List.of(), Instant.now());
     }
 
@@ -244,10 +252,6 @@ public class AchievementService {
 
   private String getGithubApiToken() {
     return config.getOptionalValue("GH_TOKEN", String.class).orElse("").trim();
-  }
-
-  private Duration cacheTtl() {
-    return DEFAULT_CACHE_TTL;
   }
 
   private record CachedVerification(List<AchievementProgress> progress, Instant cachedAt) {

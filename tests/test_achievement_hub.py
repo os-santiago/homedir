@@ -174,3 +174,33 @@ def test_achievements_js_exists():
     assert "verifyAchievements" in js
     assert "data-verify-url" in js
     assert "fetch" in js
+
+
+# ---------------------------------------------------------------------------
+# Security: GitHub login sanitization (review feedback)
+# ---------------------------------------------------------------------------
+
+
+def test_achievement_service_sanitizes_github_login():
+    """AchievementService must validate the GitHub login against a username
+    pattern before interpolating it into GitHub Search API queries. This
+    prevents query injection via malformed stored login values."""
+    service = (JAVA / "achievements/AchievementService.java").read_text()
+    assert "GITHUB_LOGIN_PATTERN" in service
+    assert "Pattern" in service
+    assert "matcher(githubLogin).matches()" in service
+    assert "achievement_verify_rejected_invalid_login" in service
+
+
+def test_achievement_service_no_dead_cache_ttl_method():
+    """The dead cacheTtl() method (never called) must be removed.
+    CachedVerification.isExpired() uses DEFAULT_CACHE_TTL directly."""
+    service = (JAVA / "achievements/AchievementService.java").read_text()
+    assert "private Duration cacheTtl()" not in service
+
+
+def test_achievement_service_no_unused_userprofileservice_injection():
+    """UserProfileService must not be injected into AchievementService if it
+    is not used there (it is used in AchievementResource instead)."""
+    service = (JAVA / "achievements/AchievementService.java").read_text()
+    assert "UserProfileService" not in service
