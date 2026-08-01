@@ -27,6 +27,8 @@
   const UNREAD_KEY = 'ef_global_unread_count';
   const listEl  = document.getElementById('notif-list');
   const emptyEl = document.getElementById('empty');
+  const skeletonEl = document.getElementById('notif-skeleton');
+  const errorEl = document.getElementById('notif-error');
   const markAllBtn = document.getElementById('markAllRead');
   const deleteBtn  = document.getElementById('deleteSelected');
   const selectAllBtn = document.getElementById('selectAll');
@@ -44,11 +46,16 @@
   // Estado de selección en memoria (se preserva entre renders)
   const selected = new Set();
   let currentFilter = 'all';
+  let storageFailed = false;
 
   // Utilidades de almacenamiento
   function getAll() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-    catch (e) { console.warn('notifications-center: failed to read storage', e); return []; }
+    catch (e) {
+      console.warn('notifications-center: failed to read storage', e);
+      storageFailed = true;
+      return [];
+    }
   }
   function saveAll(arr) {
     try {
@@ -84,10 +91,32 @@
     try { return new Date(ts || Date.now()).toLocaleString(); } catch { return ''; }
   }
 
+  // Remove the no-js class so the skeleton becomes visible (CSS hides it
+  // when no-js is present, for users without JavaScript).
+  if (skeletonEl) skeletonEl.classList.remove('no-js');
+
+  // Oculta el skeleton de carga inicial (se muestra en el HTML hasta el primer render).
+  function hideSkeleton() {
+    if (skeletonEl) skeletonEl.classList.add('hidden');
+  }
+
   // Render de la lista aplicando filtro y preservando selección
   function render() {
     const all = getAll();
     syncUnread(all);
+    hideSkeleton();
+
+    // Estado de error de almacenamiento: distinto de "vacío" (criterio #1022).
+    if (storageFailed && errorEl) {
+      errorEl.classList.remove('hidden');
+      listEl.classList.add('hidden');
+      emptyEl.classList.add('hidden');
+      actionsRight?.classList.add('hidden');
+      updateSelectAllBtn();
+      return;
+    }
+    if (errorEl) errorEl.classList.add('hidden');
+
     let items = all.filter(n => !n.dismissedAt);
 
     const startOfDay = new Date();
@@ -105,12 +134,14 @@
 
     listEl.innerHTML = '';
     if (items.length === 0) {
+      listEl.classList.add('hidden');
       emptyEl.classList.remove('hidden');
       actionsRight?.classList.add('hidden');
       renderSampleCards();
       updateSelectAllBtn();
       return;
     }
+    listEl.classList.remove('hidden');
     emptyEl.classList.add('hidden');
     actionsRight?.classList.remove('hidden');
 

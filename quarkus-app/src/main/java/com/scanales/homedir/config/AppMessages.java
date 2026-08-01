@@ -2888,6 +2888,9 @@ public interface AppMessages {
   @Message("You will see new events, schedule changes, and key project updates here.")
   String notifications_center_empty_hint();
 
+  @Message("Could not load notifications. Local storage may be unavailable or corrupted.")
+  String notifications_center_error();
+
   @Message("Explore Events")
   String notifications_center_empty_cta_events();
 

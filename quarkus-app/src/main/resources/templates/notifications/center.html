@@ -28,6 +28,15 @@
         </div>
       </div>
 
+      <div id="notif-skeleton" class="notif-skeleton no-js" aria-hidden="true">
+        <div class="notif-skeleton-card"></div>
+        <div class="notif-skeleton-card"></div>
+        <div class="notif-skeleton-card"></div>
+      </div>
+      <div id="notif-error" class="notif-error hidden" role="alert">
+        {#include fragments/empty-state message=i18n:notifications_center_error icon="error" hintClass="notifications-empty-hint"}
+        {/include}
+      </div>
       <div id="notif-list" aria-live="polite"></div>
       <div id="empty" class="hidden">
         {#include fragments/empty-state message=i18n:notifications_center_empty icon="notifications_off" hint=i18n:notifications_center_empty_hint hintClass="notifications-empty-hint"}
