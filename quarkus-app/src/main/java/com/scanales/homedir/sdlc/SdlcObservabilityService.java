@@ -23,7 +23,13 @@ import java.util.stream.Stream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-/** Reads the autonomous SDLC worker state without requiring shell access. */
+/**
+ * Reads the autonomous SDLC worker state without requiring shell access.
+ *
+ * @deprecated Migrated to https://github.com/os-santiago/homedir-ai-sdlc
+ *             This class will be removed on 2026-08-14.
+ */
+@Deprecated(since = "3.403.1", forRemoval = true)
 @ApplicationScoped
 public class SdlcObservabilityService {
   private static final Logger LOG = Logger.getLogger(SdlcObservabilityService.class);

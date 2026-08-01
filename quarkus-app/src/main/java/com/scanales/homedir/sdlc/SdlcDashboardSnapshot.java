@@ -30,6 +30,13 @@ import org.jboss.logging.Logger;
  * <p>The worker never calls this component and never waits for it. Each cycle has hard file, byte,
  * event, and memory limits. HTTP readers only dereference an immutable in-memory projection.
  */
+/**
+ * Background snapshot consumer for AI-SDLC telemetry.
+ *
+ * @deprecated Migrated to https://github.com/os-santiago/homedir-ai-sdlc
+ *             This class will be removed on 2026-08-14.
+ */
+@Deprecated(since = "3.403.1", forRemoval = true)
 @ApplicationScoped
 public class SdlcDashboardSnapshot {
   private static final Logger LOG = Logger.getLogger(SdlcDashboardSnapshot.class);

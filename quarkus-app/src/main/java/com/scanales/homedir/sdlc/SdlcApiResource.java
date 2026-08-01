@@ -17,6 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+/**
+ * AI-SDLC observability API.
+ *
+ * @deprecated Migrated to https://github.com/os-santiago/homedir-ai-sdlc
+ *             This class will be removed on 2026-08-14.
+ *             Use the standalone AI-SDLC dashboard instead.
+ */
+@Deprecated(since = "3.403.1", forRemoval = true)
 @Path("/api/sdlc")
 @Authenticated
 public class SdlcApiResource {

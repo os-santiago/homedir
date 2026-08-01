@@ -13,6 +13,13 @@ import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+/**
+ * AI-SDLC dashboard UI.
+ *
+ * @deprecated Migrated to https://github.com/os-santiago/homedir-ai-sdlc
+ *             This class will be removed on 2026-08-14.
+ */
+@Deprecated(since = "3.403.1", forRemoval = true)
 @Path("/sdlc/dashboard")
 @Authenticated
 public class SdlcDashboardResource {

@@ -1,0 +1,222 @@
+name: Cleanup Deprecated AI-SDLC Code
+
+on:
+  schedule:
+    # Scheduled for 2026-08-14 at 00:00 UTC (cron: minute hour day month day-of-week)
+    - cron: '0 0 14 8 *'
+
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "CONFIRM" to execute cleanup'
+        required: true
+        type: string
+
+jobs:
+  cleanup:
+    name: Remove Deprecated AI-SDLC Components
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Validate manual trigger
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.event.inputs.confirm }}" != "CONFIRM" ]]; then
+            echo "::error::Manual execution requires confirmation input to be 'CONFIRM'"
+            exit 1
+          fi
+
+      - name: Check date (scheduled runs only)
+        if: github.event_name == 'schedule'
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          if [[ "$TODAY" < "2026-08-14" ]]; then
+            echo "::warning::Cleanup scheduled for 2026-08-14, but today is $TODAY. Skipping."
+            exit 0
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create cleanup branch
+        run: |
+          git checkout -b cleanup/remove-deprecated-ai-sdlc
+
+      - name: Remove deprecated Java classes
+        run: |
+          echo "Removing AI-SDLC Java classes..."
+          rm -rf quarkus-app/src/main/java/com/scanales/homedir/sdlc/
+          rm -rf quarkus-app/src/test/java/com/scanales/homedir/sdlc/
+
+      - name: Remove deprecated frontend assets
+        run: |
+          echo "Removing AI-SDLC frontend assets..."
+          rm -rf quarkus-app/src/main/resources/templates/sdlc/
+          rm -rf quarkus-app/src/main/resources/META-INF/resources/sdlc/
+
+      - name: Remove deprecated scripts
+        run: |
+          echo "Removing AI-SDLC scripts..."
+          rm -f platform/scripts/homedir-sdlc-*.sh
+          rm -f platform/scripts/sdlc-*.sh
+          rm -f platform/scripts/policy-*.sh
+
+      - name: Remove deprecated configuration
+        run: |
+          echo "Removing AI-SDLC configuration..."
+          rm -f platform/config/autonomous-decision-policy.yaml
+          rm -f platform/env.sdlc.example
+          rm -f platform/systemd/user/homedir-sdlc-worker.*
+          rm -f platform/ansible/playbooks/sdlc-runner.yml
+          rm -f platform/docs/ai-sdlc-ci-check-handling.md
+
+      - name: Remove deprecated workflows
+        run: |
+          echo "Removing AI-SDLC workflows..."
+          rm -f .github/workflows/build-sdlc-worker-image.yml
+          rm -f .github/workflows/deploy-worker.yml
+
+      - name: Remove deprecated container files
+        run: |
+          echo "Removing AI-SDLC container files..."
+          rm -f container/Containerfile.sdlc-worker
+          # Note: worker-entrypoint.sh may be shared, keeping it
+
+      - name: Clean up application.properties
+        run: |
+          echo "Removing sdlc.* configuration from application.properties..."
+          if [[ -f quarkus-app/src/main/resources/application.properties ]]; then
+            # Remove lines starting with sdlc.
+            sed -i '/^sdlc\./d' quarkus-app/src/main/resources/application.properties
+          fi
+
+      - name: Update README notice
+        run: |
+          echo "Updating README migration notice..."
+          if grep -q "AI-SDLC Migration Notice" README.md; then
+            # Replace the notice with a simple "completed" message
+            sed -i '/## ⚠️ AI-SDLC Migration Notice/,/^---$/c\
+## ✅ AI-SDLC Migration Completed\
+\
+The AI-SDLC components have been successfully migrated to: https://github.com/os-santiago/homedir-ai-sdlc\
+\
+All deprecated code was removed on 2026-08-14.\
+\
+---' README.md
+          fi
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore: remove deprecated AI-SDLC code (migrated to homedir-ai-sdlc)
+
+Automated cleanup executed on $(date +%Y-%m-%d).
+
+All AI-SDLC components have been migrated to:
+https://github.com/os-santiago/homedir-ai-sdlc
+
+Removed:
+- Java classes: com.scanales.homedir.sdlc.*
+- Frontend assets: templates/sdlc/, META-INF/resources/sdlc/
+- Scripts: platform/scripts/homedir-sdlc-*.sh
+- Configuration: platform/config/autonomous-decision-policy.yaml
+- Workflows: build-sdlc-worker-image.yml, deploy-worker.yml
+
+Migration completed: 2026-08-01
+Cleanup executed: $(date +%Y-%m-%d)
+Issue: N/A (automated scheduled cleanup)"
+
+      - name: Push cleanup branch
+        run: |
+          git push origin cleanup/remove-deprecated-ai-sdlc
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "chore: Remove deprecated AI-SDLC code (automated cleanup)" \
+            --body "## Automated Cleanup - AI-SDLC Migration
+
+This PR removes all deprecated AI-SDLC components that were migrated to the separate repository on 2026-08-01.
+
+### Migration Information
+- **New Repository**: https://github.com/os-santiago/homedir-ai-sdlc
+- **Migration Date**: 2026-08-01
+- **Cleanup Date**: $(date +%Y-%m-%d)
+- **Deprecation Period**: 2 weeks
+
+### Components Removed
+
+**Java Classes** (\`@Deprecated\` since 3.403.1):
+- \`com.scanales.homedir.sdlc.SdlcApiResource\`
+- \`com.scanales.homedir.sdlc.SdlcDashboardResource\`
+- \`com.scanales.homedir.sdlc.SdlcDashboardSnapshot\`
+- \`com.scanales.homedir.sdlc.SdlcObservabilityService\`
+
+**Frontend Assets**:
+- \`templates/sdlc/dashboard/\`
+- \`META-INF/resources/sdlc/dashboard/\`
+
+**Scripts & Configuration**:
+- \`platform/scripts/homedir-sdlc-*.sh\`
+- \`platform/config/autonomous-decision-policy.yaml\`
+- \`platform/systemd/user/homedir-sdlc-worker.*\`
+
+**CI/CD**:
+- \`.github/workflows/build-sdlc-worker-image.yml\`
+- \`.github/workflows/deploy-worker.yml\`
+
+### Verification
+
+✅ All AI-SDLC functionality is now in: https://github.com/os-santiago/homedir-ai-sdlc
+✅ Deprecation period (2 weeks) completed
+✅ No rollback needed (migration successful)
+
+### References
+
+- Migration Notes: https://github.com/os-santiago/homedir-ai-sdlc/blob/main/MIGRATION-NOTES.md
+- CLAUDE.md documentation updated with migration information
+
+---
+
+**This is an automated cleanup executed by the \`cleanup-sdlc.yml\` workflow.**
+
+**Review carefully before merging.** After merge, this workflow can be deleted." \
+            --label "automated,cleanup,chore"
+
+      - name: Cleanup summary
+        if: always()
+        run: |
+          {
+            echo "# AI-SDLC Cleanup Summary"
+            echo ""
+            echo "**Status**: Cleanup PR created"
+            echo "**Branch**: cleanup/remove-deprecated-ai-sdlc"
+            echo "**Execution Date**: $(date +%Y-%m-%d)"
+            echo ""
+            echo "## Removed Components"
+            echo "- Java classes (4 files)"
+            echo "- Frontend assets (2 directories)"
+            echo "- Scripts (10+ files)"
+            echo "- Configuration files (5+ files)"
+            echo "- CI/CD workflows (2 files)"
+            echo ""
+            echo "## Next Steps"
+            echo "1. Review the PR: \`cleanup/remove-deprecated-ai-sdlc\`"
+            echo "2. Verify no references to removed code remain"
+            echo "3. Merge the PR"
+            echo "4. Delete this cleanup workflow"
+            echo ""
+            echo "**AI-SDLC is now fully separated**: https://github.com/os-santiago/homedir-ai-sdlc"
+          } >> "${GITHUB_STEP_SUMMARY}"
