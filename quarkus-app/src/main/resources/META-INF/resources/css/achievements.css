@@ -1,0 +1,110 @@
+.achievements-card {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.achievements-overview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.achievements-count {
+  font-weight: 700;
+}
+
+.achievements-status-note {
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+.achievements-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.achievements-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.achievements-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.achievements-item-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.achievements-badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.achievements-badge--locked {
+  background: rgba(var(--black-rgb, 0, 0, 0), 0.4);
+  border: 1px solid rgba(var(--white-rgb, 255, 255, 255), 0.25);
+  opacity: 0.8;
+}
+
+.achievements-item-desc {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.achievements-repos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.achievements-repos li,
+.achievements-org-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.achievements-repo-usage {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.achievements-doc-link {
+  margin-top: auto;
+  font-size: 0.85rem;
+}
+
+.achievements-org-title {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.15rem;
+}
+
+.achievements-org-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .achievements-grid,
+  .achievements-org-list {
+    grid-template-columns: 1fr;
+  }
+}

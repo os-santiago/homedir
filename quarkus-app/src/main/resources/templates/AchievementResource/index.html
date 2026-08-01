@@ -1,0 +1,64 @@
+{@java.lang.String resolvedLocaleCode}
+{#include layout/main activePage="achievements"}
+
+{#title}{i18n:achievements_page_title}{/title}
+
+{#head}
+<link rel="stylesheet" href="/css/achievements.css?v={app:version()}" />
+{/head}
+
+{#body}
+<section class="hd-section">
+  <div class="hd-page">
+    <div class="hd-card achievements-card">
+      <h1 class="hd-page-title">{i18n:achievements_heading}</h1>
+      <p class="hd-section-subtitle">{i18n:achievements_subtitle}</p>
+
+      <div class="achievements-overview">
+        <span class="achievements-count">
+          {i18n:achievements_count(guides.size())}
+        </span>
+        <span class="achievements-status-note">{i18n:achievements_status_note}</span>
+      </div>
+
+      <div class="hd-grid achievements-grid">
+        {#for guide in guides}
+        <article class="hd-card achievements-item" data-category="{guide.achievement.category}">
+          <header class="achievements-item-header">
+            <h2 class="achievements-item-title">{guide.achievement.title}</h2>
+            <span class="achievements-badge achievements-badge--locked">
+              {i18n:achievements_status_locked}
+            </span>
+          </header>
+          <p class="achievements-item-desc">
+            {#if resolvedLocaleCode == 'en'}{guide.achievement.description}{#else}{guide.achievement.descriptionEs}{/if}
+          </p>
+          <ul class="achievements-repos">
+            {#for repo in guide.repos}
+            <li>
+              <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+              <span class="achievements-repo-usage">{repo.usage}</span>
+            </li>
+            {/for}
+          </ul>
+          <a class="achievements-doc-link" href="{guide.achievement.docUrl}" target="_blank" rel="noopener noreferrer">
+            {i18n:achievements_how_to_earn}
+          </a>
+        </article>
+        {/for}
+      </div>
+
+      <h2 class="achievements-org-title">{i18n:achievements_org_repos_title}</h2>
+      <ul class="achievements-org-list">
+        {#for repo in orgRepos}
+        <li>
+          <a href="{repo.url}" target="_blank" rel="noopener noreferrer">{repo.name}</a>
+          <span class="achievements-repo-usage">{repo.usage}</span>
+        </li>
+        {/for}
+      </ul>
+    </div>
+  </div>
+</section>
+{/body}
+{/include}
