@@ -6693,23 +6693,38 @@ public interface AppMessages {
   @Message("How to earn it")
   String achievements_how_to_earn();
 
+  @Message("Read the official guide")
+  String achievements_read_docs();
+
   @Message("os-santiago repositories that help you earn them")
   String achievements_org_repos_title();
 
   @Message("GitHub Highlights")
   String achievements_highlights_title();
 
+  @Message("Pro")
+  String achievements_highlight_pro_title();
+
   @Message(
       "GitHub Pro is a paid subscription that gives you access to private repositories, advanced insights, and more. It appears as a badge on your profile.")
   String achievements_highlight_pro_desc();
+
+  @Message("Developer Program Member")
+  String achievements_highlight_dev_program_title();
 
   @Message(
       "The GitHub Developer Program is for developers who build integrations with the GitHub API. Join at developer.github.com to get the badge.")
   String achievements_highlight_dev_program_desc();
 
+  @Message("Security Bug Bounty Hunter")
+  String achievements_highlight_security_bounty_title();
+
   @Message(
       "Report security vulnerabilities to GitHub's bug bounty program. Accepted reports earn a special badge on your profile.")
   String achievements_highlight_security_bounty_desc();
+
+  @Message("Galaxy Brain (Discussions)")
+  String achievements_highlight_galaxy_brain_title();
 
   @Message(
       "Answer questions in GitHub Discussions. When your answer is accepted by the question author, you earn the Galaxy Brain badge.")

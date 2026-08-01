@@ -3,6 +3,7 @@ package com.scanales.homedir.achievements;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -85,9 +86,5 @@ class AchievementCatalogTest {
   void findReturnsNullForUnknownKey() {
     AchievementCatalog.Achievement unknown = catalog.find("nonexistent");
     assertNull(unknown);
-  }
-
-  private static void assertNull(Object obj) {
-    assertTrue(obj == null, "expected null");
   }
 }

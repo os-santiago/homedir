@@ -190,9 +190,13 @@ def test_template_has_no_leaderboard() -> None:
 def test_template_has_highlights_section() -> None:
     """The template must have a highlights section (criterion #5)."""
     assert "achievements-highlights" in TEMPLATE
+    assert "achievements_highlight_pro_title" in TEMPLATE
     assert "achievements_highlight_pro_desc" in TEMPLATE
+    assert "achievements_highlight_dev_program_title" in TEMPLATE
     assert "achievements_highlight_dev_program_desc" in TEMPLATE
+    assert "achievements_highlight_security_bounty_title" in TEMPLATE
     assert "achievements_highlight_security_bounty_desc" in TEMPLATE
+    assert "achievements_highlight_galaxy_brain_title" in TEMPLATE
     assert "achievements_highlight_galaxy_brain_desc" in TEMPLATE
 
 
@@ -205,6 +209,13 @@ def test_template_has_org_repos() -> None:
 def test_template_external_links_are_safe() -> None:
     """External links must use rel=noopener noreferrer."""
     assert 'rel="noopener noreferrer"' in TEMPLATE
+
+
+def test_template_doc_link_uses_dedicated_i18n_key() -> None:
+    """The external documentation link must use achievements_read_docs (not
+    achievements_how_to_earn, which is the guide heading)."""
+    assert "achievements_read_docs" in TEMPLATE
+    assert "achievements-doc-link" in TEMPLATE
 
 
 # ---------------------------------------------------------------------------
@@ -253,11 +264,16 @@ def test_i18n_has_phase1_keys_english() -> None:
         "achievements_subtitle",
         "achievements_status_locked",
         "achievements_how_to_earn",
+        "achievements_read_docs",
         "achievements_org_repos_title",
         "achievements_highlights_title",
+        "achievements_highlight_pro_title",
         "achievements_highlight_pro_desc",
+        "achievements_highlight_dev_program_title",
         "achievements_highlight_dev_program_desc",
+        "achievements_highlight_security_bounty_title",
         "achievements_highlight_security_bounty_desc",
+        "achievements_highlight_galaxy_brain_title",
         "achievements_highlight_galaxy_brain_desc",
     ]
     for key in required:
@@ -273,11 +289,16 @@ def test_i18n_has_phase1_keys_spanish() -> None:
         "achievements_subtitle",
         "achievements_status_locked",
         "achievements_how_to_earn",
+        "achievements_read_docs",
         "achievements_org_repos_title",
         "achievements_highlights_title",
+        "achievements_highlight_pro_title",
         "achievements_highlight_pro_desc",
+        "achievements_highlight_dev_program_title",
         "achievements_highlight_dev_program_desc",
+        "achievements_highlight_security_bounty_title",
         "achievements_highlight_security_bounty_desc",
+        "achievements_highlight_galaxy_brain_title",
         "achievements_highlight_galaxy_brain_desc",
     ]
     for key in required:
@@ -313,11 +334,16 @@ def test_app_messages_has_phase1_methods() -> None:
         "achievements_subtitle",
         "achievements_status_locked",
         "achievements_how_to_earn",
+        "achievements_read_docs",
         "achievements_org_repos_title",
         "achievements_highlights_title",
+        "achievements_highlight_pro_title",
         "achievements_highlight_pro_desc",
+        "achievements_highlight_dev_program_title",
         "achievements_highlight_dev_program_desc",
+        "achievements_highlight_security_bounty_title",
         "achievements_highlight_security_bounty_desc",
+        "achievements_highlight_galaxy_brain_title",
         "achievements_highlight_galaxy_brain_desc",
     ]
     for key in required:
