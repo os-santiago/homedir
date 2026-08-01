@@ -74,6 +74,27 @@ def test_achievement_service_awards_xp() -> None:
     assert "gamificationService.award" in service, "Service must call gamificationService.award"
     assert "verifySingleAchievementCached" in service, \
         "Service must route single-achievement verification through the cache"
+    assert "cached == null || cached.isExpired()" in service, \
+        "cache guard must treat expired entries as misses"
+    assert "login == null || login.isBlank()" in service, \
+        "cache guard must not NPE on a null login"
+
+
+def test_verification_messages_are_localized() -> None:
+    """Verification response messages must come from AppMessages, not hardcoded
+    English strings."""
+    service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
+    messages = (JAVA_DIR / "config/AppMessages.java").read_text()
+    assert '"Achievement unlocked!"' not in service, \
+        "unlocked message must not be hardcoded in the service"
+    assert '"Verification unavailable"' not in service, \
+        "unavailable message must not be hardcoded in the service"
+    for key in (
+        "achievements_verification_unlocked",
+        "achievements_verification_progress",
+        "achievements_verification_unavailable",
+    ):
+        assert key in messages, f"AppMessages must declare {key}"
 
 
 def test_yolo_query_uses_review_none() -> None:
@@ -86,24 +107,33 @@ def test_yolo_query_uses_review_none() -> None:
 
 
 def test_quickdraw_enforces_five_minute_window() -> None:
-    """Quickdraw must filter closed issues to the 5-minute window instead of
-    counting everything closed after a fixed date."""
+    """Quickdraw must filter closed issues/PRs to the 5-minute window using
+    seconds (Duration.toMinutes truncates, counting 5:59 as 5 minutes)."""
     service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
     assert "countQuickdraw" in service, "Service must have countQuickdraw"
     assert "Duration.between" in service, \
         "Quickdraw must compute created/closed duration server-side"
+    assert ".toSeconds()" in service and "<= 300" in service, \
+        "Quickdraw must compare seconds against 300, not truncating minutes"
+    assert "type:issue is:closed" not in service, \
+        "Quickdraw must include pull requests (no type:issue restriction)"
     assert "closed:>=2024-01-01" not in service, \
         "Quickdraw must not count every issue closed after a fixed date"
 
 
 def test_pair_extraordinaire_uses_commit_search() -> None:
     """Pair Extraordinaire must use the Commit search API since GitHub Issues
-    search does not index co-authored-by: trailers."""
+    search does not index co-authored-by: trailers, and must not treat
+    co-authored-by: as a non-existent search qualifier."""
     service = (JAVA_DIR / "achievements/AchievementService.java").read_text()
     assert "countCoAuthoredCommits" in service, \
         "Service must have countCoAuthoredCommits"
     assert "/search/commits" in service, \
         "Pair Extraordinaire must use the Commit search API"
+    assert "co-authored-by:" + " " not in service.replace('"co-authored-by:"', ''), \
+        "must not build a co-authored-by: qualifier; free-text search is required"
+    assert "org:os-santiago" in service, \
+        "commit search must use the org: qualifier (repo: requires owner/name)"
 
 
 def test_starstruck_link_header_parsing_is_correct() -> None:
@@ -169,7 +199,7 @@ def test_js_claim_uses_post() -> None:
     """The claim XP fetch must use method POST."""
     js = (JS_DIR / "achievements.js").read_text()
     assert re.search(
-        r'fetch\("/api/achievements/claim/.*method:\s*"POST"',
+        r'fetch\("/api/achievements/claim/.*?method:\s*"POST"',
         js,
         re.DOTALL,
     ), "claim fetch must use POST method"

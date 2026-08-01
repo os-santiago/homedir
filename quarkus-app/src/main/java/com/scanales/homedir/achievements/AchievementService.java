@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scanales.homedir.achievements.AchievementCatalog.Achievement;
 import com.scanales.homedir.achievements.AchievementCatalog.AchievementGuide;
+import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.GamificationActivity;
 import com.scanales.homedir.model.UserProfile;
 import com.scanales.homedir.service.GamificationService;
 import com.scanales.homedir.service.UserProfileService;
+import io.quarkus.qute.i18n.MessageBundles;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.net.URI;
@@ -148,7 +150,11 @@ public class AchievementService {
    */
   public AchievementVerificationResult verifySingleAchievementCached(
       String login, Achievement achievement) {
-    if (verificationCache.get(login) == null) {
+    if (login == null || login.isBlank() || achievement == null) {
+      return new AchievementVerificationResult(false, 0, unavailableMessage());
+    }
+    AchievementVerificationCache cached = verificationCache.get(login);
+    if (cached == null || cached.isExpired()) {
       verifyAchievements(login);
     }
     return verifySingleAchievement(login, achievement);
@@ -166,7 +172,7 @@ public class AchievementService {
   public AchievementVerificationResult verifySingleAchievement(
       String login, Achievement achievement) {
     if (login == null || login.isBlank() || achievement == null) {
-      return new AchievementVerificationResult(false, 0, "Verification unavailable");
+      return new AchievementVerificationResult(false, 0, unavailableMessage());
     }
 
     AchievementVerificationCache cached = verificationCache.get(login);
@@ -175,8 +181,8 @@ public class AchievementService {
         if (status.key().equals(achievement.key())) {
           String message =
               status.unlocked()
-                  ? "Achievement unlocked!"
-                  : "Progress: " + status.progress() + "/" + status.threshold();
+                  ? unlockedMessage()
+                  : progressMessage(status.progress(), status.threshold());
           return new AchievementVerificationResult(status.unlocked(), status.progress(), message);
         }
       }
@@ -203,19 +209,33 @@ public class AchievementService {
 
       boolean verified = progress >= achievement.threshold();
       String message =
-          verified
-              ? "Achievement unlocked!"
-              : "Progress: " + progress + "/" + achievement.threshold();
+          verified ? unlockedMessage() : progressMessage(progress, achievement.threshold());
       return new AchievementVerificationResult(verified, progress, message);
     } catch (Exception e) {
       LOG.warnf(e, "Failed to verify achievement %s for %s", achievement.key(), login);
-      return new AchievementVerificationResult(false, 0, "Verification unavailable");
+      return new AchievementVerificationResult(false, 0, unavailableMessage());
     }
+  }
+
+  private AppMessages messages() {
+    return MessageBundles.get(AppMessages.class);
+  }
+
+  private String unlockedMessage() {
+    return messages().achievements_verification_unlocked();
+  }
+
+  private String progressMessage(int progress, int threshold) {
+    return messages().achievements_verification_progress(progress, threshold);
+  }
+
+  private String unavailableMessage() {
+    return messages().achievements_verification_unavailable();
   }
 
   /** Counts issues/PRs closed within 5 minutes of being opened (Quickdraw achievement). */
   private int countQuickdraw(String login, String token) {
-    String query = "author:" + login + " type:issue is:closed org:os-santiago";
+    String query = "author:" + login + " is:closed org:os-santiago";
     int count = 0;
     int page = 1;
     while (page <= 10) {
@@ -255,8 +275,8 @@ public class AchievementService {
           try {
             Instant created = Instant.parse(createdAt);
             Instant closed = Instant.parse(closedAt);
-            long minutes = Duration.between(created, closed).toMinutes();
-            if (minutes >= 0 && minutes <= 5) {
+            long seconds = Duration.between(created, closed).toSeconds();
+            if (seconds >= 0 && seconds <= 300) {
               count++;
             }
           } catch (Exception ignored) {
@@ -279,18 +299,21 @@ public class AchievementService {
   }
 
   /**
-   * Counts commits in the org that contain a Co-authored-by trailer naming the user (Pair
-   * Extraordinaire achievement). GitHub's Issues search API does not index {@code co-authored-by:},
-   * so this uses the Commit search API which indexes commit message trailers.
+   * Counts commits in the org whose message contains a Co-authored-by trailer naming the user (Pair
+   * Extraordinaire achievement). GitHub's Issues search API does not index commit message trailers,
+   * so this uses the Commit search API. {@code co-authored-by:} is not a documented commit-search
+   * qualifier, so it is searched as free text; the user's GitHub noreply email appears in the
+   * trailer (e.g. {@code Co-authored-by: Name <login@users.noreply.github.com>}), which the
+   * free-text term matches.
    */
   private int countCoAuthoredCommits(String login, String token) {
-    String query = "repo:os-santiago co-authored-by:" + login;
+    String query = "org:os-santiago \"co-authored-by:\" " + login;
     String url = "https://api.github.com/search/commits?q=" + urlEncode(query) + "&per_page=1";
     HttpRequest.Builder builder =
         HttpRequest.newBuilder()
             .uri(URI.create(url))
             .timeout(REQUEST_TIMEOUT)
-            .header("Accept", "application/vnd.github.cloak-preview+json")
+            .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
             .header("User-Agent", "homedir-achievements");
     if (token != null && !token.isBlank()) {

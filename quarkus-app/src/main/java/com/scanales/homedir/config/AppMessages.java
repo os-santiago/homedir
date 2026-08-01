@@ -7093,4 +7093,13 @@ public interface AppMessages {
 
   @Message("Achievement not verified or already claimed")
   String achievements_api_award_failure();
+
+  @Message("Achievement unlocked!")
+  String achievements_verification_unlocked();
+
+  @Message("Progress: {progress}/{threshold}")
+  String achievements_verification_progress(int progress, int threshold);
+
+  @Message("Verification unavailable")
+  String achievements_verification_unavailable();
 }
