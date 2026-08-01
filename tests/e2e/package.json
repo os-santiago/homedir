@@ -1,0 +1,14 @@
+{
+  "name": "homedir-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for Homedir using Playwright against a real Chromium browser",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}
