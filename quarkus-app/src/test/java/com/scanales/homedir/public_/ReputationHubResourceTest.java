@@ -36,7 +36,8 @@ class ReputationHubResourceTest {
       return Map.of(
           "metrics.buffer.max-size", "200",
           "reputation.engine.enabled", "true",
-          "reputation.hub.ui.enabled", "true");
+          "reputation.hub.ui.enabled", "true",
+          "reputation.hub.nav.public.enabled", "true");
     }
   }
 
