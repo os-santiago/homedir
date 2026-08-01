@@ -367,7 +367,11 @@ is_authorized_labeler() {
 add_label() {
   local issue="$1"
   local label="$2"
-  gh issue edit "${issue}" --repo "${REPO}" --add-label "${label}" >/dev/null
+  if ! gh issue edit "${issue}" --repo "${REPO}" --add-label "${label}" >/dev/null 2>&1; then
+    log "ERROR: add_label failed for issue #${issue} label='${label}'"
+    return 1
+  fi
+  return 0
 }
 
 remove_label() {
@@ -672,8 +676,17 @@ reconcile_admission_requests() {
       || issue_has_label "${labels}" "${FAILED_LABEL}" \
       || issue_has_label "${labels}" "${LEGAL_REVIEW_LABEL}" \
       || issue_has_label "${labels}" "${NEEDS_HUMAN_LABEL}" \
+      || issue_has_label "${labels}" "${REJECTED_LABEL}" \
       || issue_has_label "${labels}" "${MERGED_LABEL}"; then
       log "reconcile_admission_requests: skipping issue #${number} (already in terminal state)"
+      continue
+    fi
+
+    # Skip issues already in admission review — reconcile_stuck_admission_reviews
+    # handles them. Without this, every worker cycle re-adds the admission-review
+    # label and posts a duplicate comment (issue #1230).
+    if issue_has_label "${labels}" "${ADMISSION_REVIEW_LABEL}"; then
+      log "reconcile_admission_requests: skipping issue #${number} (already in ${ADMISSION_REVIEW_LABEL})"
       continue
     fi
 
@@ -698,29 +711,35 @@ reconcile_admission_requests() {
 
           if [[ "$requires_approval" != "true" ]] && [[ "$requires_legal" != "true" ]]; then
             # Auto-approve via policy
-            policy_approved="true"
-            add_label "${number}" "${ACCEPTED_LABEL}"
+            if add_label "${number}" "${ACCEPTED_LABEL}"; then
+              policy_approved="true"
 
-            local policy_ref
-            policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
+              local policy_ref
+              policy_ref=$(echo "$policy_decision" | jq -r '.policy' 2>/dev/null || echo "")
 
-            local policy_text
-            policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
+              local policy_text
+              policy_text=$(echo "$policy_decision" | jq -r '.decision' 2>/dev/null || echo "")
 
-            comment_issue "${number}" "✅ **Auto-approved via policy \`${policy_ref}\`**
+              comment_issue "${number}" "✅ **Auto-approved via policy \`${policy_ref}\`**
 
 Autonomous decision: ${policy_text}
 
 Proceeding to admission..."
-            log "Issue #${number} auto-approved via policy on first check: ${policy_ref}"
+              log "Issue #${number} auto-approved via policy on first check: ${policy_ref}"
+            else
+              log "ERROR: reconcile_admission_requests: failed to apply ${ACCEPTED_LABEL} to issue #${number} (policy); deferring to standard review"
+            fi
           elif [[ "$requires_legal" == "true" ]]; then
-            add_label "${number}" "${LEGAL_REVIEW_LABEL}"
-            comment_issue "${number}" "⚠️ **Legal review required before implementation**
+            if add_label "${number}" "${LEGAL_REVIEW_LABEL}"; then
+              comment_issue "${number}" "⚠️ **Legal review required before implementation**
 
 Autonomous decision indicated legal/compliance review is needed.
 
 The worker will wait for legal review before proceeding."
-            log "Issue #${number} marked legal-review on first check"
+              log "Issue #${number} marked legal-review on first check"
+            else
+              log "ERROR: reconcile_admission_requests: failed to apply ${LEGAL_REVIEW_LABEL} to issue #${number}; deferring to standard review"
+            fi
             continue
           fi
         fi
@@ -728,9 +747,12 @@ The worker will wait for legal review before proceeding."
 
       # If not auto-approved, defer to standard admission review
       if [[ "$policy_approved" != "true" ]]; then
-        add_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-        comment_issue "${number}" "AI SDLC admission is waiting for initial acceptance review. \`${TRIGGER_LABEL}\` requires \`${ACCEPTED_LABEL}\` before this issue can enter \`${QUEUE_LABEL}\`."
-        log "issue #${number} has ${TRIGGER_LABEL} but is missing ${ACCEPTED_LABEL}; admission deferred"
+        if add_label "${number}" "${ADMISSION_REVIEW_LABEL}"; then
+          comment_issue "${number}" "AI SDLC admission is waiting for initial acceptance review. \`${TRIGGER_LABEL}\` requires \`${ACCEPTED_LABEL}\` before this issue can enter \`${QUEUE_LABEL}\`."
+          log "issue #${number} has ${TRIGGER_LABEL} but is missing ${ACCEPTED_LABEL}; admission deferred"
+        else
+          log "ERROR: reconcile_admission_requests: failed to apply ${ADMISSION_REVIEW_LABEL} to issue #${number}; will retry next cycle"
+        fi
         continue
       fi
     fi
@@ -833,9 +855,9 @@ reconcile_stuck_admission_reviews() {
           policy_approved="true"
           log "Issue #${number} auto-approved via policy: ${policy_ref}"
 
-          add_label "${number}" "${ACCEPTED_LABEL}"
-          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-          comment_issue "${number}" "✅ **AI SDLC auto-approved via policy**
+          if add_label "${number}" "${ACCEPTED_LABEL}"; then
+            remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+            comment_issue "${number}" "✅ **AI SDLC auto-approved via policy**
 
 **Policy Matched**: \`${policy_ref}\`
 **Autonomous Decision**: ${policy_text}
@@ -844,15 +866,18 @@ reconcile_stuck_admission_reviews() {
 The worker will implement this autonomously following the established policy.
 
 Proceeding to queue..."
-          log "Issue #${number} auto-accepted via policy: ${policy_ref}"
+            log "Issue #${number} auto-accepted via policy: ${policy_ref}"
+          else
+            log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${ACCEPTED_LABEL} to issue #${number} (policy); leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+          fi
           continue  # Skip standard review, already approved
         elif [[ "$requires_legal" == "true" ]]; then
           # Policy matched but requires legal/compliance review
           log "Issue #${number} matched policy ${policy_ref} but requires legal review"
 
-          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-          add_label "${number}" "${LEGAL_REVIEW_LABEL}"
-          comment_issue "${number}" "⚠️ **Policy matched but requires legal review**
+          if add_label "${number}" "${LEGAL_REVIEW_LABEL}"; then
+            remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+            comment_issue "${number}" "⚠️ **Policy matched but requires legal review**
 
 **Policy**: \`${policy_ref}\`
 **Recommendation**: ${policy_text}
@@ -863,15 +888,18 @@ Legal review requested. Please review and approve by:
 2. Or closing the issue if rejected
 
 The worker will wait for your decision."
-          log "Issue #${number} marked legal-review (policy requires compliance check)"
+            log "Issue #${number} marked legal-review (policy requires compliance check)"
+          else
+            log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${LEGAL_REVIEW_LABEL} to issue #${number} (policy); leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+          fi
           continue
         elif [[ "$requires_approval" == "true" ]]; then
           # Policy matched but requires human approval
           log "Issue #${number} matched policy ${policy_ref} but requires human approval"
 
-          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-          add_label "${number}" "${NEEDS_HUMAN_LABEL}"
-          comment_issue "${number}" "⚠️ **Policy matched but requires approval**
+          if add_label "${number}" "${NEEDS_HUMAN_LABEL}"; then
+            remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+            comment_issue "${number}" "⚠️ **Policy matched but requires approval**
 
 **Policy**: \`${policy_ref}\`
 **Recommendation**: ${policy_text}
@@ -882,7 +910,10 @@ Please review and approve by:
 2. Or closing the issue if you reject
 
 The worker will wait for your decision."
-          log "Issue #${number} marked needs-human (policy requires approval)"
+            log "Issue #${number} marked needs-human (policy requires approval)"
+          else
+            log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${NEEDS_HUMAN_LABEL} to issue #${number} (policy); leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+          fi
           continue
         fi
       fi
@@ -900,22 +931,31 @@ The worker will wait for your decision."
 
     case "${status}" in
       accepted)
-        add_label "${number}" "${ACCEPTED_LABEL}"
-        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-        comment_issue "${number}" "AI SDLC initial acceptance review passed (auto-reconciled). Criteria checked: improvement/correction intent, non-destructive scope, stability, security, maintainability, architecture, and good practices. ${reason_text}"
-        log "Issue #${number} auto-accepted via reconciliation"
+        if add_label "${number}" "${ACCEPTED_LABEL}"; then
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          comment_issue "${number}" "AI SDLC initial acceptance review passed (auto-reconciled). Criteria checked: improvement/correction intent, non-destructive scope, stability, security, maintainability, architecture, and good practices. ${reason_text}"
+          log "Issue #${number} auto-accepted via reconciliation"
+        else
+          log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${ACCEPTED_LABEL} to issue #${number}; leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+        fi
         ;;
       needs-human)
-        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-        add_label "${number}" "${NEEDS_HUMAN_LABEL}"
-        comment_issue "${number}" "AI SDLC initial acceptance review needs human clarification before queue admission (auto-reconciled). ${reason_text}"
-        log "Issue #${number} marked needs-human via reconciliation"
+        if add_label "${number}" "${NEEDS_HUMAN_LABEL}"; then
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          comment_issue "${number}" "AI SDLC initial acceptance review needs human clarification before queue admission (auto-reconciled). ${reason_text}"
+          log "Issue #${number} marked needs-human via reconciliation"
+        else
+          log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${NEEDS_HUMAN_LABEL} to issue #${number}; leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+        fi
         ;;
       *)
-        remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
-        add_label "${number}" "${REJECTED_LABEL}"
-        comment_issue "${number}" "AI SDLC initial acceptance review rejected this issue for autonomous implementation (auto-reconciled). ${reason_text}"
-        log "Issue #${number} rejected via reconciliation"
+        if add_label "${number}" "${REJECTED_LABEL}"; then
+          remove_label "${number}" "${ADMISSION_REVIEW_LABEL}"
+          comment_issue "${number}" "AI SDLC initial acceptance review rejected this issue for autonomous implementation (auto-reconciled). ${reason_text}"
+          log "Issue #${number} rejected via reconciliation"
+        else
+          log "ERROR: reconcile_stuck_admission_reviews: failed to apply ${REJECTED_LABEL} to issue #${number}; leaving in ${ADMISSION_REVIEW_LABEL} for retry"
+        fi
         ;;
     esac
   done < <(jq -c '.[]' <<<"${issues_json}")
