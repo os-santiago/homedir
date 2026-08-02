@@ -69,10 +69,9 @@ public class AboutResource {
         ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
 
     // Sensitive build details are only shown to admins, or outside production.
-    boolean isProd = "prod".equals(environment);
     boolean isAdmin = identity != null && !identity.isAnonymous() && AdminUtils.isAdmin(identity);
-    boolean showCommitHash = !isProd || isAdmin;
-    boolean showAuthConfig = isAdmin;
+    boolean showCommitHash = shouldShowCommitHash(environment, isAdmin);
+    boolean showAuthConfig = shouldShowAuthConfig(isAdmin);
 
     return TemplateLocaleUtil.apply(
         Templates.about(
@@ -85,5 +84,15 @@ public class AboutResource {
             showCommitHash,
             showAuthConfig),
         localeCookie);
+  }
+
+  /** Commit hash is exposed outside production, and to admins everywhere. */
+  static boolean shouldShowCommitHash(String environment, boolean isAdmin) {
+    return !"prod".equals(environment) || isAdmin;
+  }
+
+  /** Auth configuration is only exposed to admins. */
+  static boolean shouldShowAuthConfig(boolean isAdmin) {
+    return isAdmin;
   }
 }
