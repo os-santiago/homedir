@@ -33,10 +33,6 @@ public class LegalPagesSpanishTest {
 
   @Test
   void spanishRoutesAreNotIdenticalToEnglishRoutes() {
-    given()
-        .when()
-        .get("/privacy-policy")
-        .then()
-        .statusCode(200);
+    given().when().get("/privacy-policy").then().statusCode(200);
   }
 }
