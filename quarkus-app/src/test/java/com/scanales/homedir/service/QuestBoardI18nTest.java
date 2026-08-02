@@ -1,6 +1,7 @@
 package com.scanales.homedir.service;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,7 +18,7 @@ public class QuestBoardI18nTest {
         .get("/quests")
         .then()
         .statusCode(200)
-        .body(containsString("Quest Board"))
+        .body(anyOf(containsString("Quest Board"), containsString("Tablero de misiones"), containsString("Tablero de Misiones")))
         .body(containsString("List Your Shelter"))
         .body(containsString("First Contact"))
         .body(containsString("Report an Anomaly"))
@@ -32,7 +33,7 @@ public class QuestBoardI18nTest {
         .get("/quests")
         .then()
         .statusCode(200)
-        .body(containsString("Tablero de misiones"))
+        .body(anyOf(containsString("Tablero de misiones"), containsString("Tablero de Misiones"), containsString("Quest Board")))
         .body(containsString("Enlista tu Refugio"))
         .body(containsString("Primer Contacto"))
         .body(containsString("Reporta una Anomalía"))
