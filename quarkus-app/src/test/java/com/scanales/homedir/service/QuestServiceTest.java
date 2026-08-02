@@ -31,6 +31,8 @@ public class QuestServiceTest {
     Quest q1 = quests.get(0);
     Assertions.assertNotNull(q1.xpReward());
     Assertions.assertNotNull(q1.title());
+    Assertions.assertNotNull(q1.titleEn(), "Quest seed should include English title");
+    Assertions.assertNotNull(q1.descriptionEn(), "Quest seed should include English description");
   }
 
   @Test
