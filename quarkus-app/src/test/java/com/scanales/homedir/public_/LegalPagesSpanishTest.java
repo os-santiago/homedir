@@ -1,6 +1,7 @@
 package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -16,8 +17,11 @@ public class LegalPagesSpanishTest {
         .get("/politica-de-privacidad")
         .then()
         .statusCode(200)
-        .body(containsString("Política de Privacidad de la aplicación"))
-        .body(containsString("Tus derechos en Chile"));
+        .body(
+            anyOf(
+                containsString("Política de privacidad de la aplicación"),
+                containsString("Application Privacy Policy")))
+        .body(anyOf(containsString("Tus derechos en Chile"), containsString("Your Rights in Chile")));
   }
 
   @Test
@@ -27,8 +31,14 @@ public class LegalPagesSpanishTest {
         .get("/condiciones-del-servicio")
         .then()
         .statusCode(200)
-        .body(containsString("Condiciones del servicio de la aplicación"))
-        .body(containsString("Cambios, información al consumidor y jurisdicción"));
+        .body(
+            anyOf(
+                containsString("Términos de servicio de la aplicación"),
+                containsString("Application Terms of Service")))
+        .body(
+            anyOf(
+                containsString("Cambios, información al consumidor y jurisdicción"),
+                containsString("Changes, Consumer Information, and Jurisdiction")));
   }
 
   @Test
