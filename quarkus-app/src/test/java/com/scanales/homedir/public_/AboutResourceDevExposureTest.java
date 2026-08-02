@@ -5,10 +5,20 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@TestProfile(AboutResourceDevExposureTest.NonProdProfile.class)
 public class AboutResourceDevExposureTest {
+
+  public static class NonProdProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+      return "test";
+    }
+  }
 
   @Test
   void nonProdShowsCommitHashButHidesAuthConfig() {
