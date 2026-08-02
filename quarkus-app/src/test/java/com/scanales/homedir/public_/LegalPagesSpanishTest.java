@@ -21,7 +21,10 @@ public class LegalPagesSpanishTest {
             anyOf(
                 containsString("Política de privacidad de la aplicación"),
                 containsString("Application Privacy Policy")))
-        .body(anyOf(containsString("Tus derechos en Chile"), containsString("Your Rights in Chile")));
+        .body(
+            anyOf(
+                containsString("Tus derechos en Chile"),
+                containsString("Your Rights in Chile")));
   }
 
   @Test
