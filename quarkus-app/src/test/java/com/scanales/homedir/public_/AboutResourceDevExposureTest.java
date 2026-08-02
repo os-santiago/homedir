@@ -20,7 +20,8 @@ public class AboutResourceDevExposureTest {
         .statusCode(200)
         .body(
             anyOf(
-                containsString("Hash de commit desplegado"), containsString("Deployed Commit Hash")))
+                containsString("Hash de commit desplegado"),
+                containsString("Deployed Commit Hash")))
         .body(
             not(
                 anyOf(
