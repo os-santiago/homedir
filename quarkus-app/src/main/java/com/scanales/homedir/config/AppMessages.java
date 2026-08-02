@@ -2848,6 +2848,30 @@ public interface AppMessages {
   @Message("Login")
   String nav_login();
 
+  @Message("Contact")
+  String contacto_title();
+
+  @Message("If you want to use Homedir in your community or event, let's talk.")
+  String contacto_intro();
+
+  @Message("Discord")
+  String contacto_discord_title();
+
+  @Message("Join our Discord server to discuss events, CFP, volunteering or any questions.")
+  String contacto_discord_desc();
+
+  @Message("Open Discord")
+  String contacto_discord_btn();
+
+  @Message("GitHub")
+  String contacto_github_title();
+
+  @Message("Report bugs, suggest improvements or contribute code in the official repository.")
+  String contacto_github_desc();
+
+  @Message("Open an issue")
+  String contacto_github_btn();
+
   @Message("Logout")
   String nav_logout();
 

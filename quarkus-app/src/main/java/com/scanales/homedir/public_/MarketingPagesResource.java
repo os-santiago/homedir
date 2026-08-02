@@ -25,11 +25,22 @@ public class MarketingPagesResource {
   @ConfigProperty(name = "homedir.ui.v2.enabled", defaultValue = "true")
   boolean uiV2Enabled;
 
+  @ConfigProperty(
+      name = "community.support.discord-url",
+      defaultValue = "https://discord.gg/3eawzc9ybc")
+  String discordUrl;
+
+  @ConfigProperty(name = "home.project.github.repo-owner", defaultValue = "os-santiago")
+  String githubRepoOwner;
+
+  @ConfigProperty(name = "home.project.github.repo-name", defaultValue = "homedir")
+  String githubRepoName;
+
   @CheckedTemplate(basePath = "pages")
   static class Templates {
     public static native TemplateInstance docs();
 
-    public static native TemplateInstance contacto();
+    public static native TemplateInstance contacto(String discordUrl, String githubUrl);
 
     public static native TemplateInstance privacy();
 
@@ -57,11 +68,11 @@ public class MarketingPagesResource {
       @Context HttpHeaders headers,
       @Context RoutingContext context) {
     metrics.recordPageView("/contacto", headers, context);
+    String githubUrl = "https://github.com/" + githubRepoOwner + "/" + githubRepoName + "/issues";
     if (uiV2Enabled) {
-      return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
+      return TemplateLocaleUtil.apply(Templates.contacto(discordUrl, githubUrl), localeCookie);
     }
-    // TODO: definir template de fallback si en el futuro se desea una versión mínima
-    return TemplateLocaleUtil.apply(Templates.contacto(), localeCookie);
+    return TemplateLocaleUtil.apply(Templates.contacto(discordUrl, githubUrl), localeCookie);
   }
 
   @GET
