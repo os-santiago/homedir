@@ -32,7 +32,7 @@ public class QuestBoardI18nTest {
         .get("/quests")
         .then()
         .statusCode(200)
-        .body(containsString("Tablero de Misiones"))
+        .body(containsString("Tablero de misiones"))
         .body(containsString("Enlista tu Refugio"))
         .body(containsString("Primer Contacto"))
         .body(containsString("Reporta una Anomalía"))
