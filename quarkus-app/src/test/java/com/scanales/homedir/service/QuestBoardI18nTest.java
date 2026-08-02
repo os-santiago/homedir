@@ -18,7 +18,11 @@ public class QuestBoardI18nTest {
         .get("/quests")
         .then()
         .statusCode(200)
-        .body(anyOf(containsString("Quest Board"), containsString("Tablero de misiones"), containsString("Tablero de Misiones")))
+        .body(
+            anyOf(
+                containsString("Quest Board"),
+                containsString("Tablero de misiones"),
+                containsString("Tablero de Misiones")))
         .body(containsString("List Your Shelter"))
         .body(containsString("First Contact"))
         .body(containsString("Report an Anomaly"))
@@ -33,7 +37,11 @@ public class QuestBoardI18nTest {
         .get("/quests")
         .then()
         .statusCode(200)
-        .body(anyOf(containsString("Tablero de misiones"), containsString("Tablero de Misiones"), containsString("Quest Board")))
+        .body(
+            anyOf(
+                containsString("Tablero de misiones"),
+                containsString("Tablero de Misiones"),
+                containsString("Quest Board")))
         .body(containsString("Enlista tu Refugio"))
         .body(containsString("Primer Contacto"))
         .body(containsString("Reporta una Anomalía"))
