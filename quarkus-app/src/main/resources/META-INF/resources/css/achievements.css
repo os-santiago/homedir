@@ -44,6 +44,40 @@
   color: rgba(var(--white-rgb), 0.9);
 }
 
+.achievement-threshold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.achievement-threshold-badge .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+.badge-starter {
+  background: rgba(var(--mint-rgb), 0.2);
+  color: var(--mint, #4ade80);
+  border: 1px solid rgba(var(--mint-rgb), 0.4);
+}
+.badge-hunter {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+.badge-master {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.badge-legend {
+  background: rgba(250, 204, 21, 0.2);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
 .achievements-link-prompt {
   display: flex;
   align-items: center;
