@@ -172,8 +172,11 @@
     listEl.appendChild(sample);
   }
 
-  // Escapes básicos
+  // Escapes básicos (shared util con fallback defensivo)
   function escapeHtml(s) {
+    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
+      return window.HomeDirUtils.escapeHtml(s);
+    }
     return String(s).replace(/[&<>"']/g, m => ({
       "&": "&amp;",
       "<": "&lt;",

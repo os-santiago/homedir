@@ -1,7 +1,13 @@
 (async function(){
   const listEl = document.getElementById('admin-list');
   const clearBtn = document.getElementById('clearAll');
+  if (!listEl) {
+    return;
+  }
   function esc(s) {
+    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
+      return window.HomeDirUtils.escapeHtml(s);
+    }
     return String(s).replace(/[&<>"']/g, function(m) {
       return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
     });

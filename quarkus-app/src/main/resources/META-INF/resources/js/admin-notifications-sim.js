@@ -1,11 +1,20 @@
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
   const eventId = document.getElementById('eventId');
   const pivot = document.getElementById('pivot');
   const states = document.getElementById('states');
   const resultsTable = document.getElementById('results');
-  const resultsBody = resultsTable.querySelector('tbody');
   const optin = document.getElementById('optin');
+  // Early-return when the simulator controls are not on the page (consistent
+  // with other page scripts). This script is loaded with `defer`, so the DOM
+  // is fully parsed when it runs — no DOMContentLoaded wrapper needed.
+  if (!eventId || !pivot || !states || !resultsTable || !optin) {
+    return;
+  }
+  const resultsBody = resultsTable.querySelector('tbody');
   function esc(s) {
+    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
+      return window.HomeDirUtils.escapeHtml(s);
+    }
     return String(s).replace(/[&<>"']/g, function(m) {
       return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
     });
@@ -48,4 +57,4 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('preview').addEventListener('click', () => call('/admin/api/notifications/sim/dry-run'));
   document.getElementById('execute').addEventListener('click', () => call('/admin/api/notifications/sim/execute'));
   document.getElementById('replay').addEventListener('click', () => call('/admin/api/notifications/sim/execute?mode=sequential'));
-});
+})();

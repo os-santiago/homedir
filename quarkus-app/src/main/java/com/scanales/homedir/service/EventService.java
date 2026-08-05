@@ -85,6 +85,9 @@ public class EventService {
   }
 
   public void saveEvent(Event event) {
+    if (event == null || event.getId() == null) {
+      return;
+    }
     ensureDefaults(event);
     ensureDevOpsDaysDraftAgenda(event);
     events.put(event.getId(), event);
@@ -98,28 +101,40 @@ public class EventService {
 
   public void saveScenario(String eventId, Scenario scenario) {
     Event event = events.get(eventId);
-    if (event == null) {
+    if (event == null || scenario == null || scenario.getId() == null) {
       return;
     }
-    event.getScenarios().removeIf(s -> s.getId().equals(scenario.getId()));
+    if (event.getScenarios() == null) {
+      event.setScenarios(new ArrayList<>());
+    }
+    event
+        .getScenarios()
+        .removeIf(s -> s != null && s.getId() != null && s.getId().equals(scenario.getId()));
     event.getScenarios().add(scenario);
     persistence.saveEvents(new ConcurrentHashMap<>(events));
   }
 
   public void deleteScenario(String eventId, String scenarioId) {
     Event event = events.get(eventId);
-    if (event != null) {
-      event.getScenarios().removeIf(s -> s.getId().equals(scenarioId));
+    if (event != null && event.getScenarios() != null) {
+      event
+          .getScenarios()
+          .removeIf(s -> s != null && s.getId() != null && s.getId().equals(scenarioId));
       persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
   }
 
   public void saveTalk(String eventId, Talk talk) {
     Event event = events.get(eventId);
-    if (event == null) {
+    if (event == null || talk == null || talk.getId() == null) {
       return;
     }
-    event.getAgenda().removeIf(t -> t.getId().equals(talk.getId()));
+    if (event.getAgenda() == null) {
+      event.setAgenda(new ArrayList<>());
+    }
+    event
+        .getAgenda()
+        .removeIf(t -> t != null && t.getId() != null && t.getId().equals(talk.getId()));
     event.getAgenda().add(talk);
     event
         .getAgenda()
@@ -133,8 +148,8 @@ public class EventService {
 
   public void deleteTalk(String eventId, String talkId) {
     Event event = events.get(eventId);
-    if (event != null) {
-      event.getAgenda().removeIf(t -> t.getId().equals(talkId));
+    if (event != null && event.getAgenda() != null) {
+      event.getAgenda().removeIf(t -> t != null && t.getId() != null && t.getId().equals(talkId));
       persistence.saveEvents(new ConcurrentHashMap<>(events));
     }
   }
@@ -161,7 +176,7 @@ public class EventService {
    */
   public Talk findOverlap(String eventId, Talk talk) {
     Event event = events.get(eventId);
-    if (event == null || talk.getStartTime() == null) {
+    if (event == null || talk == null || talk.getStartTime() == null || event.getAgenda() == null) {
       return null;
     }
     java.time.LocalTime start = talk.getStartTime();
@@ -169,7 +184,9 @@ public class EventService {
     return event.getAgenda().stream()
         .filter(
             t ->
-                !t.getId().equals(talk.getId())
+                t != null
+                    && t.getId() != null
+                    && !t.getId().equals(talk.getId())
                     && t.getDay() == talk.getDay()
                     && t.getLocation() != null
                     && t.getLocation().equals(talk.getLocation()))
@@ -187,17 +204,21 @@ public class EventService {
   }
 
   public Scenario findScenario(String scenarioId) {
+    if (scenarioId == null) return null;
     return events.values().stream()
+        .filter(e -> e != null && e.getScenarios() != null)
         .flatMap(e -> e.getScenarios().stream())
-        .filter(s -> s.getId().equals(scenarioId))
+        .filter(s -> s != null && s.getId() != null && s.getId().equals(scenarioId))
         .findFirst()
         .orElse(null);
   }
 
   public Talk findTalk(String talkId) {
+    if (talkId == null) return null;
     return events.values().stream()
+        .filter(e -> e != null && e.getAgenda() != null)
         .flatMap(e -> e.getAgenda().stream())
-        .filter(t -> t.getId().equals(talkId))
+        .filter(t -> t != null && t.getId() != null && t.getId().equals(talkId))
         .findFirst()
         .orElse(null);
   }
@@ -205,35 +226,50 @@ public class EventService {
   /** Returns the talk with the given id within the specified event or {@code null} if not found. */
   public Talk findTalk(String eventId, String talkId) {
     Event event = events.get(eventId);
-    if (event == null) {
+    if (event == null || event.getAgenda() == null || talkId == null) {
       return null;
     }
     return event.getAgenda().stream()
-        .filter(t -> t.getId().equals(talkId))
+        .filter(t -> t != null && t.getId() != null && t.getId().equals(talkId))
         .findFirst()
         .orElse(null);
   }
 
   /** Returns the event that contains the given scenario or {@code null} if none. */
   public Event findEventByScenario(String scenarioId) {
+    if (scenarioId == null) return null;
     return events.values().stream()
-        .filter(e -> e.getScenarios().stream().anyMatch(s -> s.getId().equals(scenarioId)))
+        .filter(e -> e != null && e.getScenarios() != null)
+        .filter(
+            e ->
+                e.getScenarios().stream()
+                    .anyMatch(s -> s != null && s.getId() != null && s.getId().equals(scenarioId)))
         .findFirst()
         .orElse(null);
   }
 
   /** Returns the event that includes the provided talk id or {@code null}. */
   public Event findEventByTalk(String talkId) {
+    if (talkId == null) return null;
     return events.values().stream()
-        .filter(e -> e.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId)))
+        .filter(e -> e != null && e.getAgenda() != null)
+        .filter(
+            e ->
+                e.getAgenda().stream()
+                    .anyMatch(t -> t != null && t.getId() != null && t.getId().equals(talkId)))
         .findFirst()
         .orElse(null);
   }
 
   /** Returns all events that include the provided talk id. */
   public List<Event> findEventsByTalk(String talkId) {
+    if (talkId == null) return java.util.List.of();
     return events.values().stream()
-        .filter(e -> e.getAgenda().stream().anyMatch(t -> t.getId().equals(talkId)))
+        .filter(e -> e != null && e.getAgenda() != null)
+        .filter(
+            e ->
+                e.getAgenda().stream()
+                    .anyMatch(t -> t != null && t.getId() != null && t.getId().equals(talkId)))
         .sorted(java.util.Comparator.comparing(Event::getId))
         .toList();
   }
@@ -253,8 +289,13 @@ public class EventService {
    * is scheduled multiple times.
    */
   public List<Talk> findTalkOccurrences(String talkId) {
+    if (talkId == null) return java.util.List.of();
     return events.values().stream()
-        .flatMap(e -> e.getAgenda().stream().filter(t -> t.getId().equals(talkId)))
+        .filter(e -> e != null && e.getAgenda() != null)
+        .flatMap(
+            e ->
+                e.getAgenda().stream()
+                    .filter(t -> t != null && t.getId() != null && t.getId().equals(talkId)))
         .sorted(
             java.util.Comparator.comparingInt(Talk::getDay)
                 .thenComparing(
@@ -266,11 +307,11 @@ public class EventService {
   /** Returns all instances of a talk within the specified event ordered by day and time. */
   public List<Talk> findTalkOccurrences(String eventId, String talkId) {
     Event event = events.get(eventId);
-    if (event == null) {
+    if (event == null || event.getAgenda() == null || talkId == null) {
       return java.util.List.of();
     }
     return event.getAgenda().stream()
-        .filter(t -> t.getId().equals(talkId))
+        .filter(t -> t != null && t.getId() != null && t.getId().equals(talkId))
         .sorted(
             java.util.Comparator.comparingInt(Talk::getDay)
                 .thenComparing(

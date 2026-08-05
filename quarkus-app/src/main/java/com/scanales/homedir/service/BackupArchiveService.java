@@ -1,6 +1,9 @@
 package com.scanales.homedir.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,12 +15,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 @ApplicationScoped
 public class BackupArchiveService {
+
+  @Inject ObjectMapper objectMapper;
 
   public byte[] createArchive(Path dataDir, String appVersion) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -74,6 +80,9 @@ public class BackupArchiveService {
           zis.closeEntry();
           continue;
         }
+        if (rawName.contains("\0")) {
+          throw new IOException("null_byte_in_entry_name");
+        }
         if ("backup-manifest.json".equals(rawName)) {
           zis.closeEntry();
           continue;
@@ -94,8 +103,13 @@ public class BackupArchiveService {
             verifyInsideRoot(parent, root);
           }
         }
-        Files.copy(zis, target, StandardCopyOption.REPLACE_EXISTING);
+        // Reject symlinks: a symlink in the data dir could point outside root.
+        if (Files.isSymbolicLink(target)) {
+          throw new IOException("symbolic_link_not_allowed:" + rawName);
+        }
+        // Verify target is inside root BEFORE writing, not after.
         verifyInsideRoot(target, root);
+        Files.copy(zis, target, StandardCopyOption.REPLACE_EXISTING);
         restoredFiles++;
         zis.closeEntry();
       }
@@ -125,7 +139,15 @@ public class BackupArchiveService {
   }
 
   private static void verifyInsideRoot(Path target, Path root) throws IOException {
-    if (!target.toRealPath().startsWith(root)) {
+    // Use toRealPath() when the file exists (post-write check), otherwise
+    // fall back to toAbsolutePath().normalize() (pre-write check).
+    Path resolved;
+    if (Files.exists(target)) {
+      resolved = target.toRealPath();
+    } else {
+      resolved = target.toAbsolutePath().normalize();
+    }
+    if (!resolved.startsWith(root)) {
       throw new IOException("zip_outside_data_dir");
     }
   }
@@ -143,5 +165,32 @@ public class BackupArchiveService {
       return "";
     }
     return raw.replace("\\", "\\\\").replace("\"", "\\\"");
+  }
+
+  /**
+   * Reads the {@code app_version} field from the {@code backup-manifest.json} entry inside the
+   * given ZIP stream. The stream is consumed but not closed by this method.
+   *
+   * @return the version string from the manifest, or empty if not found
+   */
+  public Optional<String> readManifestVersion(InputStream zipInput) throws IOException {
+    try (ZipInputStream zis = new ZipInputStream(zipInput, StandardCharsets.UTF_8)) {
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        String name = entry.getName() == null ? "" : entry.getName().trim();
+        if ("backup-manifest.json".equals(name)) {
+          String content = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+          zis.closeEntry();
+          JsonNode node = objectMapper.readTree(content);
+          JsonNode versionNode = node.get("app_version");
+          if (versionNode != null && !versionNode.isNull()) {
+            return Optional.ofNullable(versionNode.asText(null));
+          }
+          return Optional.empty();
+        }
+        zis.closeEntry();
+      }
+    }
+    return Optional.empty();
   }
 }

@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -59,6 +60,10 @@ public class AdminBackupResource {
   String dataDirPath;
 
   private static final Logger LOG = Logger.getLogger(AdminBackupResource.class);
+
+  /** Maximum allowed size for backup uploads (500 MB). */
+  private static final long MAX_BACKUP_FILE_SIZE_BYTES = 500L * 1024 * 1024;
+
   private static final Pattern BACKUP_VERSION =
       Pattern.compile("backup_.*_v(\\d+\\.\\d+(?:\\.\\d+)?).*\\.zip");
 
@@ -129,19 +134,20 @@ public class AdminBackupResource {
               UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo inválido.").build())
           .build();
     }
+    if (file.size() > MAX_BACKUP_FILE_SIZE_BYTES) {
+      LOG.warnf(
+          "Backup file too large: %d bytes (max=%d)", file.size(), MAX_BACKUP_FILE_SIZE_BYTES);
+      return Response.seeOther(
+              UriBuilder.fromPath(redirect)
+                  .queryParam("msg", "\u274c Archivo demasiado grande (m\u00e1x 500MB).")
+                  .build())
+          .build();
+    }
     String fileName = file.fileName();
     if (fileName == null || !fileName.endsWith(".zip")) {
       LOG.warnf("Invalid backup type: %s", fileName);
       return Response.seeOther(
               UriBuilder.fromPath(redirect).queryParam("msg", "\u274c Archivo no es ZIP.").build())
-          .build();
-    }
-    if (!isCompatibleVersion(fileName)) {
-      LOG.warnf("Incompatible backup version: %s (app=%s)", fileName, appVersion);
-      return Response.seeOther(
-              UriBuilder.fromPath(redirect)
-                  .queryParam("msg", "\u274c Versión incompatible.")
-                  .build())
           .build();
     }
     java.nio.file.Path dataDir = resolveDataDir();
@@ -158,12 +164,43 @@ public class AdminBackupResource {
             .build();
       }
 
+      // Validate version compatibility from the backup-manifest.json inside the ZIP.
+      // Falls back to the filename pattern for older backups without a manifest.
+      String backupVersion;
+      try (InputStream manifestIn = Files.newInputStream(file.filePath())) {
+        Optional<String> manifestVersion = backupArchiveService.readManifestVersion(manifestIn);
+        if (manifestVersion.isPresent()) {
+          backupVersion = manifestVersion.get();
+        } else {
+          Matcher matcher = BACKUP_VERSION.matcher(fileName);
+          if (!matcher.matches()) {
+            LOG.warnf("Backup has no manifest and filename does not encode version: %s", fileName);
+            return Response.seeOther(
+                    UriBuilder.fromPath(redirect)
+                        .queryParam("msg", "\u274c Versión incompatible.")
+                        .build())
+                .build();
+          }
+          backupVersion = matcher.group(1);
+        }
+      }
+      if (!isCompatibleVersion(backupVersion)) {
+        LOG.warnf("Incompatible backup version: %s (app=%s)", backupVersion, appVersion);
+        return Response.seeOther(
+                UriBuilder.fromPath(redirect)
+                    .queryParam("msg", "\u274c Versión incompatible.")
+                    .build())
+            .build();
+      }
+
+      // Flush pending writes BEFORE restoring so they do not overwrite restored files.
+      persistence.flush();
+
       int restoredFiles;
       try (InputStream in = Files.newInputStream(file.filePath())) {
         restoredFiles = backupArchiveService.restoreArchive(in, dataDir);
       }
 
-      persistence.flush();
       eventService.reload();
       speakerService.reload();
       cfpSubmissionService.reloadFromDisk();
@@ -180,12 +217,7 @@ public class AdminBackupResource {
   }
 
   /** Accept same major.minor, even if patch differs. */
-  private boolean isCompatibleVersion(String fileName) {
-    Matcher matcher = BACKUP_VERSION.matcher(fileName);
-    if (!matcher.matches()) {
-      return false;
-    }
-    String backupVersion = matcher.group(1);
+  private boolean isCompatibleVersion(String backupVersion) {
     String[] appParts = appVersion.split("\\.");
     String[] backupParts = backupVersion.split("\\.");
     if (appParts.length < 2 || backupParts.length < 2) {

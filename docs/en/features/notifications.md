@@ -37,3 +37,20 @@ curl -X POST https://homedir.opensourcesantiago.io/admin/api/notifications/broad
 ## Integration
 - **Talk Status Change**: Triggered automatically when talk state moves (e.g., to `ACCEPTED`).
 - **UI**: Toast notifications appear top-right.
+
+## Frontend JS Ownership
+
+The notification runtime is consolidated (single owner), with page-specific UIs kept separate:
+
+| File | Responsibility |
+|------|----------------|
+| `js/core-bundle.js` | **Runtime owner**: WebSocket client to `/ws/global-notifications`, reconnect with backoff, toast queue manager, unread badge, `EFNotificationsAdapter`, `HomeDirNotifications` API. |
+| `js/utils.js` | Shared DOM/string utilities (`HomeDirUtils.escapeHtml` / `escapeAttr`). Loaded in the layout `<head>` before any page script. |
+| `js/notifications-center.js` | UI for `/notifications/center`: localStorage-backed list, filters, read/unread, delete, selection. |
+| `js/admin-notifications.js` | Admin broadcast page: send global/scoped announcements, list and delete backlog. |
+| `js/admin-notifications-sim.js` | Admin simulation page: dry-run/execute audience targeting before broadcasting. |
+
+Rules:
+- The WebSocket connection, notification inbox state (`ef_global_notifs`), and unread counter (`ef_global_unread_count`) are owned by `core-bundle.js`.
+- Page scripts must not re-open their own WebSocket; they consume notifications via `HomeDirNotifications` or `window.__EF_GLOBAL_NOTIF_ACCEPT__`.
+- HTML escaping belongs in `js/utils.js` (`HomeDirUtils.escapeHtml`); page scripts keep a defensive fallback only.
