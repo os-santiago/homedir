@@ -26,29 +26,6 @@
 
 Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives, combining Community Picks, Events, Projects, CFP workflows, GitHub Trending repositories, and contributor identity integrations (GitHub/Discord/Google login) in a single product.
 
-## ⚠️ AI-SDLC Migration Notice
-
-**The AI-SDLC (Autonomous Software Development Lifecycle) components have been migrated to a separate repository:**
-
-👉 **https://github.com/os-santiago/homedir-ai-sdlc**
-
-**Deprecated components** (scheduled for removal on **2026-08-14**):
-- `quarkus-app/src/main/java/com/scanales/homedir/sdlc/` - Dashboard backend (marked `@Deprecated`)
-- `quarkus-app/src/main/resources/templates/sdlc/` - Dashboard templates
-- `quarkus-app/src/main/resources/META-INF/resources/sdlc/` - Dashboard frontend
-- `platform/scripts/homedir-sdlc-*.sh` - Worker scripts
-- `.github/workflows/build-sdlc-worker-image.yml` - Worker image build
-- `.github/workflows/deploy-worker.yml` - Worker deployment
-
-**Migration date**: 2026-08-01  
-**Reason**: Separation prevents AI-SDLC changes from affecting the main Homedir application.
-
-The deprecated code is maintained here for 2 weeks to allow rollback if needed. After 2026-08-14, it will be automatically removed.
-
-**For AI-SDLC development or deployment, please use:** https://github.com/os-santiago/homedir-ai-sdlc
-
----
-
 ## Repository Layout
 - `quarkus-app/`: main Quarkus application (backend + templates + static assets).
 - `docs/`: product and technical documentation (EN/ES).
