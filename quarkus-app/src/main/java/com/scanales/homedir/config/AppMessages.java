@@ -7116,6 +7116,18 @@ public interface AppMessages {
   @Message("Claim XP")
   String achievements_claim_xp();
 
+  @Message("Verify")
+  String achievements_verify();
+
+  @Message("Verified! You can now claim XP.")
+  String achievements_verify_success();
+
+  @Message("Not yet unlocked. Keep going!")
+  String achievements_verify_locked();
+
+  @Message("Error - try again")
+  String achievements_verify_error();
+
   @Message("os-santiago Repositories")
   String achievements_org_repos_title();
 

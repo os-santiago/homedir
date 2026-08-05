@@ -123,6 +123,15 @@
                   {i18n:achievements_claim_xp}
                 </button>
               {/if}
+              {#if status.key == guide.achievement.key && !status.unlocked}
+                <button class="btn btn--secondary achievement-verify-btn"
+                        data-achievement-key="{guide.achievement.key}"
+                        data-success="{i18n:achievements_verify_success}"
+                        data-locked="{i18n:achievements_verify_locked}"
+                        data-error="{i18n:achievements_verify_error}">
+                  {i18n:achievements_verify}
+                </button>
+              {/if}
             {/for}
           {/if}
         </article>
