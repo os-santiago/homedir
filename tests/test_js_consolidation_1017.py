@@ -73,19 +73,20 @@ def test_utils_exposes_shared_utilities() -> None:
 
 
 def test_admin_notifications_sim_uses_iife_with_guard() -> None:
-    """admin-notifications-sim.js must use IIFE pattern with root-element guard,
-    not DOMContentLoaded (redundant with defer)."""
-    sim = _read_js("admin-notifications-sim.js")
-    stripped = sim.strip()
-    assert stripped.startswith("(function") or stripped.startswith("(()"), \
-        "admin-notifications-sim.js must start with IIFE"
+    """admin-notifications.js (consolidated) must use IIFE pattern with
+    root-element guard for the simulator section, not DOMContentLoaded
+    (redundant with defer)."""
+    admin = _read_js("admin-notifications.js")
+    stripped = admin.strip()
+    assert stripped.startswith("(async function") or stripped.startswith("(function") or stripped.startswith("(()"), \
+        "admin-notifications.js must start with IIFE"
     # DOMContentLoaded must not be used as an event listener (comments are OK)
-    assert "addEventListener('DOMContentLoaded'" not in sim and \
-           'addEventListener("DOMContentLoaded"' not in sim, \
-        "admin-notifications-sim.js must not use DOMContentLoaded event listener (defer makes it redundant)"
-    # Must have root-element guard
-    assert "if (!eventId" in sim or "if (!eventId ||" in sim, \
-        "admin-notifications-sim.js must guard against missing root elements"
+    assert "addEventListener('DOMContentLoaded'" not in admin and \
+           'addEventListener("DOMContentLoaded"' not in admin, \
+        "admin-notifications.js must not use DOMContentLoaded event listener (defer makes it redundant)"
+    # Must have root-element guard for the simulator section
+    assert "if (!eventId" in admin or "if (!eventId ||" in admin, \
+        "admin-notifications.js must guard against missing simulator root elements"
 
 
 def test_admin_notifications_has_root_guard() -> None:
