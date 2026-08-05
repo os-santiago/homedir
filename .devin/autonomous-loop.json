@@ -1,0 +1,146 @@
+{
+  "loop": {
+    "mode": "autonomous",
+    "stop_condition": "all_assigned_issues_have_valid_prs_for_merge",
+    "max_iterations": null,
+    "retry_on_failure": true,
+    "backoff_strategy": "exponential",
+    "issues_source": {
+      "repo": "os-santiago/homedir",
+      "assignee": "VECTORG99",
+      "state": "open",
+      "exclude_prs_already_open": false
+    },
+    "pipeline": [
+      {
+        "step": 1,
+        "name": "fetch_issue",
+        "description": "Traer el siguiente issue asignado a VECTORG99 sin PR válido para merge. Si no quedan issues, terminar el loop.",
+        "inputs": {
+          "repo": "os-santiago/homedir",
+          "assignee": "VECTORG99",
+          "state": "open"
+        },
+        "outputs": ["issue_number", "issue_title", "issue_body", "issue_labels", "parent_issue"],
+        "on_failure": "retry_with_next_issue"
+      },
+      {
+        "step": 2,
+        "name": "analyze_state",
+        "description": "Analizar el estado actual del issue: leer el body, identificar archivos afectados, revisar si hay PRs abiertos existentes para el issue, verificar el estado de CI de esos PRs, y decidir si se trabaja sobre un PR existente o se crea uno nuevo.",
+        "checks": [
+          "issue_body_leído_completamente",
+          "archivos_afectados_identificados",
+          "prs_abiertos_para_el_issue_revisados",
+          "estado_ci_de_prs_existentes_verificado",
+          "decision_nuevo_pr_vs_rework_pr_documentada"
+        ],
+        "outputs": ["affected_files", "existing_prs", "ci_status", "plan_of_attack"],
+        "on_failure": "retry_step_from_fetch_issue"
+      },
+      {
+        "step": 3,
+        "name": "resolve",
+        "description": "Implementar los cambios atómicos para resolver el issue. Cambios mínimos, enfocados, sin scope creep. Seguir convenciones del repo. Crear branch dedicada con naming convention: fix/issue-<number>-<short-slug> o feat/issue-<number>-<short-slug>.",
+        "constraints": [
+          "cambios_atomicos_un_issue_un_pr",
+          "no_tocar_archivos_fuera_de_scope",
+          "seguir_convenciones_existentes_del_repo",
+          "no_agregar_dependencies_sin_verificar",
+          "no_eliminar_comentarios_existentes",
+          "branch_base_main_actualizada"
+        ],
+        "outputs": ["branch_name", "files_changed", "diff_summary"],
+        "on_failure": "retry_step_with_adjusted_approach"
+      },
+      {
+        "step": 4,
+        "name": "test_local",
+        "description": "Ejecutar el conjunto de tests y verificaciones en local acorde al scope del cambio. Incluir como mínimo: compilación (./mvnw -DskipTests compile si aplica), node --check para JS, tests unitarios relevantes, y cualquier test E2E que aplique al área tocada.",
+        "commands": {
+          "java": "./mvnw -DskipTests compile",
+          "java_tests": "./mvnw test -Dtest=<relevant_tests>",
+          "js": "node --check <modified_files>",
+          "e2e": "ejecutar solo si el cambio toca flujos cubiertos por Playwright"
+        },
+        "checks": [
+          "compilacion_pasa",
+          "tests_unitarios_pasan",
+          "node_check_pasa_si_js_modificado",
+          "no_regresiones_introducidas"
+        ],
+        "outputs": ["test_results", "failures"],
+        "on_failure": "volver_a_step_resolve"
+      },
+      {
+        "step": 5,
+        "name": "validate_test_run",
+        "description": "Revisar críticamente que el testeo ejecutado en el paso 4 sea válido: ¿los tests cubren realmente el cambio? ¿Hay casos borde no probados? ¿Los tests pasaron por la razón correcta y no por un falso positivo? Si la validación falla, identificar gaps y volver a resolver o agregar tests.",
+        "checks": [
+          "tests_cubren_el_cambio_real",
+          "casos_borde_identificados_y_probados",
+          "no_falsos_positivos",
+          "cobertura_suficiente_para_el_scope"
+        ],
+        "outputs": ["validation_verdict", "gaps_found"],
+        "on_failure": "volver_a_step_resolve_o_agregar_tests"
+      },
+      {
+        "step": 6,
+        "name": "pre_pr_ci_validation",
+        "description": "Antes de subir el PR, simular localmente los checks de CI que correrá GitHub. Verificar formato de commits, linting, build completo, y cualquier workflow relevante. Solo proceder a subir el PR si todos los checks locales equivalentes pasan.",
+        "checks": [
+          "lint_pasa",
+          "build_completo_pasa",
+          "formato_commits_cumple_convencion",
+          "no_secrets_en_diff",
+          "branch_rebased_sobre_main_actualizado"
+        ],
+        "outputs": ["ci_simulation_result", "ready_for_pr"],
+        "on_failure": "volver_a_step_resolve"
+      },
+      {
+        "step": 7,
+        "name": "submit_pr",
+        "description": "Subir el PR a GitHub usando gh cli. Solo ejecutar si ready_for_pr == true del paso anterior. El PR debe referenciar el issue con 'Closes #<number>' en el body, usar plantilla del repo si existe, y tener título descriptivo. Después de subir, monitorear los checks de CI remotos hasta que terminen.",
+        "pr_body_template": {
+          "summary": "Bullet points de qué cambia y por qué.",
+          "issue_reference": "Closes #<issue_number>",
+          "test_plan": "Checklist de verificación ejecutada en local."
+        },
+        "commands": {
+          "create": "gh pr create --title <title> --body <body> --base main --head <branch>",
+          "monitor_ci": "gh pr checks <pr_number> --watch",
+          "view_status": "gh pr view <pr_number> --json mergeable,mergeStateStatus,statusCheckRollup"
+        },
+        "checks": [
+          "pr_creado_correctamente",
+          "ci_remoto_pasa",
+          "mergeable_true",
+          "mergeStateStatus_clean_o_unblocked",
+          "no_conflictos_con_main"
+        ],
+        "outputs": ["pr_number", "pr_url", "ci_remote_status", "mergeable"],
+        "on_failure": {
+          "ci_fails": "volver_a_step_resolve_con_logs_de_ci",
+          "merge_conflict": "rebase_y_volver_a_pre_pr_ci_validation",
+          "branch_protection_block": "reportar_bloqueo_y_continuar_con_siguiente_issue"
+        }
+      }
+    ],
+    "loop_control": {
+      "on_any_step_failure": "volver_al_inicio_del_pipeline_para_el_issue_actual_o_pasar_al_siguiente_si_hay_max_retries",
+      "max_retries_per_issue": 3,
+      "after_pr_merged_or_valid": "pasar_al_siguiente_issue",
+      "termination": {
+        "success": "todos_los_issues_asignados_tienen_pr_valido_para_merge_o_merged",
+        "blocked": "issue_bloqueado_por_branch_protection_o_requires_maintainer_action_reportar_y_continuar",
+        "exhausted": "max_retries_alcanzado_para_un_issue_reportar_y_continuar"
+      },
+      "reporting": {
+        "per_issue": "issue_number, status, pr_number, ci_status, bloqueos",
+        "final_summary": "tabla_de_todos_los_issues_procesados_con_estado_final"
+      }
+    }
+  }
+}
