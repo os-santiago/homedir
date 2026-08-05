@@ -101,7 +101,6 @@
     ctaVoteReady: root.dataset.i18nCtaVoteReady || "Personalization signal is active.",
     emptyNoVotes: root.dataset.i18nEmptyNoVotes || "You have not voted yet. Vote 3 picks to personalize your feed."
   };
-  const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
   function normalizeTopicKey(value) {
     const raw = String(value || "")
@@ -254,12 +253,7 @@
     });
   }
 
-  function formatDate(raw) {
-    if (!raw) return "";
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
-  }
+  const formatDate = window.HomeDirUtils.formatDate;
 
   function scoreOf(item) {
     return Number(item && item.score ? item.score : 0);
