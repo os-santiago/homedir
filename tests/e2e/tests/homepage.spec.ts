@@ -28,7 +28,7 @@ test.describe('homepage and main pages', () => {
   });
 
   test('serves critical static assets', async ({ page, request }) => {
-    for (const asset of ['/js/core-bundle.js', '/js/homedir.js', '/css/homedir.css']) {
+    for (const asset of ['/js/core-bundle.js', '/js/app.js', '/css/homedir.css']) {
       const res = await request.get(asset);
       expect(res.status(), `asset ${asset}`).toBe(200);
     }
