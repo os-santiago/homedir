@@ -103,6 +103,64 @@ public class AdminApiResource {
   }
 
   @GET
+  @Path("/volunteers/export/{eventId}.csv")
+  @Produces("text/csv")
+  public Response exportVolunteersCsv(@jakarta.ws.rs.PathParam("eventId") String eventId) {
+    if (!canView()) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    java.util.List<com.scanales.homedir.volunteers.VolunteerApplication> volunteers =
+        volunteerApplicationService.listByEvent(
+            eventId,
+            java.util.Optional.empty(),
+            com.scanales.homedir.volunteers.VolunteerApplicationService.SortOrder.CREATED_DESC,
+            Integer.MAX_VALUE,
+            0);
+
+    StringBuilder csv = new StringBuilder();
+    // CSV Header
+    csv.append("ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización\n");
+
+    for (com.scanales.homedir.volunteers.VolunteerApplication app : volunteers) {
+      csv.append(escapeCsv(app.id())).append(",");
+      csv.append(escapeCsv(app.applicantUserId())).append(",");
+      csv.append(escapeCsv(app.applicantName())).append(",");
+      csv.append(escapeCsv(getApplicantEmail(app.applicantUserId()))).append(",");
+      csv.append(escapeCsv(app.status().name())).append(",");
+      csv.append(escapeCsv(app.aboutMe())).append(",");
+      csv.append(escapeCsv(app.joinReason())).append(",");
+      csv.append(escapeCsv(app.differentiator())).append(",");
+      csv.append(app.ratingProfile() != null ? app.ratingProfile().toString() : "").append(",");
+      csv.append(escapeCsv(app.moderationNote())).append(",");
+      csv.append(app.createdAt() != null ? app.createdAt().toString() : "").append(",");
+      csv.append(app.updatedAt() != null ? app.updatedAt().toString() : "").append("\n");
+    }
+
+    return Response.ok(csv.toString())
+        .header("Content-Disposition", "attachment; filename=\"volunteers-" + eventId + ".csv\"")
+        .build();
+  }
+
+  private String escapeCsv(String value) {
+    if (value == null) return "";
+    String escaped = value.replace("\"", "\"\"");
+    if (escaped.contains(",") || escaped.contains("\"") || escaped.contains("\n")) {
+      return "\"" + escaped + "\"";
+    }
+    return escaped;
+  }
+
+  private String getApplicantEmail(String userId) {
+    try {
+      var profile = userProfileService.find(userId);
+      return profile.map(com.scanales.homedir.model.UserProfile::getEmail).orElse("N/A");
+    } catch (Exception e) {
+      return "N/A";
+    }
+  }
+
+  @GET
   @Path("/metrics")
   public Response metrics() {
     if (!canView()) {
