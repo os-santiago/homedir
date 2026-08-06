@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Script para extraer voluntarios con emails del evento DevOpsDays Santiago 2026
 # Ejecutar en el VPS o con acceso al archivo de datos
 
@@ -29,59 +30,81 @@ if [ ! -f "$PROFILES_FILE" ]; then
   PROFILES_FILE=""
 fi
 
+# Archivos temporales únicos para evitar carreras y ataques de symlink.
+VOLUNTEERS_TMP="$(mktemp "${OUTPUT_FILE}.volunteers.XXXXXX")"
+OUTPUT_TMP="$(mktemp "${OUTPUT_FILE}.XXXXXX")"
+trap 'rm -f "$VOLUNTEERS_TMP" "$OUTPUT_TMP"' EXIT
+
 echo "📂 Archivos:"
 echo "   Voluntarios: $VOLUNTEERS_FILE"
 echo "   Perfiles:    ${PROFILES_FILE:-N/A}"
 echo ""
 
-# Crear archivo temporal con voluntarios del evento
+# Extraer voluntarios del evento a un stream temporal.
 jq -r --arg eventId "$EVENT_ID" '
-  to_entries[] | 
-  select(.value.event_id == $eventId) | 
+  to_entries[] |
+  select(.value.event_id == $eventId) |
   .value
-' "$VOLUNTEERS_FILE" > /tmp/volunteers_temp.json
+' "$VOLUNTEERS_FILE" > "$VOLUNTEERS_TMP"
 
-VOLUNTEER_COUNT=$(cat /tmp/volunteers_temp.json | jq -s 'length')
+# Contar registros reales y fallar cerrado si no hay ninguno.
+VOLUNTEER_COUNT=$(jq -s 'length' "$VOLUNTEERS_TMP")
+if [ "$VOLUNTEER_COUNT" -eq 0 ]; then
+  echo "❌ Error: No se encontraron voluntarios para el evento $EVENT_ID"
+  exit 1
+fi
 echo "✅ Voluntarios encontrados: $VOLUNTEER_COUNT"
 echo ""
 
-# Crear CSV con headers
-echo "Nombre,Email,User ID,Estado,Sobre mí,Razón para unirse,Fecha creación" > "$OUTPUT_FILE"
+# Encabezado del CSV
+CSV_HEADER='Nombre,Email,User ID,Estado,Sobre mí,Razón para unirse,Fecha creación'
 
-# Si hay archivo de perfiles, hacer join
+# Apóstrofo (') para neutralizar prefijos de fórmula de hoja de cálculo.
+QUOTE="'"
+
+# Neutralización de prefijos de fórmula y escape de comillas/saltos de línea.
+# @csv ya escapa comillas; solo se antepone el apóstrofo a valores peligrosos.
 if [ -n "$PROFILES_FILE" ]; then
-  jq -r --slurpfile profiles "$PROFILES_FILE" '
+  # Unir con perfiles por applicant_user_id.
+  jq -r --arg quote "$QUOTE" --slurpfile profiles "$PROFILES_FILE" '
+    def sanitize:
+      if ((length > 0) and ((.[0:1] == "=") or (.[0:1] == "+") or (.[0:1] == "-") or (.[0:1] == "@"))) then ($quote + .) else . end;
     . as $volunteer |
-    ($profiles[0] | to_entries | map(select(.value.userId == $volunteer.applicant_user_id)) | .[0].value // {}) as $profile |
+    (($profiles[0] | to_entries[] | select(.value.userId == $volunteer.applicant_user_id) | .value) // {}) as $profile |
     [
-      $volunteer.applicant_name // "N/A",
-      $profile.email // "N/A",
-      $volunteer.applicant_user_id,
-      $volunteer.status,
-      ($volunteer.about_me // "" | gsub("\n"; " ") | gsub("\""; "\"\"") ),
-      ($volunteer.join_reason // "" | gsub("\n"; " ") | gsub("\""; "\"\"") ),
-      $volunteer.created_at
-    ] | 
-    @csv
-  ' /tmp/volunteers_temp.json >> "$OUTPUT_FILE"
+      ($volunteer.applicant_name // "N/A" | sanitize),
+      ($profile.email // "N/A" | sanitize),
+      ($volunteer.applicant_user_id // "" | sanitize),
+      ($volunteer.status // "" | sanitize),
+      ($volunteer.about_me // "" | sanitize),
+      ($volunteer.join_reason // "" | sanitize),
+      ($volunteer.created_at // "" | sanitize)
+    ] | @csv
+  ' "$VOLUNTEERS_TMP" > "$OUTPUT_TMP"
 else
   # Sin perfiles, solo datos básicos
-  jq -r '
+  jq -r --arg quote "$QUOTE" '
+    def sanitize:
+      if ((length > 0) and ((.[0:1] == "=") or (.[0:1] == "+") or (.[0:1] == "-") or (.[0:1] == "@"))) then ($quote + .) else . end;
     [
-      .applicant_name // "N/A",
+      (.applicant_name // "N/A" | sanitize),
       "N/A",
-      .applicant_user_id,
-      .status,
-      (.about_me // "" | gsub("\n"; " ") | gsub("\""; "\"\"") ),
-      (.join_reason // "" | gsub("\n"; " ") | gsub("\""; "\"\"") ),
-      .created_at
-    ] | 
-    @csv
-  ' /tmp/volunteers_temp.json >> "$OUTPUT_FILE"
+      (.applicant_user_id // "" | sanitize),
+      (.status // "" | sanitize),
+      (.about_me // "" | sanitize),
+      (.join_reason // "" | sanitize),
+      (.created_at // "" | sanitize)
+    ] | @csv
+  ' "$VOLUNTEERS_TMP" > "$OUTPUT_TMP"
 fi
 
-# Limpiar archivo temporal
-rm -f /tmp/volunteers_temp.json
+# Anteponer encabezado y publicar de forma atómica.
+{
+  echo "$CSV_HEADER"
+  cat "$OUTPUT_TMP"
+} > "${OUTPUT_TMP}.final"
+mv "${OUTPUT_TMP}.final" "$OUTPUT_FILE"
+trap - EXIT
 
 echo "=================================================="
 echo "✅ EXPORTACIÓN COMPLETADA"

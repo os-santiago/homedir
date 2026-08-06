@@ -72,16 +72,17 @@ jq -r '.[] |
   [.applicant_name, .applicant_user_id, .status] | 
   @csv' /var/lib/homedir/volunteer-submissions.json
 
-# Para obtener emails, necesitas cruzar con profiles.json
+# Para obtener emails, necesitas cruzar con profiles.json.
+# Se compara cada perfil contra su campo userId (no contra la clave de entrada)
+# y se incluye si hay un voluntario del evento con ese applicant_user_id.
 jq -r --slurpfile volunteers volunteer-submissions.json '
-  to_entries[] | 
-  select(
-    ($volunteers[0] | to_entries[] | 
-     select(.value.event_id == "devopsdays-santiago-2026" and 
-            .value.applicant_user_id == .key) | 
-     .value) != null
-  ) | 
-  [.value.userId, .value.email, .value.name] | 
+  to_entries[] |
+  . as $profile |
+  select(any($volunteers[0][];
+    .event_id == "devopsdays-santiago-2026"
+    and .applicant_user_id == $profile.value.userId
+  )) |
+  [$profile.value.userId, $profile.value.email, $profile.value.name] |
   @csv
 ' /var/lib/homedir/profiles.json
 ```
