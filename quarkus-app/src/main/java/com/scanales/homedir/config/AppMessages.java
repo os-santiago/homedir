@@ -7102,4 +7102,10 @@ public interface AppMessages {
 
   @Message("Verification unavailable")
   String achievements_verification_unavailable();
+
+  @Message("ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización")
+  String volunteers_export_csv_header();
+
+  @Message("N/A")
+  String volunteers_export_not_available();
 }
