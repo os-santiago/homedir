@@ -124,6 +124,48 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 For information about project governance and how to become a maintainer, see [GOVERNANCE.md](GOVERNANCE.md).
 
+### 🏆 Bounty Hunters Program
+
+Homedir includes a **Bounty Hunters** reputation system that rewards contributors for creating valuable issues and resolving them through pull requests.
+
+**How it works:**
+- **Create valuable issues** → Get points when validated by admins
+- **Resolve issues** → Earn points when your PR is merged
+- **Level up** → Unlock exclusive frames and recognition
+
+**Eligible Labels & Points:**
+| Label | Points | Type |
+|-------|--------|------|
+| `bug-impact-low` | 5 pts | Bug fixes |
+| `bug-impact-medium` | 15 pts | Bug fixes |
+| `bug-impact-high` | 30 pts | Bug fixes |
+| `feature-request` | 20 pts | Features |
+| `documentation-improvement` | 10 pts | Documentation |
+| `platform-maintenance` | 15 pts | Maintenance |
+
+**Progression Levels:**
+- 🥉 **Novice** (50+ pts) → Basic frame
+- 🥈 **Experienced** (150+ pts) → Enhanced frame
+- 🥇 **Professional** (400+ pts) → Professional frame
+- 💎 **Ultimate** (800+ pts) → Ultimate frame
+- ⭐ **Transcendental** (1500+ pts) → Transcendental frame
+
+**API Endpoints:**
+```
+GET /api/bounty-hunters/leaderboard?limit=50
+GET /api/bounty-hunters/profile/{userId}
+GET /api/bounty-hunters/config/labels
+GET /api/bounty-hunters/config/levels
+```
+
+**Want to participate?**
+1. Look for issues with bounty labels (e.g., #1374)
+2. Submit quality issues for validation
+3. Resolve labeled issues via PRs
+4. Track your progress via the API
+
+**Note:** Dashboard UI is coming soon! See [#1375](https://github.com/os-santiago/homedir/issues/1375) to contribute to the frontend.
+
 ## Team
 
 ### 👥 Maintainers
