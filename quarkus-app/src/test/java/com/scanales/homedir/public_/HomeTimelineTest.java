@@ -19,11 +19,11 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("HomeDir"))
-        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
-        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
-        .body(containsString("Community and local event news"))
-        .body(containsString("Choose how to collaborate"))
-        .body(containsString("DevOpsDays Santiago Call for Papers"))
+        .body(containsString("Where developers build the future together"))
+        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("DevOpsDays Santiago 2026"))
+        .body(containsString("Latest from the Community"))
+        .body(containsString("Call for Papers"))
         .body(containsString("/event/devopsdays-santiago-2026/cfp"))
         .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
   }
@@ -53,11 +53,11 @@ public class HomeTimelineTest {
         .body(containsString("<html lang=\"en\">"))
         .body(containsString(">Home</a>"))
         .body(containsString("HomeDir"))
-        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
-        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
-        .body(containsString("Community and local event news"))
-        .body(containsString("Choose how to collaborate"))
-        .body(containsString("DevOpsDays Santiago Call for Papers"))
+        .body(containsString("Where developers build the future together"))
+        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("DevOpsDays Santiago 2026"))
+        .body(containsString("Latest from the Community"))
+        .body(containsString("Call for Papers"))
         .body(containsString("/event/devopsdays-santiago-2026/cfp"))
         .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
   }

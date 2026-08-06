@@ -80,13 +80,13 @@ class HomeMemberOnboardingTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
-        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
-        .body(containsString("Community and local event news"))
-        .body(containsString("Choose how to collaborate"))
-        .body(containsString("DevOpsDays Santiago Call for Papers"))
-        .body(containsString("DevOpsDays Santiago Call for Volunteers"))
-        .body(containsString("DevOpsDays Santiago Call for Sponsors"));
+        .body(containsString("Where developers build the future together"))
+        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("DevOpsDays Santiago 2026"))
+        .body(containsString("Latest from the Community"))
+        .body(containsString("Call for Papers"))
+        .body(containsString("Call for Volunteers"))
+        .body(containsString("Call for Sponsors"));
   }
 
   @Test
@@ -102,13 +102,13 @@ class HomeMemberOnboardingTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("HomeDir focuses on events, community news, and collaboration."))
-        .body(containsString("DevOpsDays Santiago is the first HomeDir priority."))
-        .body(containsString("Community and local event news"))
-        .body(containsString("Choose how to collaborate"))
-        .body(containsString("DevOpsDays Santiago Call for Papers"))
-        .body(containsString("DevOpsDays Santiago Call for Volunteers"))
-        .body(containsString("DevOpsDays Santiago Call for Sponsors"));
+        .body(containsString("Where developers build the future together"))
+        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("DevOpsDays Santiago 2026"))
+        .body(containsString("Latest from the Community"))
+        .body(containsString("Call for Papers"))
+        .body(containsString("Call for Volunteers"))
+        .body(containsString("Call for Sponsors"));
   }
 
   private void seedHomeMember(String userId) {
