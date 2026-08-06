@@ -120,7 +120,8 @@ public class AdminApiResource {
 
     StringBuilder csv = new StringBuilder();
     // CSV Header
-    csv.append("ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización\n");
+    csv.append(
+        "ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización\n");
 
     for (com.scanales.homedir.volunteers.VolunteerApplication app : volunteers) {
       csv.append(escapeCsv(app.id())).append(",");
