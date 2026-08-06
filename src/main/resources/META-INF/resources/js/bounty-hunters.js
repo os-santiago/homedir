@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
       leaderboardTable.innerHTML = hunters.map((h, i) => `
         <tr class="hd-table-row">
           <td class="hd-rank">#${i + 1}</td>
-          <td class="hd-user"><a href="/bounty-hunters/${h.userId}">${h.username}</a></td>
+          <td class="hd-user"><a href="/bounty-hunters/${h.userId}">${h.userId}</a></td>
           <td class="hd-points">${h.totalPoints} pts</td>
-          <td class="hd-level"><span class="hd-badge hd-badge-${h.level.toLowerCase()}">${h.level}</span></td>
+          <td class="hd-level"><span class="hd-badge hd-badge-${(h.level || '').toLowerCase()}">${h.level}</span></td>
         </tr>
       `).join('');
     })
