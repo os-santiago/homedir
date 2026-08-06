@@ -117,10 +117,10 @@
       <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">groups</span>
       <div>
         <p class="section-subtitle">{i18n:home_community_aria}</p>
-        <h2>{i18n:home_community_title}</h2>
+        <h2>{i18n:home_community_highlights_title}</h2>
       </div>
     </div>
-    <p>{i18n:home_community_desc}</p>
+    <p>{i18n:home_community_highlights_desc}</p>
     {#if socialHighlights.isEmpty()}
     <p class="home-priority-empty">{i18n:home_priority_community_empty}</p>
     {#else}
@@ -148,7 +148,7 @@
   </a>
   <a href="/reputation-hub" class="home-priority-status-item">
     <strong>{homeBoardSummary.homedirUsers}</strong>
-    <span>{i18n:home_stats_members}</span>
+    <span>{i18n:home_stats_members_count}</span>
   </a>
   <a href="/proyectos" class="home-priority-status-item">
     <strong>{contributorCount}</strong>
