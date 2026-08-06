@@ -1,10 +1,12 @@
 package com.scanales.homedir.private_;
 
 import com.scanales.homedir.cfp.CfpSubmissionService;
+import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.service.EventService;
 import com.scanales.homedir.service.UsageMetricsService;
 import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
+import io.quarkus.qute.i18n.MessageBundles;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -100,6 +102,79 @@ public class AdminApiResource {
               0));
     }
     return Response.ok(allVolunteers).build();
+  }
+
+  @GET
+  @Path("/volunteers/export/{eventId}.csv")
+  @Produces("text/csv")
+  public Response exportVolunteersCsv(@jakarta.ws.rs.PathParam("eventId") String eventId) {
+    if (!canView()) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    java.util.List<com.scanales.homedir.volunteers.VolunteerApplication> volunteers =
+        volunteerApplicationService.listByEvent(
+            eventId,
+            java.util.Optional.empty(),
+            com.scanales.homedir.volunteers.VolunteerApplicationService.SortOrder.CREATED_DESC,
+            Integer.MAX_VALUE,
+            0);
+
+    StringBuilder csv = new StringBuilder();
+    AppMessages i18n = MessageBundles.get(AppMessages.class);
+    // CSV Header
+    csv.append(i18n.volunteers_export_csv_header()).append("\n");
+
+    for (com.scanales.homedir.volunteers.VolunteerApplication app : volunteers) {
+      csv.append(escapeCsv(app.id())).append(",");
+      csv.append(escapeCsv(app.applicantUserId())).append(",");
+      csv.append(escapeCsv(app.applicantName())).append(",");
+      csv.append(escapeCsv(getApplicantEmail(app.applicantUserId(), i18n))).append(",");
+      csv.append(escapeCsv(app.status().name())).append(",");
+      csv.append(escapeCsv(app.aboutMe())).append(",");
+      csv.append(escapeCsv(app.joinReason())).append(",");
+      csv.append(escapeCsv(app.differentiator())).append(",");
+      csv.append(app.ratingProfile() != null ? app.ratingProfile().toString() : "").append(",");
+      csv.append(escapeCsv(app.moderationNote())).append(",");
+      csv.append(app.createdAt() != null ? app.createdAt().toString() : "").append(",");
+      csv.append(app.updatedAt() != null ? app.updatedAt().toString() : "").append("\n");
+    }
+
+    return Response.ok(csv.toString())
+        .header("Content-Disposition", "attachment; filename=\"volunteers-" + eventId + ".csv\"")
+        .header("Cache-Control", "no-store")
+        .build();
+  }
+
+  private String escapeCsv(String value) {
+    if (value == null) return "";
+    String sanitized = neutralizeFormulaPrefix(value);
+    String escaped = sanitized.replace("\"", "\"\"");
+    if (escaped.contains(",") || escaped.contains("\"") || escaped.contains("\n")) {
+      return "\"" + escaped + "\"";
+    }
+    return escaped;
+  }
+
+  /** Prefixes spreadsheet formula indicators so values are not evaluated as formulas on open. */
+  private String neutralizeFormulaPrefix(String value) {
+    if (value == null || value.isEmpty()) return value;
+    char first = value.charAt(0);
+    if (first == '=' || first == '+' || first == '-' || first == '@') {
+      return "'" + value;
+    }
+    return value;
+  }
+
+  private String getApplicantEmail(String userId, AppMessages i18n) {
+    try {
+      var profile = userProfileService.find(userId);
+      return profile
+          .map(com.scanales.homedir.model.UserProfile::getEmail)
+          .orElse(i18n.volunteers_export_not_available());
+    } catch (Exception e) {
+      return i18n.volunteers_export_not_available();
+    }
   }
 
   @GET
