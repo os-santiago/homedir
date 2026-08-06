@@ -169,7 +169,9 @@ public class AdminApiResource {
   private String getApplicantEmail(String userId, AppMessages i18n) {
     try {
       var profile = userProfileService.find(userId);
-      return profile.map(com.scanales.homedir.model.UserProfile::getEmail).orElse(i18n.volunteers_export_not_available());
+      return profile
+          .map(com.scanales.homedir.model.UserProfile::getEmail)
+          .orElse(i18n.volunteers_export_not_available());
     } catch (Exception e) {
       return i18n.volunteers_export_not_available();
     }
