@@ -80,7 +80,7 @@ class HomeMemberOnboardingTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("built by developers for developers"))
+        .body(containsString("100% powered by AI"))
         .body(containsString("HomeDir: Built by Devs, for Devs"))
         .body(containsString("DevOpsDays Santiago 2026"))
         .body(containsString("Latest from the Community"))
@@ -104,7 +104,7 @@ class HomeMemberOnboardingTest {
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
         .body(containsString(">Home</a>"))
-        .body(containsString("construida por desarrolladores para desarrolladores"))
+        .body(containsString("100% construida con IA"))
         .body(containsString("HomeDir: Construida por Devs, para Devs"))
         .body(containsString("DevOpsDays Santiago 2026"))
         .body(containsString("Lo último de la Comunidad"));
