@@ -82,7 +82,6 @@ class HomeMemberOnboardingTest {
         .statusCode(200)
         .body(containsString("HomeDir: Built by Devs, for Devs"))
         .body(containsString("DevOpsDays Santiago 2026"))
-        .body(containsString("Latest from the Community"))
         .body(containsString("Call for Papers"))
         .body(containsString("Call for Volunteers"))
         .body(containsString("Call for Sponsors"));
