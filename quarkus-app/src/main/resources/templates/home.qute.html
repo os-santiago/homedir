@@ -1,56 +1,126 @@
 {#include layout/main activePage="home" mainClass="homedir-main-home" noLoginModal=true}
 {#title}{i18n:nav_home}{/title}
 {#body}
-<header class="page-header events-page-header home-priority-shell" aria-label="{i18n:home_priority_aria}">
+<header class="page-header events-page-header home-priority-shell" aria-label="{i18n:home_hero_aria}">
   <section class="home-priority-hero">
     <div class="home-priority-hero-copy">
       <div class="section-header hd-section-heading">
-        <p class="section-subtitle">{i18n:home_priority_eyebrow}</p>
-        <h1>{i18n:home_priority_title}</h1>
+        <p class="section-subtitle">{i18n:home_hero_eyebrow}</p>
+        <h1>{i18n:home_hero_title}</h1>
       </div>
-      <p>{i18n:home_priority_intro}</p>
+      <p>{i18n:home_hero_description}</p>
+      <div class="home-hero-features">
+        <div class="home-hero-feature">
+          <span class="material-symbols-outlined" aria-hidden="true">psychology_alt</span>
+          <span>{i18n:home_hero_feature_ai}</span>
+        </div>
+        <div class="home-hero-feature">
+          <span class="material-symbols-outlined" aria-hidden="true">school</span>
+          <span>{i18n:home_hero_feature_learn}</span>
+        </div>
+        <div class="home-hero-feature">
+          <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+          <span>{i18n:home_hero_feature_quality}</span>
+        </div>
+        <div class="home-hero-feature">
+          <span class="material-symbols-outlined" aria-hidden="true">rocket_launch</span>
+          <span>{i18n:home_hero_feature_innovation}</span>
+        </div>
+      </div>
       <div class="home-priority-actions">
-        <a href="/event/devopsdays-santiago-2026" class="btn btn--primary">{i18n:home_priority_primary_cta}</a>
-        <a href="/comunidad/picks" class="btn btn--secondary">{i18n:home_priority_secondary_cta}</a>
+        <a href="/comunidad/picks" class="btn btn--primary">{i18n:home_hero_primary_cta}</a>
+        <a href="/reputation-hub" class="btn btn--secondary">{i18n:home_hero_secondary_cta}</a>
       </div>
     </div>
-    <aside class="section-card home-priority-spotlight" aria-label="{i18n:home_priority_events_title}">
-      <div class="home-priority-spotlight-head">
-        <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">event</span>
-        <p class="section-subtitle">{i18n:home_priority_events_eyebrow}</p>
-      </div>
-      <h2>{i18n:home_priority_events_title}</h2>
-      <p>{i18n:home_priority_events_desc}</p>
-      <div class="home-priority-actions">
-        <a href="/event/devopsdays-santiago-2026" class="btn btn--primary">{i18n:home_priority_events_cta}</a>
-        <a href="/eventos" class="btn btn--secondary">{i18n:home_priority_events_secondary}</a>
-      </div>
-    </aside>
   </section>
 </header>
 
-<section class="page-grid home-priority-grid" aria-label="{i18n:home_priority_grid_aria}">
-  <article class="section-card home-priority-card home-priority-card-event">
+<section class="page-grid home-priority-grid" aria-label="{i18n:home_focus_aria}">
+  <article class="section-card home-priority-card">
     <div class="home-priority-card-head">
-      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">campaign</span>
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">apartment</span>
       <div>
-        <p class="section-subtitle">{i18n:home_priority_events_eyebrow}</p>
-        <h2>{i18n:home_priority_events_title}</h2>
+        <p class="section-subtitle">{i18n:home_focus_platform_eyebrow}</p>
+        <h2>{i18n:home_focus_platform_title}</h2>
       </div>
     </div>
-    <p>{i18n:home_priority_events_desc}</p>
-    <a href="/event/devopsdays-santiago-2026" class="home-priority-link">{i18n:home_priority_events_cta}</a>
+    <p>{i18n:home_focus_platform_desc}</p>
+    <div class="home-collaboration-list">
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_platform_community_title}</strong>
+        <span>{i18n:home_focus_platform_community_desc}</span>
+      </div>
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_platform_ai_title}</strong>
+        <span>{i18n:home_focus_platform_ai_desc}</span>
+      </div>
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_platform_innovation_title}</strong>
+        <span>{i18n:home_focus_platform_innovation_desc}</span>
+      </div>
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_platform_trust_title}</strong>
+        <span>{i18n:home_focus_platform_trust_desc}</span>
+      </div>
+    </div>
+    <div class="home-priority-actions">
+      <a href="/comunidad/picks" class="btn btn--primary">{i18n:home_focus_platform_cta_primary}</a>
+      <a href="/proyectos" class="btn btn--secondary">{i18n:home_focus_platform_cta_secondary}</a>
+    </div>
+  </article>
+
+  <article class="section-card home-priority-card home-priority-card-event">
+    <div class="home-priority-card-head">
+      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">event_available</span>
+      <div>
+        <p class="section-subtitle">{i18n:home_focus_event_eyebrow}</p>
+        <h2>{i18n:home_focus_event_title}</h2>
+      </div>
+    </div>
+    <p>{i18n:home_focus_event_desc}</p>
+    <div class="home-event-details">
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_date_label}:</strong>
+        <span>{i18n:home_focus_event_date_value}</span>
+      </div>
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_location_label}:</strong>
+        <span>{i18n:home_focus_event_location_value}</span>
+      </div>
+      <div class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_format_label}:</strong>
+        <span>{i18n:home_focus_event_format_value}</span>
+      </div>
+    </div>
+    <div class="home-collaboration-list">
+      <a href="/event/devopsdays-santiago-2026/cfp" class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_cfp_title}</strong>
+        <span>{i18n:home_focus_event_cfp_desc}</span>
+      </a>
+      <a href="/event/devopsdays-santiago-2026/volunteers" class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_volunteers_title}</strong>
+        <span>{i18n:home_focus_event_volunteers_desc}</span>
+      </a>
+      <a href="/event/devopsdays-santiago-2026" class="home-collaboration-item">
+        <strong>{i18n:home_focus_event_sponsors_title}</strong>
+        <span>{i18n:home_focus_event_sponsors_desc}</span>
+      </a>
+    </div>
+    <div class="home-priority-actions">
+      <a href="/event/devopsdays-santiago-2026" class="btn btn--primary">{i18n:home_focus_event_cta_primary}</a>
+      <a href="/eventos" class="btn btn--secondary">{i18n:home_focus_event_cta_secondary}</a>
+    </div>
   </article>
 
   <article class="section-card home-priority-card">
     <div class="home-priority-card-head">
       <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">groups</span>
       <div>
-        <p class="section-subtitle">{i18n:home_priority_community_eyebrow}</p>
-        <h2>{i18n:home_priority_community_title}</h2>
+        <p class="section-subtitle">{i18n:home_community_aria}</p>
+        <h2>{i18n:home_community_highlights_title}</h2>
       </div>
     </div>
-    <p>{i18n:home_priority_community_desc}</p>
+    <p>{i18n:home_community_highlights_desc}</p>
     {#if socialHighlights.isEmpty()}
     <p class="home-priority-empty">{i18n:home_priority_community_empty}</p>
     {#else}
@@ -63,47 +133,26 @@
       {/for}
     </div>
     {/if}
-    <a href="/comunidad/picks" class="home-priority-link">{i18n:home_priority_community_cta}</a>
-  </article>
-
-  <article class="section-card home-priority-card home-priority-card-collaboration">
-    <div class="home-priority-card-head">
-      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">handshake</span>
-      <div>
-        <p class="section-subtitle">{i18n:home_priority_collab_eyebrow}</p>
-        <h2>{i18n:home_priority_collab_title}</h2>
-      </div>
-    </div>
-    <p>{i18n:home_priority_collab_desc}</p>
-    <div class="home-collaboration-list">
-      <a href="/event/devopsdays-santiago-2026/cfp" class="home-collaboration-item">
-        <strong>{i18n:home_priority_cfp_title}</strong>
-        <span>{i18n:home_priority_cfp_desc}</span>
-      </a>
-      <a href="/event/devopsdays-santiago-2026/volunteers" class="home-collaboration-item">
-        <strong>{i18n:home_priority_volunteers_title}</strong>
-        <span>{i18n:home_priority_volunteers_desc}</span>
-      </a>
-      <a href="/event/devopsdays-santiago-2026" class="home-collaboration-item">
-        <strong>{i18n:home_priority_sponsors_title}</strong>
-        <span>{i18n:home_priority_sponsors_desc}</span>
-      </a>
-    </div>
+    <a href="/comunidad/picks" class="home-priority-link">{i18n:home_community_cta}</a>
   </article>
 </section>
 
-<section class="page-grid home-priority-status-grid" aria-label="{i18n:home_priority_status_aria}">
+<section class="page-grid home-priority-status-grid" aria-label="{i18n:home_stats_aria}">
   <a href="/eventos" class="home-priority-status-item">
     <strong>{upcomingCount}</strong>
-    <span>{i18n:home_priority_status_events}</span>
+    <span>{i18n:home_stats_events}</span>
   </a>
   <a href="/comunidad/picks" class="home-priority-status-item">
     <strong>{homeTodayFreshPicks}</strong>
-    <span>{i18n:home_priority_status_news}</span>
+    <span>{i18n:home_stats_picks}</span>
   </a>
   <a href="/reputation-hub" class="home-priority-status-item">
     <strong>{homeBoardSummary.homedirUsers}</strong>
-    <span>{i18n:home_priority_status_members}</span>
+    <span>{i18n:home_stats_members_count}</span>
+  </a>
+  <a href="/proyectos" class="home-priority-status-item">
+    <strong>{contributorCount}</strong>
+    <span>{i18n:home_stats_contributors}</span>
   </a>
 </section>
 {/body}
