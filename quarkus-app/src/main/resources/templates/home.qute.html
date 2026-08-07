@@ -28,7 +28,7 @@
         </div>
       </div>
       <div class="home-priority-actions">
-        <a href="/comunidad/picks" class="btn btn--primary">{i18n:home_hero_primary_cta}</a>
+        <a href="/eventos" class="btn btn--primary">{i18n:home_hero_primary_cta}</a>
         <a href="/reputation-hub" class="btn btn--secondary">{i18n:home_hero_secondary_cta}</a>
       </div>
     </div>
@@ -64,8 +64,8 @@
       </div>
     </div>
     <div class="home-priority-actions">
-      <a href="/comunidad/picks" class="btn btn--primary">{i18n:home_focus_platform_cta_primary}</a>
-      <a href="/proyectos" class="btn btn--secondary">{i18n:home_focus_platform_cta_secondary}</a>
+      <a href="/proyectos" class="btn btn--primary">{i18n:home_focus_platform_cta_primary}</a>
+      <a href="/reputation-hub" class="btn btn--secondary">{i18n:home_focus_platform_cta_secondary}</a>
     </div>
   </article>
 
@@ -111,40 +111,12 @@
       <a href="/eventos" class="btn btn--secondary">{i18n:home_focus_event_cta_secondary}</a>
     </div>
   </article>
-
-  <article class="section-card home-priority-card">
-    <div class="home-priority-card-head">
-      <span class="home-priority-icon material-symbols-outlined" aria-hidden="true">groups</span>
-      <div>
-        <p class="section-subtitle">{i18n:home_community_aria}</p>
-        <h2>{i18n:home_community_highlights_title}</h2>
-      </div>
-    </div>
-    <p>{i18n:home_community_highlights_desc}</p>
-    {#if socialHighlights.isEmpty()}
-    <p class="home-priority-empty">{i18n:home_priority_community_empty}</p>
-    {#else}
-    <div class="home-priority-news-list">
-      {#for item in socialHighlights}
-      <a href="{item.url}" target="_blank" rel="noopener noreferrer" class="home-priority-news-item">
-        <span>{item.source}</span>
-        <h3>{item.title}</h3>
-      </a>
-      {/for}
-    </div>
-    {/if}
-    <a href="/comunidad/picks" class="home-priority-link">{i18n:home_community_cta}</a>
-  </article>
 </section>
 
 <section class="page-grid home-priority-status-grid" aria-label="{i18n:home_stats_aria}">
   <a href="/eventos" class="home-priority-status-item">
     <strong>{upcomingCount}</strong>
     <span>{i18n:home_stats_events}</span>
-  </a>
-  <a href="/comunidad/picks" class="home-priority-status-item">
-    <strong>{homeTodayFreshPicks}</strong>
-    <span>{i18n:home_stats_picks}</span>
   </a>
   <a href="/reputation-hub" class="home-priority-status-item">
     <strong>{homeBoardSummary.homedirUsers}</strong>
