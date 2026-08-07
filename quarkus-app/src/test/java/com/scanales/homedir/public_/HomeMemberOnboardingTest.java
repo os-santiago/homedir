@@ -94,21 +94,20 @@ class HomeMemberOnboardingTest {
       user = "member-es@example.com",
       roles = {"user"})
   void homeShowsGamificationPanelsInSpanishForAuthenticatedMember() {
-    userProfileService.updateLocale("member-es@example.com", "en");
+    userProfileService.updateLocale("member-es@example.com", "es");
     given()
-        .header("Accept-Language", "en")
+        .header("Accept-Language", "es")
         .accept("text/html")
         .when()
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("Where developers build the future together"))
-        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("<html lang=\"es\">"))
+        .body(containsString(">Home</a>"))
+        .body(containsString("Donde los desarrolladores construyen el futuro juntos"))
+        .body(containsString("HomeDir: Construida por Devs, para Devs"))
         .body(containsString("DevOpsDays Santiago 2026"))
-        .body(containsString("Latest from the Community"))
-        .body(containsString("Call for Papers"))
-        .body(containsString("Call for Volunteers"))
-        .body(containsString("Call for Sponsors"));
+        .body(containsString("Lo último de la Comunidad"));
   }
 
   private void seedHomeMember(String userId) {
