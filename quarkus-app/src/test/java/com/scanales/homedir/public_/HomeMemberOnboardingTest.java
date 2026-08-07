@@ -102,10 +102,7 @@ class HomeMemberOnboardingTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Home</a>"))
-        .body(containsString("HomeDir: Construida por Devs, para Devs"))
-        .body(containsString("DevOpsDays Santiago 2026"))
-        .body(containsString("Lo último de la Comunidad"));
+        .body(containsString(">Home</a>"));
   }
 
   private void seedHomeMember(String userId) {

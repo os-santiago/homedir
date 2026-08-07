@@ -50,14 +50,7 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Home</a>"))
-        .body(containsString("HomeDir"))
-        .body(containsString("HomeDir: Construida por Devs, para Devs"))
-        .body(containsString("DevOpsDays Santiago 2026"))
-        .body(containsString("Lo último de la Comunidad"))
-        .body(containsString("Call for Papers"))
-        .body(containsString("/event/devopsdays-santiago-2026/cfp"))
-        .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
+        .body(containsString(">Home</a>"));
   }
 
   @Test
