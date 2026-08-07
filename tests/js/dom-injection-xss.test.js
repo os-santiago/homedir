@@ -47,6 +47,35 @@ test('escapeHtml preserves legitimate plain-text notification messages', () => {
   assert.strictEqual(escapeHtml(undefined), '');
 });
 
+test('escapeHtml handles Unicode/emoji mixed with markup', () => {
+  assert.strictEqual(escapeHtml('✅ <b>ok</b>'), '✅ &lt;b&gt;ok&lt;/b&gt;');
+  assert.strictEqual(escapeHtml('🎉 ¡Éxito! <strong>100%</strong>'), '🎉 ¡Éxito! &lt;strong&gt;100%&lt;/strong&gt;');
+  assert.strictEqual(escapeHtml('тест <a href="#">link</a>'), 'тест &lt;a href=&quot;#&quot;&gt;link&lt;/a&gt;');
+});
+
+test('escapeHtml handles long strings with mixed special characters', () => {
+  const long = '&'.repeat(200) + '<>"\''.repeat(100) + ' ✅ '.repeat(50);
+  const out = escapeHtml(long);
+  assert.strictEqual(out, '&amp;'.repeat(200) + '&lt;&gt;&quot;&#39;'.repeat(100) + ' ✅ '.repeat(50));
+  assert.ok(out.length > long.length, 'escaped output should be longer than raw input');
+});
+
+test('escapeHtml never emits unescaped XSS triggers in output', () => {
+  const payloads = [
+    '<script>alert(1)</script>',
+    '<img src=x onerror=alert(1)>',
+    '<svg onload=alert(1)>',
+    '<body onload=alert(1)>',
+    '"><img src=x onerror=alert(document.domain)>'
+  ];
+  for (const payload of payloads) {
+    const out = escapeHtml(payload);
+    assert.ok(!/<[a-z]+\s/i.test(out), `an unescaped tag remains: ${payload} -> ${out}`);
+    assert.ok(!/<(script|img|svg|body|iframe)[\s>]/i.test(out), `dangerous tag remains: ${payload} -> ${out}`);
+    assert.ok(!/<\s*(script|img|svg|body)[^>]*\son(error|load)\s*=/i.test(out), `event handler remains: ${payload} -> ${out}`);
+  }
+});
+
 test('notification sink escapes URL-derived messages (core-bundle.js)', () => {
   const sink = CORE_BUNDLE.match(/note\.innerHTML\s*=\s*([^;]+);/);
   assert.ok(sink, 'notification sink not found in core-bundle.js');

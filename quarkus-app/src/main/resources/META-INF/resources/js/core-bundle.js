@@ -981,6 +981,7 @@ function hideLoading() {
     clearTimeout(loadingTimeout);
 }
 
+// TODO: consolidate with window.HomeDirUtils.escapeHtml (utils.js) once #1366 lands.
 function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, (match) => {
         switch (match) {
