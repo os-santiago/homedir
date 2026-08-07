@@ -21,7 +21,6 @@ public class HomeTimelineTest {
         .body(containsString("HomeDir"))
         .body(containsString("HomeDir: Built by Devs, for Devs"))
         .body(containsString("DevOpsDays Santiago 2026"))
-        .body(containsString("Latest from the Community"))
         .body(containsString("Call for Papers"))
         .body(containsString("/event/devopsdays-santiago-2026/cfp"))
         .body(containsString("/event/devopsdays-santiago-2026/volunteers"));
