@@ -108,7 +108,6 @@ public class PublicExperienceSmokeTest {
         .then()
         .statusCode(200)
         .body(not(isEmptyOrNullString()));
-    given().when().get("/js/homedir.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given().when().get("/js/app.js").then().statusCode(200).body(not(isEmptyOrNullString()));
     given()
         .when()

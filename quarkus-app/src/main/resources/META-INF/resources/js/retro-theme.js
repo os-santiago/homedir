@@ -81,7 +81,7 @@ var retroDefaultConfig = {
   accent_color: "#FFD700"
 };
 
-let config = defaultConfig;
+let config = retroDefaultConfig;
 
 // Data SDK Handler
 var dataHandler = {
@@ -380,12 +380,6 @@ var TECH_ROLES = [
 
 var STATUS_TYPES = ['online', 'busy', 'away'];
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, function(m) {
-    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m === '"' ? '&quot;' : '&#39;';
-  });
-}
-
 function generateVillageInhabitants() {
   const inhabitantsLayer = document.getElementById('inhabitantsLayer');
   inhabitantsLayer.textContent = '';
@@ -410,12 +404,12 @@ function generateVillageInhabitants() {
     const status = STATUS_TYPES[Math.floor(Math.random() * STATUS_TYPES.length)];
 
     member.innerHTML = `
-          <div class="member-level">${esc(user.level || 1)}</div>
+          <div class="member-level">${window.HomeDirUtils.escapeHtml(user.level || 1)}</div>
           <div class="member-avatar">
             ${avatar}
             <div class="member-status status-${status}"></div>
           </div>
-          <div class="member-badge">${esc(user.display_name || 'Guest')}</div>
+          <div class="member-badge">${window.HomeDirUtils.escapeHtml(user.display_name || 'Guest')}</div>
           <div class="member-role">${role.emoji}</div>
         `;
 

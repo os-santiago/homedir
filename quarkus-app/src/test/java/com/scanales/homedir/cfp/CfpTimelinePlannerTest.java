@@ -3,6 +3,7 @@ package com.scanales.homedir.cfp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scanales.homedir.model.Event;
@@ -78,5 +79,74 @@ class CfpTimelinePlannerTest {
     assertTrue(timeline.cfpWindowOpen());
     assertNotNull(timeline.activeStage());
     assertEquals("cfp", timeline.activeStage().key());
+  }
+
+  @Test
+  void endedIsFalseOnFinalEventDayAndTrueTheDayAfter() {
+    ZoneId zone = ZoneId.of("America/Santiago");
+    Event event = new Event("event-final-day", "Final Day Event", "ended boundary");
+    event.setDate(LocalDate.of(2026, 11, 1));
+    event.setDays(2);
+    event.setTimezone(zone.getId());
+
+    Instant cfpOpens = LocalDate.of(2026, 1, 1).atStartOfDay(zone).toInstant();
+    Instant cfpCloses = LocalDate.of(2026, 4, 1).atStartOfDay(zone).toInstant();
+
+    Instant finalEventDay = LocalDate.of(2026, 11, 2).atStartOfDay(zone).toInstant();
+    CfpTimelineView onFinalDay =
+        CfpTimelinePlanner.build(event, cfpOpens, cfpCloses, Locale.ENGLISH, finalEventDay)
+            .orElseThrow();
+    assertFalse(onFinalDay.ended(), "ended must be false on the final event day");
+    assertNotNull(onFinalDay.activeStage());
+    assertEquals("event", onFinalDay.activeStage().key());
+
+    Instant dayAfter = LocalDate.of(2026, 11, 3).atStartOfDay(zone).toInstant();
+    CfpTimelineView afterEvent =
+        CfpTimelinePlanner.build(event, cfpOpens, cfpCloses, Locale.ENGLISH, dayAfter)
+            .orElseThrow();
+    assertTrue(afterEvent.ended(), "ended must be true the day after the event");
+    assertNull(afterEvent.activeStage());
+  }
+
+  @Test
+  void endedStaysConsistentWithCappedEventStageForEventsLongerThanTwoDays() {
+    ZoneId zone = ZoneId.of("America/Santiago");
+    Event event = new Event("event-long", "Long Event", "capped timeline consistency");
+    event.setDate(LocalDate.of(2026, 12, 1));
+    event.setDays(5);
+    event.setTimezone(zone.getId());
+
+    Instant cfpOpens = LocalDate.of(2026, 1, 1).atStartOfDay(zone).toInstant();
+    Instant cfpCloses = LocalDate.of(2026, 4, 1).atStartOfDay(zone).toInstant();
+
+    CfpTimelineStageView eventStage =
+        CfpTimelinePlanner.build(event, cfpOpens, cfpCloses, Locale.ENGLISH, cfpOpens)
+            .orElseThrow()
+            .stages()
+            .stream()
+            .filter(s -> "event".equals(s.key()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(
+        2, eventStage.flexDays(), "event stage must be capped to two days even for a 5-day event");
+
+    Instant duringCappedWindow = LocalDate.of(2026, 12, 2).atStartOfDay(zone).toInstant();
+    CfpTimelineView onCappedFinalDay =
+        CfpTimelinePlanner.build(event, cfpOpens, cfpCloses, Locale.ENGLISH, duringCappedWindow)
+            .orElseThrow();
+    assertFalse(
+        onCappedFinalDay.ended(),
+        "ended must be false while the capped event stage is still active");
+    assertNotNull(onCappedFinalDay.activeStage());
+    assertEquals("event", onCappedFinalDay.activeStage().key());
+
+    Instant afterCappedWindow = LocalDate.of(2026, 12, 3).atStartOfDay(zone).toInstant();
+    CfpTimelineView pastCappedEnd =
+        CfpTimelinePlanner.build(event, cfpOpens, cfpCloses, Locale.ENGLISH, afterCappedWindow)
+            .orElseThrow();
+    assertTrue(
+        pastCappedEnd.ended(),
+        "ended must be true once nowDate passes the capped eventEnd, consistent with the stage");
+    assertNull(pastCappedEnd.activeStage());
   }
 }

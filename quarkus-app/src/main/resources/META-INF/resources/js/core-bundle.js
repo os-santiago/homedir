@@ -981,10 +981,12 @@ function hideLoading() {
     clearTimeout(loadingTimeout);
 }
 
+const escapeHtml = window.HomeDirUtils.escapeHtml;
+
 function showNotification(type, message) {
     const note = $('notification');
     if (!note) return;
-    note.innerHTML = message;
+    note.innerHTML = escapeHtml(message);
     note.className = 'notification ' + type;
     note.classList.add('show');
     setTimeout(() => {
@@ -1078,7 +1080,6 @@ let domContentLoadedHandler;
 let resizeHandler;
 let scrollHandler;
 let beforeUnloadHandler;
-let unloadHandler;
 
 function initListeners() {
     domContentLoadedHandler = onDomContentLoaded;
@@ -1093,9 +1094,6 @@ function initListeners() {
 
         beforeUnloadHandler = () => showLoading(APP_I18N.loadingPage, false);
         window.addEventListener('beforeunload', beforeUnloadHandler);
-
-        unloadHandler = () => removeListeners();
-        window.addEventListener('unload', unloadHandler);
     }
 }
 
@@ -1115,10 +1113,6 @@ function removeListeners() {
     if (beforeUnloadHandler) {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         beforeUnloadHandler = null;
-    }
-    if (unloadHandler) {
-        window.removeEventListener('unload', unloadHandler);
-        unloadHandler = null;
     }
 }
 

@@ -13,9 +13,11 @@
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_runtime_version_label}:</strong> <span>{version}</span>
                 </div>
+                {#if showCommitHash}
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_commit_hash_label}:</strong> <code>{commitId}</code>
                 </div>
+                {/if}
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_build_time_label}:</strong> <span>{buildTime}</span>
                 </div>
@@ -25,6 +27,7 @@
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_version_source_label}:</strong> <span>{i18n:about_version_source_value}</span>
                 </div>
+                {#if showAuthConfig}
                 <div class="hd-list-group-item">
                     <strong>{i18n:about_google_auth_label}:</strong>
                     {#if oidcConfigured}<span class="text-success">{i18n:about_auth_configured}</span>{#else}<span
@@ -35,6 +38,7 @@
                     {#if githubConfigured}<span class="text-success">{i18n:about_auth_configured}</span>{#else}<span
                         class="text-danger">{i18n:about_auth_github_missing_client_id}</span>{/if}
                 </div>
+                {/if}
             </div>
 
             <div class="hd-actions about-actions">
