@@ -91,10 +91,11 @@ public class GlobalTemplateExtensions {
   @TemplateGlobal(name = "reputationHubNavEnabled")
   public static boolean reputationHubNavEnabled() {
     try {
-io.quarkus.arc.InstanceHandle<com.scanales.homedir.reputation.ReputationFeatureFlags> handle =
+      io.quarkus.arc.InstanceHandle<com.scanales.homedir.reputation.ReputationFeatureFlags> handle =
           Arc.container().instance(com.scanales.homedir.reputation.ReputationFeatureFlags.class);
       if (handle != null && handle.isAvailable()) {
-        com.scanales.homedir.reputation.ReputationFeatureFlags.Flags flags = handle.get().snapshot();
+        com.scanales.homedir.reputation.ReputationFeatureFlags.Flags flags =
+            handle.get().snapshot();
         return flags.engineEnabled() && flags.hubUiEnabled() && flags.hubNavPublicEnabled();
       }
       return false;
