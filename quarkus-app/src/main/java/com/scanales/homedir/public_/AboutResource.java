@@ -1,9 +1,12 @@
 package com.scanales.homedir.public_;
 
+import com.scanales.homedir.util.AdminUtils;
 import com.scanales.homedir.util.TemplateLocaleUtil;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -17,6 +20,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @PermitAll
 public class AboutResource {
 
+  @Inject SecurityIdentity identity;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance about(
@@ -25,7 +30,9 @@ public class AboutResource {
         String buildTime,
         String environment,
         boolean oidcConfigured,
-        boolean githubConfigured);
+        boolean githubConfigured,
+        boolean showCommitHash,
+        boolean showAuthConfig);
   }
 
   @GET
@@ -61,9 +68,31 @@ public class AboutResource {
     boolean githubConfigured =
         ghClientId != null && !ghClientId.isEmpty() && !"missing".equals(ghClientId);
 
+    // Sensitive build details are only shown to admins, or outside production.
+    boolean isAdmin = identity != null && !identity.isAnonymous() && AdminUtils.isAdmin(identity);
+    boolean showCommitHash = shouldShowCommitHash(environment, isAdmin);
+    boolean showAuthConfig = shouldShowAuthConfig(isAdmin);
+
     return TemplateLocaleUtil.apply(
         Templates.about(
-            version, commitId, buildTime, environment, oidcConfigured, githubConfigured),
+            version,
+            commitId,
+            buildTime,
+            environment,
+            oidcConfigured,
+            githubConfigured,
+            showCommitHash,
+            showAuthConfig),
         localeCookie);
+  }
+
+  /** Commit hash is exposed outside production, and to admins everywhere. */
+  static boolean shouldShowCommitHash(String environment, boolean isAdmin) {
+    return !"prod".equals(environment) || isAdmin;
+  }
+
+  /** Auth configuration is only exposed to admins. */
+  static boolean shouldShowAuthConfig(boolean isAdmin) {
+    return isAdmin;
   }
 }
