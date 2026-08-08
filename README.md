@@ -120,13 +120,18 @@ Platform deployment notes:
 - [Production-Safe Delivery Playbook](docs/en/development/production-safe-delivery-playbook.md)
 
 ## Contributing
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
+
+We welcome contributions! This project is built on **voluntary contributions** and serves as a **learning and practice space** for the community.
+
+Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
 
 For information about project governance and how to become a maintainer, see [GOVERNANCE.md](GOVERNANCE.md).
 
 ### 🏆 Bounty Hunters Program
 
 Homedir includes a **Bounty Hunters** reputation system that rewards contributors for creating valuable issues and resolving them through pull requests.
+
+> **📚 Learning & Practice Space:** This is an open source project built on **voluntary contributions** as a learning and practice opportunity for the community. The Bounty Hunters program is a **meritocracy and gamification system** to recognize and celebrate contributors, not a payment or monetary reward program.
 
 **How it works:**
 - **Create valuable issues** → Get points when validated by admins
