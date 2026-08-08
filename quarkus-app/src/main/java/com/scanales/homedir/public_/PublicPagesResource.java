@@ -227,6 +227,7 @@ public class PublicPagesResource {
             .data("socialHighlightsCount", socialHighlightsCount)
             .data("upcomingCount", upcomingCount)
             .data("projectContributorCount", contributors.size())
+            .data("contributorCount", contributors.size())
             .data("projectContributionTotal", contributionTotal)
             .data("homeTodayFreshPicks", toIntSafely(recentPicksCount))
             .data("homeTodayMemberPicks", toIntSafely(recentMemberPicksCount))
@@ -273,7 +274,7 @@ public class PublicPagesResource {
   @GET
   @Path("/community/feed")
   public Response communityFeed() {
-    return Response.seeOther(URI.create("/comunidad/feed")).build();
+    return Response.seeOther(URI.create("/comunidad/propose")).build();
   }
 
   @GET

@@ -36,7 +36,8 @@ class ReputationHubResourceTest {
       return Map.of(
           "metrics.buffer.max-size", "200",
           "reputation.engine.enabled", "true",
-          "reputation.hub.ui.enabled", "true");
+          "reputation.hub.ui.enabled", "true",
+          "reputation.hub.nav.public.enabled", "true");
     }
   }
 
@@ -140,7 +141,7 @@ class ReputationHubResourceTest {
         .body(containsString("Next best move"))
         .body(containsString("How reputation works"))
         .body(containsString("href=\"/comunidad/reputation-hub/how\""))
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(containsString("data-reputation-vitals=\"hub\""))
@@ -179,7 +180,7 @@ class ReputationHubResourceTest {
         .body(containsString("What to focus on"))
         .body(containsString("Next best move"))
         .body(containsString("How reputation works"))
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(not(containsString("href=\"/comunidad/picks\"")))
@@ -206,7 +207,7 @@ class ReputationHubResourceTest {
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
         .body(containsString("data-reputation-vitals=\"how\""))
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(not(containsString("href=\"/comunidad/picks\"")))
         .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(containsString("href=\"/comunidad/reputation-hub\""));
@@ -228,7 +229,7 @@ class ReputationHubResourceTest {
         .body(containsString("Consistency"))
         .body(containsString("/css/reputation-hub.css?v="))
         .body(containsString("/js/reputation-hub-vitals.js?v="))
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(not(containsString("href=\"/comunidad/picks\"")))
         .body(not(containsString("href=\"/comunidad/propose\"")))
         .body(containsString("href=\"/comunidad/reputation-hub\""));

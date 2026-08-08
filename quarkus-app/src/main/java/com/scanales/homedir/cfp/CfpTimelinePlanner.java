@@ -129,6 +129,8 @@ public final class CfpTimelinePlanner {
     CfpTimelineStageView activeStage =
         stages.stream().filter(CfpTimelineStageView::active).findFirst().orElse(null);
 
+    boolean ended = activeStage == null && nowDate != null && nowDate.isAfter(eventEnd);
+
     return Optional.of(
         new CfpTimelineView(
             event.getId(),
@@ -136,6 +138,7 @@ public final class CfpTimelinePlanner {
             formatWithYear(cfpOpen, safeLocale),
             formatWithYear(eventEnd, safeLocale),
             activeStage != null && "cfp".equals(activeStage.key()),
+            ended,
             activeStage,
             stages));
   }

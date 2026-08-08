@@ -1362,3 +1362,11 @@
       transition: none;
     }
   }
+
+/* Visual loading indicator for community board fetchAndSwap operations
+   (issue #1022). The JS toggles body.community-board-loading during async
+   content swaps; this dims the main content area to give visual feedback. */
+body.community-board-loading #main-content {
+  opacity: 0.5;
+  pointer-events: none;
+}
