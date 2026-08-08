@@ -95,3 +95,10 @@ data/
 # Temporary query/response files from agent sessions
 query_thread.json
 resolve_*.json
+
+# Temporary working directory
+.tmp/
+
+# Recovery and backup files
+*-RECOVERY.json
+INSTRUCCIONES-RECUPERACION-*.md

@@ -114,7 +114,7 @@
     <h2 style="margin-top: 0;">{i18n:events_volunteers_my_application_title}</h2>
     <div id="volunteerConfigInfo" class="volunteer-status-card">
       <strong>{i18n:events_volunteers_window_title}</strong>
-      <p id="volunteerWindowMessage" class="form-hint" style="margin: 0;">{i18n:events_volunteers_loading}</p>
+      <p id="volunteerWindowMessage" class="form-hint" style="margin: 0;">{#if userAuthenticated}{i18n:events_volunteers_loading}{#else}{i18n:events_volunteers_login_to_view}{/if}</p>
     </div>
     <div id="volunteerMineInfo" style="margin-top: 0.8rem;">
       <p class="form-hint">{#if userAuthenticated}{i18n:events_volunteers_loading}{#else}{i18n:events_volunteers_login_to_view}{/if}</p>

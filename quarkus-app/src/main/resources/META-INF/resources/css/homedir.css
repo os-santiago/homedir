@@ -298,6 +298,7 @@ footer {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .hd-nav-link:hover,
@@ -480,6 +481,7 @@ footer {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .nav-link:hover,
@@ -5553,17 +5555,17 @@ footer {
 }
 
 .home-priority-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: 1.5rem;
-  align-items: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-priority-hero-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-width: 0;
+  max-width: 1000px;
+  width: 100%;
 }
 
 .home-priority-hero-copy h1 {
@@ -5579,7 +5581,8 @@ footer {
 
 .home-priority-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
   gap: 0.55rem;
   margin-top: 0.8rem;
 }
@@ -5587,8 +5590,12 @@ footer {
 .home-priority-actions .btn--primary,
 .home-priority-actions .btn--secondary {
   min-width: 0;
-  white-space: normal;
+  flex: 1 1 auto;
+  white-space: nowrap;
   line-height: 1.15;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
 }
 
 .home-priority-spotlight {
@@ -5631,7 +5638,7 @@ footer {
 }
 
 .home-priority-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .home-priority-card {
@@ -5737,6 +5744,68 @@ footer {
   font-size: 0.78rem;
   line-height: 1.35;
   text-transform: uppercase;
+}
+
+/* Home Redesign - Minimal additions */
+.home-hero-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.home-hero-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border: 2px solid rgba(var(--white-rgb), 0.28);
+  border-left: 4px solid rgba(255, 215, 0, 0.58);
+  background: rgba(var(--black-rgb), 0.24);
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.home-hero-feature .material-symbols-outlined {
+  color: var(--color-accent);
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.home-event-details {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+.home-event-details .home-collaboration-item {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.55rem 0.72rem;
+}
+
+.home-priority-status-grid.page-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .home-hero-features {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-priority-status-grid.page-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-features {
+    grid-template-columns: 1fr;
+  }
+
+  .home-priority-status-grid.page-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .community-submenu {
@@ -6420,5 +6489,41 @@ footer {
 
   .agenda-fullscreen-modal {
     padding: 0.5rem;
+  }
+}
+
+/* =========================================================
+   Reusable Button Loading Pattern (issue #1022)
+   button.is-loading: loading state for any button during async
+   operations. Sets pointer-events: none so the button cannot be
+   clicked again mid-request, and shows a CSS spinner via ::after.
+   ========================================================= */
+
+button.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  position: relative;
+}
+
+button.is-loading::after {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: 0.25rem;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: hd-btn-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes hd-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::after {
+    animation: none;
   }
 }
