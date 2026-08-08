@@ -1,6 +1,7 @@
 package com.scanales.homedir.public_;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 
@@ -18,10 +19,9 @@ public class ContactPageSmokeTest {
         .then()
         .statusCode(200)
         .body(
-            anyOf(
-                containsString("Open Discord"),
-                containsString("Abrir Discord"),
-                containsString("https://discord.gg/")));
+            allOf(
+                anyOf(containsString("Open Discord"), containsString("Abrir Discord")),
+                containsString("https://discord.gg/3eawzc9ybc")));
   }
 
   @Test
@@ -32,9 +32,8 @@ public class ContactPageSmokeTest {
         .then()
         .statusCode(200)
         .body(
-            anyOf(
-                containsString("Open an issue"),
-                containsString("Abrir un issue"),
-                containsString("https://github.com/")));
+            allOf(
+                anyOf(containsString("Open an issue"), containsString("Abrir un issue")),
+                containsString("https://github.com/os-santiago/homedir/issues")));
   }
 }
