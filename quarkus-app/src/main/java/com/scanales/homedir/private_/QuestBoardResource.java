@@ -35,7 +35,8 @@ public class QuestBoardResource {
   @Produces(MediaType.TEXT_HTML)
   public TemplateInstance list(
       @jakarta.ws.rs.QueryParam("filter") String filter,
-      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
+      @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie,
+      @jakarta.ws.rs.core.Context jakarta.ws.rs.core.HttpHeaders headers) {
     List<Quest> quests = questService.getQuestBoard();
 
     if ("mine".equalsIgnoreCase(filter)) {
@@ -69,7 +70,7 @@ public class QuestBoardResource {
     }
 
     UserSession session = userSessionService.getCurrentSession();
-    return withLayoutData(Templates.quests(quests, filter, session), "quests", localeCookie);
+    return withLayoutData(Templates.quests(quests, filter, session), "quests", localeCookie, headers);
   }
 
   @jakarta.ws.rs.POST
@@ -156,10 +157,13 @@ public class QuestBoardResource {
   }
 
   private TemplateInstance withLayoutData(
-      TemplateInstance templateInstance, String activePage, String localeCookie) {
+      TemplateInstance templateInstance,
+      String activePage,
+      String localeCookie,
+      jakarta.ws.rs.core.HttpHeaders headers) {
     boolean authenticated = identity != null && !identity.isAnonymous();
     String userName = authenticated ? identity.getPrincipal().getName() : null;
-    return TemplateLocaleUtil.apply(templateInstance, localeCookie)
+    return TemplateLocaleUtil.apply(templateInstance, localeCookie, headers)
         .data("activePage", activePage)
         .data("userAuthenticated", authenticated)
         .data("userName", userName)

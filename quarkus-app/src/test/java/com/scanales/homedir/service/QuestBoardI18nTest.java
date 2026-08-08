@@ -23,9 +23,9 @@ public class QuestBoardI18nTest {
         .body(not(containsString("Tablero de misiones")))
         // Quest 1
         .body(containsString("List Your Shelter"))
-        .body(containsString("Fork the 'homedir' repository or register your own configuration repository in the community directory."))
+        .body(containsString("Fork the &#39;homedir&#39; repository or register your own configuration repository in the community directory."))
         .body(not(containsString("Enlista tu Refugio")))
-        .body(not(containsString("Crea un fork del repositorio 'homedir' o registra tu propio repositorio de configuración en el directorio de la comunidad.")))
+        .body(not(containsString("Crea un fork del repositorio &#39;homedir&#39; o registra tu propio repositorio de configuración en el directorio de la comunidad.")))
         // Quest 2
         .body(containsString("First Contact"))
         .body(containsString("Join the community by linking your GitHub account in your HomeDir profile."))
@@ -55,9 +55,9 @@ public class QuestBoardI18nTest {
         .body(not(containsString("Quest Board")))
         // Quest 1
         .body(containsString("Enlista tu Refugio"))
-        .body(containsString("Crea un fork del repositorio 'homedir' o registra tu propio repositorio de configuración en el directorio de la comunidad."))
+        .body(containsString("Crea un fork del repositorio &#39;homedir&#39; o registra tu propio repositorio de configuración en el directorio de la comunidad."))
         .body(not(containsString("List Your Shelter")))
-        .body(not(containsString("Fork the 'homedir' repository or register your own configuration repository in the community directory.")))
+        .body(not(containsString("Fork the &#39;homedir&#39; repository or register your own configuration repository in the community directory.")))
         // Quest 2
         .body(containsString("Primer Contacto"))
         .body(containsString("Únete a la comunidad vinculando tu cuenta de GitHub en tu perfil de HomeDir."))
