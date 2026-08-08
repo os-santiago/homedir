@@ -499,18 +499,7 @@ function hideLoading() {
     clearTimeout(loadingTimeout);
 }
 
-// TODO: consolidate with window.HomeDirUtils.escapeHtml (utils.js) once #1366 lands.
-function escapeHtml(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, (match) => {
-        switch (match) {
-            case '&': return '&amp;';
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '"': return '&quot;';
-            default: return '&#39;';
-        }
-    });
-}
+const escapeHtml = window.HomeDirUtils.escapeHtml;
 
 function showNotification(type, message) {
     const note = $('notification');
