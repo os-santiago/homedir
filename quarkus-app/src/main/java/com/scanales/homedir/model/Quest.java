@@ -10,20 +10,6 @@ public record Quest(
     String url,
     java.util.List<String> assignees,
     java.util.List<String> labels,
-    boolean repeatable) {
-
-  // Convenience constructor for backward compatibility (defaults
-  // repeatable=false)
-  public Quest(
-      String id,
-      String title,
-      String description,
-      int xpReward,
-      String difficulty,
-      String status,
-      String url,
-      java.util.List<String> assignees,
-      java.util.List<String> labels) {
-    this(id, title, description, xpReward, difficulty, status, url, assignees, labels, false);
-  }
-}
+    boolean repeatable,
+    String titleEn,
+    String descriptionEn) {}

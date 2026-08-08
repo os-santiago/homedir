@@ -53,9 +53,9 @@
                     <span class="hd-badge quest-xp-badge">+{quest.xpReward} XP</span>
                 </div>
 
-                <h2 class="hd-panel-title quest-card-title">{quest.title}</h2>
+                <h2 class="hd-panel-title quest-card-title">{#if resolvedLocaleCode == 'en' && quest.titleEn != null && !quest.titleEn.isBlank()}{quest.titleEn}{#else}{quest.title}{/if}</h2>
                 <p class="quest-card-description">
-                    {quest.description}
+                    {#if resolvedLocaleCode == 'en' && quest.descriptionEn != null && !quest.descriptionEn.isBlank()}{quest.descriptionEn}{#else}{quest.description}{/if}
                 </p>
 
                 <div class="quest-actions">
