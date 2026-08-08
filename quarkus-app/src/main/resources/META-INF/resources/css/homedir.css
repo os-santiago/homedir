@@ -298,6 +298,7 @@ footer {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .hd-nav-link:hover,
@@ -480,6 +481,7 @@ footer {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .nav-link:hover,
@@ -5579,7 +5581,8 @@ footer {
 
 .home-priority-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
   gap: 0.55rem;
   margin-top: 0.8rem;
 }
@@ -5587,8 +5590,12 @@ footer {
 .home-priority-actions .btn--primary,
 .home-priority-actions .btn--secondary {
   min-width: 0;
-  white-space: normal;
+  flex: 1 1 auto;
+  white-space: nowrap;
   line-height: 1.15;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
 }
 
 .home-priority-spotlight {
