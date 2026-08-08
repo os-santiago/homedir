@@ -7128,6 +7128,24 @@ public interface AppMessages {
   @Message("Error - try again")
   String achievements_verify_error();
 
+  @Message("Achievement Starter")
+  String achievements_badge_starter();
+
+  @Message("Achievement Hunter")
+  String achievements_badge_hunter();
+
+  @Message("Achievement Master")
+  String achievements_badge_master();
+
+  @Message("Achievement Legend")
+  String achievements_badge_legend();
+
+  @Message("Achievement Unlocked!")
+  String achievements_celebration_title();
+
+  @Message("{name} just unlocked the {achievement} achievement!")
+  String achievements_celebration_message(String name, String achievement);
+
   @Message("os-santiago Repositories")
   String achievements_org_repos_title();
 

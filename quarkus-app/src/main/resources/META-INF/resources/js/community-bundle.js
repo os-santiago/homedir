@@ -96,21 +96,7 @@
     feedback.classList.toggle("home-lightning-feedback-error", Boolean(isError));
   }
 
-  function formatDate(raw) {
-    if (!raw) {
-      return "";
-    }
-    const value = new Date(raw);
-    if (Number.isNaN(value.getTime())) {
-      return "";
-    }
-    return value.toLocaleString(undefined, {
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  }
+  const formatDate = (raw) => window.HomeDirUtils.formatDate(raw, 'datetime');
 
   function encodeData(value) {
     return encodeURIComponent(String(value == null ? "" : value));
@@ -607,7 +593,6 @@
     ctaVoteReady: root.dataset.i18nCtaVoteReady || "Personalization signal is active.",
     emptyNoVotes: root.dataset.i18nEmptyNoVotes || "You have not voted yet. Vote 3 picks to personalize your feed."
   };
-  const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
   function normalizeTopicKey(value) {
     const raw = String(value || "")
@@ -761,12 +746,7 @@
     });
   }
 
-  function formatDate(raw) {
-    if (!raw) return "";
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
-  }
+  const formatDate = window.HomeDirUtils.formatDate;
 
   function scoreOf(item) {
     return Number(item && item.score ? item.score : 0);
@@ -1949,7 +1929,6 @@
     errorSubmit: root.dataset.i18nErrorSubmit || "Could not send your proposal.",
     feedbackSubmitted: root.dataset.i18nFeedbackSubmitted || "Proposal sent. It is now pending review."
   };
-  const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
   function showFeedback(message) {
     if (!feedbackEl) {
@@ -1982,12 +1961,7 @@
     }
   }
 
-  function formatDate(raw) {
-    if (!raw) return "";
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
-  }
+  const formatDate = window.HomeDirUtils.formatDate;
 
   function renderList(items) {
     if (!listEl || !emptyEl) {

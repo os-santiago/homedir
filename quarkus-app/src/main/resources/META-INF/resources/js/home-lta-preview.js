@@ -31,19 +31,7 @@
     });
   }
 
-  function formatDate(raw) {
-    if (!raw) {
-      return "";
-    }
-    const value = new Date(raw);
-    if (Number.isNaN(value.getTime())) {
-      return "";
-    }
-    return value.toLocaleDateString(undefined, {
-      month: "short",
-      day: "2-digit"
-    });
-  }
+  const formatDate = (raw) => window.HomeDirUtils.formatDate(raw, 'short');
 
   function renderEmpty(message) {
     listEl.innerHTML = `<p class="home-lta-preview-empty">${escapeText(message)}</p>`;

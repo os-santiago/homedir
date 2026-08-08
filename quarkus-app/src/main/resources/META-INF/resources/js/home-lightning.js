@@ -93,21 +93,7 @@
     feedback.classList.toggle("home-lightning-feedback-error", Boolean(isError));
   }
 
-  function formatDate(raw) {
-    if (!raw) {
-      return "";
-    }
-    const value = new Date(raw);
-    if (Number.isNaN(value.getTime())) {
-      return "";
-    }
-    return value.toLocaleString(undefined, {
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  }
+  const formatDate = (raw) => window.HomeDirUtils.formatDate(raw, 'datetime');
 
   function encodeData(value) {
     return encodeURIComponent(String(value == null ? "" : value));

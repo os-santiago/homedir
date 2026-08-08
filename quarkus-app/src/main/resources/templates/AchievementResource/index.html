@@ -24,6 +24,27 @@
           {userSnapshot.unlockedCount} / {userSnapshot.totalCount} {i18n:achievements_unlocked}
           · {userSnapshot.totalXpEarned} XP
         </p>
+        {#if userSnapshot.unlockedCount >= badgeLegendThreshold}
+          <span class="achievement-threshold-badge badge-legend">
+            <span class="material-symbols-outlined">military_tech</span>
+            {i18n:achievements_badge_legend}
+          </span>
+        {#else if userSnapshot.unlockedCount >= badgeMasterThreshold}
+          <span class="achievement-threshold-badge badge-master">
+            <span class="material-symbols-outlined">workspace_premium</span>
+            {i18n:achievements_badge_master}
+          </span>
+        {#else if userSnapshot.unlockedCount >= badgeHunterThreshold}
+          <span class="achievement-threshold-badge badge-hunter">
+            <span class="material-symbols-outlined">trophy</span>
+            {i18n:achievements_badge_hunter}
+          </span>
+        {#else if userSnapshot.unlockedCount >= badgeStarterThreshold}
+          <span class="achievement-threshold-badge badge-starter">
+            <span class="material-symbols-outlined">stars</span>
+            {i18n:achievements_badge_starter}
+          </span>
+        {/if}
       </div>
       {/if}
 
