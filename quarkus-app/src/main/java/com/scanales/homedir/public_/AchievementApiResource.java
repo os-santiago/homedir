@@ -4,6 +4,9 @@ import com.scanales.homedir.achievements.AchievementService;
 import com.scanales.homedir.achievements.AchievementService.AchievementVerificationResult;
 import com.scanales.homedir.config.AppMessages;
 import com.scanales.homedir.model.UserProfile;
+import com.scanales.homedir.notifications.Notification;
+import com.scanales.homedir.notifications.NotificationService;
+import com.scanales.homedir.notifications.NotificationType;
 import com.scanales.homedir.service.UserProfileService;
 import com.scanales.homedir.util.AdminUtils;
 import io.quarkus.qute.i18n.MessageBundles;
@@ -26,6 +29,7 @@ public class AchievementApiResource {
   @Inject SecurityIdentity identity;
   @Inject AchievementService achievementService;
   @Inject UserProfileService userProfileService;
+  @Inject NotificationService notificationService;
 
   @GET
   @Path("/verify/{achievementKey}")
@@ -73,6 +77,7 @@ public class AchievementApiResource {
     }
     boolean awarded = achievementService.awardAchievementXp(userId.get(), achievementKey);
     if (awarded) {
+      broadcastAchievementCelebration(userId.get(), achievementKey);
       return Response.ok()
           .entity(
               "{\"awarded\":true,\"message\":\""
@@ -86,6 +91,22 @@ public class AchievementApiResource {
                 + localized().achievements_api_award_failure().replace("\"", "\\\"")
                 + "\"}")
         .build();
+  }
+
+  private void broadcastAchievementCelebration(String userId, String achievementKey) {
+    var guide = achievementService.catalog().guideForKey(achievementKey);
+    if (guide == null) {
+      return;
+    }
+    UserProfile profile = userProfileService.find(userId).orElse(null);
+    String displayName = profile != null && profile.getName() != null ? profile.getName() : userId;
+    Notification n = new Notification();
+    n.userId = userId;
+    n.type = NotificationType.SOCIAL;
+    n.title = localized().achievements_celebration_title();
+    n.message =
+        localized().achievements_celebration_message(displayName, guide.achievement().title());
+    notificationService.enqueue(n);
   }
 
   private AppMessages localized() {

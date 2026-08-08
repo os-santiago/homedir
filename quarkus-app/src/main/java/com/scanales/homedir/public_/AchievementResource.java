@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 @Path("/achievements")
@@ -33,6 +34,18 @@ public class AchievementResource {
   @Inject AchievementCatalog catalog;
   @Inject UserProfileService userProfileService;
 
+  @ConfigProperty(name = "homedir.achievements.badge.starter-threshold", defaultValue = "1")
+  int badgeStarterThreshold;
+
+  @ConfigProperty(name = "homedir.achievements.badge.hunter-threshold", defaultValue = "3")
+  int badgeHunterThreshold;
+
+  @ConfigProperty(name = "homedir.achievements.badge.master-threshold", defaultValue = "5")
+  int badgeMasterThreshold;
+
+  @ConfigProperty(name = "homedir.achievements.badge.legend-threshold", defaultValue = "7")
+  int badgeLegendThreshold;
+
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance index(
@@ -42,7 +55,11 @@ public class AchievementResource {
         Leaderboard leaderboard,
         UserAchievementSnapshot userSnapshot,
         boolean userAuthenticated,
-        boolean githubLinked);
+        boolean githubLinked,
+        int badgeStarterThreshold,
+        int badgeHunterThreshold,
+        int badgeMasterThreshold,
+        int badgeLegendThreshold);
   }
 
   @GET
@@ -79,7 +96,11 @@ public class AchievementResource {
                 leaderboard,
                 userSnapshot,
                 authenticated,
-                githubLinked),
+                githubLinked,
+                badgeStarterThreshold,
+                badgeHunterThreshold,
+                badgeMasterThreshold,
+                badgeLegendThreshold),
             localeCookie)
         .data("activePage", "achievements")
         .data("userAuthenticated", authenticated)
