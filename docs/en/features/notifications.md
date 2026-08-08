@@ -47,8 +47,7 @@ The notification runtime is consolidated (single owner), with page-specific UIs 
 | `js/core-bundle.js` | **Runtime owner**: WebSocket client to `/ws/global-notifications`, reconnect with backoff, toast queue manager, unread badge, `EFNotificationsAdapter`, `HomeDirNotifications` API. |
 | `js/utils.js` | Shared DOM/string utilities (`HomeDirUtils.escapeHtml` / `escapeAttr`). Loaded in the layout `<head>` before any page script. |
 | `js/notifications-center.js` | UI for `/notifications/center`: localStorage-backed list, filters, read/unread, delete, selection. |
-| `js/admin-notifications.js` | Admin broadcast page: send global/scoped announcements, list and delete backlog. |
-| `js/admin-notifications-sim.js` | Admin simulation page: dry-run/execute audience targeting before broadcasting. |
+| `js/admin-notifications.js` | Admin notifications module: broadcast page (send global/scoped announcements, list and delete backlog) and simulator page (dry-run/execute audience targeting). Each mode guards on its root element and no-ops when absent. |
 
 Rules:
 - The WebSocket connection, notification inbox state (`ef_global_notifs`), and unread counter (`ef_global_unread_count`) are owned by `core-bundle.js`.
