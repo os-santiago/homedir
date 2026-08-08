@@ -70,7 +70,8 @@ public class QuestBoardResource {
     }
 
     UserSession session = userSessionService.getCurrentSession();
-    return withLayoutData(Templates.quests(quests, filter, session), "quests", localeCookie, headers);
+    return withLayoutData(
+        Templates.quests(quests, filter, session), "quests", localeCookie, headers);
   }
 
   @jakarta.ws.rs.POST
