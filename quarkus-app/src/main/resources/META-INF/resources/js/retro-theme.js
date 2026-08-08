@@ -81,7 +81,7 @@ var retroDefaultConfig = {
   accent_color: "#FFD700"
 };
 
-let config = defaultConfig;
+let config = retroDefaultConfig;
 
 // Data SDK Handler
 var dataHandler = {

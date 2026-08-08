@@ -146,7 +146,7 @@ public class BetaResource {
         progressPercent,
         classLabel,
         classEmoji,
-        "/private/login-callback?redirect=/beta");
+        "/private/login-callback?redirect=%2Fbeta");
   }
 
   private String sanitizeAvatarUrl(String value) {
