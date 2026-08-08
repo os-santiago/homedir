@@ -88,6 +88,17 @@ public class GlobalTemplateExtensions {
     return LaunchMode.current() == LaunchMode.DEVELOPMENT;
   }
 
+  @TemplateGlobal(name = "reputationHubNavEnabled")
+  public static boolean reputationHubNavEnabled() {
+    try {
+      return org.eclipse.microprofile.config.ConfigProvider.getConfig()
+          .getOptionalValue("reputation.hub.nav.public.enabled", Boolean.class)
+          .orElse(false);
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   @TemplateGlobal(name = "csrf")
   public static CsrfPlaceholder csrf() {
     return CsrfPlaceholder.EMPTY;
