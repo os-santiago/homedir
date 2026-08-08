@@ -94,7 +94,8 @@ jobs:
             # Create PR
             gh pr create \
               --title "docs: sync changelog for ${TAG_NAME}" \
-              --body "Automated documentation update for release ${TAG_NAME}
+              --body "$(cat <<EOF
+Automated documentation update for release ${TAG_NAME}
 
 **Changes:**
 - Updated CHANGELOG.md with ${TAG_NAME} release notes
@@ -102,7 +103,9 @@ jobs:
 
 **Source:** Triggered by release publication event
 
-This PR should be merged to complete the release documentation update." \
+This PR should be merged to complete the release documentation update.
+EOF
+)" \
               --base main \
               --head "$BRANCH_NAME"
           else
