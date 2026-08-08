@@ -2881,6 +2881,9 @@ public interface AppMessages {
   @Message("Open an issue")
   String contacto_github_btn();
 
+  @Message("This is an open source project built on voluntary contributions as a learning and practice space for the community.")
+  String contacto_oss_notice();
+
   @Message("Logout")
   String nav_logout();
 
