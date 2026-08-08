@@ -5553,17 +5553,17 @@ footer {
 }
 
 .home-priority-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: 1.5rem;
-  align-items: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-priority-hero-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-width: 0;
+  max-width: 1000px;
+  width: 100%;
 }
 
 .home-priority-hero-copy h1 {
