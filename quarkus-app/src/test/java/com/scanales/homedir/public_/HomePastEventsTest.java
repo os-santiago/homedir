@@ -19,9 +19,8 @@ public class HomePastEventsTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"en\">"))
-        .body(containsString("Community"))
-        .body(containsString("Events"))
-        .body(containsString("Collaboration"))
-        .body(containsString("DevOpsDays Santiago Call for Volunteers"));
+        .body(containsString("HomeDir: Built by Devs, for Devs"))
+        .body(containsString("DevOpsDays Santiago 2026"))
+        .body(containsString("Call for Volunteers"));
   }
 }

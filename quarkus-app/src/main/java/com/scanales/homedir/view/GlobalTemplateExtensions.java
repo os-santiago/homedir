@@ -88,6 +88,22 @@ public class GlobalTemplateExtensions {
     return LaunchMode.current() == LaunchMode.DEVELOPMENT;
   }
 
+  @TemplateGlobal(name = "reputationHubNavEnabled")
+  public static boolean reputationHubNavEnabled() {
+    try {
+      io.quarkus.arc.InstanceHandle<com.scanales.homedir.reputation.ReputationFeatureFlags> handle =
+          Arc.container().instance(com.scanales.homedir.reputation.ReputationFeatureFlags.class);
+      if (handle != null && handle.isAvailable()) {
+        com.scanales.homedir.reputation.ReputationFeatureFlags.Flags flags =
+            handle.get().snapshot();
+        return flags.engineEnabled() && flags.hubUiEnabled() && flags.hubNavPublicEnabled();
+      }
+      return false;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   @TemplateGlobal(name = "csrf")
   public static CsrfPlaceholder csrf() {
     return CsrfPlaceholder.EMPTY;

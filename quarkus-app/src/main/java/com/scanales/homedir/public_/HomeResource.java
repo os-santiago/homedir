@@ -1,10 +1,6 @@
 package com.scanales.homedir.public_;
 
-import com.scanales.homedir.public_.landing.LandingService;
-import com.scanales.homedir.public_.landing.LandingViewModel;
 import com.scanales.homedir.service.UsageMetricsService;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateInstance;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -21,27 +17,14 @@ public class HomeResource {
 
   @Inject UsageMetricsService metrics;
 
-  @Inject Template index;
-
-  @Inject LandingService landingService;
-
-  @Inject com.scanales.homedir.service.UserSessionService userSessionService;
-
   @GET
   @PermitAll
   @Produces(MediaType.TEXT_HTML)
-  public TemplateInstance home(
+  public Response home(
       @jakarta.ws.rs.core.Context HttpHeaders headers,
       @jakarta.ws.rs.core.Context RoutingContext context) {
-    // TODO: Legacy landing page kept for reference; main public routes moved to
-    // PublicPagesResource.
     metrics.recordPageView("/legacy-home", headers, context);
-    LandingViewModel viewModel = landingService.buildViewModel();
-    return index
-        .data("vm", viewModel)
-        .data("userSession", userSessionService.getCurrentSession())
-        .data("loginUrl", "/private/profile")
-        .data("logoutUrl", "/logout");
+    return Response.status(Response.Status.MOVED_PERMANENTLY).location(URI.create("/")).build();
   }
 
   @GET
