@@ -57,6 +57,7 @@ Spanish (`docs/es`) mirrors this tree with either full translations or stubs.
 ## Features
 
 - [Admin Area](features/admin-area.md)
+- [Bounty Hunters Program](features/bounty-hunters.md) - Gamified reputation for issue creation and resolution
 - [Event Discovery & Registration](features/event-discovery-registration.md)
 - [Google Sign-In](features/google-sign-in.md)
 - [Import Events](features/import-events.md)

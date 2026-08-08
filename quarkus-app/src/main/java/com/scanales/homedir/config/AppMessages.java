@@ -7129,4 +7129,169 @@ public interface AppMessages {
 
   @Message("Verification unavailable")
   String achievements_verification_unavailable();
+
+  @Message(
+      "ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización")
+  String volunteers_export_csv_header();
+
+  @Message("N/A")
+  String volunteers_export_not_available();
+
+  // Home redesign - Hero section
+  @Message("HomeDir platform hero")
+  String home_hero_aria();
+
+  @Message("Community Platform")
+  String home_hero_eyebrow();
+
+  @Message("Where developers build the future together")
+  String home_hero_title();
+
+  @Message(
+      "A community platform built by developers for developers, 100% powered by AI. A trusted space to practice, innovate, learn, and deliver value through features you propose and build together.")
+  String home_hero_description();
+
+  @Message("100% built with AI")
+  String home_hero_feature_ai();
+
+  @Message("Learn by building")
+  String home_hero_feature_learn();
+
+  @Message("Quality & security from day one")
+  String home_hero_feature_quality();
+
+  @Message("Emerging tech daily")
+  String home_hero_feature_innovation();
+
+  @Message("Explore Community")
+  String home_hero_primary_cta();
+
+  @Message("Join Reputation Hub")
+  String home_hero_secondary_cta();
+
+  // Home redesign - Focus sections
+  @Message("HomeDir main focus areas")
+  String home_focus_aria();
+
+  @Message("Platform")
+  String home_focus_platform_eyebrow();
+
+  @Message("HomeDir: Built by Devs, for Devs")
+  String home_focus_platform_title();
+
+  @Message(
+      "A community platform where the future of development is embraced. Practice emerging technologies, propose features, build together, and learn while delivering real value to the community.")
+  String home_focus_platform_desc();
+
+  @Message("By developers, for developers")
+  String home_focus_platform_community_title();
+
+  @Message("Every feature starts as a community proposal and becomes a learning opportunity")
+  String home_focus_platform_community_desc();
+
+  @Message("100% built with AI")
+  String home_focus_platform_ai_title();
+
+  @Message("Embrace AI-assisted development as the new normal in software creation")
+  String home_focus_platform_ai_desc();
+
+  @Message("Emerging tech & new practices")
+  String home_focus_platform_innovation_title();
+
+  @Message("Where cutting-edge technology and innovative practices are part of daily work")
+  String home_focus_platform_innovation_desc();
+
+  @Message("Trust & quality from the start")
+  String home_focus_platform_trust_title();
+
+  @Message("Security, testing, and quality integrated from the first line of code")
+  String home_focus_platform_trust_desc();
+
+  @Message("Explore Community Picks")
+  String home_focus_platform_cta_primary();
+
+  @Message("Browse Projects")
+  String home_focus_platform_cta_secondary();
+
+  @Message("Flagship Event")
+  String home_focus_event_eyebrow();
+
+  @Message("DevOpsDays Santiago 2026")
+  String home_focus_event_title();
+
+  @Message(
+      "In-person event supporting the growth of IT professionals and society. Join us to learn, share, and connect with the DevOps community in Santiago.")
+  String home_focus_event_desc();
+
+  @Message("Date")
+  String home_focus_event_date_label();
+
+  @Message("2026 (dates TBA)")
+  String home_focus_event_date_value();
+
+  @Message("Location")
+  String home_focus_event_location_label();
+
+  @Message("Santiago, Chile")
+  String home_focus_event_location_value();
+
+  @Message("Format")
+  String home_focus_event_format_label();
+
+  @Message("In-person")
+  String home_focus_event_format_value();
+
+  @Message("Call for Papers")
+  String home_focus_event_cfp_title();
+
+  @Message("Submit your talk proposal")
+  String home_focus_event_cfp_desc();
+
+  @Message("Call for Volunteers")
+  String home_focus_event_volunteers_title();
+
+  @Message("Join the organizing team")
+  String home_focus_event_volunteers_desc();
+
+  @Message("Call for Sponsors")
+  String home_focus_event_sponsors_title();
+
+  @Message("Support the event")
+  String home_focus_event_sponsors_desc();
+
+  @Message("Open event page")
+  String home_focus_event_cta_primary();
+
+  @Message("Browse all events")
+  String home_focus_event_cta_secondary();
+
+  // Home redesign - Stats section
+  @Message("HomeDir community statistics")
+  String home_stats_aria();
+
+  @Message("upcoming events")
+  String home_stats_events();
+
+  @Message("new picks today")
+  String home_stats_picks();
+
+  @Message("community members")
+  String home_stats_members_count();
+
+  @Message("project contributors")
+  String home_stats_contributors();
+
+  // Home redesign - Community highlights
+  @Message("Community highlights")
+  String home_community_aria();
+
+  @Message("Latest from the Community")
+  String home_community_highlights_title();
+
+  @Message(
+      "Curated content about community building, DevRel, open source, and the local tech ecosystem")
+  String home_community_highlights_desc();
+
+  @Message("View all Community Picks")
+  String home_community_cta();
 }
