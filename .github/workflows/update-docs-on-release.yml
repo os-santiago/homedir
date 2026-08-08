@@ -92,20 +92,16 @@ jobs:
             git push origin "$BRANCH_NAME"
 
             # Create PR
+            BODY_FILE="$(mktemp)"
+            printf 'Automated documentation update for release %s\n' "${TAG_NAME}" > "$BODY_FILE"
+            printf '\n**Changes:**\n' >> "$BODY_FILE"
+            printf -- '- Updated CHANGELOG.md with %s release notes\n' "${TAG_NAME}" >> "$BODY_FILE"
+            printf -- '- Updated RELEASE_NOTES.md with latest release information\n' >> "$BODY_FILE"
+            printf '\n**Source:** Triggered by release publication event\n' >> "$BODY_FILE"
+            printf '\nThis PR should be merged to complete the release documentation update.\n' >> "$BODY_FILE"
             gh pr create \
               --title "docs: sync changelog for ${TAG_NAME}" \
-              --body "$(cat <<EOF
-Automated documentation update for release ${TAG_NAME}
-
-**Changes:**
-- Updated CHANGELOG.md with ${TAG_NAME} release notes
-- Updated RELEASE_NOTES.md with latest release information
-
-**Source:** Triggered by release publication event
-
-This PR should be merged to complete the release documentation update.
-EOF
-)" \
+              --body-file "$BODY_FILE" \
               --base main \
               --head "$BRANCH_NAME"
           else
