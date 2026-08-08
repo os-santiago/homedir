@@ -48,7 +48,6 @@
     errorSubmit: root.dataset.i18nErrorSubmit || "Could not send your proposal.",
     feedbackSubmitted: root.dataset.i18nFeedbackSubmitted || "Proposal sent. It is now pending review."
   };
-  const uiLocale = document.documentElement.lang || navigator.language || undefined;
 
   function showFeedback(message) {
     if (!feedbackEl) {
@@ -81,12 +80,7 @@
     }
   }
 
-  function formatDate(raw) {
-    if (!raw) return "";
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) return "";
-    return parsed.toLocaleDateString(uiLocale, { year: "numeric", month: "short", day: "numeric" });
-  }
+  const formatDate = window.HomeDirUtils.formatDate;
 
   function renderList(items) {
     if (!listEl || !emptyEl) {
