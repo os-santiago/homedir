@@ -96,7 +96,6 @@ public class JsBundleE2ETest {
 
   @Test
   void individualCoreJsFilesStillAccessible() {
-    given().when().get("/js/homedir.js").then().statusCode(200);
     given().when().get("/js/app.js").then().statusCode(200);
     given().when().get("/js/utils.js").then().statusCode(200);
   }

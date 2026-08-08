@@ -31,7 +31,6 @@ Notes:
 - Critical assets return `200` and non-empty payload:
   - `/css/homedir.css`
   - `/css/retro-theme.css`
-  - `/js/homedir.js`
   - `/js/app.js`
 
 ## How to run locally
