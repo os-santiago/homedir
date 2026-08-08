@@ -122,17 +122,77 @@ Platform deployment notes:
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started, our development workflow, and contribution guidelines.
 
+For information about project governance and how to become a maintainer, see [GOVERNANCE.md](GOVERNANCE.md).
+
+### 🏆 Bounty Hunters Program
+
+Homedir includes a **Bounty Hunters** reputation system that rewards contributors for creating valuable issues and resolving them through pull requests.
+
+**How it works:**
+- **Create valuable issues** → Get points when validated by admins
+- **Resolve issues** → Earn points when your PR is merged
+- **Level up** → Unlock exclusive frames and recognition
+
+**Eligible Labels & Points:**
+| Label | Points | Type |
+|-------|--------|------|
+| `bug-impact-low` | 5 pts | Bug fixes |
+| `bug-impact-medium` | 15 pts | Bug fixes |
+| `bug-impact-high` | 30 pts | Bug fixes |
+| `feature-request` | 20 pts | Features |
+| `documentation-improvement` | 10 pts | Documentation |
+| `platform-maintenance` | 15 pts | Maintenance |
+
+**Progression Levels:**
+- 🥉 **Novice** (50+ pts) → Basic frame
+- 🥈 **Experienced** (150+ pts) → Enhanced frame
+- 🥇 **Professional** (400+ pts) → Professional frame
+- 💎 **Ultimate** (800+ pts) → Ultimate frame
+- ⭐ **Transcendental** (1500+ pts) → Transcendental frame
+
+**API Endpoints:**
+```
+GET /api/bounty-hunters/leaderboard?limit=50
+GET /api/bounty-hunters/profile/{userId}
+GET /api/bounty-hunters/config/labels
+GET /api/bounty-hunters/config/levels
+```
+
+**Want to participate?**
+1. Look for issues with bounty labels (e.g., #1374)
+2. Submit quality issues for validation
+3. Resolve labeled issues via PRs
+4. Track your progress via the API
+
+**Note:** Dashboard UI is coming soon! See [#1375](https://github.com/os-santiago/homedir/issues/1375) to contribute to the frontend.
+
+## Team
+
+### 👥 Maintainers
+
+The project is maintained by the [@os-santiago/core-devs](https://github.com/orgs/os-santiago/teams/core-devs) team:
+
+| Maintainer | GitHub | Role |
+|------------|--------|------|
+| Sergio Canales | [@scanales-stack](https://github.com/scanales-stack) | Lead Maintainer |
+
+**Interested in becoming a maintainer?** Check our [Governance Guidelines](GOVERNANCE.md) to learn about the path to maintainer status.
+
+**Want to show your support?** If you're a member of the organization, make your membership [public](https://github.com/orgs/os-santiago/people) to display the Open Source Santiago badge on your profile!
+
+### ✨ Contributors
+
+Thanks to all our amazing contributors who make this project possible!
+
+[![Contributors](https://contrib.rocks/image?repo=os-santiago/homedir)](https://github.com/os-santiago/homedir/graphs/contributors)
+
+We follow the [All Contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome and recognized!
+
 ## Code of Conduct
 We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the standards of behavior we expect from all community members.
 
 ## Security
 We take security seriously. Please see our [Security Policy](SECURITY.md) for responsible disclosure guidelines and security contact information.
-
-## Contributors
-
-Thanks to all our contributors!
-
-[![Contributors](https://contrib.rocks/image?repo=os-santiago/homedir)](https://github.com/os-santiago/homedir/graphs/contributors)
 
 ---
 *Homedir: Where code finds its home.*<!-- Test comment -->

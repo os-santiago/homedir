@@ -40,7 +40,7 @@ class CommunityReputationNavExposureTest {
         .get("/comunidad")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(containsString("href=\"/comunidad/picks\""))
         .body(containsString("href=\"/comunidad/propose\""))
         .body(not(containsString("/comunidad/lta")));
@@ -53,7 +53,7 @@ class CommunityReputationNavExposureTest {
         .get("/comunidad/board")
         .then()
         .statusCode(200)
-        .body(containsString("href=\"/reputation-hub\""))
+        .body(containsString("href=\"/comunidad/reputation-hub\""))
         .body(containsString("href=\"/comunidad/picks\""))
         .body(containsString("href=\"/comunidad/propose\""))
         .body(not(containsString("/comunidad/lta")));

@@ -1,0 +1,19 @@
+# CODEOWNERS - Define quiénes revisan automáticamente los PRs
+# Documentación: https://docs.github.com/es/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Por defecto, el equipo core-devs revisa todos los cambios
+* @os-santiago/core-devs
+
+# Archivos de configuración críticos requieren revisión del equipo completo
+/.github/ @os-santiago/core-devs
+/platform/ @os-santiago/core-devs
+/scripts/ @os-santiago/core-devs
+
+# Configuración de CI/CD
+/.github/workflows/ @os-santiago/core-devs
+
+# Documentación
+/docs/ @os-santiago/core-devs
+
+# Código de la aplicación principal
+/quarkus-app/ @os-santiago/core-devs
