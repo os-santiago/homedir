@@ -144,6 +144,7 @@
       {#case 'event'}{i18n:events_cfp_live_stage_event_badge}{/case}
       {#else}{i18n:events_cfp_live_badge}{/else}
       {/switch}
+    {#else if cfpTimeline && cfpTimeline.ended}{i18n:events_cfp_closed_badge}
     {#else}{i18n:events_cfp_live_badge}{/if}</span>
     <div>
       <p class="cfp-live-title">{#if cfpTimeline && cfpTimeline.activeStage}
@@ -155,6 +156,7 @@
         {#case 'event'}{i18n:events_cfp_live_stage_event_title}{/case}
         {#else}{i18n:events_cfp_live_title}{/else}
         {/switch}
+      {#else if cfpTimeline && cfpTimeline.ended}{i18n:events_cfp_closed_title}
       {#else}{i18n:events_cfp_live_title}{/if}</p>
       <p class="cfp-live-desc">{#if cfpTimeline && cfpTimeline.activeStage}
         {#switch cfpTimeline.activeStage.key}
@@ -165,6 +167,7 @@
         {#case 'event'}{i18n:events_cfp_live_stage_event_desc}{/case}
         {#else}{i18n:events_cfp_live_desc}{/else}
         {/switch}
+      {#else if cfpTimeline && cfpTimeline.ended}{i18n:events_cfp_closed_desc}
       {#else}{i18n:events_cfp_live_desc}{/if}</p>
     </div>
   </div>
@@ -805,7 +808,8 @@
         return;
       }
       const hasKnownState = !!payload && typeof payload.currently_open === "boolean";
-      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open);
+      const cfpEnded = {#if cfpTimeline && cfpTimeline.ended}true{#else}false{/if};
+      cfpLiveBanner.hidden = !(hasKnownState && !!payload.currently_open) && !cfpEnded;
     }
 
     async function fetchConfigPayload() {

@@ -406,7 +406,7 @@ public interface AppMessages {
   @Message("Events - HomeDir")
   String events_title();
 
-  @Message("Agenda · HomeDir")
+  @Message("Events · HomeDir")
   String events_subtitle();
 
   @Message("Events and talks")
@@ -1197,11 +1197,20 @@ public interface AppMessages {
   @Message("Live")
   String events_cfp_live_badge();
 
+  @Message("Closed")
+  String events_cfp_closed_badge();
+
   @Message("Call for Papers is officially open")
   String events_cfp_live_title();
 
+  @Message("Call for Papers has ended")
+  String events_cfp_closed_title();
+
   @Message("Submit your proposal and follow moderation updates from this page.")
   String events_cfp_live_desc();
+
+  @Message("The Call for Papers window has closed. Check back for results.")
+  String events_cfp_closed_desc();
 
   @Message("CFP official status notice")
   String events_cfp_live_aria();
@@ -2891,7 +2900,7 @@ public interface AppMessages {
   @Message("Explore Events")
   String notifications_center_empty_cta_events();
 
-  @Message("Open Community Board")
+  @Message("View Reputation Hub")
   String notifications_center_empty_cta_board();
 
   @Message("Delete all?")
@@ -6632,6 +6641,24 @@ public interface AppMessages {
   @Message("Community and system signals combine to surface useful contributions.")
   String reputation_hub_how_quality_desc();
 
+  @Message(
+      "Showing up in events, threads and picks builds the participation signal that the hub tracks weekly and monthly.")
+  String reputation_hub_strength_participation_desc();
+
+  @Message(
+      "Code, content, talks and proposals are weighted by impact, not by raw count of actions.")
+  String reputation_hub_strength_contribution_desc();
+
+  @Message(
+      "Endorsements from other members and system-verified milestones feed into the recognition score.")
+  String reputation_hub_strength_recognition_desc();
+
+  @Message("Sustained activity across weeks matters more than a single burst of contributions.")
+  String reputation_hub_strength_consistency_desc();
+
+  @Message("Top strengths explained")
+  String reputation_hub_how_strengths_title();
+
   @Message("Skip to content")
   String skip_to_content();
 
@@ -6688,10 +6715,10 @@ public interface AppMessages {
   @Message("Show less")
   String trending_show_less();
 
-  @Message("Last updated {0}")
+  @Message("Last updated {timestamp}")
   String trending_last_updated(String timestamp);
 
-  @Message("{0} stars")
+  @Message("{count} stars")
   String trending_stars(int count);
 
   @Message("Unable to load trending repositories")
