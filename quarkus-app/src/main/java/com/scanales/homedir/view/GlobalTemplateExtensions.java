@@ -91,9 +91,14 @@ public class GlobalTemplateExtensions {
   @TemplateGlobal(name = "reputationHubNavEnabled")
   public static boolean reputationHubNavEnabled() {
     try {
-      return org.eclipse.microprofile.config.ConfigProvider.getConfig()
-          .getOptionalValue("reputation.hub.nav.public.enabled", Boolean.class)
-          .orElse(false);
+      io.quarkus.arc.InstanceHandle<com.scanales.homedir.reputation.ReputationFeatureFlags> handle =
+          Arc.container().instance(com.scanales.homedir.reputation.ReputationFeatureFlags.class);
+      if (handle != null && handle.isAvailable()) {
+        com.scanales.homedir.reputation.ReputationFeatureFlags.Flags flags =
+            handle.get().snapshot();
+        return flags.engineEnabled() && flags.hubUiEnabled() && flags.hubNavPublicEnabled();
+      }
+      return false;
     } catch (Exception e) {
       return false;
     }
