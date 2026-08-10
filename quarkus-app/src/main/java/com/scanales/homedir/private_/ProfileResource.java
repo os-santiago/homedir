@@ -1,6 +1,7 @@
 package com.scanales.homedir.private_;
 
 import com.scanales.homedir.cfp.CfpEventConfigService;
+import io.quarkus.logging.Log;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
@@ -1343,7 +1344,11 @@ public class ProfileResource {
       return CfpTimelinePlanner.build(
               selectedEvent, resolved.opensAt(), resolved.closesAt(), locale)
           .orElse(null);
-    } catch (Exception ignored) {
+    } catch (Exception e) {
+      // Log the error for debugging speaker profile 500 errors
+      Log.warn(
+          "Failed to resolve CFP timeline for eventId=" + selectedEventId + ": " + e.getMessage(),
+          e);
       return null;
     }
   }
