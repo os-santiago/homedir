@@ -453,6 +453,13 @@
       return ["created", "updated", "score"].includes(raw) ? raw : "created";
     }
 
+    function escapeHtml(str) {
+      if (!str) return "";
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     function activeSearchParams() {
       const params = new URLSearchParams();
       if (activeStatus) params.set("status", activeStatus);
@@ -866,9 +873,17 @@
         const presentationLine = document.createElement("p");
         presentationLine.className = "cfp-admin-meta";
         const uploadedAt = fmtDate(item.presentation_asset.uploaded_at) || i18n.notAvailable;
-        presentationLine.textContent =
-          i18n.presentationTitle + ": " + i18n.presentationCurrent + " " + item.presentation_asset.file_name
-          + " · " + uploadedAt;
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = `/api/events/${escapeHtml(eventId)}/cfp/submissions/${escapeHtml(item.id)}/presentation`;
+        downloadLink.textContent = item.presentation_asset.file_name;
+        downloadLink.className = "cfp-admin-download-link";
+        downloadLink.target = "_blank";
+        downloadLink.title = "Download presentation";
+
+        presentationLine.appendChild(document.createTextNode(i18n.presentationTitle + ": " + i18n.presentationCurrent + " "));
+        presentationLine.appendChild(downloadLink);
+        presentationLine.appendChild(document.createTextNode(" · " + uploadedAt));
         article.appendChild(presentationLine);
       }
 
