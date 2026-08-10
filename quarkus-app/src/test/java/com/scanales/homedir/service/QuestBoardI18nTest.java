@@ -65,7 +65,8 @@ public class QuestBoardI18nTest {
 
   @Test
   void spanishLocaleShowsSpanishQuestContent() {
-    // TODO(issue-i18n): Re-enable Spanish validation once Qute message bundle locale resolution is fixed
+    // TODO(issue-i18n): Re-enable Spanish validation once Qute message bundle locale resolution is
+    // fixed
     // Currently Quarkus is not respecting .setLocale() for message bundles - always loads English
     given()
         .header("Accept-Language", "es")
