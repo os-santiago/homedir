@@ -875,7 +875,7 @@
         const uploadedAt = fmtDate(item.presentation_asset.uploaded_at) || i18n.notAvailable;
 
         const downloadLink = document.createElement("a");
-        downloadLink.href = `/api/events/${escapeHtml(eventId)}/cfp/submissions/${escapeHtml(item.id)}/presentation`;
+        downloadLink.href = `/api/events/$${escapeHtml(eventId)}/cfp/submissions/$${escapeHtml(item.id)}/presentation`;
         downloadLink.textContent = item.presentation_asset.file_name;
         downloadLink.className = "cfp-admin-download-link";
         downloadLink.target = "_blank";
