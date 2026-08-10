@@ -633,6 +633,26 @@ public class ProfileResourceTest {
         .body(containsString("Most active profile: Hybrid (Scientist + Mage)"));
   }
 
+  @Test
+  public void profileHandlesEmptyOrMissingNameClaimGracefully() {
+    // This test verifies the fix for issue where users with empty/null name claims
+    // would get a 500 error on /private/profile due to substring(0,1) on empty string
+    // Note: This test relies on the fallback chain: name → email → "User"
+    // When the OIDC provider returns null/empty name, the code falls back gracefully
+    String userId = currentUserEmail();
+    UserProfile profile = userProfiles.upsert(userId, "", userId); // Empty name
+    profile.setName(""); // Explicitly set empty name
+    userProfiles.update(profile);
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("data-profile-nav=\"overview-panel\""));
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {

@@ -273,15 +273,21 @@ public class ProfileResource {
     metrics.recordPageView("/private/profile", headers, context);
     String email = getEmail();
     String name = getClaim("name");
-    if (name == null) {
+    if (name == null || name.isBlank()) {
       name = email;
+    }
+    if (name == null || name.isBlank()) {
+      name = "User";
     }
     String givenName = getClaim("given_name");
     String familyName = getClaim("family_name");
     String picture = getClaim("picture");
     String sub = getClaim("sub");
-    if (sub == null) {
+    if (sub == null || sub.isBlank()) {
       sub = email;
+    }
+    if (sub == null || sub.isBlank()) {
+      sub = "anonymous";
     }
 
     final String finalLang = resolveLanguage(localeCookie, email, headers);
@@ -421,6 +427,9 @@ public class ProfileResource {
             + xp
             + ". Solving real engineering problems.";
 
+    String userInitial =
+        (name != null && !name.isEmpty()) ? name.substring(0, 1).toUpperCase() : "U";
+
     return Templates.profile(
             name,
             givenName,
@@ -443,7 +452,7 @@ public class ProfileResource {
             linkGithub,
             true,
             name,
-            name.substring(0, 1).toUpperCase(),
+            userInitial,
             classProgress,
             dominantClass,
             dominantClassMessage,
