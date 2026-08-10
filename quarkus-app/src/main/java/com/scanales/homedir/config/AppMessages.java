@@ -1109,6 +1109,9 @@ public interface AppMessages {
   @Message("Current file")
   String events_cfp_presentation_current();
 
+  @Message("Download presentation")
+  String events_cfp_presentation_download_title();
+
   @Message("Upload PDF")
   String events_cfp_presentation_upload();
 

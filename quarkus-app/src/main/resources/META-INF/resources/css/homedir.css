@@ -1930,6 +1930,16 @@ footer {
   align-items: center;
 }
 
+.cfp-admin-download-link {
+  color: rgba(120, 185, 255, 1);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.cfp-admin-download-link:hover {
+  color: rgba(140, 200, 255, 1);
+}
+
 .cfp-status-chip {
   display: inline-flex;
   border-radius: 999px;
