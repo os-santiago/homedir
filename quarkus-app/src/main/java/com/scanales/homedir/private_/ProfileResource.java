@@ -27,6 +27,7 @@ import com.scanales.homedir.volunteers.VolunteerApplication;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import com.scanales.homedir.volunteers.VolunteerEventConfigService;
+import io.quarkus.logging.Log;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -1343,7 +1344,11 @@ public class ProfileResource {
       return CfpTimelinePlanner.build(
               selectedEvent, resolved.opensAt(), resolved.closesAt(), locale)
           .orElse(null);
-    } catch (Exception ignored) {
+    } catch (Exception e) {
+      // Log the error for debugging speaker profile 500 errors
+      Log.warn(
+          "Failed to resolve CFP timeline for eventId=" + selectedEventId + ": " + e.getMessage(),
+          e);
       return null;
     }
   }
