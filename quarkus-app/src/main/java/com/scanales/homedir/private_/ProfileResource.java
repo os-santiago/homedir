@@ -1,7 +1,6 @@
 package com.scanales.homedir.private_;
 
 import com.scanales.homedir.cfp.CfpEventConfigService;
-import io.quarkus.logging.Log;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionService;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
@@ -28,6 +27,7 @@ import com.scanales.homedir.volunteers.VolunteerApplication;
 import com.scanales.homedir.volunteers.VolunteerApplicationService;
 import com.scanales.homedir.volunteers.VolunteerApplicationStatus;
 import com.scanales.homedir.volunteers.VolunteerEventConfigService;
+import io.quarkus.logging.Log;
 import io.quarkus.oidc.runtime.OidcJwtCallerPrincipal;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
