@@ -427,9 +427,8 @@ public class ProfileResource {
             + xp
             + ". Solving real engineering problems.";
 
-    String userInitial = (name != null && !name.isEmpty())
-        ? name.substring(0, 1).toUpperCase()
-        : "U";
+    String userInitial =
+        (name != null && !name.isEmpty()) ? name.substring(0, 1).toUpperCase() : "U";
 
     return Templates.profile(
             name,
