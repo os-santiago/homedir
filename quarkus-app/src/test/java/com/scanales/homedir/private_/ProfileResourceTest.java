@@ -633,6 +633,21 @@ public class ProfileResourceTest {
         .body(containsString("Most active profile: Hybrid (Scientist + Mage)"));
   }
 
+  @Test
+  @TestSecurity(user = "", roles = {"user"})
+  public void profileHandlesEmptyOrMissingNameClaimGracefully() {
+    // This test verifies the fix for issue where users with empty/null name claims
+    // would get a 500 error on /private/profile due to substring(0,1) on empty string
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("User")) // Default fallback name
+        .body(containsString("data-profile-nav=\"overview-panel\""));
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {
