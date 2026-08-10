@@ -367,6 +367,7 @@
       panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
       presentationTitle: "{i18n:events_cfp_presentation_title}",
       presentationCurrent: "{i18n:events_cfp_presentation_current}",
+      presentationDownloadTitle: "{i18n:events_cfp_presentation_download_title}",
       deliveryTitle: "{i18n:events_cfp_delivery_title}",
       deliveryBlock: "{i18n:events_cfp_delivery_block}",
       deliveryScenario: "{i18n:events_cfp_delivery_scenario}",
@@ -875,11 +876,11 @@
         const uploadedAt = fmtDate(item.presentation_asset.uploaded_at) || i18n.notAvailable;
 
         const downloadLink = document.createElement("a");
-        downloadLink.href = "/api/events/" + escapeHtml(eventId) + "/cfp/submissions/" + escapeHtml(item.id) + "/presentation";
+        downloadLink.href = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id) + "/presentation";
         downloadLink.textContent = item.presentation_asset.file_name;
         downloadLink.className = "cfp-admin-download-link";
         downloadLink.target = "_blank";
-        downloadLink.title = "Download presentation";
+        downloadLink.title = i18n.presentationDownloadTitle;
 
         presentationLine.appendChild(document.createTextNode(i18n.presentationTitle + ": " + i18n.presentationCurrent + " "));
         presentationLine.appendChild(downloadLink);
