@@ -748,9 +748,9 @@
                         return;
                     }
                     resultsDiv.innerHTML = results.map(s => `
-                        <div class="hd-search-result" data-speaker-id="${escapeHtml(s.id)}" data-speaker-name="${escapeHtml(s.name)}">
-                            <strong>${escapeHtml(s.name)}</strong>
-                            ${s.bio ? `<small>${escapeHtml(s.bio)}</small>` : ''}
+                        <div class="hd-search-result" data-speaker-id="$${escapeHtml(s.id)}" data-speaker-name="$${escapeHtml(s.name)}">
+                            <strong>$${escapeHtml(s.name)}</strong>
+                            $${s.bio ? `<small>$${escapeHtml(s.bio)}</small>` : ''}
                         </div>
                     `).join('');
                     resultsDiv.style.display = 'block';
@@ -782,8 +782,8 @@
                 function renderSelectedCoSpeakers() {
                     selectedDiv.innerHTML = selectedCoSpeakers.map(s => `
                         <div class="hd-selected-item">
-                            ${escapeHtml(s.name)}
-                            <button type="button" class="hd-remove-btn" data-remove-speaker="${escapeHtml(s.id)}">&times;</button>
+                            $${escapeHtml(s.name)}
+                            <button type="button" class="hd-remove-btn" data-remove-speaker="$${escapeHtml(s.id)}">&times;</button>
                         </div>
                     `).join('');
 

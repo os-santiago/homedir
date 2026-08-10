@@ -71,6 +71,7 @@ public class QuestBoardI18nTest {
     // TODO(issue-i18n): Re-enable once Qute message bundle locale resolution is fixed
     // Root cause: Quarkus loads i18n.properties (English) instead of i18n_es.properties
     // even when .setLocale(Locale.forLanguageTag("es")) is called
+    // Test validates Spanish content to preserve coverage when i18n is fixed
     given()
         .header("Accept-Language", "es")
         .when()
