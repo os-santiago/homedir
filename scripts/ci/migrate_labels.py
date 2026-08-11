@@ -5,7 +5,7 @@ import os
 import sys
 
 try:
-    from github import Github
+    from github import Github, Auth
 except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
@@ -27,7 +27,7 @@ SKIP_LABELS = {"evento", "hackathon"}
 
 def migrate_labels(github_token: str, repository: str) -> tuple:
     """Migrate legacy ES labels on all open issues and PRs. Returns (count, details)."""
-    github = Github(github_token)
+    github = Github(auth=Auth.Token(github_token))
     repo = github.get_repo(repository)
 
     migration_count = 0
