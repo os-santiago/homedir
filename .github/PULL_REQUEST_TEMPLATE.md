@@ -4,7 +4,8 @@
 
 ## Linked Issue
 
-Closes #<!-- issue number -->
+<!-- Replace N with the issue number. -->
+Closes #N
 
 <!-- If this PR references but does not close an issue, use: Refs #N -->
 
