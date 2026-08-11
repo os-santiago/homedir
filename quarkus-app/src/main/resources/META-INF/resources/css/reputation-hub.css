@@ -62,7 +62,8 @@
 }
 
 .hub-migration-banner {
-  margin: 0 0 1rem;
+  max-width: 1200px;
+  margin: 0 2rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: 10px;
   padding: 0.75rem 0.9rem;
@@ -271,5 +272,12 @@
 
   .hub-recognition-item {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hub-migration-banner {
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
   }
 }
