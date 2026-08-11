@@ -1706,9 +1706,10 @@ public class CfpSubmissionApiResource {
     String lowerName = originalName.toLowerCase(Locale.ROOT);
 
     boolean isPdf = normalizedType.contains("pdf") || lowerName.endsWith(".pdf");
-    boolean isPptx = normalizedType.contains("presentationml")
-        || normalizedType.contains("powerpoint")
-        || lowerName.endsWith(".pptx");
+    boolean isPptx =
+        normalizedType.contains("presentationml")
+            || normalizedType.contains("powerpoint")
+            || lowerName.endsWith(".pptx");
 
     if (!isPdf && !isPptx) {
       throw new IOException("invalid_presentation_content_type");
@@ -1732,7 +1733,10 @@ public class CfpSubmissionApiResource {
       throw new IOException("invalid_presentation_size");
     }
 
-    String finalContentType = isPdf ? "application/pdf" : "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    String finalContentType =
+        isPdf
+            ? "application/pdf"
+            : "application/vnd.openxmlformats-officedocument.presentationml.presentation";
     Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
     return new StoredPresentation(sanitizedName, finalContentType, sizeBytes, target.toString());
   }
