@@ -1006,6 +1006,10 @@ public class CfpSubmissionApiResource {
       return Response.status(Response.Status.NOT_FOUND)
           .entity(Map.of("error", e.getMessage()))
           .build();
+    } catch (IllegalArgumentException e) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(Map.of("error", e.getMessage()))
+          .build();
     } catch (IOException e) {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE)
           .entity(Map.of("error", "presentation_storage_unavailable"))
@@ -1688,7 +1692,8 @@ public class CfpSubmissionApiResource {
   }
 
   private StoredPresentation storePresentationPdf(
-      String eventId, String submissionId, FileUpload file) throws IOException {
+      String eventId, String submissionId, FileUpload file)
+      throws IOException, IllegalArgumentException {
     String safeEventId = sanitizeIdToken(eventId, 40);
     String safeSubmissionId = sanitizeIdToken(submissionId, 48);
     java.nio.file.Path uploadsRoot = resolveDataDir().resolve("uploads").resolve("cfp").normalize();
@@ -1699,20 +1704,37 @@ public class CfpSubmissionApiResource {
     }
     Files.createDirectories(baseDir);
 
-    // Detect file type from content type and extension
+    // Validate file type with exact MIME type matching
     String contentType = file.contentType();
-    String normalizedType = contentType != null ? contentType.toLowerCase(Locale.ROOT) : "";
+    String normalizedType = contentType != null ? contentType.toLowerCase(Locale.ROOT).trim() : "";
     String originalName = file.fileName() != null ? file.fileName().trim() : "";
     String lowerName = originalName.toLowerCase(Locale.ROOT);
 
-    boolean isPdf = normalizedType.contains("pdf") || lowerName.endsWith(".pdf");
-    boolean isPptx =
-        normalizedType.contains("presentationml")
-            || normalizedType.contains("powerpoint")
-            || lowerName.endsWith(".pptx");
+    // Use exact MIME type matching
+    boolean isPdfMime = "application/pdf".equals(normalizedType);
+    boolean isPptxMime =
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            .equals(normalizedType);
+
+    boolean isPdfExt = lowerName.endsWith(".pdf");
+    boolean isPptxExt = lowerName.endsWith(".pptx");
+
+    // Reject if MIME type and extension conflict
+    if ((isPdfMime && isPptxExt) || (isPptxMime && isPdfExt)) {
+      throw new IllegalArgumentException("invalid_presentation_content_type_mismatch");
+    }
+
+    // At least one indicator (MIME or extension) must match for each format
+    boolean isPdf = isPdfMime || isPdfExt;
+    boolean isPptx = isPptxMime || isPptxExt;
 
     if (!isPdf && !isPptx) {
-      throw new IOException("invalid_presentation_content_type");
+      throw new IllegalArgumentException("invalid_presentation_content_type");
+    }
+
+    // If both indicators present, they must agree
+    if (isPdf && isPptx) {
+      throw new IllegalArgumentException("invalid_presentation_content_type_ambiguous");
     }
 
     String fileExtension = isPdf ? ".pdf" : ".pptx";
@@ -1730,7 +1752,17 @@ public class CfpSubmissionApiResource {
     }
     long sizeBytes = Files.size(source);
     if (sizeBytes <= 0 || sizeBytes > 25L * 1024L * 1024L) {
-      throw new IOException("invalid_presentation_size");
+      throw new IllegalArgumentException("invalid_presentation_size");
+    }
+
+    // Delete old file if format changed
+    java.nio.file.Path oldTarget = baseDir.resolve(isPdf ? "presentation.pptx" : "presentation.pdf");
+    try {
+      if (Files.exists(oldTarget)) {
+        Files.delete(oldTarget);
+      }
+    } catch (IOException e) {
+      // Log but don't fail - old file cleanup is best-effort
     }
 
     String finalContentType =
