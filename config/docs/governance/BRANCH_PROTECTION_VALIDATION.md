@@ -11,7 +11,7 @@ All acceptance criteria from issue #988 have been met. The GitHub repository rul
 
 ## ✅ Acceptance Criteria Status
 
-### 1. Required Status Checks (6 universal checks)
+### 1. Required Status Checks (3 universal checks)
 **Status**: ✅ PASS
 
 ```bash
@@ -19,17 +19,16 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks[] | .context'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```
-PR Quality — Suite / style
-PR Quality — Suite / static
-PR Quality — Suite / arch
-PR Quality — Suite / tests_cov
-PR Quality — Suite / deps
-PR CI (Build, Native, SBOM/Scan) / sbom
+Quality Summary
+CI Summary
+Quality Gate Summary
 ```
 
-Count: 6 checks ✅
+Count: 3 checks ✅
+
+> These contexts come from the aggregate jobs in `pr-quality-suite.yml` (`Quality Summary`), `pr-ci-build-native-sbom.yml` (`CI Summary`) and `quality-gates.yml` (`Quality Gate Summary`). They are not the individual job contexts (e.g., `PR Quality - Suite / style`); the ruleset requires only the aggregate check.
 
 ### 2. Commit Message Pattern (Conventional Commits)
 **Status**: ✅ PASS
@@ -85,7 +84,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '{name: .name, enforcement: .enforcement, rules: (.rules | map(.type))}'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```json
 {
   "enforcement": "active",
@@ -94,7 +93,6 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
     "deletion",
     "non_fast_forward",
     "pull_request",
-    "copilot_code_review",
     "required_status_checks",
     "commit_message_pattern"
   ]
@@ -103,12 +101,13 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 
 ## Comparison: Documented vs Actual
 
-| Requirement | Documented (ruleset-main.json) | Actual (API) | Status |
+| Requirement | Documented (ruleset-main.json) | Actual (API, 2026-08-11) | Status |
 |-------------|-------------------------------|--------------|--------|
-| Required status checks | 6 checks | 6 checks | ✅ MATCH |
+| Required status checks | 6 checks | 3 checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) | ⚠️ DRIFT |
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
 | Conversation resolution | Required | Enabled (true) | ✅ MATCH |
-| Bypass mode | pull_request | pull_request | ✅ MATCH |
+| Required approvals | ≥1 | 0 | ⚠️ DRIFT |
+| Bypass actors | RepositoryRole `pull_request` | None | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
 
@@ -134,6 +133,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 2. ✅ Documentation updated
 3. 🔄 Monitor next PR to verify checks are enforced in practice
 4. 🔄 Close issue #988 after PR merge
+5. ⚠️ **Reconciling drift (2026-08-11)**: ruleset now requires 3 aggregate checks (not 6), requires 0 approvals, and has no bypass actors. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
 
 ## References
 

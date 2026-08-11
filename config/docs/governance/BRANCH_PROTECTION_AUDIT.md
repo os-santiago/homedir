@@ -1,5 +1,9 @@
 # Branch Protection Continuous Audit Specification
 
+> **Status**: ❌ NOT IMPLEMENTED. This is a draft specification from issue #853 (closed, but never built).
+> There is no scheduled audit workflow, no `.github/ruleset-main.json`, and no `scripts/ci/audit-branch-protection.sh`.
+> The only related tooling that exists is `scripts/verify-branch-protection.sh` (a lightweight baseline check created for issue #847). Implement this spec before expecting the claims below to be true.
+
 ## Purpose
 
 This document defines continuous automated auditing of branch protection rules to detect configuration drift and ensure `main` branch protection remains compliant with the [canonical baseline](#baseline-requirements).
@@ -26,7 +30,7 @@ The audit verifies the following configuration for the `main` branch:
 |---------|---------------|-----------|---------------------|
 | **Deletion protection** | Enabled | `ruleset.rules[].type = "deletion"` | **Critical** |
 | **Force push protection** | Enabled | `ruleset.rules[].type = "non_fast_forward"` | **Critical** |
-| **Required status checks** | 6 universal checks configured | `ruleset.rules[].parameters.required_status_checks` | **High** |
+| **Required status checks** | 3 aggregate gates configured | `ruleset.rules[].parameters.required_status_checks` | **High** |
 | **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request"` | **Critical** |
 | **Conversation resolution** | Required | `ruleset.rules[].parameters.required_conversation_resolution = true` | **High** |
 | **Required approvals** | ≥1 approval | `ruleset.rules[].parameters.required_approving_review_count ≥ 1` | **High** |
@@ -41,6 +45,8 @@ The audit verifies the following configuration for the `main` branch:
 - **User permissions** (covered by access review)
 
 ## Audit Frequency
+
+> **Note**: The scheduled/post-change triggers below are the *intended* design. No CI workflow currently runs them.
 
 | Audit Type | Frequency | Trigger | Purpose |
 |------------|-----------|---------|---------|
@@ -64,7 +70,9 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 ### Audit Script Specification
 
-**Location**: `scripts/ci/audit-branch-protection.sh`
+> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only implemented script is `scripts/verify-branch-protection.sh` (baseline check for issue #847). If the continuous audit is implemented later, it should follow this spec.
+
+**Planned location**: `scripts/ci/audit-branch-protection.sh`
 
 **Inputs** (environment variables):
 - `GITHUB_REPOSITORY` (e.g., `os-santiago/homedir`)
@@ -98,9 +106,9 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
     {
       "control": "required_status_checks",
       "severity": "HIGH",
-      "expected": ["PR Quality — Suite / style", "PR Quality — Suite / static", ...],
-      "actual": ["PR Quality — Suite / style"],
-      "missing": ["PR Quality — Suite / static", ...],
+      "expected": ["Quality Summary", "CI Summary", "Quality Gate Summary"],
+      "actual": ["Quality Summary"],
+      "missing": ["CI Summary", "Quality Gate Summary"],
       "recommendation": "Add missing required checks to ruleset-main.json"
     }
   ],
@@ -128,7 +136,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 | Control | Severity | Status | Details |
 |---------|----------|--------|---------|
-| Required Status Checks | HIGH | ❌ Drift | Missing 5 of 6 universal checks |
+| Required Status Checks | HIGH | ❌ Drift | Missing 2 of 3 aggregate checks |
 | Deletion Protection | CRITICAL | ✅ Compliant | Enabled |
 | Force Push Protection | CRITICAL | ✅ Compliant | Enabled |
 | Pull Request Required | CRITICAL | ✅ Compliant | Enabled |
@@ -210,7 +218,7 @@ Governance Debt = (Critical Findings × 10) + (High Findings × 3) + (Medium Fin
 - **Governance Debt**: ≤5 points
 
 **Reporting**:
-- Monthly summary published to `docs/governance/audit-history/YYYY-MM.md`
+- Monthly summary published to `docs/governance/audit-history/YYYY-MM.md` *(directory does not exist yet)*
 - Trend chart tracking compliance score over time
 - Escalation to leadership if score <90% for 2 consecutive months
 
@@ -241,7 +249,7 @@ When drift is detected:
    - Verify if change was approved via PR to `ruleset-*.json`
 3. **Remediate**:
    - **If accidental**: Revert to compliant state via PR to `ruleset-main.json`
-   - **If intentional**: Document exception in `gate_exceptions.log`, create follow-up issue to remove exception
+   - **If intentional**: Document exception in `gate_exceptions.log` *(file does not exist yet)*, create follow-up issue to remove exception
 
 ### 2. Drift Resolution Process
 
@@ -258,7 +266,7 @@ When drift is detected:
 
 If drift is **intentional** (e.g., temporary bypass for emergency):
 
-1. Document in `config/docs/governance/gate_exceptions.log`:
+1. Document in `config/docs/governance/gate_exceptions.log` *(file does not exist yet)*:
    ```
    2026-06-24 | Drift: required_status_checks reduced | Emergency release bypass | Restoring by 2026-06-26 | @maintainer
    ```
@@ -287,12 +295,9 @@ The audit compares against this baseline (from `ruleset-main.json`):
       "type": "required_status_checks",
       "parameters": {
         "required_status_checks": [
-          {"context": "PR Quality — Suite / style"},
-          {"context": "PR Quality — Suite / static"},
-          {"context": "PR Quality — Suite / arch"},
-          {"context": "PR Quality — Suite / tests_cov"},
-          {"context": "PR Quality — Suite / deps"},
-          {"context": "PR CI (Build, Native, SBOM/Scan) / sbom"}
+          {"context": "Quality Summary"},
+          {"context": "CI Summary"},
+          {"context": "Quality Gate Summary"}
         ],
         "strict_required_status_checks_policy": true
       }
@@ -373,7 +378,7 @@ Every quarter, maintainers must:
 
 ### Audit Script Updates
 
-When updating `scripts/ci/audit-branch-protection.sh`:
+When updating the audit script (`scripts/ci/audit-branch-protection.sh` once implemented):
 
 1. Create PR with changes to script
 2. Run audit in dry-run mode against test repository
@@ -383,9 +388,8 @@ When updating `scripts/ci/audit-branch-protection.sh`:
 ## Related Documents
 
 - [Status Check Matrix](./STATUS_CHECK_MATRIX.md) - Defines required checks audited
-- [Conversation Resolution Policy](./CONVERSATION_RESOLUTION_POLICY.md) - Review requirements audited
 - [Emergency Break-Glass Runbook](./EMERGENCY_BREAK_GLASS_RUNBOOK.md) - Bypass procedures
-- `ruleset-main.json` - Canonical configuration baseline
+- `ruleset-main.json` - Canonical configuration baseline *(not yet committed)*
 
 ## Revision History
 

@@ -40,7 +40,7 @@ cd config
 **What it does**:
 1. Fetches current ruleset configuration via GitHub API
 2. Updates ruleset with:
-   - 6 universal required status checks (from STATUS_CHECK_MATRIX.md)
+   - Required status checks (aggregate gates from STATUS_CHECK_MATRIX.md)
    - Conventional Commits pattern enforcement
    - Required PR conversation resolution
    - Bypass mode restricted to pull_request only
@@ -52,16 +52,15 @@ cd config
 
 **Before**: No required checks enforced
 
-**After**: 6 universal checks enforced for all PRs to main:
+**After**: Aggregate quality gates enforced for all PRs to main:
+
+> **Note (2026-08-11)**: The enforced ruleset requires the 3 aggregate jobs below, not the individual job contexts. Re-verified via `gh api repos/os-santiago/homedir/rulesets/9071701`.
 
 | Check Name | Source | Type |
 |------------|--------|------|
-| PR Quality — Suite / style | PR Quality Suite | Code Style |
-| PR Quality — Suite / static | PR Quality Suite | Static Analysis |
-| PR Quality — Suite / arch | PR Quality Suite | Architecture |
-| PR Quality — Suite / tests_cov | PR Quality Suite | Test Coverage |
-| PR Quality — Suite / deps | PR Quality Suite | Dependencies |
-| PR CI (Build, Native, SBOM/Scan) / sbom | PR Validation | SBOM Generation |
+| Quality Summary | pr-quality-suite.yml | Aggregate quality gate |
+| CI Summary | pr-ci-build-native-sbom.yml | Aggregate CI gate |
+| Quality Gate Summary | quality-gates.yml | Aggregate security/quality gate |
 
 **Rationale**: These checks represent the minimum quality baseline for all changes to main, regardless of change type.
 
@@ -109,7 +108,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 > /tmp/ruleset-after.json
 
 # Verify required checks
 jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks | length' /tmp/ruleset-after.json
-# Expected output: 6
+# Expected output: 3
 
 # Verify commit pattern
 jq '.rules[] | select(.type=="commit_message_pattern") | .parameters.pattern' /tmp/ruleset-after.json
