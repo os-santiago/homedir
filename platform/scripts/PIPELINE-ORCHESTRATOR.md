@@ -582,10 +582,10 @@ issues:
 
 Orchestrator is called automatically by worker:
 
-**File**: `platform/scripts/homedir-sdlc-worker.sh`
+**File**: `homedir-sdlc-worker.sh` (installed at `~/.local/bin/homedir-sdlc-worker.sh`; not part of this repo — see `platform/scripts/worker-health-check.sh` for the path)
 
 ```bash
-# After closing issue (line ~1470)
+# After closing issue (approx. L1942–1947 in the deployed worker script)
 gh issue close "${issue}" -R "${OWNER}/${REPO}" -c "${msg}"
 
 # Call pipeline orchestrator

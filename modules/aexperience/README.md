@@ -1,5 +1,7 @@
 # Módulo Experimental de Experiencia Aumentada (Homedir)
 
+> **Status**: 📋 **Propuesta / roadmap**. Este directorio contiene **solo documentación** — no hay código, feature flag (`feature.experimental.aexperience`), opción en UI ni soporte de build `--exclude aexperience` en el monorepo (verificado 2026-08-11). El contenido a continuación describe el diseño previsto, no una implementación entregada. El frontend (Navia) vive aparte en `os-santiago/navia-frontend`.
+
 ## Propósito
 
 El módulo de Experiencia Aumentada de Homedir es una iniciativa experimental orientada a explorar nuevas formas de interacción entre usuarios y plataformas en Homedir. Su objetivo es validar cómo la inteligencia artificial, la personalización dinámica y la navegación basada en intención pueden mejorar la experiencia digital sin comprometer la estabilidad del producto principal.
@@ -66,7 +68,7 @@ Componentes base:
 | Etapa | Descripción | Estado |
 | --- | --- | --- |
 | Exploración | Diseño conceptual, experimentación rápida | ✅ Activa |
-| Integración controlada | Integrado como módulo experimental (opt-in) | ⏳ Próxima fase |
+| Integración controlada | Integrado como módulo experimental (opt-in) | ⏳ Próxima fase (no implementado) |
 | Evaluación | Métricas de adopción, feedback y usabilidad | 📊 En planificación |
 | Promoción o retiro | Si aporta valor → feature estable; si no → se desconecta sin impacto | 🔁 Continuo |
 

@@ -2,12 +2,14 @@
 
 This directory contains security analysis and audit reports for the Quarkus application.
 
+> **Snapshot**: This endpoint authorization audit was generated on **2026-06-22** (issue #854). The repository has evolved since then (now 83 `*Resource.java` files / 337 `@Path` routes), so the raw counts below are historical. Findings that were remediated are noted inline.
+
 ## Issue #854 - Endpoint Authorization Audit
 
 ### Files
 
 1. **endpoint-authorization-matrix.yaml** - Complete authorization matrix
-   - 255 REST endpoints analyzed from 74 Resource.java files
+   - 255 REST endpoints analyzed from 74 Resource.java files *(snapshot, 2026-06-22)*
    - Includes route, HTTP method, security annotation, risk level, source file, and method name
    - Sorted by risk level (critical first)
    - Contains detailed statistics in YAML comments
@@ -31,17 +33,17 @@ This directory contains security analysis and audit reports for the Quarkus appl
 
 ### Key Findings
 
-- **5 Critical Issues**: Admin/private paths without security annotations
-  - `/api/internal/insights/events` (POST)
-  - `/api/internal/insights/initiatives/start` (POST)
-  - `/private/github/callback` (GET)
-  - `/private/github/connect` (GET)
-  - `/private/github/start` (GET)
+- **5 Critical Issues**: Admin/private paths without security annotations *(as of snapshot)*
+  - `/api/internal/insights/events` (POST) — **✅ remediated**: protected by feature flag `insights.ingest.enabled` (default `false` → 404) + required `X-Insights-Key` header
+  - `/api/internal/insights/initiatives/start` (POST) — **✅ remediated**: same protection as above
+  - `/private/github/callback` (GET) — review status
+  - `/private/github/connect` (GET) — review status
+  - `/private/github/start` (GET) — review status
 
 - **35 Endpoints with NONE**: No explicit security annotation
   - Requires review to add `@PermitAll`, `@Authenticated`, or `@RolesAllowed`
 
-- **Security Annotation Distribution**:
+- **Security Annotation Distribution** *(snapshot)*:
   - `@Authenticated`: 160 (62.7%)
   - `@PermitAll`: 50 (19.6%)
   - `NONE`: 35 (13.7%)
@@ -70,7 +72,7 @@ yq '.endpoints | group_by(.risk) | map({risk: .[0].risk, count: length})' docs/s
 
 ### Next Steps
 
-1. Review and fix the 5 critical issues immediately
+1. ✅ Review and fix the 5 critical issues — insights endpoints now protected (feature flag + key header); verify the remaining `/private/github/*` paths
 2. Add explicit security annotations to all 35 endpoints with NONE
 3. Verify OAuth callback security
 4. Consider implementing automated security annotation checks in CI/CD
@@ -80,3 +82,4 @@ yq '.endpoints | group_by(.risk) | map({risk: .[0].risk, count: length})' docs/s
 
 *Generated: 2026-06-22*
 *Issue: #854*
+*Snapshot status reviewed: 2026-08-11*

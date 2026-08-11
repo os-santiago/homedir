@@ -1,6 +1,6 @@
 # Centralized persistence service
 
-The implemented solution exposes an HTTP service dedicated to storing and recovering the state of Eventflow.
+The implemented solution exposes an HTTP service dedicated to storing and recovering the state of homedir.
 
 ## Endpoints
 - `Get /State /{key}`: obtains the state associated with `Key`.
@@ -18,4 +18,4 @@ Optimistic and pessimistic locks are offered. Customers can request an explicit 
 All mutations are recorded in a Wal. In case of failure, the service can reproduce tickets to restore the State. The Wal also serves as a source for replication.
 
 ## Events
-When the State changes, the service publishes an `state.updated` event. This allows other Eventflow components to react to the modification and maintain materialized caches or views.
+When the State changes, the service publishes an `state.updated` event. This allows other homedir components to react to the modification and maintain materialized caches or views.

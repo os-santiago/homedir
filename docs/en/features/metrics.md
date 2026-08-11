@@ -3,7 +3,7 @@
 Homedir records interaction events and persists them asynchronously to provide insights via the Admin Dashboard.
 
 ## Overview
-- **Storage**: `data/metrics-v1.json` (Atomic writes, configurable flush interval).
+- **Storage**: `data/metrics-v2.json` (preferred; falls back to legacy `metrics-v1.json`). Atomic writes, configurable flush interval.
 - **Display**: Admin Dashboard (`/private/admin`).
 - **Privacy**: No PII in exports; aggregated data only.
 
@@ -88,5 +88,5 @@ The dashboard aggregates these events to show:
 ## Local Validation
 1. Run `mvn quarkus:dev`.
 2. Browse the site to generate events.
-3. Check `quarkus-app/data/metrics-v1.json`.
+3. Check `quarkus-app/data/metrics-v2.json`.
 4. View dashboard at `/private/admin`.

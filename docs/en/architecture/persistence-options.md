@@ -1,4 +1,4 @@
-# Persistence options - Eventflow
+# Persistence options - homedir
 
 ## Option A - Sidecar by Pod
 ### Pros
@@ -13,7 +13,7 @@
 ## Option B - Centralized Service
 ### Pros
 - Strong consistency and concurrence control.
-- Eventflow independent scale.
+- homedir independent scale.
 ### cons
 - Add a network latency.
 - Requires high availability.

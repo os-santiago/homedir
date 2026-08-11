@@ -1,6 +1,6 @@
-# User experience - Why is Eventflow for me?
+# User experience - Why is homedir for me?
 
-Eventflow helps me plan and enjoy events without friction. These stories show how each functionality is lived:
+homedir helps me plan and enjoy events without friction. These stories show how each functionality is lived:
 
 -[Explore and record talks at my pace] (features/event-discovery-registration.md)
 -[Enter with my Google account in seconds] (features/google-sign-in.md)

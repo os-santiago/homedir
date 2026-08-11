@@ -1,5 +1,7 @@
 # Módulo Hackathon
 
+> **Status**: 📋 **Propuesta / roadmap**. No hay código implementado: no existe ruta `/hackathon`, ni `/private/hackathon`, ni el flag `feature.hackathon.enabled`. Lo único existente en el código es `EventType.HACKATHON` (modelo de datos). Este documento describe el diseño propuesto, no una implementación entregada.
+
 ## Propósito
 - Preparar funcionalidades enfocadas en hackatones sin añadir una base de datos nueva.
 - Reutilizar el motor de persistencia actual (JSON + `PersistenceService`) para eventos, speakers y agendas.
@@ -8,7 +10,7 @@
 ## Alcance inicial (MVP)
 - Plantillas y endpoints mínimos sobre el modelo actual para publicar agenda y resultados del hackatón.
 - Soporte de registro y seguimiento rápido (equipos/proyectos) usando el storage existente.
-- UI: mostrar badges de tipo Hackatón y permitir selección desde el panel Admin (ya habilitado en #62).
+- UI: mostrar badges de tipo Hackatón (propuesto; se apoyaría en `EventType.HACKATHON`).
 
 ## Enfoque técnico
 - Persistencia: misma carpeta `data/` y archivos JSON utilizados por `PersistenceService` (sin SQL ni migraciones).

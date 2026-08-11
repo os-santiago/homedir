@@ -15,13 +15,13 @@
 | `homedir-persistent-backup.sh` | VPS `/usr/local/bin/` | Script legacy de backup servidor | ⚠️ Legacy |
 | `homedir-vps-backup-reference.ps1` | Reconstruido de logs | Script sincronización Windows→GDrive | ⚠️ Referencia |
 | `systemd/homedir-auto-deploy.service` | VPS `/etc/systemd/system/` | Auto-deploy desde GitHub | ✅ Activo |
-| `systemd/homedir-auto-deploy.timer` | VPS `/etc/systemd/system/` | Timer auto-deploy (cada 5min) | ✅ Activo |
+| `systemd/homedir-auto-deploy.timer` | VPS `/etc/systemd/system/` | Timer auto-deploy (cada 1min) | ✅ Activo |
 | `systemd/homedir-update.service` | VPS `/etc/systemd/system/` | Update container service | ✅ Activo |
-| `systemd/homedir-update.timer` | VPS `/etc/systemd/system/` | Update timer (diario) | ✅ Activo |
+| `systemd/homedir-update.timer` | VPS `/etc/systemd/system/` | Update timer (cada 5min) | ✅ Activo |
 | `systemd/homedir-webhook.service` | VPS `/etc/systemd/system/` | GitHub webhook listener | ✅ Activo |
 | `systemd/homedir-git-pull.service` | VPS `/etc/systemd/system/` | Git pull service | ⚠️ Dev only |
-| `systemd/homedir-git-pull.timer` | VPS `/etc/systemd/system/` | Git pull timer | ⚠️ Dev only |
-| `systemd/homedir-dev.service` | VPS `/etc/systemd/system/` | Dev environment service | ⚠️ Dev only |
+| `systemd/homedir-git-pull.timer` | VPS `/etc/systemd/system/` | Git pull timer (cada 1min) | ⚠️ Dev only |
+| `task-scheduler-backup.xml` | Creado | Config Task Scheduler Windows exportada | ✅ Activo |
 
 **Total:** 14 archivos versionados
 
@@ -128,7 +128,7 @@ Ver **`RESTORE-PLAYBOOK.md`**
   - Comparar con script de referencia
   - Versionar el real si se encuentra
 
-- [ ] **Exportar Task Scheduler config**
+- [x] **Exportar Task Scheduler config** ✅ (hecho — `task-scheduler-backup.xml` ya está versionado)
   ```powershell
   Export-ScheduledTask -TaskName "Homedir Production Backup" | Out-File platform/scripts/backup-system/task-scheduler-backup.xml
   ```
