@@ -7,7 +7,7 @@ import re
 from typing import Dict, List, Tuple, Optional
 
 try:
-    from github import Github
+    from github import Github, Auth
 except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
@@ -75,7 +75,7 @@ SEVERITY_PRIORITY_MAP = {
 
 class IssueValidator:
     def __init__(self, github_token: str, repository: str):
-        self.github = Github(github_token)
+        self.github = Github(auth=Auth.Token(github_token))
         self.repo = self.github.get_repo(repository)
         self.validation_errors: List[str] = []
         self.validation_warnings: List[str] = []
