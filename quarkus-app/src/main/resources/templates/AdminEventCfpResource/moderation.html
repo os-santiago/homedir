@@ -367,6 +367,7 @@
       panelistsPendingPrefix: "{i18n:events_cfp_panelists_pending_prefix}",
       presentationTitle: "{i18n:events_cfp_presentation_title}",
       presentationCurrent: "{i18n:events_cfp_presentation_current}",
+      presentationDownloadTitle: "{i18n:events_cfp_presentation_download_title}",
       deliveryTitle: "{i18n:events_cfp_delivery_title}",
       deliveryBlock: "{i18n:events_cfp_delivery_block}",
       deliveryScenario: "{i18n:events_cfp_delivery_scenario}",
@@ -451,6 +452,13 @@
     function normalizeSort(value) {
       const raw = String(value || "").trim().toLowerCase();
       return ["created", "updated", "score"].includes(raw) ? raw : "created";
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
     }
 
     function activeSearchParams() {
@@ -866,9 +874,17 @@
         const presentationLine = document.createElement("p");
         presentationLine.className = "cfp-admin-meta";
         const uploadedAt = fmtDate(item.presentation_asset.uploaded_at) || i18n.notAvailable;
-        presentationLine.textContent =
-          i18n.presentationTitle + ": " + i18n.presentationCurrent + " " + item.presentation_asset.file_name
-          + " · " + uploadedAt;
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = "/api/events/" + encodeURIComponent(eventId) + "/cfp/submissions/" + encodeURIComponent(item.id) + "/presentation";
+        downloadLink.textContent = item.presentation_asset.file_name;
+        downloadLink.className = "cfp-admin-download-link";
+        downloadLink.target = "_blank";
+        downloadLink.title = i18n.presentationDownloadTitle;
+
+        presentationLine.appendChild(document.createTextNode(i18n.presentationTitle + ": " + i18n.presentationCurrent + " "));
+        presentationLine.appendChild(downloadLink);
+        presentationLine.appendChild(document.createTextNode(" · " + uploadedAt));
         article.appendChild(presentationLine);
       }
 
