@@ -5,7 +5,7 @@ import os
 import sys
 
 try:
-    from github import Github
+    from github import Github, Auth
 except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
@@ -43,8 +43,7 @@ def get_pr_state_label(pr, event_name: str, review_state: str) -> str:
     if review_state == "changes_requested":
         return LABEL_UNDER_REVIEW
 
-    # Check CI status
-    # Get the latest check runs for the PR head SHA
+    # Check CI status via check runs on the PR head SHA
     repo = pr.base.repo
     commits = pr.get_commits()
     if commits.totalCount == 0:
@@ -53,18 +52,21 @@ def get_pr_state_label(pr, event_name: str, review_state: str) -> str:
     last_commit = commits[commits.totalCount - 1]
     sha = last_commit.sha
 
-    # Get check suites
-    check_suites = repo.get_check_suites(sha)
-    if check_suites.totalCount == 0:
+    # Get check runs for the commit (PyGithub: commit.get_check_runs())
+    commit = repo.get_commit(sha)
+    check_runs = commit.get_check_runs()
+
+    if check_runs.totalCount == 0:
+        # No check runs yet — might be early in the pipeline
         return LABEL_WAITING
 
     all_completed = True
     any_failed = False
-    for suite in check_suites:
-        if suite.status != "completed":
+    for run in check_runs:
+        if run.status != "completed":
             all_completed = False
             break
-        if suite.conclusion in ("failure", "cancelled", "timed_out", "action_required"):
+        if run.conclusion in ("failure", "cancelled", "timed_out", "action_required"):
             any_failed = True
 
     if not all_completed:
@@ -133,7 +135,7 @@ def main():
         print("ERROR: Missing required environment variables", file=sys.stderr)
         sys.exit(1)
 
-    github = Github(github_token)
+    github = Github(auth=Auth.Token(github_token))
     repo = github.get_repo(repository)
 
     if pr_number:
