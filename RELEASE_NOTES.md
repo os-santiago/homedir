@@ -1,4 +1,15 @@
-# HomeDir 3.330.1
+# HomeDir 3.630.0
+
+> Release date: 2026-08-11 · See [Releases](https://github.com/os-santiago/homedir/releases) for the full list.
+
+## Changes since v3.629.0
+
+### ✨ Features
+- feat(cfp): add PPTX support for presentation uploads (#1402) (@) #1402
+
+---
+
+## HomeDir 3.330.1
 
 **Summary**
 - Community UI now uses locale-aware copy in browser-facing flows for Picks, Propose Content, and Moderation.
@@ -20,7 +31,7 @@
 - `CommunityBoardResourceTest`
 - Result: `19 tests, 0 failures`.
 
-## Homedir 2.2.3
+## HomeDir 2.2.3
 
 **Resumen**
 - Canonicaliza el `redirect_uri` de GitHub para que siempre apunte a `/auth/post-login` y mueve la lógica a `GithubLinkService`, evitando diferencias entre entornos y el callback registrado.
@@ -30,13 +41,12 @@
 **Detalles**
 - La interacción con GitHub ya no reconstruye URIs manualmente; el nuevo servicio gestiona cookies y respuestas coherentes con el OAuth app configurado.
 - Las instrucciones de tagging/release se actualizaron a `2.2.3` y los Dockerfiles comentados muestran el tag actual para referencia.
-- Deploy workflow (tag `fix/deploy-logging`) publica el digest, loguea el estado de podman y usa las variables de entorno requeridas sin tocar `URI`s desde el recurso.
 
 **Container**
 - `quay.io/sergio_canales_e/homedir:2.2.3` (alias)
 - Despliegue por digest siempre que sea posible; el pipeline lo registra en el artefacto `pr-image-ref`.
 
-## Homedir 2.2.2
+## HomeDir 2.2.2
 
 **Resumen**
 - Correcciones menores y mejoras de documentación.
