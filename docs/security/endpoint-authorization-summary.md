@@ -60,7 +60,7 @@ These endpoints handle sensitive data (auth, tokens, credentials):
   - Security: `@PermitAll`
   - File: `quarkus-app/src/main/java/com/scanales/homedir/public_/GithubAuthResource.java`
 
-- **GET /auth/session/auth/session**
+- **GET /auth/session**
   - Security: `@Authenticated`
   - File: `quarkus-app/src/main/java/com/scanales/homedir/security/SessionResource.java`
 

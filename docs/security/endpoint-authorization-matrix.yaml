@@ -54,7 +54,7 @@ endpoints:
   risk: DATOS_SENSIBLES
   source: quarkus-app/src/main/java/com/scanales/homedir/public_/GithubAuthResource.java
   method_name: callback
-- route: /auth/session/auth/session
+- route: /auth/session
   method: GET
   security: '@Authenticated'
   risk: DATOS_SENSIBLES

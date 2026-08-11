@@ -18,7 +18,7 @@ Este directorio contiene todos los artefactos necesarios para restaurar el siste
 - Thread-safe: CAS-based locking
 - Auto-pruning: elimina backups antiguos automáticamente
 
-**Archivos protegidos (8 tipos):**
+**Archivos protegidos (9 tipos):**
 ```
 /work/data/backups/
 ├── events/              # 100 archivos × ~20 KB
@@ -148,7 +148,7 @@ ls -lh /work/data/backups/speakers/
 **Paso 1: Copiar script PowerShell**
 ```powershell
 Copy-Item platform/scripts/backup-system/homedir-vps-backup-reference.ps1 `
-    -Destination D:\git\homedir\backup-to-gdrive.ps1
+    -Destination D:\git\homedir\backup-to-gdrive-hybrid.ps1
 ```
 
 **Paso 2: Configurar Task Scheduler**
@@ -161,14 +161,14 @@ taskschd.msc
 # - Trigger: Diario, repetir cada 6 horas
 # - Action: 
 #   - Program: powershell.exe
-#   - Arguments: -NoProfile -ExecutionPolicy Bypass -File "D:\git\homedir\backup-to-gdrive.ps1"
+#   - Arguments: -NoProfile -ExecutionPolicy Bypass -File "D:\git\homedir\backup-to-gdrive-hybrid.ps1"
 # - Conditions: Desmarcar "Start only if on AC power"
 ```
 
 **Paso 3: Prueba manual**
 ```powershell
 cd D:\git\homedir
-.\backup-to-gdrive.ps1
+.\backup-to-gdrive-hybrid.ps1
 ```
 
 **Paso 4: Verificar en Google Drive**
@@ -312,7 +312,7 @@ if ($Age.TotalHours -gt 12) {
 
 **Solución:** Usar script de referencia incluido:
 ```powershell
-cp platform/scripts/backup-system/homedir-vps-backup-reference.ps1 backup-to-gdrive.ps1
+cp platform/scripts/backup-system/homedir-vps-backup-reference.ps1 backup-to-gdrive-hybrid.ps1
 ```
 
 ### "SSH connection failed" (Windows → VPS)

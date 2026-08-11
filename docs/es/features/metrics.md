@@ -3,7 +3,7 @@
 Homedir registra eventos de interacción y los persiste asincrónicamente para mostrar insights a través del Dashboard de Administración.
 
 ## Descripción General
-- **Almacenamiento**: `data/metrics-v1.json` (Escritura atómica, intervalo configurable).
+- **Almacenamiento**: `data/metrics-v2.json` (preferido; fallback al legacy `metrics-v1.json`). Escritura atómica, intervalo configurable.
 - **Visualización**: Panel de Administración (`/private/admin`).
 - **Privacidad**: Sin PII en exportaciones y vistas; datos agregados solamente.
 
@@ -88,5 +88,5 @@ El dashboard agrega estos eventos para mostrar:
 ## Validación Local
 1. Ejecuta `mvn quarkus:dev`.
 2. Navega el sitio para generar eventos.
-3. Revisa `quarkus-app/data/metrics-v1.json`.
+3. Revisa `quarkus-app/data/metrics-v2.json`.
 4. Ve al dashboard en `/private/admin`.
