@@ -146,22 +146,32 @@ with **no workflow modification**. This matches the issue's goal of
 
 ### Option 2: Push from GitHub Actions (explicit, deterministic)
 
-Modify the SBOM workflow to push the SBOM after `upload-artifact`:
+**Implemented in this PR** (`.github/workflows/pr-ci-build-native-sbom.yml`,
+`Upload SBOM to Ortelius (observation mode)` step) in observation mode: guarded
+by `secrets.ORTELIUS_TOKEN != ''` and `continue-on-error: true`, so it never
+blocks CI and is skipped on fork PRs.
 
 ```yaml
-- name: Upload SBOM to Ortelius
+- name: Upload SBOM to Ortelius (observation mode)
+  if: ${{ secrets.ORTELIUS_TOKEN != '' }}
+  continue-on-error: true
+  env:
+    ORTELIUS_TOKEN: ${{ secrets.ORTELIUS_TOKEN }}
+    GIT_SHA: ${{ github.sha }}
   run: |
-    curl -X POST https://app.deployhub.com/api/v1/releases \
+    set -euo pipefail
+    payload="$(jq -nc \
+      --arg name "os-santiago/homedir" \
+      --arg version "${GIT_SHA}" \
+      --arg gitcommit "${GIT_SHA}" \
+      --arg org "os-santiago" \
+      --arg projecttype "docker" \
+      --argjson sbom "$(jq -c . quarkus-app/target/bom.json)" \
+      '{name:$name, version:$version, gitcommit:$gitcommit, org:$org, projecttype:$projecttype, sbom:{content:$sbom}}')"
+    curl -fsS -X POST https://app.deployhub.com/api/v1/releases \
       -H "Content-Type: application/json" \
-      -b "auth_token=${{ secrets.ORTELIUS_TOKEN }}" \
-      -d "{
-        \"name\": \"os-santiago/homedir\",
-        \"version\": \"${{ github.sha }}\",
-        \"gitcommit\": \"${{ github.sha }}\",
-        \"org\": \"os-santiago\",
-        \"projecttype\": \"docker\",
-        \"sbom\": { \"content\": $(jq -c . < quarkus-app/target/bom.json) }
-      }"
+      -H "Cookie: auth_token=${ORTELIUS_TOKEN}" \
+      -d "${payload}"
 ```
 
 > **Important correction:** the issue's POC snippet used
@@ -281,10 +291,10 @@ at this stage).
 
 | Phase | Child issue | Action |
 |-------|-------------|--------|
-| 3 | `[POC]` | Execute POC gates above (needs human to sign up for SaaS + add `ORTELIUS_TOKEN` secret) |
+| 3 | `[POC]` | Execute POC gates above (needs human to sign up for SaaS + add `ORTELIUS_TOKEN` secret). CI step is already implemented in observation mode in this PR |
 | 4 | `[DESIGN]` | Produce final integration architecture based on POC outcome |
-| 5 | `[IMPL]` | Merge workflow change(s) + `POST /api/v1/sync` on deploy |
-| 6 | `[DOCS]` | Write `ortelius-integration.md` + `ortelius-operations.md` + README badge |
+| 5 | `[IMPL]` | Enable alerts after 1-week observation; optionally add `POST /api/v1/sync` on deploy |
+| 6 | `[DOCS]` | Update `ortelius-operations.md` based on live data + README badge |
 
 ## References
 

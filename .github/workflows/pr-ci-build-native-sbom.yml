@@ -41,6 +41,27 @@ jobs:
           path: quarkus-app/target/bom.json
           retention-days: 30
 
+      - name: Upload SBOM to Ortelius (observation mode)
+        if: ${{ secrets.ORTELIUS_TOKEN != '' }}
+        continue-on-error: true
+        env:
+          ORTELIUS_TOKEN: ${{ secrets.ORTELIUS_TOKEN }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          payload="$(jq -nc \
+            --arg name "os-santiago/homedir" \
+            --arg version "${GIT_SHA}" \
+            --arg gitcommit "${GIT_SHA}" \
+            --arg org "os-santiago" \
+            --arg projecttype "docker" \
+            --argjson sbom "$(jq -c . quarkus-app/target/bom.json)" \
+            '{name:$name, version:$version, gitcommit:$gitcommit, org:$org, projecttype:$projecttype, sbom:{content:$sbom}}')"
+          curl -fsS -X POST https://app.deployhub.com/api/v1/releases \
+            -H "Content-Type: application/json" \
+            -H "Cookie: auth_token=${ORTELIUS_TOKEN}" \
+            -d "${payload}"
+
   ci-summary:
     name: CI Summary
     needs: [sbom]

@@ -4,10 +4,11 @@
 
 ## Status
 
-**DRAFT — Phase 4 (Design).** Provenance: `docs/security/ortelius-research.md`
-(Phase 1-2). This document describes the target architecture and setup steps.
-It is only actionable **after** the POC (Phase 3) succeeds and a GO decision is
-recorded.
+**DRAFT — Phase 3/4 (POC step implemented + Design).** Provenance:
+`docs/security/ortelius-research.md` (Phase 1-2). The SBOM push step is
+implemented in `.github/workflows/pr-ci-build-native-sbom.yml` in observation
+mode. The remaining validation is **human-gated**: provision SaaS account +
+`ORTELIUS_TOKEN`, then execute the POC gates.
 
 ## 1. Target Architecture
 
@@ -68,34 +69,37 @@ compatible with the scanner's artifact discovery.
 
 ### 4.2 Option 2 — explicit push in SBOM workflow
 
-Add one step to `.github/workflows/pr-ci-build-native-sbom.yml` after
-`upload-artifact`:
+**Implemented in this PR** (`.github/workflows/pr-ci-build-native-sbom.yml`), in
+**observation mode** so it cannot block CI: a `Upload SBOM to Ortelius
+(observation mode)` step runs only when `secrets.ORTELIUS_TOKEN != ''` and uses
+`continue-on-error: true`. The step:
 
 ```yaml
-- name: Upload SBOM to Ortelius
+- name: Upload SBOM to Ortelius (observation mode)
   if: ${{ secrets.ORTELIUS_TOKEN != '' }}
+  continue-on-error: true
   env:
     ORTELIUS_TOKEN: ${{ secrets.ORTELIUS_TOKEN }}
-    SHA: ${{ github.sha }}
+    GIT_SHA: ${{ github.sha }}
   run: |
-    jq -c . < quarkus-app/target/bom.json > sbom-compact.json
+    set -euo pipefail
+    payload="$(jq -nc \
+      --arg name "os-santiago/homedir" \
+      --arg version "${GIT_SHA}" \
+      --arg gitcommit "${GIT_SHA}" \
+      --arg org "os-santiago" \
+      --arg projecttype "docker" \
+      --argjson sbom "$(jq -c . quarkus-app/target/bom.json)" \
+      '{name:$name, version:$version, gitcommit:$gitcommit, org:$org, projecttype:$projecttype, sbom:{content:$sbom}}')"
     curl -fsS -X POST https://app.deployhub.com/api/v1/releases \
       -H "Content-Type: application/json" \
       -H "Cookie: auth_token=${ORTELIUS_TOKEN}" \
-      -d "$(jq -c --arg sha "$SHA" \
-        '{name:"os-santiago/homedir", version:$sha, gitcommit:$sha,
-          org:"os-santiago", projecttype:"docker",
-          sbom:{content: (input)}}' sbom-compact.json 2>/dev/null \
-        || jq -c --arg sha "$SHA" \
-        '{name:"os-santiago/homedir", version:$sha, gitcommit:$sha,
-          org:"os-santiago", projecttype:"docker",
-          sbom:{content:.}}' quarkus-app/target/bom.json)"
+      -d "${payload}"
 ```
 
-> The exact payload must be validated against
-> `ortelius/ortelius/docs/implementation.md` during the POC. The endpoint is
-> `POST /api/v1/releases`, JSON body with `sbom.content` — **not** the
-> multipart `/api/sbom` endpoint from the original issue draft.
+Because PRs from forks never have repo secrets, the step is skipped on
+contributor PRs and runs only once `ORTELIUS_TOKEN` is configured on the
+upstream repo — preserving the existing fork-friendly CI behavior.
 
 ### 4.3 Deployment notification (production sync)
 
