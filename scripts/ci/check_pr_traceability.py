@@ -6,7 +6,7 @@ import re
 import sys
 
 try:
-    from github import Github
+    from github import Github, Auth
 except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
@@ -23,7 +23,7 @@ BARE_REF_PATTERN = re.compile(r"#(\d+)")
 
 def check_pr(github_token: str, repository: str, pr_number: int) -> tuple:
     """Check if a PR references an issue. Returns (has_reference, message, issue_numbers)."""
-    github = Github(github_token)
+    github = Github(auth=Auth.Token(github_token))
     repo = github.get_repo(repository)
     pr = repo.get_pull(pr_number)
 
