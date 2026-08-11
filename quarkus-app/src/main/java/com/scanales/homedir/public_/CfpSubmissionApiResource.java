@@ -1756,7 +1756,8 @@ public class CfpSubmissionApiResource {
     }
 
     // Delete old file if format changed
-    java.nio.file.Path oldTarget = baseDir.resolve(isPdf ? "presentation.pptx" : "presentation.pdf");
+    java.nio.file.Path oldTarget =
+        baseDir.resolve(isPdf ? "presentation.pptx" : "presentation.pdf");
     try {
       if (Files.exists(oldTarget)) {
         Files.delete(oldTarget);
