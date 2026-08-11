@@ -2,6 +2,14 @@
 
 This directory contains security analysis and audit reports for the Quarkus application.
 
+## Issue #1340 - Ortelius Post-Deployment Vulnerability Management
+
+Investigation into integrating [Ortelius](https://ortelius.io) for post-deployment CVE visibility and SBOM tracking. See:
+
+1. **[ortelius-research.md](ortelius-research.md)** - Technical research (architecture, deployment models, costs) and value analysis (Phase 1-2)
+2. **[ortelius-integration.md](ortelius-integration.md)** - Target architecture and setup (Phase 4 design)
+3. **[ortelius-operations.md](ortelius-operations.md)** - Operations runbook and troubleshooting (Phase 6)
+
 ## Issue #854 - Endpoint Authorization Audit
 
 ### Files
