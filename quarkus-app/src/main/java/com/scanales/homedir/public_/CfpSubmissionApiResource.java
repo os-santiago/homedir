@@ -1698,12 +1698,31 @@ public class CfpSubmissionApiResource {
       throw new IOException("invalid_presentation_path");
     }
     Files.createDirectories(baseDir);
-    String originalName = file.fileName() != null ? file.fileName().trim() : "presentation.pdf";
-    String sanitizedName = sanitizeFileName(originalName);
-    if (!sanitizedName.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
-      sanitizedName = sanitizedName + ".pdf";
+
+    // Detect file type from content type and extension
+    String contentType = file.contentType();
+    String normalizedType = contentType != null ? contentType.toLowerCase(Locale.ROOT) : "";
+    String originalName = file.fileName() != null ? file.fileName().trim() : "";
+    String lowerName = originalName.toLowerCase(Locale.ROOT);
+
+    boolean isPdf = normalizedType.contains("pdf") || lowerName.endsWith(".pdf");
+    boolean isPptx = normalizedType.contains("presentationml")
+        || normalizedType.contains("powerpoint")
+        || lowerName.endsWith(".pptx");
+
+    if (!isPdf && !isPptx) {
+      throw new IOException("invalid_presentation_content_type");
     }
-    java.nio.file.Path target = baseDir.resolve("presentation.pdf");
+
+    String fileExtension = isPdf ? ".pdf" : ".pptx";
+    String defaultName = isPdf ? "presentation.pdf" : "presentation.pptx";
+    String sanitizedName = sanitizeFileName(originalName.isEmpty() ? defaultName : originalName);
+
+    if (!sanitizedName.toLowerCase(Locale.ROOT).endsWith(fileExtension)) {
+      sanitizedName = sanitizedName + fileExtension;
+    }
+
+    java.nio.file.Path target = baseDir.resolve(isPdf ? "presentation.pdf" : "presentation.pptx");
     java.nio.file.Path source = file.uploadedFile();
     if (source == null || !Files.exists(source)) {
       throw new IOException("uploaded_file_missing");
@@ -1712,14 +1731,10 @@ public class CfpSubmissionApiResource {
     if (sizeBytes <= 0 || sizeBytes > 25L * 1024L * 1024L) {
       throw new IOException("invalid_presentation_size");
     }
-    String contentType = file.contentType();
-    String normalizedType =
-        contentType != null ? contentType.toLowerCase(Locale.ROOT) : "application/pdf";
-    if (!normalizedType.contains("pdf")) {
-      throw new IOException("invalid_presentation_content_type");
-    }
+
+    String finalContentType = isPdf ? "application/pdf" : "application/vnd.openxmlformats-officedocument.presentationml.presentation";
     Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-    return new StoredPresentation(sanitizedName, "application/pdf", sizeBytes, target.toString());
+    return new StoredPresentation(sanitizedName, finalContentType, sizeBytes, target.toString());
   }
 
   private java.nio.file.Path resolveDataDir() {
