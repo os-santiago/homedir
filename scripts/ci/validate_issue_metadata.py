@@ -36,6 +36,7 @@ TITLE_PREFIX_MAP = {
     "[task]": ("platform-maintenance", "priority:P3"),
     "[platform]": ("platform-maintenance", "priority:P3"),
     "[infra]": ("platform-maintenance", "priority:P3"),
+    "[devops]": ("platform-maintenance", "priority:P3"),
     "[security]": ("bug", "priority:P0"),
     "[hotfix]": ("bug", "priority:P1"),
     "[epic]": ("enhancement", "priority:P2"),
@@ -71,6 +72,44 @@ SEVERITY_PRIORITY_MAP = {
     "s3": "priority:P3",
     "cosmetic": "priority:P3",
 }
+
+
+# Priority labels ordered from most to least severe, for resolving multiple matches.
+PRIORITY_SEVERITY_ORDER = ["priority:P0", "priority:P1", "priority:P2", "priority:P3"]
+
+
+def keyword_matches(text: str, keyword: str) -> bool:
+    """Check a keyword against whole words only.
+
+    Plain substring matching produces false positives on short keywords:
+    'workflow' contains 'low', 'highlight' contains 'high'.
+    """
+    return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
+
+
+def infer_type_from_body(body_lower: str) -> Optional[str]:
+    """Pick the type label with the most keyword matches, not the first one to match."""
+    scores = {
+        type_label: sum(1 for kw in keywords if keyword_matches(body_lower, kw))
+        for type_label, keywords in BODY_KEYWORD_MAP.items()
+    }
+    best_score = max(scores.values(), default=0)
+    if best_score == 0:
+        return None
+    # Ties fall back to BODY_KEYWORD_MAP declaration order, so results stay deterministic.
+    return next(t for t in BODY_KEYWORD_MAP if scores[t] == best_score)
+
+
+def infer_priority_from_body(body_lower: str) -> Optional[str]:
+    """Return the most severe priority among all matching severity keywords."""
+    matched = [
+        priority
+        for keyword, priority in SEVERITY_PRIORITY_MAP.items()
+        if keyword_matches(body_lower, keyword)
+    ]
+    if not matched:
+        return None
+    return min(matched, key=PRIORITY_SEVERITY_ORDER.index)
 
 
 class IssueValidator:
@@ -111,11 +150,7 @@ class IssueValidator:
             if title_lower.startswith(prefix):
                 return type_label
 
-        body_lower = body.lower()
-        for type_label, keywords in BODY_KEYWORD_MAP.items():
-            if any(kw in body_lower for kw in keywords):
-                return type_label
-        return None
+        return infer_type_from_body(body.lower())
 
     def infer_priority_label(self, title: str, body: str) -> str:
         """Infer priority label from title prefix, body severity keywords, or default."""
@@ -124,12 +159,7 @@ class IssueValidator:
             if title_lower.startswith(prefix):
                 return priority
 
-        body_lower = body.lower()
-        for keyword, priority in SEVERITY_PRIORITY_MAP.items():
-            if keyword in body_lower:
-                return priority
-
-        return "priority:P2"
+        return infer_priority_from_body(body.lower()) or "priority:P2"
 
     def auto_assign_labels(self, issue, label_names: List[str]) -> List[str]:
         """Auto-assign missing type and priority labels. Returns updated label list."""
