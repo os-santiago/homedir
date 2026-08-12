@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Thanks for suggesting a feature! Please describe the problem you're trying to solve.
+        _Please write in English. Spanish template available at `es/` if needed._
 
   - type: dropdown
     id: priority

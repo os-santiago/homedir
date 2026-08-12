@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Gracias por reportar un error. Proporciona la mayor cantidad de detalles posible.
+        _Plantilla en español. English template available at the top level._
 
   - type: dropdown
     id: severity
