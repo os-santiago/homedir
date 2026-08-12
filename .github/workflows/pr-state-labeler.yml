@@ -1,0 +1,56 @@
+name: PR State Labeler
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, converted_to_draft, closed, reopened]
+  pull_request_review:
+    types: [submitted, dismissed]
+  check_run:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to label (optional, labels all open PRs if not provided)'
+        required: false
+        type: number
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+  checks: read
+
+jobs:
+  label-pr-state:
+    name: Assign PR State Label
+    runs-on: ubuntu-latest
+    # Skip if the actor is a bot that manages scc-* labels (avoid conflicts)
+    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub
+
+      - name: Determine and apply PR state label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          REVIEW_STATE: ${{ github.event.review.state }}
+        run: |
+          python scripts/ci/label_pr_state.py
+
+      - name: Report
+        run: |
+          echo "PR state label applied. Check workflow logs for details."
