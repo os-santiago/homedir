@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Sync GitHub Project #6 board fields (Priority, Status, Size, Target date) with issue state.
 
-Triggered by the board-sync workflow on issue and pull_request events. Uses the GitHub
-Projects GraphQL API to update ProjectV2 item fields.
+Triggered by the board-sync workflow on issue, pull_request_target, and
+workflow_dispatch events. Uses the GitHub Projects GraphQL API to update
+ProjectV2 item fields.
 
 Requires a token with ``project`` scope (``GH_TOKEN`` secret). The default
 ``GITHUB_TOKEN`` does not have project write access for organization projects.
@@ -118,12 +119,16 @@ def rest_get(path):
 # ---------------------------------------------------------------------------
 
 def find_project_item_id(issue_node_id):
-    """Find the ProjectV2 item ID for a given issue/PR node ID."""
+    """Find the ProjectV2 item ID for a given issue/PR node ID.
+
+    Paginates through all project items in case the project has more than 100.
+    """
     query = """
-    query($projectId: ID!, $contentId: ID!) {
+    query($projectId: ID!, $after: String) {
       node(id: $projectId) {
         ... on ProjectV2 {
-          items(first: 100) {
+          items(first: 100, after: $after) {
+            pageInfo { hasNextPage endCursor }
             nodes {
               id
               content {
@@ -136,12 +141,19 @@ def find_project_item_id(issue_node_id):
       }
     }
     """
-    data = graphql_query(query, {"projectId": PROJECT_NODE_ID, "contentId": issue_node_id})
-    items = data.get("node", {}).get("items", {}).get("nodes", [])
-    for item in items:
-        content = item.get("content")
-        if content and content.get("id") == issue_node_id:
-            return item["id"]
+    after = None
+    while True:
+        data = graphql_query(query, {"projectId": PROJECT_NODE_ID, "after": after})
+        items_conn = data.get("node", {}).get("items", {})
+        items = items_conn.get("nodes", [])
+        for item in items:
+            content = item.get("content")
+            if content and content.get("id") == issue_node_id:
+                return item["id"]
+        page_info = items_conn.get("pageInfo", {})
+        if not page_info.get("hasNextPage"):
+            break
+        after = page_info.get("endCursor")
     return None
 
 
@@ -231,6 +243,25 @@ def update_date_field(item_id, field_id, date_str):
     graphql_query(mutation, variables)
 
 
+def clear_field(item_id, field_id):
+    """Clear a field value on a project item (e.g. remove stale Priority)."""
+    mutation = """
+    mutation($input: ClearProjectV2ItemFieldValueInput!) {
+      clearProjectV2ItemFieldValue(input: $input) {
+        projectV2Item { id }
+      }
+    }
+    """
+    variables = {
+        "input": {
+            "projectId": PROJECT_NODE_ID,
+            "itemId": item_id,
+            "fieldId": field_id,
+        }
+    }
+    graphql_query(mutation, variables)
+
+
 # ---------------------------------------------------------------------------
 # Size estimation
 # ---------------------------------------------------------------------------
@@ -281,22 +312,33 @@ def estimate_size(body):
 # ---------------------------------------------------------------------------
 
 def has_open_pr_for_issue(issue_number):
-    """Check if an issue has a linked open pull request."""
+    """Check if an issue has a linked open pull request.
+
+    Paginates the timeline (per_page=100) to avoid missing cross-references
+    beyond the first page.
+    """
     owner_repo = REPOSITORY or os.environ.get("GITHUB_REPOSITORY", "")
     if not owner_repo:
         return False
-    path = f"/repos/{owner_repo}/issues/{issue_number}/timeline"
-    try:
-        events = rest_get(path)
-    except Exception:
-        return False
-    for event in events:
-        if event.get("event") == "cross-referenced":
-            source = event.get("source", {}).get("issue", {})
-            if source and source.get("pull_request"):
-                pr_data = rest_get(f"/repos/{owner_repo}/pulls/{source['number']}")
-                if pr_data.get("state") == "open":
-                    return True
+    page = 1
+    while True:
+        path = f"/repos/{owner_repo}/issues/{issue_number}/timeline?per_page=100&page={page}"
+        try:
+            events = rest_get(path)
+        except Exception:
+            return False
+        if not events:
+            break
+        for event in events:
+            if event.get("event") == "cross-referenced":
+                source = event.get("source", {}).get("issue", {})
+                if source and source.get("pull_request"):
+                    pr_data = rest_get(f"/repos/{owner_repo}/pulls/{source['number']}")
+                    if pr_data.get("state") == "open":
+                        return True
+        if len(events) < 100:
+            break
+        page += 1
     return False
 
 
@@ -322,6 +364,10 @@ def sync_issue(issue_number, issue_node_id, labels, is_closed, is_new, assignees
         if current_priority != desired_priority:
             print(f"INFO: Updating Priority → {priority_label}")
             update_single_select_field(item_id, FIELD_PRIORITY, desired_priority)
+    elif "Priority" in current:
+        # No priority label but board has a stale value — clear it
+        print(f"INFO: Clearing stale Priority (no priority:P* label)")
+        clear_field(item_id, FIELD_PRIORITY)
 
     # 2. Sync Status
     if is_closed:
@@ -409,16 +455,44 @@ def main():
 
         sync_issue(issue_number, issue_node_id, labels, is_closed, is_new, assignees)
 
-    elif event == "pull_request":
+    elif event == "pull_request_target":
         pr_number = int(os.environ.get("PR_NUMBER", "0"))
         pr_node_id = os.environ.get("PR_NODE_ID", "")
         is_closed = action in ("closed",)
 
         if not pr_number:
-            print("ERROR: PR_NUMBER is required for pull_request event", file=sys.stderr)
+            print("ERROR: PR_NUMBER is required for pull_request_target event", file=sys.stderr)
             sys.exit(1)
 
         sync_pr(pr_number, pr_node_id, is_closed)
+
+    elif event == "workflow_dispatch":
+        issue_number = int(os.environ.get("ISSUE_NUMBER", "0"))
+        if not issue_number:
+            print("ERROR: ISSUE_NUMBER is required for workflow_dispatch", file=sys.stderr)
+            sys.exit(1)
+
+        owner_repo = REPOSITORY or os.environ.get("GITHUB_REPOSITORY", "")
+        if not owner_repo:
+            print("ERROR: GITHUB_REPOSITORY is required for workflow_dispatch", file=sys.stderr)
+            sys.exit(1)
+
+        # Fetch issue metadata via REST since workflow_dispatch doesn't
+        # provide the full issue payload.
+        issue_data = rest_get(f"/repos/{owner_repo}/issues/{issue_number}")
+        issue_node_id = issue_data.get("node_id", "")
+        issue_labels = [lbl["name"] for lbl in issue_data.get("labels", [])]
+        issue_assignees = [a["login"] for a in issue_data.get("assignees", [])]
+        issue_closed = issue_data.get("state") == "closed"
+        issue_body = issue_data.get("body", "") or ""
+
+        os.environ["ISSUE_BODY"] = issue_body
+
+        if not issue_node_id:
+            print(f"ERROR: Could not fetch node_id for issue #{issue_number}", file=sys.stderr)
+            sys.exit(1)
+
+        sync_issue(issue_number, issue_node_id, issue_labels, issue_closed, False, issue_assignees)
 
     else:
         print(f"INFO: Unsupported event: {event} — skipping.")
