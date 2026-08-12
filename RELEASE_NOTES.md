@@ -5,7 +5,7 @@
 ## Changes since v3.629.0
 
 ### ✨ Features
-- feat(cfp): add PPTX support for presentation uploads (#1402) (@) #1402
+- feat(cfp): add PPTX support for presentation uploads (#1402) (@scanalesespinoza)
 
 ---
 
