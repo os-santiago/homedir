@@ -1,0 +1,84 @@
+name: PR Traceability Check
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to check (optional, checks all open PRs if not provided)'
+        required: false
+        type: number
+
+permissions:
+  pull-requests: write
+  issues: read
+  contents: read
+
+jobs:
+  check-traceability:
+    name: Check PR ↔ Issue Traceability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub
+
+      - name: Check PR traceability
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/ci/check_pr_traceability.py
+
+      - name: Post comment and label (no reference)
+        if: steps.check.outputs.has_reference == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number || inputs.pr_number }};
+            const message = process.env.TRACEABILITY_MESSAGE;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['needs-human']
+            });
+        env:
+          TRACEABILITY_MESSAGE: ${{ steps.check.outputs.message }}
+
+      - name: Remove needs-human label (valid reference)
+        if: steps.check.outputs.has_reference == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number || inputs.pr_number }};
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: 'needs-human'
+              });
+            } catch (error) {
+              console.log('needs-human label not found or already removed');
+            }
