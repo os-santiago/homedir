@@ -100,6 +100,72 @@ These labels track the automated AI SDLC workflow state:
 3. Pay attention to priority labels - handle P0/P1 before P2/P3
 4. Check for `scc-running` - AI worker may have claimed it
 
+## Autonomous AI Agent Contract
+
+This section defines **mandatory** rules for any AI agent (Claude, Devin, Copilot, etc.) creating issues, PRs, or reviewing code in this repository. These rules use RFC 2119 keywords (MUST, SHOULD, MAY).
+
+### Creating an Issue
+
+1. **MUST** include exactly one `priority:P*` label (`priority:P0`–`priority:P3`). If unsure, default to `priority:P2`.
+2. **MUST** include exactly one type label (`bug`, `enhancement`, `documentation`, `feature-request`, `platform-maintenance`).
+3. **MUST** include a `## Parent` section with `#N` or `None (root issue)` per [PARENT_CHILD_EPIC_STANDARD](config/docs/governance/PARENT_CHILD_EPIC_STANDARD.md).
+4. **MUST** include sections: Problem Statement, Expected Behavior, Acceptance Criteria, Affected Files (best guess), Validation (command to verify), Complexity (Simple/Medium/Complex).
+5. **MUST** use canonical EN labels only. Never apply legacy ES labels (`error`, `mejora`, `pregunta`, etc.).
+6. **MUST NOT** self-assign issues. Leave unassigned for triage (board automation will assign).
+7. **SHOULD** follow the [Definition of Ready](config/docs/governance/DEFINITION_OF_READY_DONE.md) checklist.
+
+### Creating a PR
+
+1. **MUST** include `Closes #N` or `Fixes #N` in the PR body. No exceptions. If there's no issue, create one first.
+2. **MUST** use branch naming: `feat/issue-XXX-description`, `fix/issue-XXX-description`, `docs/issue-XXX-description`.
+3. **MUST** use conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `style:`) with `Signed-off-by`.
+4. **MUST** write PR title, body, and commits in **English**. No exceptions.
+5. **MUST NOT** apply `scc-*` labels manually — those are managed by automation.
+6. **SHOULD** use the [PR template](.github/PULL_REQUEST_TEMPLATE.md) when available.
+7. **SHOULD** include a Test Plan section with checkboxes.
+
+### Reviewing a PR
+
+1. **MUST** verify the PR references an issue (`Closes #N`). If not, request changes.
+2. **MUST** verify the issue has priority + type labels. If not, add them or request the author to add.
+3. **MUST** verify all relevant CI checks pass per the [Status Check Matrix](config/docs/governance/STATUS_CHECK_MATRIX.md) for the change type.
+4. **MUST** verify the PR actually addresses the issue's acceptance criteria. If not, apply `scc-coverage-gap` label.
+5. **MUST** only approve if: checks green + traceability verified + acceptance criteria met. Use `scc-approved` label only when all conditions are met.
+6. **SHOULD** follow the [Reviewer Checklist](config/docs/governance/REVIEWER_CHECKLIST.md) for the change type.
+7. **SHOULD** follow the [PR Review Policy](config/docs/governance/PR_REVIEW_POLICY.md) for approval requirements by risk level.
+
+### Working on an Issue
+
+1. **MUST** check if someone is already working on the issue (`wip-pr` label) before starting.
+2. **MUST NOT** proceed on issues with `needs-human` label without human approval.
+3. **MUST NOT** claim an issue if the assignee already has 3 open issues (check with `gh issue list --assignee <login> --state open`).
+4. **MUST NOT** self-assign P0/P1 issues — those are reserved for core maintainers (`Axel-DaMage`, `scanalesespinoza`, `VECTORG99`).
+5. **SHOULD** handle P0/P1 before P2/P3 when multiple issues are available.
+
+### Language Policy
+
+1. **MUST** write PRs (title, body, commits, branch names) in **English**.
+2. **MUST** write code comments in **English**.
+3. **SHOULD** write issues in English (default). Spanish is optional via `es/` templates.
+4. **MAY** write documentation in English or Spanish. Both are acceptable.
+5. **MAY** write internal rules and governance docs in English or Spanish. Both are acceptable.
+6. **MUST** use English labels only (no legacy ES labels).
+
+### Governance References
+
+AI agents MUST be aware of and apply these governance documents when relevant:
+
+- [Definition of Ready/Done](config/docs/governance/DEFINITION_OF_READY_DONE.md) — DoR/DoD criteria
+- [Triage Runbook](config/docs/governance/TRIAGE_RUNBOOK.md) — Issue triage flow
+- [PR Review Policy](config/docs/governance/PR_REVIEW_POLICY.md) — Approval requirements by risk
+- [Reviewer Checklist](config/docs/governance/REVIEWER_CHECKLIST.md) — Review checklist by change type
+- [Parent/Child/Epic Standard](config/docs/governance/PARENT_CHILD_EPIC_STANDARD.md) — Issue hierarchy
+- [Severity/Priority Contract](config/docs/governance/SEVERITY_PRIORITY_CONTRACT.md) — S×P matrix
+- [Label Taxonomy](config/docs/governance/LABEL_TAXONOMY.md) — Canonical label catalog
+- [Status Check Matrix](config/docs/governance/STATUS_CHECK_MATRIX.md) — Required CI checks by type
+- [Release Gates](config/docs/governance/RELEASE_GATES.md) — PR → main → production gates
+- [Emergency Break-Glass](config/docs/governance/EMERGENCY_BREAK_GLASS_RUNBOOK.md) — Incident process
+
 ### Bounty Hunter Points System
 
 Points are awarded when:
