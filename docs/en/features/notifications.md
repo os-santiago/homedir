@@ -52,4 +52,4 @@ The notification runtime is consolidated (single owner), with page-specific UIs 
 Rules:
 - The WebSocket connection, notification inbox state (`ef_global_notifs`), and unread counter (`ef_global_unread_count`) are owned by `core-bundle.js`.
 - Page scripts must not re-open their own WebSocket; they consume notifications via `HomeDirNotifications` or `window.__EF_GLOBAL_NOTIF_ACCEPT__`.
-- HTML escaping belongs in `js/utils.js` (`HomeDirUtils.escapeHtml`); page scripts keep a defensive fallback only.
+- HTML escaping belongs in `js/utils.js` (`HomeDirUtils.escapeHtml`); page scripts reference `window.HomeDirUtils.*` directly — `utils.js` is a hard dependency loaded in the layout `<head>` before any page script, so defensive fallbacks are not needed.
