@@ -1,8 +1,8 @@
 # Branch Protection Continuous Audit Specification
 
 > **Status**: ❌ NOT IMPLEMENTED. This is a draft specification from issue #853 (closed, but never built).
-> There is no scheduled audit workflow, no `.github/ruleset-main.json`, and no `scripts/ci/audit-branch-protection.sh`.
-> The only related tooling that exists is `scripts/verify-branch-protection.sh` (a lightweight baseline check created for issue #847). Implement this spec before expecting the claims below to be true.
+> There is no scheduled audit workflow and no `scripts/ci/audit-branch-protection.sh`.
+> The repository does commit a canonical ruleset baseline at `config/ruleset-main.json`, and the only related tooling that exists is `config/scripts/governance/update-branch-protection.sh` (used to push an updated ruleset). Implement this spec before expecting the claims below to be true.
 
 ## Purpose
 
@@ -30,7 +30,7 @@ The audit verifies the following configuration for the `main` branch:
 |---------|---------------|-----------|---------------------|
 | **Deletion protection** | Enabled | `ruleset.rules[].type = "deletion"` | **Critical** |
 | **Force push protection** | Enabled | `ruleset.rules[].type = "non_fast_forward"` | **Critical** |
-| **Required status checks** | 3 aggregate gates configured | `ruleset.rules[].parameters.required_status_checks` | **High** |
+| **Required status checks** | 6 checks from committed baseline (see `config/ruleset-main.json`) | `ruleset.rules[].parameters.required_status_checks` | **High** |
 | **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request"` | **Critical** |
 | **Conversation resolution** | Required | `ruleset.rules[].parameters.required_conversation_resolution = true` | **High** |
 | **Required approvals** | ≥1 approval | `ruleset.rules[].parameters.required_approving_review_count ≥ 1` | **High** |
@@ -70,7 +70,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 ### Audit Script Specification
 
-> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only implemented script is `scripts/verify-branch-protection.sh` (baseline check for issue #847). If the continuous audit is implemented later, it should follow this spec.
+> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh` (applies a ruleset from `config/ruleset-main.json`). If the continuous audit is implemented later, it should follow this spec.
 
 **Planned location**: `scripts/ci/audit-branch-protection.sh`
 
@@ -278,57 +278,67 @@ If drift is **intentional** (e.g., temporary bypass for emergency):
 
 ### Canonical Ruleset Configuration
 
-The audit compares against this baseline (from `ruleset-main.json`):
+The audit compares against this baseline (committed at `config/ruleset-main.json`):
 
 ```json
 {
-  "name": "main branch protection",
+  "name": "PR Quality Suite (required checks, no manual reviews)",
   "target": "branch",
+  "source_type": "Repository",
   "enforcement": "active",
   "conditions": {
-    "ref_name": {"include": ["refs/heads/main"], "exclude": []}
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
   },
   "rules": [
-    {"type": "deletion"},
-    {"type": "non_fast_forward"},
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
     {
       "type": "required_status_checks",
       "parameters": {
+        "strict_required_status_checks_policy": true,
         "required_status_checks": [
-          {"context": "Quality Summary"},
-          {"context": "CI Summary"},
-          {"context": "Quality Gate Summary"}
-        ],
-        "strict_required_status_checks_policy": true
+          { "context": "PR Quality — Suite / style" },
+          { "context": "PR Quality — Suite / static" },
+          { "context": "PR Quality — Suite / arch" },
+          { "context": "PR Quality — Suite / tests_cov" },
+          { "context": "PR Quality — Suite / deps" },
+          { "context": "PR CI (Build, Native, SBOM/Scan) / sbom" }
+        ]
       }
     },
     {
-      "type": "pull_request",
+      "type": "pull_request_reviews",
       "parameters": {
-        "required_approving_review_count": 1,
-        "dismiss_stale_reviews_on_push": true,
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
         "require_code_owner_review": false,
-        "require_last_push_approval": false,
-        "required_review_thread_resolution": true
+        "require_last_push_approval": false
       }
     },
     {
       "type": "commit_message_pattern",
       "parameters": {
-        "operator": "starts_with",
-        "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\[.*\\])?(\\(.*\\))?(!)?: .*"
+        "name": "Conventional Commits",
+        "negate": false,
+        "operator": "regex",
+        "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\[[^\\]]+\\])?(\\([\\w\\-.]+\\))?(!)?: [\\w ].*"
       }
     }
   ],
   "bypass_actors": [
     {
-      "actor_id": <GitHub_user_ID>,
-      "actor_type": "RepositoryRole",
+      "actor_id": "scanalesespinoza",
+      "actor_type": "RepositoryCollaborator",
       "bypass_mode": "pull_request"
     }
   ]
 }
 ```
+
+> This is the **committed target state** in `config/ruleset-main.json`. The enforced ruleset (ID 9071701) currently diverges from it (see [BRANCH_PROTECTION_VALIDATION.md](./BRANCH_PROTECTION_VALIDATION.md)); that drift is what this audit detects.
 
 ### Allowed Bypass Actors
 
@@ -336,7 +346,7 @@ Only the following users/teams are authorized as bypass actors:
 
 | Actor | GitHub Username | Actor Type | Bypass Mode | Justification |
 |-------|----------------|------------|-------------|---------------|
-| Repository Owner | `scanalesespinoza` | RepositoryRole | `pull_request` | Emergency hotfix authority |
+| Repository Collaborator | `scanalesespinoza` | RepositoryCollaborator | `pull_request` | Emergency hotfix authority |
 
 **Drift detection**: If any other actor appears in `bypass_actors[]`, audit raises **CRITICAL** finding.
 
@@ -389,7 +399,7 @@ When updating the audit script (`scripts/ci/audit-branch-protection.sh` once imp
 
 - [Status Check Matrix](./STATUS_CHECK_MATRIX.md) - Defines required checks audited
 - [Emergency Break-Glass Runbook](./EMERGENCY_BREAK_GLASS_RUNBOOK.md) - Bypass procedures
-- `ruleset-main.json` - Canonical configuration baseline *(not yet committed)*
+- `config/ruleset-main.json` - Canonical configuration baseline (committed)
 
 ## Revision History
 

@@ -18,19 +18,18 @@ Severity measures the **technical impact** of an issue on system integrity, secu
 | **S3** | Minor issue with clear workaround or cosmetic-only impact | Typo in documentation, non-functional style glitch, missing alt text |
 | **S4** | Enhancement or cosmetic improvement with no production impact | Refactor suggestion, tech debt cleanup, new feature request |
 
-## Priority Scale (P0–P4)
+## Priority Scale (P0–P3)
 
 Priority measures the **operational urgency** based on impact × urgency.
 
-> **Note**: The canonical labels are `priority:P0`–`priority:P3` (see [LABEL_TAXONOMY](LABEL_TAXONOMY.md)). `priority:P4` (wishlist) is only a conceptual level here and has no dedicated label.
+> **Note**: The canonical labels are `priority:P0`–`priority:P3` (see [LABEL_TAXONOMY](LABEL_TAXONOMY.md)). There is **no** `priority:P4` label: every S4 (wishlist) classification resolves to `priority:P3`, its lowest priority.
 
 | Level | Label | Definition | Typical Trigger |
 |-------|-------|------------|-----------------|
 | **P0** | `priority:P0` | Must be resolved immediately; stop-the-line event | S0 incident, legal/compliance deadline |
 | **P1** | `priority:P1` | Must be resolved within hours; top of backlog | S1 incident, blocked external dependency |
 | **P2** | `priority:P2` | Should be resolved within current sprint/iteration | S2 issue, feature with committed date |
-| **P3** | `priority:P3` | Resolve when capacity permits; nice-to-have | S3 issue, internal improvement |
-| **P4** | *(no label)* | Backlog item; no current commitment | S4 enhancement, long-term roadmap |
+| **P3** | `priority:P3` | Resolve when capacity permits; nice-to-have | S3 issue, or S4 enhancement (wishlist) |
 
 ## Impact × Urgency Matrix
 
@@ -58,7 +57,6 @@ Final priority is determined by mapping severity (technical impact) against time
 | **P1** | 1 hour | 2 hours | 4 hours | 24 hours |
 | **P2** | 4 hours | 1 business day | 2 business days | 1 sprint |
 | **P3** | 1 business day | 2 business days | 1 week | 2 sprints |
-| **P4** | 1 week | 2 weeks | 1 month | Next quarter |
 
 > Triage Time = time until first label/priority assignment.
 > Assignment Time = time until an owner is identified.
@@ -107,9 +105,9 @@ Action:    Emergency patch, break-glass if standard CI blocks.
 ```
 Severity: S4 (enhancement, no production impact)
 Urgency:   Low (no deadline)
-Priority:  P4
-Rationale: S4 + Low → P4.
-Action:    Add to roadmap, revisit quarterly.
+Priority:  P3
+Rationale: S4 + Low → P3 (wishlist always resolves to the lowest priority; there is no P4 label).
+Action:    Add to backlog, revisit when capacity permits.
 ```
 
 ## Issue Template Integration
@@ -121,9 +119,27 @@ The actual issue templates (`.github/ISSUE_TEMPLATE/*.yml`) follow a **simplifie
 
 When adding new template fields, prefer the existing Critical/High/Medium/Low dropdowns for consistency; do **not** introduce literal `S0`–`S4` options unless the templates are updated in the same PR.
 
+### Template-to-Priority Mapping
+
+The templates do **not** expose a severity × urgency matrix directly; priority is derived from the single textual dropdown as follows:
+
+| Template Field | Dropdown Value | Maps to (internal) | Canonical Label |
+|----------------|----------------|---------------------|-----------------|
+| `Severity` (bug/feature) | Critical | S0 | `priority:P0` |
+| `Severity` (bug/feature) | High | S1 | `priority:P1` |
+| `Severity` (bug/feature) | Medium | S2 | `priority:P2` |
+| `Severity` (bug/feature) | Low | S3 | `priority:P3` |
+| `Priority` (epic) | Critical | — | `priority:P0` |
+| `Priority` (epic) | High | — | `priority:P1` |
+| `Priority` (epic) | Medium | — | `priority:P2` |
+| `Priority` (epic) | Low | — | `priority:P3` |
+
+- `epic.yml` applies the default label `priority:P1`; when the triaged `Priority` value differs, the default must be **replaced**, leaving exactly one `priority:P*` label.
+- No separate urgency field is required: urgency is expressed through the chosen dropdown value alone.
+
 ## Label Sync
 
-Every issue MUST have exactly one `priority:P*` label applied at triage time. Priority is derived from severity × urgency using the matrix above.
+Every issue MUST have exactly one `priority:P*` label applied at triage time. When reclassifying, **remove any prior `priority:P*` label — including the template default `priority:P1` — before applying the newly derived label**, so the issue never carries more than one priority label.
 
 | Severity Level | Canonical Label |
 |----------------|-----------------|

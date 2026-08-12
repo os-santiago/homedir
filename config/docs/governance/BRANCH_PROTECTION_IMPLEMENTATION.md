@@ -11,7 +11,7 @@ This guide documents the implementation of branch protection enforcement for the
 
 ## Context
 
-The governance audit identified weak branch protection on `main` (Grade C). The repository has a documented ruleset in `ruleset-main.json` with comprehensive protections, but the actual GitHub repository ruleset (ID 9071701 "Minimal Rules") has minimal enforcement.
+The governance audit identified weak branch protection on `main` (Grade C). The repository has a documented ruleset in `config/ruleset-main.json` with comprehensive protections, but the actual GitHub repository ruleset (ID 9071701 "Main Branch Protection") has minimal enforcement.
 
 ## Critical Gaps (Before)
 
@@ -24,7 +24,7 @@ The governance audit identified weak branch protection on `main` (Grade C). The 
 
 ## Enforcement Script
 
-**Location**: `scripts/governance/update-branch-protection.sh`
+**Location**: `config/scripts/governance/update-branch-protection.sh`
 
 **Prerequisites**:
 - `gh` CLI authenticated with admin permissions
@@ -92,7 +92,7 @@ cd config
 
 **Before**: Bypass mode "always" (allows bypassing checks on direct commits)
 
-**After**: Bypass mode "pull_request" (only allows bypassing checks within PRs, not direct commits)
+**After**: No bypass actors configured in the enforced ruleset (`current_user_can_bypass: "never"`); all changes must pass through the PR workflow. The committed `config/ruleset-main.json` target state would restrict any bypass to `pull_request` mode only.
 
 **Impact**: Forces all changes through PR workflow, even from admins
 
@@ -114,26 +114,26 @@ jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_st
 jq '.rules[] | select(.type=="commit_message_pattern") | .parameters.pattern' /tmp/ruleset-after.json
 # Expected output: "^(feat|fix|docs|...)..."
 
-# Verify bypass mode
-jq '.bypass_actors[0].bypass_mode' /tmp/ruleset-after.json
-# Expected output: "pull_request"
+# Verify bypass mode (absent when no bypass actors configured)
+jq '.bypass_actors' /tmp/ruleset-after.json
+# Expected output: null (or absent)
 ```
 
 ### Web UI Verification
 
 1. Visit: https://github.com/os-santiago/homedir/rules/9071701
-2. Confirm "Required status checks" section lists 6 checks
+2. Confirm "Required status checks" section lists 3 aggregate checks
 3. Confirm "Require conversation resolution before merging" is enabled
-4. Confirm "Additional settings" shows bypass mode as "For pull requests only"
+4. Confirm no bypass actors are configured (the committed `config/ruleset-main.json` target would restrict any bypass to "For pull requests only")
 5. Confirm "Commit metadata" section shows Conventional Commits pattern
 
 ### Functional Verification
 
 **Next PR to main should**:
-1. Block merge if any of the 6 universal checks fail
+1. Block merge if any of the 3 aggregate checks fail
 2. Block merge if commit messages don't match pattern
 3. Block merge if any review threads are unresolved
-4. Allow bypass only within PR context (not direct commits)
+4. Reject direct commits (no bypass actors; non-fast-forward and deletion rules protect main)
 
 ## Rollback Plan
 
@@ -189,7 +189,7 @@ gh api -X PUT repos/os-santiago/homedir/rulesets/9071701 \
 
 - [STATUS_CHECK_MATRIX.md](./STATUS_CHECK_MATRIX.md) - Canonical list of required checks
 - [DEFINITION_OF_READY_DONE.md](./DEFINITION_OF_READY_DONE.md) - Issue and PR completion criteria
-- `ruleset-main.json` - Documented branch protection configuration
+- `config/ruleset-main.json` - Documented branch protection configuration
 - Issue #838 - Parent governance audit issue
 - Issue #988 - This implementation
 - PR #989 - Implementation PR
@@ -197,7 +197,7 @@ gh api -X PUT repos/os-santiago/homedir/rulesets/9071701 \
 ## Next Steps
 
 1. **Merge PR #989** to make script available in main branch
-2. **Execute script** via `scripts/governance/update-branch-protection.sh`
+2. **Execute script** via `config/scripts/governance/update-branch-protection.sh`
 3. **Complete validation checklist** (API + Web UI + Functional)
 4. **Update execution log** with actual timestamps
 5. **Monitor next 3-5 PRs** to ensure no disruption

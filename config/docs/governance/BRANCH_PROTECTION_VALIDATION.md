@@ -1,7 +1,7 @@
 # Branch Protection Ruleset Validation
 
 **Issue**: #988  
-**Date**: 2026-06-24  
+**Date**: 2026-06-24 (original validation) · re-verified 2026-08-11  
 **Ruleset ID**: 9071701  
 **Repository**: os-santiago/homedir
 
@@ -60,22 +60,20 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 **Result**: `true` ✅
 
 ### 4. Bypass Actor Mode
-**Status**: ✅ PASS
+**Status**: ⚠️ DRIFT
 
 ```bash
 gh api repos/os-santiago/homedir/rulesets/9071701 \
-  --jq '.bypass_actors[] | {actor_type: .actor_type, bypass_mode: .bypass_mode}'
+  --jq '.bypass_actors'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11): the field is **absent** from the response — the ruleset defines **no** bypass actors (`current_user_can_bypass: "never"`).
+
 ```json
-{
-  "actor_type": "RepositoryRole",
-  "bypass_mode": "pull_request"
-}
+null
 ```
 
-Bypass mode is "pull_request" (not "always") ✅
+> The committed `config/ruleset-main.json` lists `scanalesespinoza` (`RepositoryCollaborator`, bypass mode `pull_request`) as the intended allowlist, but the enforced ruleset does **not** currently configure any bypass actors. This is drift to reconcile (see [BRANCH_PROTECTION_AUDIT.md](./BRANCH_PROTECTION_AUDIT.md)).
 
 ## Full Ruleset Configuration
 
@@ -107,7 +105,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
 | Conversation resolution | Required | Enabled (true) | ✅ MATCH |
 | Required approvals | ≥1 | 0 | ⚠️ DRIFT |
-| Bypass actors | RepositoryRole `pull_request` | None | ⚠️ DRIFT |
+| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | None | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
 
