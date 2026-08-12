@@ -72,10 +72,12 @@ def test_type_returns_none_without_evidence():
     assert infer_type_from_body("please consider this at some point.") is None
 
 
-def test_type_tie_break_is_deterministic():
-    """Equal scores resolve to declaration order, so repeated runs agree."""
+def test_type_tie_break_follows_declaration_order():
+    """On an equal score, the label declared first in BODY_KEYWORD_MAP wins."""
+    # 'bug' matches error+fail, 'documentation' matches readme+typo: 2 each.
     body = "this readme has a typo and the build can fail with an error."
-    assert infer_type_from_body(body) == infer_type_from_body(body)
+    assert list(BODY_KEYWORD_MAP).index("bug") < list(BODY_KEYWORD_MAP).index("documentation")
+    assert infer_type_from_body(body) == "bug"
 
 
 # --- Defect 2: keywords must match whole words only -------------------------------
