@@ -4,8 +4,8 @@
 Triggered by the board-sync workflow on issue and pull_request events. Uses the GitHub
 Projects GraphQL API to update ProjectV2 item fields.
 
-Requires a token with ``project`` scope (``PROJECTS_TOKEN`` env var). The default
-``GITHUB_TOKEN`` does not have project write access.
+Requires a token with ``project`` scope (``GH_TOKEN`` secret). The default
+``GITHUB_TOKEN`` does not have project write access for organization projects.
 """
 
 import json
@@ -67,9 +67,9 @@ GITHUB_API = "https://api.github.com/graphql"
 
 def graphql_query(query, variables=None):
     """Execute a GraphQL query against the GitHub API."""
-    token = os.environ.get("PROJECTS_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        print("ERROR: No token available (set PROJECTS_TOKEN or GITHUB_TOKEN)", file=sys.stderr)
+        print("ERROR: No token available (set GITHUB_TOKEN)", file=sys.stderr)
         sys.exit(1)
 
     body = json.dumps({"query": query, "variables": variables or {}}).encode("utf-8")
@@ -100,7 +100,7 @@ def graphql_query(query, variables=None):
 
 def rest_get(path):
     """Execute a REST GET request against the GitHub API."""
-    token = os.environ.get("PROJECTS_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN")
     req = urllib.request.Request(
         f"https://api.github.com{path}",
         headers={

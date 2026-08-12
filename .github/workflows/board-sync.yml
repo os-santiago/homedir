@@ -16,8 +16,6 @@ permissions:
   issues: read
   pull-requests: read
   contents: read
-  # Project write requires a token with project scope (PROJECTS_TOKEN secret).
-  # The default GITHUB_TOKEN does not have project:write.
 
 jobs:
   sync-board:
@@ -35,8 +33,7 @@ jobs:
 
       - name: Sync board fields
         env:
-          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
