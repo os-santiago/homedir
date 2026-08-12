@@ -31,10 +31,10 @@ The audit verifies the following configuration for the `main` branch:
 | **Deletion protection** | Enabled | `ruleset.rules[].type = "deletion"` | **Critical** |
 | **Force push protection** | Enabled | `ruleset.rules[].type = "non_fast_forward"` | **Critical** |
 | **Required status checks** | 6 checks from committed baseline (see `config/ruleset-main.json`) | `ruleset.rules[].parameters.required_status_checks` | **High** |
-| **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request"` | **Critical** |
+| **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request_reviews"` | **Critical** |
 | **Conversation resolution** | Required | `ruleset.rules[].parameters.required_conversation_resolution = true` | **High** |
-| **Required approvals** | ≥1 approval | `ruleset.rules[].parameters.required_approving_review_count ≥ 1` | **High** |
-| **Commit message pattern** | Conventional Commits regex | `ruleset.rules[].parameters.operator = "starts_with"` | **Medium** |
+| **Required approvals** | 0 approvals (per committed baseline) | `ruleset.rules[].parameters.required_approving_review_count = 0` | **High** |
+| **Commit message pattern** | Conventional Commits regex | `ruleset.rules[].parameters.operator = "regex"` | **Medium** |
 | **Bypass actors** | Only authorized users | `ruleset.bypass_actors[].actor_id` matches allowlist | **Critical** |
 | **Bypass mode** | `pull_request` only (not `always`) | `ruleset.bypass_actors[].bypass_mode = "pull_request"` | **High** |
 
@@ -52,7 +52,7 @@ The audit verifies the following configuration for the `main` branch:
 |------------|-----------|---------|---------|
 | **Scheduled** | Daily at 09:00 UTC | Cron (`0 9 * * *`) | Detect slow drift |
 | **On-demand** | Manual workflow dispatch | Maintainer request | Pre/post-change verification |
-| **Post-change** | On push to `.github/ruleset-*.json` | GitHub Actions `paths:` filter | Immediate validation after config change |
+| **Post-change** | On push to committed baseline(s) | GitHub Actions `paths:` filter on `config/ruleset-main.json` and `config/scripts/governance/update-branch-protection.sh` | Immediate validation after config change |
 
 ## Audit Implementation
 
@@ -70,7 +70,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 ### Audit Script Specification
 
-> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh` (applies a ruleset from `config/ruleset-main.json`). If the continuous audit is implemented later, it should follow this spec.
+> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh`, which **does not read `config/ruleset-main.json`**: it generates its ruleset payload via an inline heredoc (6 job contexts, `copilot_code_review`, and a `RepositoryRole` bypass actor id 5). That heredoc payload diverges from the committed baseline and from the enforced ruleset - so the script must be updated to consume `config/ruleset-main.json` (or its payload reconciled) when the continuous audit is implemented. If the audit is built later, it should follow this spec.
 
 **Planned location**: `scripts/ci/audit-branch-protection.sh`
 
@@ -106,9 +106,16 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
     {
       "control": "required_status_checks",
       "severity": "HIGH",
-      "expected": ["Quality Summary", "CI Summary", "Quality Gate Summary"],
-      "actual": ["Quality Summary"],
-      "missing": ["CI Summary", "Quality Gate Summary"],
+      "expected": [
+        "PR Quality — Suite / style",
+        "PR Quality — Suite / static",
+        "PR Quality — Suite / arch",
+        "PR Quality — Suite / tests_cov",
+        "PR Quality — Suite / deps",
+        "PR CI (Build, Native, SBOM/Scan) / sbom"
+      ],
+      "actual": ["Quality Summary", "CI Summary", "Quality Gate Summary"],
+      "missing": ["PR Quality — Suite / style", "PR Quality — Suite / static", "PR Quality — Suite / arch", "PR Quality — Suite / tests_cov", "PR Quality — Suite / deps", "PR CI (Build, Native, SBOM/Scan) / sbom"],
       "recommendation": "Add missing required checks to ruleset-main.json"
     }
   ],
@@ -136,7 +143,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 | Control | Severity | Status | Details |
 |---------|----------|--------|---------|
-| Required Status Checks | HIGH | ❌ Drift | Missing 2 of 3 aggregate checks |
+| Required Status Checks | HIGH | ❌ Drift | 0 of 6 baseline checks present (enforced uses 3 aggregate gates instead) |
 | Deletion Protection | CRITICAL | ✅ Compliant | Enabled |
 | Force Push Protection | CRITICAL | ✅ Compliant | Enabled |
 | Pull Request Required | CRITICAL | ✅ Compliant | Enabled |

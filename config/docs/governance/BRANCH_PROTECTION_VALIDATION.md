@@ -38,11 +38,12 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '.rules[] | select(.type == "commit_message_pattern") | .parameters'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```json
 {
   "name": "Conventional Commits",
-  "operator": "starts_with",
+  "operator": "regex",
+  "negate": false,
   "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\\([a-z0-9-]+\\))?: .+"
 }
 ```
@@ -104,7 +105,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 | Required status checks | 6 checks | 3 checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) | ⚠️ DRIFT |
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
 | Conversation resolution | Required | Enabled (true) | ✅ MATCH |
-| Required approvals | ≥1 | 0 | ⚠️ DRIFT |
+| Required approvals | 0 (committed baseline) | 0 | ✅ MATCH |
 | Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | None | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
@@ -131,7 +132,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 2. ✅ Documentation updated
 3. 🔄 Monitor next PR to verify checks are enforced in practice
 4. 🔄 Close issue #988 after PR merge
-5. ⚠️ **Reconciling drift (2026-08-11)**: ruleset now requires 3 aggregate checks (not 6), requires 0 approvals, and has no bypass actors. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
+5. ⚠️ **Reconciling drift (2026-08-11)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures no bypass actors (the committed baseline lists `scanalesespinoza`). 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
 
 ## References
 
