@@ -40,8 +40,8 @@ jobs:
         run: |
           python scripts/ci/validate_issue_metadata.py
 
-      - name: Add validation comment
-        if: steps.validate.outputs.validation_status == 'incomplete'
+      - name: Post validation report (incomplete or auto-fix actions)
+        if: steps.validate.outputs.validation_status == 'incomplete' || steps.validate.outputs.validation_status == 'partial'
         uses: actions/github-script@v7
         with:
           script: |
@@ -57,7 +57,7 @@ jobs:
         env:
           VALIDATION_REPORT: ${{ steps.validate.outputs.report }}
 
-      - name: Add needs-metadata label
+      - name: Add needs-metadata label (structural issues only)
         if: steps.validate.outputs.validation_status == 'incomplete'
         uses: actions/github-script@v7
         with:
@@ -71,8 +71,8 @@ jobs:
               labels: ['needs-metadata']
             });
 
-      - name: Remove needs-metadata label
-        if: steps.validate.outputs.validation_status == 'complete'
+      - name: Remove needs-metadata label (issue is complete or auto-fixed)
+        if: steps.validate.outputs.validation_status == 'complete' || steps.validate.outputs.validation_status == 'partial'
         uses: actions/github-script@v7
         with:
           script: |
