@@ -51,7 +51,31 @@ For local auth in dev mode, you can use:
 - `user@example.com / userpass`
 - `admin@example.org / adminpass`
 
-### 2) Run using public Quay images
+### 2) Run in a container (no JDK required)
+If you prefer not to install JDK 21 and Maven on your machine, `scripts/dev-container.sh`
+runs the same developer mode inside a disposable container. Edit files with your usual
+editor on the host; Quarkus live reload picks the changes up.
+
+Prerequisites:
+- Docker (or Podman with a `docker` alias)
+
+```bash
+scripts/dev-container.sh              # dev mode with live reload on http://localhost:8080
+scripts/dev-container.sh test         # run the test suite
+scripts/dev-container.sh clean package
+```
+
+The dependency cache is kept in `.tmp/m2` inside the repository (git-ignored) rather than
+in `~/.m2`, so nothing is written outside the project. To remove every trace:
+
+```bash
+rm -rf .tmp/m2 .tmp/maven-home quarkus-app/target
+docker rmi maven:3.9-eclipse-temurin-21
+```
+
+Override the image or port with `DEV_CONTAINER_IMAGE` and `DEV_CONTAINER_PORT`.
+
+### 3) Run using public Quay images
 Public image repository:
 - `quay.io/sergio_canales_e/homedir`
 
@@ -79,7 +103,7 @@ docker run --rm --name homedir \
   quay.io/sergio_canales_e/homedir:3.360.1
 ```
 
-### 3) Build your own image from source
+### 4) Build your own image from source
 Build a JVM image with the project Dockerfile:
 
 ```bash
