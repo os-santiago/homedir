@@ -77,6 +77,45 @@ Subject area or subsystem affected.
 
 **Note**: Domain labels are not mutually exclusive. An issue can have multiple domain labels.
 
+### 6. PR State (Lifecycle — managed by automation)
+
+Mutually exclusive labels tracking the PR lifecycle. Managed by `pr-state-labeler.yml` workflow — do NOT apply manually.
+
+| Label | Color | Description | When Applied |
+|-------|-------|-------------|--------------|
+| `pr:draft` | `#bfdadc` | Draft / WIP | PR is draft |
+| `pr:checks-pending` | `#fbca04` | CI running | Checks in progress |
+| `pr:checks-failed` | `#d73a4a` | CI failing | One or more checks failed |
+| `pr:needs-review` | `#1d76db` | Ready for review | CI green, awaiting human approvals |
+| `pr:changes-requested` | `#d93f0b` | Changes requested | Maintainer requested changes |
+| `pr:approved` | `#0e8a16` | Approved | Human approvals meet risk-level threshold |
+| `pr:merged` | `#006700` | Merged | PR merged to main |
+| `pr:blocked` | `#b60205` | Blocked | Merge conflicts or other blocker |
+
+### 7. PR Risk (Contributor-applied — exactly one required)
+
+Determines required human approval count. Applied by contributor/AI at PR creation.
+
+| Label | Color | Risk Criteria | Min Approvals |
+|-------|-------|---------------|---------------|
+| `pr:risk-low` | `#0e8a16` | Docs, typos, config tweaks | 1 |
+| `pr:risk-medium` | `#fbca04` | Features, refactors, new deps | 2 (1 code owner) |
+| `pr:risk-high` | `#d93f0b` | Security, breaking changes, data migration | 2 (code owners + security) |
+| `pr:risk-critical` | `#b60205` | Auth, encryption, financial, compliance | 3 (code owners + security) |
+
+### 8. PR Self-Attestation (Contributor-applied — auto-validated)
+
+Pre-verified by contributor's AI. The `pr-readiness-validator.yml` workflow auto-validates and removes false claims.
+
+| Label | Color | Description | Auto-Validated? |
+|-------|-------|-------------|-----------------|
+| `pr:traceability-ok` | `#5319e7` | `Closes #N` present, issue has priority + type | Yes |
+| `pr:acceptance-ok` | `#5319e7` | All acceptance criteria met | No (trust contributor) |
+| `pr:tests-ok` | `#5319e7` | Tests added for new functionality | Yes (test files in diff) |
+| `pr:i18n-ok` | `#5319e7` | EN + ES translations complete | Yes (i18n file check) |
+
+**Deprecated**: All `scc-*` labels (scc-approved, scc-under-review, scc-waiting-checks, etc.) and `wip-pr` have been removed from the repository. The `pr:*` system replaces them entirely.
+
 ## Legacy Label Migration
 
 ### Deprecated Labels

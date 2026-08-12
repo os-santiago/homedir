@@ -38,12 +38,16 @@ If a conversation cannot be resolved:
 
 ### Minimum Approvals by Change Risk
 
-| Risk Level | Criteria | Min Approvals | Additional Requirements |
+The risk level is determined by the `pr:risk-*` label applied by the contributor at PR creation. The `pr-state-labeler.yml` workflow enforces these thresholds automatically — `pr:approved` is only assigned when human approval count meets the requirement.
+
+| Risk Label | Criteria | Min Approvals | Additional Requirements |
 |------------|----------|---------------|------------------------|
-| **Low** | Docs only, typos, config tweaks | 1 | - |
-| **Medium** | Feature additions, refactors, new dependencies | 2 | At least 1 from code owners |
-| **High** | Security changes, API breaking changes, data migrations | 2 | All from code owners + security review if applicable |
-| **Critical** | Auth/authz, encryption, financial logic, compliance | 3 | All from code owners + security team approval |
+| `pr:risk-low` | Docs only, typos, config tweaks | 1 | - |
+| `pr:risk-medium` | Feature additions, refactors, new dependencies | 2 | At least 1 from code owners |
+| `pr:risk-high` | Security changes, API breaking changes, data migrations | 2 | All from code owners + security review if applicable |
+| `pr:risk-critical` | Auth/authz, encryption, financial logic, compliance | 3 | All from code owners + security team approval |
+
+**Bot reviews do NOT count toward approval.** Only human reviews are counted by the automation. Bot reviewers (copilot-pull-request-reviewer, coderabbitai, etc.) are automatically excluded.
 
 ### Code Owner Requirements
 

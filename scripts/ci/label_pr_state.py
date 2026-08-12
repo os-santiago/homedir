@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Auto-assign PR state labels based on CI check results and review status."""
+"""Auto-assign PR state labels based on CI check results and human review status.
+
+Replaces the deprecated scc-* label system with expressive pr:* labels.
+Key differences from the old system:
+  - Counts HUMAN approvals only (bots are ignored)
+  - Risk-based approval thresholds (pr:risk-low=1, medium=2, high=2, critical=3)
+  - Only assigns pr:approved when human approval count meets the risk threshold
+  - Detects merge conflicts and assigns pr:blocked
+"""
 
 import os
 import sys
@@ -10,55 +18,113 @@ except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
 
-# State labels (managed by this script)
-LABEL_WIP = "wip-pr"
-LABEL_WAITING = "scc-waiting-checks"
-LABEL_FAILING = "scc-failing-checks"
-LABEL_UNDER_REVIEW = "scc-under-review"
-LABEL_APPROVED = "scc-approved"
-LABEL_MERGED = "scc-merged"
+# ─── New pr:* state labels ──────────────────────────────────────────────
+LABEL_DRAFT = "pr:draft"
+LABEL_CHECKS_PENDING = "pr:checks-pending"
+LABEL_CHECKS_FAILED = "pr:checks-failed"
+LABEL_NEEDS_REVIEW = "pr:needs-review"
+LABEL_CHANGES_REQUESTED = "pr:changes-requested"
+LABEL_APPROVED = "pr:approved"
+LABEL_MERGED = "pr:merged"
+LABEL_BLOCKED = "pr:blocked"
 
-# All state labels this script manages
+# All state labels this script manages (mutually exclusive)
 STATE_LABELS = {
-    LABEL_WIP, LABEL_WAITING, LABEL_FAILING,
-    LABEL_UNDER_REVIEW, LABEL_APPROVED, LABEL_MERGED,
+    LABEL_DRAFT, LABEL_CHECKS_PENDING, LABEL_CHECKS_FAILED,
+    LABEL_NEEDS_REVIEW, LABEL_CHANGES_REQUESTED, LABEL_APPROVED,
+    LABEL_MERGED, LABEL_BLOCKED,
+}
+
+# Legacy labels to clean up during migration
+LEGACY_LABELS = {
+    "wip-pr",
+    "scc-waiting-checks", "scc-failing-checks", "scc-under-review",
+    "scc-approved", "scc-merged", "scc-pr-open", "scc-running",
+    "scc-failed", "scc-queued", "scc-rejected", "scc-rejected:unauthorized-labeler",
+    "scc-coverage-gap", "scc-admission-review", "scc-accepted",
+}
+
+# Risk labels and their required human approval counts
+RISK_APPROVALS = {
+    "pr:risk-low": 1,
+    "pr:risk-medium": 2,
+    "pr:risk-high": 2,
+    "pr:risk-critical": 3,
+}
+DEFAULT_REQUIRED_APPROVALS = 2  # Fallback when no risk label is set
+
+# Bot users whose reviews do NOT count toward approval
+BOT_REVIEWERS = {
+    "github-actions[bot]", "dependabot[bot]", "copilot-pull-request-reviewer",
+    "coderabbitai", "github-advanced-security[bot]", "github-openai-bot",
+    "semantic-release-bot", "renovate-bot", "allcontributors[bot]",
 }
 
 
-def get_pr_state_label(pr, event_name: str, review_state: str) -> str:
-    """Determine the correct state label for a PR."""
-    # PR is merged
-    if pr.merged:
-        return LABEL_MERGED
+def is_bot_reviewer(login: str) -> bool:
+    """Check if a reviewer login is a bot."""
+    if not login:
+        return True
+    if login in BOT_REVIEWERS:
+        return True
+    return login.endswith("[bot]") or login.endswith("-bot") or login.endswith("-ai")
 
-    # PR is closed (not merged) — no state label needed
-    if pr.state == "closed" and not pr.merged:
-        return ""  # Will clear all state labels
 
-    # PR is draft
-    if pr.draft:
-        return LABEL_WIP
+def get_required_approvals(pr) -> int:
+    """Determine required human approvals based on pr:risk-* label."""
+    current_labels = [label.name for label in pr.get_labels()]
+    for risk_label, count in RISK_APPROVALS.items():
+        if risk_label in current_labels:
+            return count
+    return DEFAULT_REQUIRED_APPROVALS
 
-    # Review changes requested
-    if review_state == "changes_requested":
-        return LABEL_UNDER_REVIEW
 
-    # Check CI status via check runs on the PR head SHA
+def count_human_approvals(pr) -> tuple:
+    """Count unique human approvals and detect changes-requested.
+
+    Returns (approval_count, has_changes_requested).
+    Uses the latest review per user (GitHub review semantics).
+    """
+    reviews = pr.get_reviews()
+    if reviews.totalCount == 0:
+        return 0, False
+
+    # Build a map of reviewer → latest review state
+    # Reviews are returned chronologically; later entries override earlier ones
+    latest_by_user = {}
+    for review in reviews:
+        login = review.user.login if review.user else ""
+        if is_bot_reviewer(login):
+            continue
+        # Only count APPROVED, CHANGES_REQUESTED, or DISMISSED
+        if review.state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED", "COMMENTED"):
+            latest_by_user[login] = review.state
+
+    approval_count = sum(1 for state in latest_by_user.values() if state == "APPROVED")
+    has_changes_requested = any(
+        state == "CHANGES_REQUESTED" for state in latest_by_user.values()
+    )
+    return approval_count, has_changes_requested
+
+
+def get_ci_status(pr) -> str:
+    """Determine CI check status.
+
+    Returns 'pending', 'failed', or 'passed'.
+    """
     repo = pr.base.repo
     commits = pr.get_commits()
     if commits.totalCount == 0:
-        return LABEL_WAITING
+        return "pending"
 
     last_commit = commits[commits.totalCount - 1]
     sha = last_commit.sha
 
-    # Get check runs for the commit (PyGithub: commit.get_check_runs())
     commit = repo.get_commit(sha)
     check_runs = commit.get_check_runs()
 
     if check_runs.totalCount == 0:
-        # No check runs yet — might be early in the pipeline
-        return LABEL_WAITING
+        return "pending"
 
     all_completed = True
     any_failed = False
@@ -70,28 +136,59 @@ def get_pr_state_label(pr, event_name: str, review_state: str) -> str:
             any_failed = True
 
     if not all_completed:
-        return LABEL_WAITING
-
+        return "pending"
     if any_failed:
-        return LABEL_FAILING
+        return "failed"
+    return "passed"
 
-    # All checks passed — check review status
-    reviews = pr.get_reviews()
-    if reviews.totalCount > 0:
-        latest_review = reviews[reviews.totalCount - 1]
-        if latest_review.state == "approved":
-            return LABEL_APPROVED
-        elif latest_review.state == "changes_requested":
-            return LABEL_UNDER_REVIEW
 
-    # Checks pass, no blocking review — approved
-    return LABEL_APPROVED
+def get_pr_state_label(pr) -> str:
+    """Determine the correct state label for a PR."""
+    # PR is merged
+    if pr.merged:
+        return LABEL_MERGED
+
+    # PR is closed (not merged) — no state label needed
+    if pr.state == "closed" and not pr.merged:
+        return ""
+
+    # PR is draft
+    if pr.draft:
+        return LABEL_DRAFT
+
+    # Check for merge conflicts
+    if pr.mergeable is False:
+        return LABEL_BLOCKED
+
+    # Check CI status
+    ci_status = get_ci_status(pr)
+    if ci_status == "pending":
+        return LABEL_CHECKS_PENDING
+    if ci_status == "failed":
+        return LABEL_CHECKS_FAILED
+
+    # CI passed — check human review status
+    approval_count, has_changes_requested = count_human_approvals(pr)
+
+    if has_changes_requested:
+        return LABEL_CHANGES_REQUESTED
+
+    required = get_required_approvals(pr)
+    if approval_count >= required:
+        return LABEL_APPROVED
+
+    # CI green, no changes requested, but not enough approvals yet
+    return LABEL_NEEDS_REVIEW
 
 
 def apply_label(pr, target_label: str):
-    """Apply the target state label, removing all other state labels."""
+    """Apply the target state label, removing all other state and legacy labels."""
     current_labels = [label.name for label in pr.get_labels()]
+
+    # Remove all state labels except the target
     labels_to_remove = STATE_LABELS - {target_label} if target_label else STATE_LABELS
+    # Also clean up legacy labels
+    labels_to_remove = labels_to_remove | LEGACY_LABELS
 
     for label in labels_to_remove:
         if label in current_labels:
@@ -103,19 +200,6 @@ def apply_label(pr, target_label: str):
 
     if target_label and target_label not in current_labels:
         try:
-            # Check if the label exists in the repo
-            repo = pr.base.repo
-            try:
-                repo.get_label(target_label)
-            except Exception:
-                # Create it if it doesn't exist
-                repo.create_label(
-                    name=target_label,
-                    color="FBCA04",
-                    description="Auto-assigned PR state label",
-                )
-                print(f"  Created label: {target_label}")
-
             pr.add_to_labels(target_label)
             print(f"  Applied: {target_label}")
         except Exception as e:
@@ -128,8 +212,6 @@ def main():
     github_token = os.environ.get("GITHUB_TOKEN")
     repository = os.environ.get("REPOSITORY")
     pr_number = os.environ.get("PR_NUMBER")
-    event_name = os.environ.get("EVENT_NAME", "")
-    review_state = os.environ.get("REVIEW_STATE", "")
 
     if not all([github_token, repository]):
         print("ERROR: Missing required environment variables", file=sys.stderr)
@@ -140,15 +222,17 @@ def main():
 
     if pr_number:
         pr = repo.get_pull(int(pr_number))
-        target = get_pr_state_label(pr, event_name, review_state)
+        target = get_pr_state_label(pr)
+        approvals, changes_req = count_human_approvals(pr)
+        required = get_required_approvals(pr)
         print(f"PR #{pr.number}: state={pr.state}, draft={pr.draft}, merged={pr.merged}")
+        print(f"  Human approvals: {approvals}/{required}, changes_requested: {changes_req}")
         print(f"  Target label: {target or '(clear all)'}")
         apply_label(pr, target)
     else:
-        # Label all open PRs
         prs = repo.get_pulls(state="open")
         for pr in prs:
-            target = get_pr_state_label(pr, event_name, review_state)
+            target = get_pr_state_label(pr)
             print(f"PR #{pr.number}: target={target or '(clear)'}")
             apply_label(pr, target)
 
