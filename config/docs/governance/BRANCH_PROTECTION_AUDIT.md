@@ -70,7 +70,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 ### Audit Script Specification
 
-> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh`, which **does not read `config/ruleset-main.json`**: it generates its ruleset payload via an inline heredoc (6 job contexts, `copilot_code_review`, and a `RepositoryRole` bypass actor id 5). That heredoc payload diverges from the committed baseline and from the enforced ruleset - so the script must be updated to consume `config/ruleset-main.json` (or its payload reconciled) when the continuous audit is implemented. If the audit is built later, it should follow this spec.
+> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh`, which **does not read `config/ruleset-main.json`**: it generates its ruleset payload via an inline heredoc (6 job contexts, `copilot_code_review`, and a `RepositoryRole` bypass actor id 5). That heredoc payload diverges from the committed baseline; its bypass actor (`RepositoryRole` id 5, `pull_request`) **matches** the enforced ruleset (re-verified 2026-08-13), while the check contexts still differ (6 individual vs 3 aggregate). So the script must be updated to consume `config/ruleset-main.json` (or its payload reconciled) when the continuous audit is implemented. If the audit is built later, it should follow this spec.
 
 **Planned location**: `scripts/ci/audit-branch-protection.sh`
 

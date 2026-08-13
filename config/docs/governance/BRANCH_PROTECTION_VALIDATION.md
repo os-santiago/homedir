@@ -1,7 +1,7 @@
 # Branch Protection Ruleset Validation
 
 **Issue**: #988  
-**Date**: 2026-06-24 (original validation) · re-verified 2026-08-11  
+**Date**: 2026-06-24 (original validation) · re-verified 2026-08-11 · bypass actors corrected 2026-08-13  
 **Ruleset ID**: 9071701  
 **Repository**: os-santiago/homedir
 
@@ -65,16 +65,21 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 
 ```bash
 gh api repos/os-santiago/homedir/rulesets/9071701 \
-  --jq '.bypass_actors'
+  --jq '{bypass_actors: .bypass_actors, current_user_can_bypass: .current_user_can_bypass}'
 ```
 
-**Result** (re-verified 2026-08-11): the field is **absent** from the response — the ruleset defines **no** bypass actors (`current_user_can_bypass: "never"`).
+**Result** (re-verified 2026-08-13): the enforced ruleset **does** configure a bypass actor:
 
 ```json
-null
+{
+  "bypass_actors": [
+    { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }
+  ],
+  "current_user_can_bypass": "pull_requests_only"
+}
 ```
 
-> The committed `config/ruleset-main.json` lists `scanalesespinoza` (`RepositoryCollaborator`, bypass mode `pull_request`) as the intended allowlist, but the enforced ruleset does **not** currently configure any bypass actors. This is drift to reconcile (see [BRANCH_PROTECTION_AUDIT.md](./BRANCH_PROTECTION_AUDIT.md)).
+> The committed `config/ruleset-main.json` lists `scanalesespinoza` (`RepositoryCollaborator`, bypass mode `pull_request`) as the intended allowlist, but the enforced ruleset configures a `RepositoryRole` (actor id 5) bypass actor instead. Both use `pull_request` bypass mode, so the drift is the **actor identity** (allowlisted user vs role), not the presence of bypass actors. This is drift to reconcile (see [BRANCH_PROTECTION_AUDIT.md](./BRANCH_PROTECTION_AUDIT.md)).
 
 ## Full Ruleset Configuration
 
@@ -106,7 +111,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
 | Conversation resolution | Required | Enabled (true) | ✅ MATCH |
 | Required approvals | 0 (committed baseline) | 0 | ✅ MATCH |
-| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | None | ⚠️ DRIFT |
+| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | `RepositoryRole` id 5 (`pull_request`) | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
 
@@ -132,7 +137,8 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 2. ✅ Documentation updated
 3. 🔄 Monitor next PR to verify checks are enforced in practice
 4. 🔄 Close issue #988 after PR merge
-5. ⚠️ **Reconciling drift (2026-08-11)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures no bypass actors (the committed baseline lists `scanalesespinoza`). 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
+5. ⚠️ **Reconciling drift (2026-08-13)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures a `RepositoryRole` (id 5) bypass actor in `pull_request` mode instead of the allowlisted `scanalesespinoza` (`RepositoryCollaborator`) from the committed baseline. 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
+6. ⏳ **Deferred exceptions (2026-08-13, CodeRabbit)**: the remaining drifts are tracked as time-bounded exceptions with owners instead of being normalized into the normative baseline: (a) `required_approving_review_count: 0` — owner: core maintainers, review by 2026-09-13; (b) bypass actor `RepositoryRole` id 5 vs allowlisted `scanalesespinoza` — owner: core maintainers, reconcile by 2026-09-13. Both tracked via #1363.
 
 ## References
 
