@@ -38,7 +38,8 @@ class AchievementServiceHighlightsTest {
     assertTrue(keys.contains("developer-program"), "should contain 'developer-program' highlight");
     assertTrue(keys.contains("security-bounty"), "should contain 'security-bounty' highlight");
     assertTrue(
-        keys.contains("galaxy-brain-highlight"), "should contain 'galaxy-brain-highlight' highlight");
+        keys.contains("galaxy-brain-highlight"),
+        "should contain 'galaxy-brain-highlight' highlight");
   }
 
   @Test
