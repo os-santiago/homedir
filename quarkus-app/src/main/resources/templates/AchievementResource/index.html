@@ -69,6 +69,20 @@
           {#else}achievement-locked{/if}">
 
           <div class="achievement-card-header">
+            {#if guide.achievement.iconUrl}
+              <img src="{guide.achievement.iconUrl}"
+                   alt="{guide.achievement.title}"
+                   loading="lazy"
+                   class="achievement-icon {#if userSnapshot}
+                     {#for status in userSnapshot.statuses}
+                       {#if status.key == guide.achievement.key}
+                         {#if status.unlocked}achievement-icon-unlocked{#else}achievement-icon-locked{/if}
+                       {/if}
+                     {/for}
+                   {#else}achievement-icon-locked{/if}" />
+            {#else}
+              <span class="material-symbols-outlined achievement-icon-fallback">emoji_events</span>
+            {/if}
             <h2 class="achievement-title">{guide.achievement.title}</h2>
             {#if userSnapshot}
               {#for status in userSnapshot.statuses}

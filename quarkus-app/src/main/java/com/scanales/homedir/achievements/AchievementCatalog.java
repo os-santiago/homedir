@@ -22,6 +22,7 @@ public class AchievementCatalog {
       String descriptionEs,
       String category,
       String docUrl,
+      String iconUrl,
       int threshold,
       int xpReward,
       List<String> steps,
@@ -73,6 +74,7 @@ public class AchievementCatalog {
                 "Abre un pull request en cualquier repo de os-santiago y consigue que se mergee. El primer PR mergeado desbloquea este logro.",
                 "contribution",
                 "https://github.com/drknzz/GitHub-Achievements#pull-shark",
+                "/images/achievements/pull-shark.png",
                 1,
                 50,
                 List.of(
@@ -96,6 +98,7 @@ public class AchievementCatalog {
                 "Mergea un pull request sin revisión. Usa el sandbox demo-repository para esto.",
                 "contribution",
                 "https://github.com/drknzz/GitHub-Achievements#yolo",
+                "/images/achievements/yolo.png",
                 1,
                 30,
                 List.of(
@@ -117,6 +120,7 @@ public class AchievementCatalog {
                 "Cierra un issue o PR dentro de 5 minutos de abrirlo. demo-repository es ideal para esto.",
                 "contribution",
                 "https://github.com/drknzz/GitHub-Achievements#quickdraw",
+                "/images/achievements/quickdraw.png",
                 1,
                 20,
                 List.of(
@@ -136,6 +140,7 @@ public class AchievementCatalog {
                 "Co-autoriza un commit con otro contribuidor. Usa el trailer co-authored-by en tus commits.",
                 "collaboration",
                 "https://github.com/drknzz/GitHub-Achievements#pair-extraordinaire",
+                "/images/achievements/pair-extraordinaire.png",
                 1,
                 50,
                 List.of(
@@ -157,6 +162,7 @@ public class AchievementCatalog {
                 "Marca como favorito (star) 16+ repositorios. La org os-santiago tiene múltiples repos para marcar.",
                 "social",
                 "https://github.com/drknzz/GitHub-Achievements#starstruck",
+                "/images/achievements/starstruck.png",
                 16,
                 60,
                 List.of(
@@ -178,6 +184,7 @@ public class AchievementCatalog {
                 "Responde una pregunta en GitHub Discussions y que sea aceptada. Los repos con Discussions habilitado califican.",
                 "collaboration",
                 "https://github.com/drknzz/GitHub-Achievements#galaxy-brain",
+                "/images/achievements/galaxy-brain.png",
                 1,
                 50,
                 List.of(
@@ -199,6 +206,7 @@ public class AchievementCatalog {
                 "Patrocina un proyecto open-source públicamente en GitHub.",
                 "social",
                 "https://github.com/drknzz/GitHub-Achievements#public-sponsor",
+                "/images/achievements/public-sponsor.png",
                 1,
                 40,
                 List.of(
@@ -218,6 +226,7 @@ public class AchievementCatalog {
                 "Patrocina 5+ proyectos open-source públicamente en GitHub.",
                 "social",
                 "https://github.com/drknzz/GitHub-Achievements#heart-on-your-sleeve",
+                "/images/achievements/heart-on-your-sleeve.png",
                 5,
                 30,
                 List.of(
@@ -237,6 +246,7 @@ public class AchievementCatalog {
                 "Patrocina 10+ proyectos open-source públicamente en GitHub.",
                 "social",
                 "https://github.com/drknzz/GitHub-Achievements#open-sourcerer",
+                "/images/achievements/open-sourcerer.png",
                 10,
                 80,
                 List.of(
@@ -258,6 +268,7 @@ public class AchievementCatalog {
       String descriptionEs,
       String category,
       String docUrl,
+      String iconUrl,
       int threshold,
       int xpReward,
       List<String> steps,
@@ -270,6 +281,7 @@ public class AchievementCatalog {
             descriptionEs,
             category,
             docUrl,
+            iconUrl,
             threshold,
             xpReward,
             steps,

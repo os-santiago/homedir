@@ -130,6 +130,40 @@
   margin-bottom: 0.75rem;
 }
 
+.achievement-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: filter 0.3s ease;
+}
+
+.achievement-icon-unlocked {
+  filter: drop-shadow(0 0 6px rgba(var(--mint-rgb), 0.4));
+}
+
+.achievement-icon-locked {
+  filter: grayscale(1) opacity(0.4);
+}
+
+.achievement-icon-fallback {
+  font-size: 48px;
+  color: rgba(var(--white-rgb), 0.4);
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .achievement-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .achievement-icon-fallback {
+    font-size: 36px;
+  }
+}
+
 .achievement-title {
   font-family: var(--font-display);
   font-size: 1.1rem;
