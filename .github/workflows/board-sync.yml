@@ -19,15 +19,21 @@ permissions:
   issues: read
   pull-requests: read
   contents: read
+  # projects: write is NOT needed here because the script uses a PAT
+  # (secrets.GH_TOKEN) for GraphQL mutations, not the automatic GITHUB_TOKEN.
+  # The permissions block only restricts the automatic token, not PATs.
 
 jobs:
   sync-board:
     name: Sync Project #6 Board Fields
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
+    # Skip bots and fork PRs (fork PRs can't access secrets.GH_TOKEN)
+    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]' && !(github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork)
     steps:
       - name: Checkout repository (base branch only — never the PR ref)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
