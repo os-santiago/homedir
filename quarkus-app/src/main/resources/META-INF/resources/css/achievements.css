@@ -1,5 +1,9 @@
 /* GitHub Achievement Hub styles (issue #1043) */
 
+.achievements-section .hd-page-title {
+  text-align: center;
+}
+
 .achievements-section {
   padding: 2rem 1rem;
 }
@@ -14,6 +18,7 @@
   color: rgba(var(--white-rgb), 0.8);
   margin-bottom: 2rem;
   font-size: 1.1rem;
+  text-align: center;
 }
 
 .achievements-progress-overview {
@@ -124,10 +129,11 @@
 
 .achievement-card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+  text-align: center;
 }
 
 .achievement-icon {
@@ -196,6 +202,7 @@
   color: rgba(var(--white-rgb), 0.8);
   margin-bottom: 0.75rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .achievement-progress {
@@ -212,6 +219,8 @@
   color: var(--color-accent);
   font-weight: 600;
   margin-bottom: 0.75rem;
+  justify-content: center;
+  width: 100%;
 }
 
 .achievement-xp .material-symbols-outlined {
@@ -227,6 +236,7 @@
   font-size: 0.85rem;
   color: rgba(var(--white-rgb), 0.7);
   padding: 0.5rem 0;
+  text-align: center;
 }
 
 .achievement-guide summary:hover {
@@ -280,6 +290,7 @@
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(var(--white-rgb), 0.15);
+  text-align: center;
 }
 
 .achievements-org-repos {
@@ -340,12 +351,58 @@
   background: rgba(var(--black-rgb), 0.3);
   border: 1px solid rgba(var(--white-rgb), 0.1);
   border-radius: 8px;
+  text-align: center;
+}
+
+.highlight-card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  text-align: left;
+}
+
+.highlight-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
+}
+
+.highlight-profile-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.highlight-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.1);
+  border: 1px solid rgba(var(--white-rgb), 0.25);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(var(--white-rgb), 0.9);
+  white-space: nowrap;
+}
+
+.highlight-badge-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
 }
 
 .highlight-title {
   font-size: 1rem;
   color: var(--color-text-main);
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .highlight-description {
@@ -358,14 +415,25 @@
 .highlight-doc-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
   font-size: 0.85rem;
   color: var(--color-accent);
   text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(var(--white-rgb), 0.2);
+  border-radius: 6px;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  width: fit-content;
+  margin: 0 auto;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .highlight-doc-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  border-color: var(--color-accent);
+  background: rgba(var(--white-rgb), 0.05);
 }
 
 .achievements-leaderboard {

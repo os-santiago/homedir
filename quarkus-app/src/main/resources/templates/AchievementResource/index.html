@@ -192,7 +192,14 @@
         <div class="highlights-grid">
           {#for highlight in highlights}
           <article class="highlight-card">
-            <h3 class="highlight-title">{highlight.title}</h3>
+            <div class="highlight-profile-preview">
+              <span class="highlight-profile-badge">
+                {#if highlight.iconUrl}
+                  <img src="{highlight.iconUrl}" alt="" class="highlight-badge-icon" />
+                {/if}
+                {highlight.profileLabel}
+              </span>
+            </div>
             <p class="highlight-description">{highlight.description}</p>
             <a href="{highlight.docUrl}" target="_blank" rel="noopener noreferrer"
                class="highlight-doc-link">
