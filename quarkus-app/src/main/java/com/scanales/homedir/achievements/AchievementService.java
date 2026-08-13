@@ -547,6 +547,7 @@ public class AchievementService {
 
   /** Returns the list of GitHub highlights (badges that appear on the profile). */
   public List<Highlight> highlights() {
+    AppMessages msg = messages();
     return List.of(
         new Highlight(
             "pro",
@@ -555,7 +556,7 @@ public class AchievementService {
                 + "advanced insights, and more. It appears as a badge on your profile.",
             "https://docs.github.com/en/get-started/learning-about-github/githubs-products",
             "/images/highlights/pro.svg",
-            "PRO"),
+            msg.achievement_highlight_pro_label()),
         new Highlight(
             "developer-program",
             "Developer Program Member",
@@ -563,7 +564,7 @@ public class AchievementService {
                 + "GitHub API. Join at developer.github.com to get the badge.",
             "https://docs.github.com/en/developers/overview/github-developer-program",
             "/images/highlights/developer-program.svg",
-            "Developer Program Member"),
+            msg.achievement_highlight_developer_program_label()),
         new Highlight(
             "security-bounty",
             "Security Bug Bounty Hunter",
@@ -571,7 +572,7 @@ public class AchievementService {
                 + "earn a special badge on your profile.",
             "https://bounty.github.com/",
             "/images/highlights/security-bounty.svg",
-            "Security Bug Bounty Hunter"),
+            msg.achievement_highlight_security_bounty_label()),
         new Highlight(
             "galaxy-brain-highlight",
             "Galaxy Brain (Discussions)",
@@ -579,7 +580,7 @@ public class AchievementService {
                 + "question author, you earn the Galaxy Brain badge.",
             "https://docs.github.com/en/discussions",
             "/images/achievements/galaxy-brain.png",
-            "Discussions answered"));
+            msg.achievement_highlight_galaxy_brain_label()));
   }
 
   public record Highlight(
