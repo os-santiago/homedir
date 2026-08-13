@@ -105,13 +105,13 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 
 ## Comparison: Documented vs Actual
 
-| Requirement | Documented (ruleset-main.json) | Actual (API, 2026-08-11) | Status |
+| Requirement | Documented (ruleset-main.json) | Actual (API) | Status |
 |-------------|-------------------------------|--------------|--------|
-| Required status checks | 6 checks | 3 checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) | ⚠️ DRIFT |
+| Required status checks | 6 checks | 3 checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) — snapshot 2026-08-11 | ⚠️ DRIFT |
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
-| Conversation resolution | Required | Enabled (true) | ✅ MATCH |
+| Conversation resolution | Required | Enabled (`required_review_thread_resolution: true`) | ✅ MATCH |
 | Required approvals | 0 (committed baseline) | 0 | ✅ MATCH |
-| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | `RepositoryRole` id 5 (`pull_request`) | ⚠️ DRIFT |
+| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | `RepositoryRole` id 5 (`pull_request`) — re-verified 2026-08-13 | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
 
@@ -137,8 +137,8 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 2. ✅ Documentation updated
 3. 🔄 Monitor next PR to verify checks are enforced in practice
 4. 🔄 Close issue #988 after PR merge
-5. ⚠️ **Reconciling drift (2026-08-13)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures a `RepositoryRole` (id 5) bypass actor in `pull_request` mode instead of the allowlisted `scanalesespinoza` (`RepositoryCollaborator`) from the committed baseline. 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1363).
-6. ⏳ **Deferred exceptions (2026-08-13, CodeRabbit)**: the remaining drifts are tracked as time-bounded exceptions with owners instead of being normalized into the normative baseline: (a) `required_approving_review_count: 0` — owner: core maintainers, review by 2026-09-13; (b) bypass actor `RepositoryRole` id 5 vs allowlisted `scanalesespinoza` — owner: core maintainers, reconcile by 2026-09-13. Both tracked via #1363.
+5. ⚠️ **Reconciling drift (2026-08-13)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures a `RepositoryRole` (id 5) bypass actor in `pull_request` mode instead of the allowlisted `scanalesespinoza` (`RepositoryCollaborator`) from the committed baseline. 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1449).
+6. ⏳ **Deferred exceptions (2026-08-13, CodeRabbit)**: the remaining drifts are tracked as time-bounded exceptions with owners instead of being normalized into the normative baseline: (a) `required_approving_review_count: 0` — owner: core maintainers, review by 2026-09-13; (b) bypass actor `RepositoryRole` id 5 vs allowlisted `scanalesespinoza` — owner: core maintainers, reconcile by 2026-09-13. Both tracked via #1449.
 
 ## References
 

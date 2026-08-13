@@ -30,9 +30,9 @@ The audit verifies the following configuration for the `main` branch:
 |---------|---------------|-----------|---------------------|
 | **Deletion protection** | Enabled | `ruleset.rules[].type = "deletion"` | **Critical** |
 | **Force push protection** | Enabled | `ruleset.rules[].type = "non_fast_forward"` | **Critical** |
-| **Required status checks** | 6 checks from committed baseline (see `config/ruleset-main.json`) | `ruleset.rules[].parameters.required_status_checks` | **High** |
-| **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request_reviews"` | **Critical** |
-| **Conversation resolution** | Required | `ruleset.rules[].parameters.required_conversation_resolution = true` | **High** |
+| **Required status checks** | 3 aggregate checks enforced (`Quality Summary`, `CI Summary`, `Quality Gate Summary`); committed baseline lists 6 individual contexts (see `config/ruleset-main.json`) | `ruleset.rules[].parameters.required_status_checks` | **High** |
+| **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request"` | **Critical** |
+| **Conversation resolution** | Required | `ruleset.rules[].parameters.required_review_thread_resolution = true` | **High** |
 | **Required approvals** | 0 approvals (per committed baseline) | `ruleset.rules[].parameters.required_approving_review_count = 0` | **High** |
 | **Commit message pattern** | Conventional Commits regex | `ruleset.rules[].parameters.operator = "regex"` | **Medium** |
 | **Bypass actors** | Only authorized users | `ruleset.bypass_actors[].actor_id` matches allowlist | **Critical** |
@@ -98,7 +98,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 **JSON Report** (`audit-report.json`):
 ```json
 {
-  "audit_timestamp": "2026-06-24T09:00:00Z",
+  "audit_timestamp": "2026-08-13T09:00:00Z",
   "repository": "os-santiago/homedir",
   "branch": "main",
   "status": "DRIFT_DETECTED",
@@ -116,16 +116,24 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
       ],
       "actual": ["Quality Summary", "CI Summary", "Quality Gate Summary"],
       "missing": ["PR Quality — Suite / style", "PR Quality — Suite / static", "PR Quality — Suite / arch", "PR Quality — Suite / tests_cov", "PR Quality — Suite / deps", "PR CI (Build, Native, SBOM/Scan) / sbom"],
-      "recommendation": "Add missing required checks to ruleset-main.json"
+      "recommendation": "Reconcile required status checks between the enforced ruleset (3 aggregate gates) and `config/ruleset-main.json` baseline (6 individual contexts)"
+    },
+    {
+      "control": "bypass_actors",
+      "severity": "CRITICAL",
+      "expected": [{"actor_id": "scanalesespinoza", "actor_type": "RepositoryCollaborator", "bypass_mode": "pull_request"}],
+      "actual": [{"actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request"}],
+      "missing": [],
+      "recommendation": "Reconcile the bypass actor identity: baseline allowlist is `scanalesespinoza` (RepositoryCollaborator), enforced uses `RepositoryRole` id 5; both use `pull_request` bypass mode"
     }
   ],
   "summary": {
     "total_controls": 9,
-    "compliant": 6,
-    "drift": 3,
-    "critical_findings": 0,
+    "compliant": 7,
+    "drift": 2,
+    "critical_findings": 1,
     "high_findings": 1,
-    "medium_findings": 2
+    "medium_findings": 0
   }
 }
 ```
@@ -137,27 +145,29 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 **Status**: 🔴 DRIFT DETECTED
 **Repository**: os-santiago/homedir
 **Branch**: main
-**Timestamp**: 2026-06-24 09:00:00 UTC
+**Timestamp**: 2026-08-13 09:00:00 UTC
 
 ### Findings
 
 | Control | Severity | Status | Details |
 |---------|----------|--------|---------|
-| Required Status Checks | HIGH | ❌ Drift | 0 of 6 baseline checks present (enforced uses 3 aggregate gates instead) |
+| Required Status Checks | HIGH | ❌ Drift | Enforced uses 3 aggregate gates; committed baseline lists 6 individual contexts |
+| Bypass Actors | CRITICAL | ❌ Drift | Baseline allowlist `scanalesespinoza` (RepositoryCollaborator) vs enforced `RepositoryRole` id 5 |
+| Pull Request Required | CRITICAL | ✅ Compliant | Enabled (`type = "pull_request"`) |
+| Conversation Resolution | HIGH | ✅ Compliant | Enabled (`required_review_thread_resolution: true`) |
 | Deletion Protection | CRITICAL | ✅ Compliant | Enabled |
-| Force Push Protection | CRITICAL | ✅ Compliant | Enabled |
-| Pull Request Required | CRITICAL | ✅ Compliant | Enabled |
-| Conversation Resolution | HIGH | ❌ Drift | Currently disabled |
 
 ### Recommendations
 
-1. **HIGH**: Add missing required status checks to `ruleset-main.json`
-2. **HIGH**: Enable `required_conversation_resolution` in ruleset
+1. **HIGH**: Reconcile required status checks between the enforced ruleset (3 aggregate gates) and the committed baseline (6 individual contexts).
+2. **CRITICAL**: Reconcile bypass actor identity (`RepositoryCollaborator scanalesespinoza` baseline vs enforced `RepositoryRole` id 5).
 
 ### Compliance Score
 
-**6/9 controls compliant (66.7%)**
+**7/9 controls compliant (77.8%)**
 ```
+
+> **Note**: The examples above reflect the verification snapshot of 2026-08-13 against the enforced ruleset `9071701` (`gh api repos/os-santiago/homedir/rulesets/9071701`) and the committed baseline `config/ruleset-main.json`. Update the timestamps and counts when this audit spec is implemented and run.
 
 ## Alerting and Escalation
 
