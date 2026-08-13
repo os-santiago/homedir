@@ -10,11 +10,12 @@ Homedir takes the security of our users and contributors seriously. If you belie
 
 We support **only the currently active major release line**. When a new major is released, all previous majors become **unsupported** (EOL) immediately.
 
-**Current active major: `2.x`**
+**Current active major: `3.x`**
 
 | Version | Supported |
 |--------:|-----------|
-| 2.x     | Active    |
+| 3.x     | Active    |
+| 2.x     | Unsupported |
 | < 2.x   | Unsupported |
 
 > This major-only policy keeps the project fast and secure in line with our trunk-based development approach.

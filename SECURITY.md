@@ -37,11 +37,12 @@ Use one of these private channels:
 
 We support only the **current major version**. Previous majors become unsupported (EOL) immediately upon new major release.
 
-**Current active major: 2.x**
+**Current active major: 3.x**
 
 | Version | Supported |
 |---------|-----------|
-| 2.x | ✅ Active |
+| 3.x | ✅ Active |
+| 2.x | ❌ Unsupported |
 | < 2.0 | ❌ Unsupported |
 
 ## Security Features
