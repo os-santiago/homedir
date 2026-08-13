@@ -583,7 +583,11 @@ public class AchievementService {
   }
 
   public record Highlight(
-      String key, String title, String description, String docUrl, String iconUrl,
+      String key,
+      String title,
+      String description,
+      String docUrl,
+      String iconUrl,
       String profileLabel) {}
 
   private String getGithubApiToken() {
