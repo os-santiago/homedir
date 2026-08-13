@@ -11,6 +11,7 @@ Key differences from the old system:
 
 import os
 import sys
+import time
 
 try:
     from github import Github, Auth
@@ -96,8 +97,9 @@ def count_human_approvals(pr) -> tuple:
         login = review.user.login if review.user else ""
         if is_bot_reviewer(login):
             continue
-        # Only count APPROVED, CHANGES_REQUESTED, or DISMISSED
-        if review.state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED", "COMMENTED"):
+        # Only track meaningful review states; COMMENTED does not override
+        # a prior APPROVED or CHANGES_REQUESTED (GitHub review semantics).
+        if review.state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
             latest_by_user[login] = review.state
 
     approval_count = sum(1 for state in latest_by_user.values() if state == "APPROVED")
@@ -142,43 +144,52 @@ def get_ci_status(pr) -> str:
     return "passed"
 
 
-def get_pr_state_label(pr) -> str:
-    """Determine the correct state label for a PR."""
+def get_pr_state_label(pr) -> tuple:
+    """Determine the correct state label for a PR.
+
+    Returns (label, approval_count, required_approvals, has_changes_requested)
+    so callers can log without re-issuing duplicate API calls.
+    """
     # PR is merged
     if pr.merged:
-        return LABEL_MERGED
+        return LABEL_MERGED, 0, 0, False
 
     # PR is closed (not merged) — no state label needed
     if pr.state == "closed" and not pr.merged:
-        return ""
+        return "", 0, 0, False
 
     # PR is draft
     if pr.draft:
-        return LABEL_DRAFT
+        return LABEL_DRAFT, 0, 0, False
 
-    # Check for merge conflicts
-    if pr.mergeable is False:
-        return LABEL_BLOCKED
+    # Check for merge conflicts — GitHub may return None while computing
+    mergeable = pr.mergeable
+    if mergeable is None:
+        time.sleep(2)
+        pr = pr.base.repo.get_pull(pr.number)
+        mergeable = pr.mergeable
+    if mergeable is False:
+        return LABEL_BLOCKED, 0, 0, False
 
     # Check CI status
     ci_status = get_ci_status(pr)
     if ci_status == "pending":
-        return LABEL_CHECKS_PENDING
+        return LABEL_CHECKS_PENDING, 0, 0, False
     if ci_status == "failed":
-        return LABEL_CHECKS_FAILED
+        return LABEL_CHECKS_FAILED, 0, 0, False
 
     # CI passed — check human review status
     approval_count, has_changes_requested = count_human_approvals(pr)
 
     if has_changes_requested:
-        return LABEL_CHANGES_REQUESTED
+        return LABEL_CHANGES_REQUESTED, approval_count, 0, True
 
     required = get_required_approvals(pr)
     if approval_count >= required:
-        return LABEL_APPROVED
+        return LABEL_APPROVED, approval_count, required, False
 
     # CI green, no changes requested, but not enough approvals yet
-    return LABEL_NEEDS_REVIEW
+    return LABEL_NEEDS_REVIEW, approval_count, required, False
 
 
 def apply_label(pr, target_label: str):
@@ -222,9 +233,7 @@ def main():
 
     if pr_number:
         pr = repo.get_pull(int(pr_number))
-        target = get_pr_state_label(pr)
-        approvals, changes_req = count_human_approvals(pr)
-        required = get_required_approvals(pr)
+        target, approvals, required, changes_req = get_pr_state_label(pr)
         print(f"PR #{pr.number}: state={pr.state}, draft={pr.draft}, merged={pr.merged}")
         print(f"  Human approvals: {approvals}/{required}, changes_requested: {changes_req}")
         print(f"  Target label: {target or '(clear all)'}")
@@ -232,7 +241,7 @@ def main():
     else:
         prs = repo.get_pulls(state="open")
         for pr in prs:
-            target = get_pr_state_label(pr)
+            target, _, _, _ = get_pr_state_label(pr)
             print(f"PR #{pr.number}: target={target or '(clear)'}")
             apply_label(pr, target)
 

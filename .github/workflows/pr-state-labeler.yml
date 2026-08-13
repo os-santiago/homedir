@@ -2,7 +2,7 @@ name: PR State Labeler
 
 on:
   pull_request:
-    types: [opened, ready_for_review, converted_to_draft, closed, reopened, synchronize]
+    types: [opened, ready_for_review, converted_to_draft, closed, reopened, synchronize, labeled, unlabeled]
   pull_request_review:
     types: [submitted, dismissed]
   check_run:
@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5

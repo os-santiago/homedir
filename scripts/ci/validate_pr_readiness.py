@@ -15,7 +15,7 @@ import re
 import sys
 
 try:
-    from github import Github, Auth
+    from github import Github, Auth, GithubException
 except ImportError:
     print("ERROR: PyGithub not installed. Run: pip install PyGithub", file=sys.stderr)
     sys.exit(1)
@@ -26,13 +26,13 @@ ISSUE_URL_PATTERN = re.compile(
 )
 
 PRIORITY_LABELS = {"priority:P0", "priority:P1", "priority:P2", "priority:P3"}
-TYPE_LABELS = {"bug", "enhancement", "documentation", "feature-request", "platform-maintenance"}
+TYPE_LABELS = {"bug", "enhancement", "documentation", "feature-request", "platform-maintenance", "question"}
 
 TEST_FILE_PATTERNS = [
-    re.compile(r"[Tt]est.*\.(java|js|ts|py)$"),
+    re.compile(r"(^|/)Test.*\.(java|js|ts|py)$"),
     re.compile(r".*\.(spec|test)\.(js|ts|jsx|tsx)$"),
-    re.compile(r"tests?/.*"),
-    re.compile(r"__tests__/.*"),
+    re.compile(r"(^|/)tests?/.*"),
+    re.compile(r"(^|/)__tests__/.*"),
 ]
 
 I18N_FILES = {
@@ -75,8 +75,11 @@ def validate_traceability(pr, repo) -> tuple:
                     missing.append("type label")
                 return False, f"Issue #{issue_num} is missing: {', '.join(missing)}."
             issues_checked.append(issue_num)
-        except Exception:
-            return False, f"Issue #{issue_num} referenced in PR body was not found."
+        except GithubException as e:
+            if e.status == 404:
+                return False, f"Issue #{issue_num} referenced in PR body was not found."
+            print(f"  WARNING: API error while checking issue #{issue_num}: {e}", file=sys.stderr)
+            return True, f"Skipped validation of #{issue_num} due to a transient API error."
 
     return True, f"Traceability verified: {', '.join(f'#{n}' for n in issues_checked)}"
 
@@ -140,19 +143,11 @@ VALIDATORS = {
 }
 
 
-def main():
-    github_token = os.environ.get("GITHUB_TOKEN")
-    repository = os.environ.get("REPOSITORY")
-    pr_number = os.environ.get("PR_NUMBER")
+def validate_pr(pr, repo):
+    """Validate self-attestation labels for a single PR.
 
-    if not all([github_token, repository, pr_number]):
-        print("ERROR: Missing required environment variables", file=sys.stderr)
-        sys.exit(1)
-
-    github = Github(auth=Auth.Token(github_token))
-    repo = github.get_repo(repository)
-    pr = repo.get_pull(int(pr_number))
-
+    Returns list of comment bodies to post (may be empty).
+    """
     current_labels = {label.name for label in pr.get_labels()}
     comments_to_post = []
 
@@ -176,15 +171,42 @@ def main():
             except Exception as e:
                 print(f"  Failed to remove {label_name}: {e}")
 
-    if comments_to_post:
-        body = (
-            "## PR Readiness Validation\n\n"
-            "The following self-attestation labels were removed because validation failed:\n"
-            + "\n".join(comments_to_post)
-            + "\nPlease fix the issues and re-apply the labels."
-        )
-        pr.create_issue_comment(body)
-        print("  Posted validation comment on PR.")
+    return comments_to_post
+
+
+def main():
+    github_token = os.environ.get("GITHUB_TOKEN")
+    repository = os.environ.get("REPOSITORY")
+    pr_number = os.environ.get("PR_NUMBER")
+
+    if not all([github_token, repository]):
+        print("ERROR: Missing required environment variables", file=sys.stderr)
+        sys.exit(1)
+
+    github = Github(auth=Auth.Token(github_token))
+    repo = github.get_repo(repository)
+
+    if pr_number:
+        prs = [repo.get_pull(int(pr_number))]
+    else:
+        prs = repo.get_pulls(state="open")
+
+    for pr in prs:
+        print(f"PR #{pr.number}:")
+        comments_to_post = validate_pr(pr, repo)
+
+        if comments_to_post:
+            body = (
+                "## PR Readiness Validation\n\n"
+                "The following self-attestation labels were removed because validation failed:\n"
+                + "\n".join(comments_to_post)
+                + "\nPlease fix the issues and re-apply the labels."
+            )
+            try:
+                pr.create_issue_comment(body)
+                print("  Posted validation comment on PR.")
+            except GithubException as e:
+                print(f"  WARNING: Could not post comment (fork PR or permissions): {e}", file=sys.stderr)
 
     sys.exit(0)
 

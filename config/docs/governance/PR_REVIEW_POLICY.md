@@ -38,7 +38,7 @@ If a conversation cannot be resolved:
 
 ### Minimum Approvals by Change Risk
 
-The risk level is determined by the `pr:risk-*` label applied by the contributor at PR creation. The `pr-state-labeler.yml` workflow enforces these thresholds automatically — `pr:approved` is only assigned when human approval count meets the requirement.
+The risk level is determined by the `pr:risk-*` label applied by the contributor at PR creation. The `pr-state-labeler.yml` workflow enforces the **approval count** threshold automatically — `pr:approved` is only assigned when the human approval count meets the requirement from `RISK_APPROVALS`. Code owner membership and security-team approval are **not** verified by the automation; they remain manual review checks or are enforced through GitHub branch protection rules.
 
 | Risk Label | Criteria | Min Approvals | Additional Requirements |
 |------------|----------|---------------|------------------------|
