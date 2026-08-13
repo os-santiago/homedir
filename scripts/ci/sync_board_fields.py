@@ -21,7 +21,7 @@ from datetime import date, timedelta
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_NODE_ID = "PVT_kwDOA4EL6M4Be7xd"
+PROJECT_NODE_ID = "PVT_kwDOCUy_bM4Be7xd"
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "")
 
 # Field IDs (ProjectV2)
