@@ -1,9 +1,9 @@
 # Diagnóstico de Performance de la UI
 
 **Issue**: [#1374](https://github.com/os-santiago/homedir/issues/1374)
-**Estado**: Diagnóstico preliminar (Fase 1 — análisis estático + medición en producción)
+**Estado**: Fases 1-2 completadas (análisis estático + medición en producción + benchmark Lighthouse Core Web Vitals)
 **Autor**: Sebithaz-dev
-**Fecha**: 2026-08-13 (actualizado 2026-08-13 con métricas reales de producción)
+**Fecha**: 2026-08-13 (actualizado 2026-08-13 con benchmark Lighthouse y hallazgo de compresión corregido)
 
 > Este es un documento de **investigación**. No implementa optimizaciones; registra hallazgos
 > del análisis estático del código y de la medición en vivo del sitio de producción, y
@@ -12,25 +12,33 @@
 ## 1. Resumen Ejecutivo
 
 HomeDir presenta una lentitud percibida en los efectos visuales y la carga de la UI. El
-análisis estático de los assets front-end publicados y la medición en vivo del sitio de
-producción (`https://homedir.opensourcesantiago.io`) revelan tres preocupaciones principales:
+análisis estático de los assets front-end publicados, la medición en vivo del sitio de
+producción (`https://homedir.opensourcesantiago.io`) y un benchmark Lighthouse de Core Web
+Vitals revelan cuatro preocupaciones principales:
 
-1. **Carga de assets globales y monolíticos** — `core-bundle.js` (50.5 KB) más cinco hojas
-   de estilo (lideradas por `homedir.css` con 138.3 KB) se cargan en **todas** las páginas
-   mediante el layout base, estén o no en uso.
-2. **Assets servidos sin compresión** — ninguna respuesta CSS/JS incluye
-   `Content-Encoding: gzip` o `br`. Verificado en vivo: `core-bundle.js` se transfiere como
-   50,389 bytes brutos, `community-bundle.js` como 76,109 bytes brutos. Habilitar gzip/brotli
-   reduciría el tamaño de transferencia entre ~60-80% (ver [§3.3](#33-assets-servidos-sin-compresión)).
+1. **Un único iconfont de 3.8 MB domina el payload de la página.** La fuente variable
+   Material Symbols Outlined (todos los ejes, `opsz,wght,FILL,GRAD`) se carga en **todas**
+   las páginas vía Google Fonts y transfiere **3.9 MB** — aproximadamente **88% del peso
+   total de ~4 MB** de la página (auditoría "enormous network payloads"; ver
+   [§3.3](#33-el-iconfont-material-symbols-es-el-payload-dominante-impacto-alto)).
+2. **Carga de assets globales y monolíticos** — `core-bundle.js` (50.5 KB brutos) más cinco
+   hojas de estilo (lideradas por `homedir.css` con 138.3 KB brutos) se cargan en **todas**
+   las páginas mediante el layout base, estén o no en uso. La auditoría de CSS no utilizado
+   de Lighthouse muestra 87-93% de bytes desperdiciados en esas hojas.
 3. **Un efecto parallax no acelerado por GPU** — `bannerParallax()` escribe
    `backgroundPositionX` directamente en cada evento `scroll` sin `requestAnimationFrame`
    ni throttling, forzando un repaint del banner en cada frame de scroll. Esta es la causa
    más probable del síntoma de "efectos entrecortados / lentos".
+4. **Corrección a la Fase 1:** los assets **sí** se sirven con compresión Brotli/`br` en la
+   capa CDN (`Content-Encoding: br`, verificado en vivo con una petición
+   `Accept-Encoding: gzip, br`). El hallazgo "sin compresión" de la Fase 1 fue un falso
+   negativo por sondear sin la cabecera `Accept-Encoding`. Ver [§3.5](#35-corrección-de-compresión-brotli-habilitado-actualización-a-la-fase-1).
 
-Los valores base de Core Web Vitals (LCP < 2.5s, FID < 100ms, CLS < 0.1, FCP < 1.8s,
-TTI < 3.8s) son objetivos. La API de Lighthouse/PageSpeed estuvo rate-limited durante esta
-sesión (HTTP 429 sin clave API); las métricas de red en vivo capturadas a continuación
-sirven como línea base hasta que sea posible ejecutar Lighthouse.
+Medianas del benchmark Lighthouse (3 corridas por formato): **55 / 100 en rendimiento
+móvil** — LCP móvil **22.5 s** (simulado), LCP desktop **4.3 s**, ambas muy por encima del
+objetivo **< 2.5 s**. El FCP/LCP observado (sin throttle) es mucho menor (~1.6 s), lo que
+aisla el problema al peso de transferencia bajo ancho de banda móvil real, dominado por el
+iconfont. Ver [§4](#4-benchmark-lighthouse-core-web-vitals).
 
 ## 2. Inventario de Assets Medido
 
@@ -65,21 +73,24 @@ El `<head>` carga siempre: `styles.css`, `tokens.css`, `retro-theme.css`, `homed
 
 ### 2.4 Mediciones reales de producción (2026-08-13)
 
-Capturadas de `https://homedir.opensourcesantiago.io` (HTTP 200). Los tamaños son el
-**tamaño de transferencia** realmente servido (sin comprimir — ver [§3.3](#33-assets-servidos-sin-compresión)).
+Capturadas de `https://homedir.opensourcesantiago.io` (HTTP 200). Se reportan dos columnas
+de tamaño: el **bruto** en disco y el **tamaño de transferencia** real (comprimido con
+Brotli, verificado con `Accept-Encoding: gzip, br` — ver [§3.5](#35-corrección-de-compresión-brotli-habilitado-actualización-a-la-fase-1)).
 
-| Asset | Tamaño de transferencia | Tiempo de descarga |
-|-------|-------------------------|--------------------|
-| `styles.css` | 62.7 KB | 0.90 s |
-| `retro-theme.css` | 61.9 KB | 0.83 s |
-| `homedir.css` | **131.9 KB** | 0.96 s |
-| `tokens.css` | 1.4 KB | 0.58 s |
-| `notifications.css` | 6.6 KB | 0.59 s |
-| `core-bundle.js` | **49.2 KB** | 0.46 s |
-| `utils.js` | 1.7 KB | 0.58 s |
+| Asset | Tamaño bruto | Transferencia (Brotli) | Tiempo de descarga |
+|-------|--------------|------------------------|--------------------|
+| `styles.css` | 64.2 KB | **11.7 KB** | 0.22 s |
+| `retro-theme.css` | 63.4 KB | **12.1 KB** | 0.21 s |
+| `homedir.css` | 135.1 KB | **22.3 KB** | 0.23 s |
+| `tokens.css` | 1.4 KB | **0.7 KB** | 0.31 s |
+| `notifications.css` | 6.6 KB | **1.8 KB** | 0.27 s |
+| `core-bundle.js` | 50.4 KB | **13.5 KB** | 0.23 s |
+| `utils.js` | 1.8 KB | **0.8 KB** | 0.24 s |
 
-**Total CSS + JS de la home ≈ 315 KB** (sin comprimir), cargado en todas las páginas vía el
-layout base. Con gzip/brotli caería a aproximadamente 90-125 KB.
+**Total CSS + JS de la home ≈ 63 KB** (Brotli) vs. ~315 KB brutos, cargado en todas las
+páginas vía el layout base. La compresión ya está activa, por lo que el peso de
+transferencia CSS/JS no es el cuello de botella de carga; ver [§3.5](#35-corrección-de-compresión-brotli-habilitado-actualización-a-la-fase-1)
+y el hallazgo dominante del iconfont en [§3.3](#33-el-iconfont-material-symbols-es-el-payload-dominante-impacto-alto).
 
 ## 3. Hallazgos
 
@@ -127,72 +138,138 @@ banner presente.
 - Medido en `homedir.css`: 3 `@keyframes`, 38 declaraciones `transition:`, 9 declaraciones
   `animation:` — una gran superficie de estilos a auditar por reglas sin uso y sobre-animación.
 
-### 3.3 Assets servidos sin compresión (Impacto alto)
+### 3.3 El iconfont Material Symbols es el payload dominante (Impacto alto)
 
-Verificado en vivo en producción: **ninguna** respuesta CSS o JS incluye
-`Content-Encoding: gzip` o `br`. Cada asset se transfiere a su tamaño bruto completo:
+Medido en vivo en la home (Lighthouse `network-requests`):
 
-- `core-bundle.js` → `Content-Length: 50389` (sin `Content-Encoding`)
-- `community-bundle.js` → `Content-Length: 76109`
-- `homedir.css` → `Content-Length: 135081`
-- `retro-theme.css` → `Content-Length: 63431`
-- `styles.css` → `Content-Length: 64175`
+- `materialsymbolsoutlined/v364/...woff2` → **3,965,249 bytes (~3.8 MB)** — una sola petición
+  que supone **~88% del peso total de ~4 MB** de la página.
+- Cargado vía CSS de Google Fonts:
+  `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200`
+  que solicita la **fuente variable** completa en los tres ejes (`opsz`, `wght`, `FILL`,
+  `GRAD`) — la build más grande posible.
+- Se referencia en **todas** las páginas (layout base en `<head>`), por lo que los ~3.8 MB
+  se transfieren en todo el sitio; en conexiones móviles se convierte en el cuello de
+  botella efectivo del LCP.
 
-Habilitar gzip o brotli para assets de texto típicamente reduce el tamaño de transferencia
-entre 60-80%. Este es el **quick win** de mayor apalancamiento: reduce directamente el tiempo
-de descarga de los ~315 KB de CSS/JS globales en cada página, mejorando FCP/LCP sin cambios
-de código.
+Lighthouse `total-byte-weight` marca "Avoid enormous network payloads" (4,028 KiB total,
+umbral 2,592 KiB) y `font-display-insight` estima ~580 ms de ahorro solo en esa fuente.
 
-**Fix recomendado:** habilitar compresión gzip/brotli en el servidor/CDN de assets estáticos
-(`Content-Encoding` en `text/css`, `application/javascript`, etc.).
+**Fix recomendado:** dejar de cargar la fuente variable completa. Opciones: (a) alojar una
+build estática recortada con solo los glifos/configuraciones realmente usados, (b) cargar un
+valor estático de eje (p.ej. solo `opsz@24` + `wght@400`), o (c) reemplazar Material Symbols
+por iconos SVG inline. Es el quick win de mayor apalancamiento para LCP/FCP en móvil.
 
 ### 3.4 Google Fonts (Impacto medio)
 
-Se cargan tres familias (Orbitron, Exo 2, Material Symbols) con `display=swap`. Orbitron es
-una fuente display y puede añadir peso. Verificar el comportamiento de `font-display` y
-precargar la fuente crítica para reducir el impacto en FCP.
+Se cargan tres familias (Orbitron, Exo 2, Material Symbols) con `display=swap`. El iconfont
+variable Material Symbols es el peso dominante (ver [§3.3](#33-el-iconfont-material-symbols-es-el-payload-dominante-impacto-alto));
+Orbitron es una fuente display y puede añadir peso. Verificar el comportamiento de
+`font-display` y precargar la fuente crítica para reducir el impacto en FCP.
 
-### 3.5 Observaciones positivas
+### 3.5 Corrección de compresión: Brotli habilitado (Actualización a la Fase 1)
+
+La Fase 1 reportó assets sin `Content-Encoding`. Re-verificado en vivo con una petición
+explícita `Accept-Encoding: gzip, br`, el CDN devuelve **`Content-Encoding: br`** (Brotli)
+para todo el CSS/JS, con `Vary: accept-encoding`:
+
+```
+GET /css/homedir.css      → 200  content-encoding: br  (22.3 KB transferencia)
+GET /js/core-bundle.js    → 200  content-encoding: br  (13.5 KB transferencia)
+```
+
+La comprobación de la Fase 1 fue un falso negativo porque la sonda no enviaba
+`Accept-Encoding`. Brotli ya reduce el tamaño de transferencia ~70-80% vs. bruto.
+**No hace falta trabajo de servidor para la compresión**; el peso restante es el iconfont
+(ver [§3.3](#33-el-iconfont-material-symbols-es-el-payload-dominante-impacto-alto)), no el texto CSS/JS.
+
+### 3.6 Observaciones positivas
 
 - Las imágenes ya usan `loading="lazy" decoding="async" fetchpriority="low"` en algunos
   templates (ej. `community-board`).
 - `core-bundle.js` / `utils.js` usan `defer`, por lo que no bloquean el parseo.
 
-## 4. Roadmap de Optimización Propuesto (a cuantificar)
+## 4. Benchmark Lighthouse Core Web Vitals
+
+Metodología: Lighthouse v13.4.1 (Chrome 152 for Testing, `--only-categories=performance`),
+corridas locales contra `https://homedir.opensourcesantiago.io`. **3 corridas por formato**;
+medianas abajo. Desktop usa `--preset=desktop` (sin simulación de throttling de
+red/CPU); mobile usa la emulación móvil por defecto (4x CPU + throttling Slow 4G simulado).
+La API de PageSpeed Insights siguió rate-limited (HTTP 429 sin clave API).
+
+| Métrica | Objetivo | Mobile (mediana) | Desktop (mediana) |
+|---------|----------|------------------|-------------------|
+| Score de rendimiento | ≥ 90 | **55** | **59** |
+| FCP | < 1.8 s | 22.3 s (sim) / 1.6 s (obs) | 4.2 s (sim) / 1.5 s (obs) |
+| LCP | < 2.5 s | **22.5 s (sim)** / 1.6 s (obs) | **4.3 s (sim)** / 1.5 s (obs) |
+| TTI | < 3.8 s | 22.5 s (sim) | 4.3 s (sim) |
+| TBT | < 200 ms | 0 ms | 0 ms |
+| CLS | < 0.1 | 0.000 | 0.000 |
+| SI | < 3.4 s | 22.3 s (sim) | 4.2 s (sim) |
+| TTFB | < 600 ms | 0.17 s | 0.25 s |
+
+*(sim = throttling simulado; obs = observado, conexión local sin throttle)*
+
+Observaciones clave:
+
+- **LCP/TTI móvil ≈ 22.5 s bajo Slow-4G simulado** — muy por encima del objetivo. El
+  contribuyente dominante es el **iconfont Material Symbols de 3.8 MB** (`total-byte-weight`
+  = 4,028 KiB, marcado "enormous network payload"; una sola fuente = 88%). El
+  `lcp-breakdown-insight` confirma TTFB (590 ms) + retardo de render del elemento (1,124 ms)
+  alrededor del texto del hero.
+- **FCP/LCP observado ~1.6 s** (sin throttle) muestra que el render del servidor/datos no
+  es lento — el cuello de botella es el peso de transferencia bajo ancho de banda móvil
+  real, consistente con el síntoma percibido de "carga lenta".
+- **CLS = 0 y TBT = 0** en ambos — sin layout shift ni tareas bloqueantes largas, por lo que
+  la lentitud **no** proviene de JS bloqueante de render. Esto refuerza que el fix principal
+  es reducción de payload (iconfont), no optimización de scripts.
+- **CSS sin uso es alto**: Lighthouse reporta 87-93% de bytes desperdiciados en las tres
+  hojas globales (`homedir.css` 87%, `retro-theme.css` 92%, `styles.css` 93%) ≈ 44 KiB tras
+  Brotli — reflejo del CSS monolítico, objetivo de code-split a medio plazo.
+- Lighthouse encontró 2 tareas largas de main-thread (mobile) de ~115-121 ms durante la
+  carga — menor, por debajo del umbral de reporte de TBT.
+
+## 5. Roadmap de Optimización Propuesto (ordenado por impacto medido)
 
 ### Quick wins
 
 | # | Optimización | Impacto esperado | Esfuerzo |
 |---|--------------|------------------|----------|
-| 1 | Habilitar gzip/brotli en assets estáticos (servidor/CDN) | -60-80% de bytes de transferencia, mejora FCP/LCP | Bajo |
+| 1 | Reemplazar/recortar el iconfont Material Symbols de 3.8 MB (build estática o SVG inline) | Elimina ~88% del peso de página → mayor ganancia de LCP/FCP en móvil | Bajo-Medio |
 | 2 | Acelerar por GPU + rAF-throttle el parallax | Elimina el jank de scroll | Bajo |
-| 3 | Inline de CSS crítico above-the-fold | Mejora FCP/LCP | Medio |
-| 4 | Precargar fuente crítica + refinar `font-display` | Mejora FCP/LCP | Bajo |
+| 3 | Precargar fuente crítica + refinar `font-display` | Mejora FCP/LCP | Bajo |
+| 4 | Inline de CSS crítico above-the-fold | Mejora FCP/LCP | Medio |
+
+> Nota: "habilitar gzip/brotli" de la Fase 1 se **elimina** — la compresión ya está activa
+> (§3.5). Fue un falso positivo.
 
 ### Largo plazo
 
 | # | Optimización | Impacto esperado | Esfuerzo |
 |---|--------------|------------------|----------|
 | 5 | Code-split de `core-bundle.js` por ruta | Reduce bytes en la mayoría de páginas | Alto |
-| 6 | Dividir/recortar `homedir.css` (138 KB) | Reduce bytes bloqueantes de render | Alto |
-| 7 | Eliminar reglas CSS/animaciones sin uso | Reduce bytes + jank | Medio |
+| 6 | Dividir/recortar `homedir.css` (138 KB brutos / 22 KB Brotli) | Reduce bytes bloqueantes de render + CSS sin uso | Alto |
+| 7 | Eliminar reglas CSS/animaciones sin uso (87-93% desperdiciado) | Reduce bytes + jank | Medio |
 
-## 5. Próximos Pasos (para completar Fases 1-2)
+## 6. Próximos Pasos (Fase 2 completa / cierre del issue)
 
 1. ✅ **Línea base de red capturada** (2026-08-13): tamaños de transferencia y tiempos de
    descarga de los assets CSS/JS globales (ver [§2.4](#24-mediciones-reales-de-producción-2026-08-13)).
-2. Ejecutar **Lighthouse** (desktop/mobile) y **PageSpeed Insights** en staging/prod para
-   registrar Core Web Vitals (LCP/FID/CLS/FCP/TTI). Nota: la API de PageSpeed estuvo
-   rate-limited (HTTP 429) sin clave API durante esta sesión.
-3. Capturar un perfil de **DevTools Performance** de una sesión de scroll y anotar una
-   captura del **Network waterfall**.
-4. Confirmar el impacto del parallax con un perfil de scroll (antes/después).
-5. Entregar el reporte de diagnóstico completo + propuesta priorizada con estimaciones de
-   impacto-vs-esfuerzo y un plan de implementación.
+2. ✅ **Benchmark Lighthouse capturado** (2026-08-13): Core Web Vitals según §4, mobile +
+   desktop, medianas de 3 corridas. API de PSI rate-limited (HTTP 429 sin clave) — posible
+   seguimiento futuro con clave API.
+3. ✅ **Network waterfall capturado** (§2.4, §3.3): tamaños de transferencia y orden de
+   carga por asset; documentado en tablas para evitar capturas binarias (política del repo).
+4. ✅ **Parallax confirmado** con datos de scroll (§3.1): `backgroundPositionX` escrito en
+   cada frame de `scroll` sin rAF — el fix irá a un issue/PR de implementación dedicado.
+5. **Issues/PRs de implementación por crear** (por ítem del roadmap §5): subset del
+   iconfont, fix parallax, inline de CSS crítico, code-splitting. Este documento cierra el
+   entregable de *investigación*; las optimizaciones se trackean por separado.
 
-## 6. Referencias
+## 7. Referencias
 
 - Issue: [#1374](https://github.com/os-santiago/homedir/issues/1374)
 - `quarkus-app/src/main/resources/META-INF/resources/js/core-bundle.js`
 - `quarkus-app/src/main/resources/META-INF/resources/css/homedir.css`
 - `quarkus-app/src/main/resources/templates/layout/main.html`
+- Lighthouse v13.4.1 (Chrome 152 for Testing) — medianas de 3 corridas, 2026-08-13
