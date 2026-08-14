@@ -49,6 +49,7 @@ class AchievementApiResourceTest {
             "desc-es",
             "github",
             "https://docs.example.com",
+            "/images/achievements/first-pr.png",
             1,
             50,
             List.of(),

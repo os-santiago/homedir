@@ -1,10 +1,12 @@
 # Changelog
 
+> **⚠️ Known gap** · This changelog is out of sync: it stops at `3.330.1` while the repo is at `v3.630.0` (568 releases published). Entries were not generated because the `update-docs-on-release.yml` workflow was not producing PRs. Syncing all missing entries and fixing the workflow is tracked separately ([#1363](https://github.com/os-santiago/homedir/issues/1363)).
+
 ## [3.330.1] - 2026-02-10
 ### Changed
 - Community section now resolves UI text from i18n keys in Picks, Propose Content, and Moderation flows.
 - Community client-side date formatting now follows browser/document locale.
-- `full_release_cycle` default version updated to `3.330.1`.
+- Default version updated to `3.330.1`.
 
 ### Fixed
 - Removed `z-index` from `.alpha-banner` to prevent overlap with the user profile popup.

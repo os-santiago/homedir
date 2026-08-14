@@ -95,6 +95,10 @@ The contributor's AI pre-verifies these and applies the labels. The `pr-readines
 
 **When creating PRs:**
 1. **Always** reference the issue: `Closes #XXX` or `Fixes #XXX`
+   - **IMPORTANT**: When closing multiple issues, repeat the keyword per issue:
+     `Closes #10` on one line, `Closes #11` on the next. Do NOT use `Closes #10, #11`
+     — GitHub only auto-closes the first issue in a comma-separated list without
+     repeated keywords. This caused 9 issues to stay open after their PRs merged.
 2. **MUST** add exactly one `pr:risk-*` label (`pr:risk-low`, `pr:risk-medium`, `pr:risk-high`, `pr:risk-critical`) based on the change type
 3. **MUST** add self-attestation labels that apply: `pr:traceability-ok`, `pr:acceptance-ok`, `pr:tests-ok`, `pr:i18n-ok`
 4. Do NOT add `pr:` state labels (`pr:draft`, `pr:needs-review`, etc.) — those are managed by automation

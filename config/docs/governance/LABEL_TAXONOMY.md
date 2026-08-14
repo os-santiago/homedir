@@ -26,7 +26,7 @@ Describes the nature of the issue/PR.
 | `documentation` | `#0075ca` | Documentation improvements | Changes to `*.md` files, docs/, comments, or examples |
 | `question` | `#d876e3` | Further information is requested | Seeking clarification, not reporting a bug |
 
-**Deprecated**: `error` (ES), `mejora` (ES) - see migration table
+**Deprecated**: `error` (ES), `mejora` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 2. Priority (Traffic Light Colors)
 
@@ -51,7 +51,7 @@ Indicates issue disposition or workflow state.
 | `wontfix` | `#ffffff` | Will not be worked on | Out of scope, by design, or superseded |
 | `invalid` | `#e4e669` | Doesn't seem right | Cannot reproduce, incomplete info, not a real issue |
 
-**Deprecated**: `no valido` (ES), `no solucionar` (ES) - see migration table
+**Deprecated**: `no valido` (ES), `no solucionar` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 4. Collaboration (Purple Spectrum)
 
@@ -63,7 +63,7 @@ Signals for external contributors and automation.
 | `help wanted` | `#008672` | Extra attention needed | Expertise gap, blocker, seeking collaborator |
 | `wos-review` | `#7057ff` | Trigger WOS delegation | Issue should be routed to Workspace OS for automated triage |
 
-**Deprecated**: `buen primer issue` (ES), `Se necesita ayuda` (ES) - see migration table
+**Deprecated**: `buen primer issue` (ES), `Se necesita ayuda` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 5. Domain (Specialized)
 
@@ -120,7 +120,9 @@ Pre-verified by contributor's AI. The `pr-readiness-validator.yml` workflow auto
 
 ### Deprecated Labels
 
-The following legacy labels are deprecated and should be migrated:
+The following legacy labels were deprecated and fully migrated to their canonical
+equivalents (deleted from the repository on 2026-08-11). The migration workflow keeps
+guarding against re-creation:
 
 | Legacy Label (ES) | Canonical Label (EN) | Auto-Migrate? | Deprecation Date |
 |-------------------|----------------------|---------------|------------------|
@@ -134,55 +136,58 @@ The following legacy labels are deprecated and should be migrated:
 
 ### Migration Strategy
 
-**Phase 1: Dual Labeling (2026-06-24 → 2026-07-15)**
-- Keep both legacy (ES) and canonical (EN) labels active
-- Apply both labels to new issues during transition
-- Update historical issues opportunistically (when touched)
+**Phase 1: Dual Labeling (2026-06-24 → 2026-07-15)** ✅ **Completed**
 
-**Phase 2: Automated Migration (2026-07-15)**
-- Run bulk migration script to replace all legacy labels with canonical equivalents
-- Archive legacy labels (do not delete - preserve issue history)
-- Update issue templates to only show canonical labels
+- Both legacy (ES) and canonical (EN) labels were kept active
+- Both labels applied to new issues during transition
+- Historical issues updated opportunistically
 
-**Phase 3: Enforcement (2026-07-16+)**
-- Remove legacy labels from label picker
-- Bot automatically replaces any legacy labels with canonical equivalents
-- Update governance docs to reference only canonical taxonomy
+**Phase 2: Automated Migration (2026-07-15)** ✅ **Completed**
+
+- Executed via PRs #1423 and #1426 on 2026-08-11:
+  - Added `scripts/ci/migrate_labels.py` + `.github/workflows/label-migration.yml` (daily auto-migration)
+  - Deleted all legacy ES labels (`error`, `mejora`, `buen primer issue`, `no valido`,
+    `no solucionar`, `pregunta`, `Se necesita ayuda`, `evento`, `hackathon`, `codex`)
+
+**Phase 3: Enforcement (2026-07-16+)** ✅ **Active**
+
+- Legacy labels removed from the label picker (deleted, not archived)
+- `label-migration.yml` workflow automatically replaces any re-created legacy labels daily
+- Governance docs reference only the canonical taxonomy
 
 ### Migration Script
 
-```bash
-#!/usr/bin/env bash
-# scripts/ci/migrate-labels.sh
-# Migrates legacy ES labels to canonical EN labels
+The automated migration runs from the GitHub Actions workflow
+[`.github/workflows/label-migration.yml`](../../../.github/workflows/label-migration.yml),
+which invokes [`scripts/ci/migrate_labels.py`](../../../scripts/ci/migrate_labels.py) daily
+(at 09:00 UTC) and on manual dispatch (`workflow_dispatch`).
 
-REPO="os-santiago/homedir"
+```python
+# scripts/ci/migrate_labels.py
+# Migrates re-created legacy ES labels to canonical EN labels.
 
-declare -A LABEL_MAP=(
-  ["error"]="bug"
-  ["mejora"]="enhancement"
-  ["buen primer issue"]="good first issue"
-  ["no valido"]="invalid"
-  ["no solucionar"]="wontfix"
-  ["pregunta"]="question"
-  ["Se necesita ayuda"]="help wanted"
-)
+LABEL_MIGRATION_MAP = {
+    "error": "bug",
+    "mejora": "enhancement",
+    "buen primer issue": "good first issue",
+    "no valido": "invalid",
+    "no solucionar": "wontfix",
+    "pregunta": "question",
+    "Se necesita ayuda": "help wanted",
+}
 
-for legacy in "${!LABEL_MAP[@]}"; do
-  canonical="${LABEL_MAP[$legacy]}"
-  echo "Migrating '$legacy' → '$canonical'..."
-  
-  # Find all issues with legacy label
-  issues=$(gh issue list --repo "$REPO" --label "$legacy" --state all --limit 1000 --json number --jq '.[].number')
-  
-  for issue in $issues; do
-    echo "  Issue #$issue: adding '$canonical', removing '$legacy'"
-    gh issue edit "$issue" --repo "$REPO" --add-label "$canonical" --remove-label "$legacy"
-  done
-done
-
-echo "Migration complete. Archive legacy labels manually via GitHub UI."
+# Labels that are NOT migrated (valid domain labels with no EN equivalent)
+SKIP_LABELS = {"evento", "hackathon"}
 ```
+
+Run manually:
+
+```bash
+python scripts/ci/migrate_labels.py  # requires GITHUB_TOKEN and REPOSITORY env vars
+```
+
+The script idempotently replaces any legacy label present on open issues/PRs with its
+canonical equivalent and posts a comment summarizing the migration.
 
 ## Label Usage Guidelines
 
@@ -256,6 +261,7 @@ Color palette by category:
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-06-24 | Claude (via WOS) | Initial taxonomy for issue #840 |
+| 2026-08-13 | Seb (via WOS) | Mark migration phases 1-2 complete, document label deletion and `label-migration.yml` workflow, fix migration script reference |
 
 ---
 

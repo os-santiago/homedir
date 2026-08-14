@@ -2,7 +2,6 @@
 name: Post-Incident Retrospective
 about: Required postmortem for all break-glass emergency incidents
 title: 'Postmortem: [Brief incident description]'
-labels: postmortem, incident
 assignees: ''
 ---
 

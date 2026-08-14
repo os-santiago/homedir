@@ -547,34 +547,49 @@ public class AchievementService {
 
   /** Returns the list of GitHub highlights (badges that appear on the profile). */
   public List<Highlight> highlights() {
+    AppMessages msg = messages();
     return List.of(
         new Highlight(
             "pro",
             "GitHub Pro",
             "GitHub Pro is a paid subscription that gives you access to private repositories, "
                 + "advanced insights, and more. It appears as a badge on your profile.",
-            "https://docs.github.com/en/get-started/learning-about-github/githubs-products"),
+            "https://docs.github.com/en/get-started/learning-about-github/githubs-products",
+            "/images/highlights/pro.svg",
+            msg.achievement_highlight_pro_label()),
         new Highlight(
             "developer-program",
             "Developer Program Member",
             "The GitHub Developer Program is for developers who build integrations with the "
                 + "GitHub API. Join at developer.github.com to get the badge.",
-            "https://docs.github.com/en/developers/overview/github-developer-program"),
+            "https://docs.github.com/en/developers/overview/github-developer-program",
+            "/images/highlights/developer-program.svg",
+            msg.achievement_highlight_developer_program_label()),
         new Highlight(
             "security-bounty",
             "Security Bug Bounty Hunter",
             "Report security vulnerabilities to GitHub's bug bounty program. Accepted reports "
                 + "earn a special badge on your profile.",
-            "https://bounty.github.com/"),
+            "https://bounty.github.com/",
+            "/images/highlights/security-bounty.svg",
+            msg.achievement_highlight_security_bounty_label()),
         new Highlight(
             "galaxy-brain-highlight",
             "Galaxy Brain (Discussions)",
             "Answer questions in GitHub Discussions. When your answer is accepted by the "
                 + "question author, you earn the Galaxy Brain badge.",
-            "https://docs.github.com/en/discussions"));
+            "https://docs.github.com/en/discussions",
+            "/images/achievements/galaxy-brain.png",
+            msg.achievement_highlight_galaxy_brain_label()));
   }
 
-  public record Highlight(String key, String title, String description, String docUrl) {}
+  public record Highlight(
+      String key,
+      String title,
+      String description,
+      String docUrl,
+      String iconUrl,
+      String profileLabel) {}
 
   private String getGithubApiToken() {
     return config.getOptionalValue("GH_TOKEN", String.class).orElse("").trim();
