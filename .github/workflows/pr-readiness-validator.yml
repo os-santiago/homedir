@@ -1,30 +1,24 @@
-name: PR State Labeler
+name: PR Readiness Validator
 
 on:
   pull_request:
-    types: [opened, ready_for_review, converted_to_draft, closed, reopened, synchronize, labeled, unlabeled]
-  pull_request_review:
-    types: [submitted, dismissed]
-  check_run:
-    types: [completed]
+    types: [opened, edited, labeled, reopened, ready_for_review, synchronize]
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to label (optional, labels all open PRs if not provided)'
+        description: 'PR number to validate (optional, validates all open PRs if not provided)'
         required: false
         type: number
 
 permissions:
   pull-requests: write
-  issues: write
+  issues: read
   contents: read
-  checks: read
 
 jobs:
-  label-pr-state:
-    name: Assign PR State Label
+  validate-readiness:
+    name: Validate PR Self-Attestation Labels
     runs-on: ubuntu-latest
-    # Skip if the actor is a bot (avoid labeler triggering itself)
     if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout repository
@@ -41,14 +35,14 @@ jobs:
         run: |
           pip install PyGithub
 
-      - name: Determine and apply PR state label
+      - name: Validate self-attestation labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          python scripts/ci/label_pr_state.py
+          python scripts/ci/validate_pr_readiness.py
 
       - name: Report
         run: |
-          echo "PR state label applied. Check workflow logs for details."
+          echo "PR readiness validation complete. Check workflow logs for details."

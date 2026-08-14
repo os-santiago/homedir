@@ -44,7 +44,6 @@ Understanding and using labels correctly is crucial for effective contribution. 
 **Status Labels:**
 - `good first issue` / `buen primer issue` - Good for newcomers
 - `help wanted` / `Se necesita ayuda` - Extra attention needed
-- `wip-pr` - Someone is working on this (has a PR or draft PR)
 - `needs-human` - Requires human decision or intervention
 
 **Resolution Labels:**
@@ -54,30 +53,36 @@ Understanding and using labels correctly is crucial for effective contribution. 
 
 ### Pull Request Labels
 
-**Workflow Status:**
-- `wip-pr` - Work in progress
-- `ready-to-implement` - Ready for review/merge
+**PR State Labels** (managed by `pr-state-labeler.yml` automation — do NOT apply manually):
 
-**Automated SDLC Labels** (managed by automation):
+These labels track the PR lifecycle state. They are mutually exclusive and auto-assigned based on CI checks + human review status:
 
-These labels track the automated AI SDLC workflow state:
+- `pr:draft` - PR is draft / work in progress
+- `pr:checks-pending` - CI checks are running
+- `pr:checks-failed` - CI checks are failing
+- `pr:needs-review` - CI green, ready for maintainer review
+- `pr:changes-requested` - Maintainer requested changes
+- `pr:approved` - Required human approvals met per risk level
+- `pr:merged` - PR has been merged
+- `pr:blocked` - Blocked: merge conflicts, stale, or other blocker
 
-- `ai-sdlc-track` - AI SDLC is tracking this PR
-- `ai-sdlc-assist` - AI SDLC may assist this PR when safe
-- `scc-queued` - Authorized AI SDLC queue entry
-- `scc-running` - Autonomous worker has claimed this issue
-- `scc-pr-open` - Autonomous worker opened a PR
-- `scc-waiting-checks` - Waiting for CI checks or review
-- `scc-under-review` - Under automated review remediation
-- `scc-approved` - Passed checks and review feedback
-- `scc-merged` - Successfully merged or completed
-- `scc-failed` - Failed and needs inspection
-- `scc-failing-checks` - Has failing CI checks
-- `scc-coverage-gap` - Lacks issue coverage evidence
-- `scc-rejected` - Rejected from AI SDLC queue
-- `scc-rejected:unauthorized-labeler` - Labeler not authorized
-- `scc-accepted` - Initial admission criteria passed
-- `scc-admission-review` - Reviewing initial admission criteria
+**PR Risk Labels** (applied by contributor/AI, exactly one required):
+
+These labels determine the required number of human approvals:
+
+- `pr:risk-low` - Docs, typos, config tweaks (min 1 approval)
+- `pr:risk-medium` - Features, refactors, new dependencies (min 2 approvals, 1 code owner)
+- `pr:risk-high` - Security, breaking changes, data migration (min 2 approvals, all code owners + security)
+- `pr:risk-critical` - Auth, encryption, financial, compliance (min 3 approvals, all code owners + security)
+
+**PR Self-Attestation Labels** (applied by contributor/AI):
+
+The contributor's AI pre-verifies these and applies the labels. The `pr-readiness-validator.yml` workflow auto-validates them and removes false claims:
+
+- `pr:traceability-ok` - `Closes #N` present, issue exists with priority + type labels
+- `pr:acceptance-ok` - All acceptance criteria from linked issue are met
+- `pr:tests-ok` - Tests added/updated for new functionality
+- `pr:i18n-ok` - i18n complete (EN + ES) for user-facing changes
 
 ### Label Usage Protocol for AI Agents
 
@@ -89,20 +94,20 @@ These labels track the automated AI SDLC workflow state:
 5. Add `needs-human` if a human decision is required
 
 **When creating PRs:**
-1. **Always** reference the issue: `Closes #XXX` or `Refs #XXX`
+1. **Always** reference the issue: `Closes #XXX` or `Fixes #XXX`
    - **IMPORTANT**: When closing multiple issues, repeat the keyword per issue:
      `Closes #10` on one line, `Closes #11` on the next. Do NOT use `Closes #10, #11`
      — GitHub only auto-closes the first issue in a comma-separated list without
      repeated keywords. This caused 9 issues to stay open after their PRs merged.
-2. Add `wip-pr` if still working on it (draft PR)
-3. Do NOT add `scc-*` labels - these are managed by automation
-4. Let CI and human reviewers add other labels as needed
+2. **MUST** add exactly one `pr:risk-*` label (`pr:risk-low`, `pr:risk-medium`, `pr:risk-high`, `pr:risk-critical`) based on the change type
+3. **MUST** add self-attestation labels that apply: `pr:traceability-ok`, `pr:acceptance-ok`, `pr:tests-ok`, `pr:i18n-ok`
+4. Do NOT add `pr:` state labels (`pr:draft`, `pr:needs-review`, etc.) — those are managed by automation
+5. Let CI and human reviewers handle state labels automatically
 
 **When working on existing issues:**
-1. Check for `wip-pr` label - someone may already be working on it
+1. Check for `pr:draft` label on linked PRs - someone may already be working on it
 2. Respect `needs-human` label - don't proceed without human approval
 3. Pay attention to priority labels - handle P0/P1 before P2/P3
-4. Check for `scc-running` - AI worker may have claimed it
 
 ## Autonomous AI Agent Contract
 
@@ -124,23 +129,25 @@ This section defines **mandatory** rules for any AI agent (Claude, Devin, Copilo
 2. **MUST** use branch naming: `feat/issue-XXX-description`, `fix/issue-XXX-description`, `docs/issue-XXX-description`.
 3. **MUST** use conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `style:`) with `Signed-off-by`.
 4. **MUST** write PR title, body, and commits in **English**. No exceptions.
-5. **MUST NOT** apply `scc-*` labels manually — those are managed by automation.
-6. **SHOULD** use the [PR template](.github/PULL_REQUEST_TEMPLATE.md) when available.
-7. **SHOULD** include a Test Plan section with checkboxes.
+5. **MUST** add exactly one `pr:risk-*` label based on change type (low/medium/high/critical).
+6. **SHOULD** add self-attestation labels (`pr:traceability-ok`, `pr:acceptance-ok`, `pr:tests-ok`, `pr:i18n-ok`) when the corresponding checks pass.
+7. **MUST NOT** apply `pr:` state labels (`pr:draft`, `pr:needs-review`, `pr:approved`, etc.) — those are managed by automation.
+8. **SHOULD** use the [PR template](.github/PULL_REQUEST_TEMPLATE.md) when available.
+9. **SHOULD** include a Test Plan section with checkboxes.
 
 ### Reviewing a PR
 
 1. **MUST** verify the PR references an issue (`Closes #N`). If not, request changes.
 2. **MUST** verify the issue has priority + type labels. If not, add them or request the author to add.
 3. **MUST** verify all relevant CI checks pass per the [Status Check Matrix](config/docs/governance/STATUS_CHECK_MATRIX.md) for the change type.
-4. **MUST** verify the PR actually addresses the issue's acceptance criteria. If not, apply `scc-coverage-gap` label.
-5. **MUST** only approve if: checks green + traceability verified + acceptance criteria met. Use `scc-approved` label only when all conditions are met.
+4. **MUST** verify the PR actually addresses the issue's acceptance criteria. If not, request changes and remove `pr:acceptance-ok` if present.
+5. **MUST** only approve if: checks green + traceability verified + acceptance criteria met. The `pr:approved` label is auto-assigned by automation when human approval count meets the risk-level threshold.
 6. **SHOULD** follow the [Reviewer Checklist](config/docs/governance/REVIEWER_CHECKLIST.md) for the change type.
 7. **SHOULD** follow the [PR Review Policy](config/docs/governance/PR_REVIEW_POLICY.md) for approval requirements by risk level.
 
 ### Working on an Issue
 
-1. **MUST** check if someone is already working on the issue (`wip-pr` label) before starting.
+1. **MUST** check if someone is already working on the issue (linked PR with `pr:draft` label) before starting.
 2. **MUST NOT** proceed on issues with `needs-human` label without human approval.
 3. **MUST NOT** claim an issue if the assignee already has 3 open issues (check with `gh issue list --assignee <login> --state open`).
 4. **MUST NOT** self-assign P0/P1 issues — those are reserved for core maintainers (`Axel-DaMage`, `scanalesespinoza`, `VECTORG99`).
@@ -234,25 +241,25 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 1. **Issue created** with type and priority labels
 2. **Admin reviews**, adds Bounty Hunter label if eligible
-3. **Developer claims** (add `wip-pr` label or comment)
-4. **PR created** with `Closes #XXX`
+3. **Developer claims** (comment on issue or open draft PR with `pr:draft`)
+4. **PR created** with `Closes #XXX`, `pr:risk-*`, and self-attestation labels
 5. **CI checks run** automatically
 6. **Code review** by maintainers or AI
 7. **Changes addressed** if requested
 8. **Merge** when approved and checks pass
 9. **Points awarded** if Bounty Hunter eligible
 
-### AI SDLC Workflow (Automated)
+### PR Lifecycle Workflow (Automated)
 
-1. Issue labeled `ready-to-implement` by authorized human
-2. `scc-queued` → `scc-running` (worker claims)
-3. `scc-pr-open` (PR created)
-4. `scc-waiting-checks` (CI running)
-5. `scc-under-review` (addressing feedback)
-6. `scc-approved` (ready to merge)
-7. `scc-merged` (completed)
+1. Contributor creates PR with `Closes #N`, `pr:risk-*`, and self-attestation labels
+2. `pr:draft` (if draft) or `pr:checks-pending` (CI running)
+3. `pr:checks-failed` (CI fails) → contributor fixes → back to `pr:checks-pending`
+4. `pr:needs-review` (CI green, waiting for human review)
+5. `pr:changes-requested` (maintainer requests changes) → contributor fixes → back to `pr:checks-pending`
+6. `pr:approved` (human approvals meet risk-level threshold)
+7. `pr:merged` (merged to main)
 
-OR: `scc-failed` / `scc-failing-checks` / `scc-coverage-gap` (needs human intervention)
+OR: `pr:blocked` (merge conflicts or other blocker — needs contributor action)
 
 ## File Locations
 
