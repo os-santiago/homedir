@@ -116,6 +116,19 @@ Pre-verified by contributor's AI. The `pr-readiness-validator.yml` workflow auto
 
 **Deprecated**: All `scc-*` labels (scc-approved, scc-under-review, scc-waiting-checks, etc.) and `wip-pr` have been removed from the repository. The `pr:*` system replaces them entirely.
 
+### 9. Operational / AI SDLC (mixed: human + automation)
+
+Operational labels still in use by the AI SDLC workflow and triage queue. Managed by `ai-sdlc-*` automation and maintainers. Contributors do not apply them manually.
+
+| Label | Description | When to Use |
+|-------|-------------|-------------|
+| `ready-to-implement` | Admission criteria passed | Maintainer-applied trigger authorizing the issue to enter the AI SDLC queue |
+| `needs-human` | Requires human decision/intervention | Automation cannot proceed safely without a human |
+| `ai-sdlc-track` | AI SDLC is tracking this PR | Automation monitor enabling on the PR |
+| `ai-sdlc-assist` | AI SDLC may assist this PR when safe | Safety-assessed assist opportunity |
+
+**Note**: `ai-sdlc-*` labels are created/managed by automation. Humans only apply `ready-to-implement` and `needs-human`.
+
 ## Legacy Label Migration
 
 ### Deprecated Labels
@@ -252,7 +265,7 @@ Color palette by category:
 
 ## Related Documents
 
-- [Issue Triage Workflow](./TRIAGE_WORKFLOW.md) (future)
+- [Issue Triage Workflow](./TRIAGE_RUNBOOK.md)
 - [Definition of Ready/Done](./DEFINITION_OF_READY_DONE.md)
 - [Status Check Matrix](./STATUS_CHECK_MATRIX.md)
 

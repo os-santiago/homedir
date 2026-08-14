@@ -1,7 +1,7 @@
 # Branch Protection Ruleset Validation
 
 **Issue**: #988  
-**Date**: 2026-06-24  
+**Date**: 2026-06-24 (original validation) · re-verified 2026-08-11 · bypass actors corrected 2026-08-13  
 **Ruleset ID**: 9071701  
 **Repository**: os-santiago/homedir
 
@@ -11,7 +11,7 @@ All acceptance criteria from issue #988 have been met. The GitHub repository rul
 
 ## ✅ Acceptance Criteria Status
 
-### 1. Required Status Checks (6 universal checks)
+### 1. Required Status Checks (3 universal checks)
 **Status**: ✅ PASS
 
 ```bash
@@ -19,17 +19,16 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks[] | .context'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```
-PR Quality — Suite / style
-PR Quality — Suite / static
-PR Quality — Suite / arch
-PR Quality — Suite / tests_cov
-PR Quality — Suite / deps
-PR CI (Build, Native, SBOM/Scan) / sbom
+Quality Summary
+CI Summary
+Quality Gate Summary
 ```
 
-Count: 6 checks ✅
+Count: 3 checks ✅
+
+> These contexts come from the aggregate jobs in `pr-quality-suite.yml` (`Quality Summary`), `pr-ci-build-native-sbom.yml` (`CI Summary`) and `quality-gates.yml` (`Quality Gate Summary`). They are not the individual job contexts (e.g., `PR Quality - Suite / style`); the ruleset requires only the aggregate check.
 
 ### 2. Commit Message Pattern (Conventional Commits)
 **Status**: ✅ PASS
@@ -39,11 +38,12 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '.rules[] | select(.type == "commit_message_pattern") | .parameters'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```json
 {
   "name": "Conventional Commits",
-  "operator": "starts_with",
+  "operator": "regex",
+  "negate": false,
   "pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\\([a-z0-9-]+\\))?: .+"
 }
 ```
@@ -61,22 +61,25 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 **Result**: `true` ✅
 
 ### 4. Bypass Actor Mode
-**Status**: ✅ PASS
+**Status**: ⚠️ DRIFT
 
 ```bash
 gh api repos/os-santiago/homedir/rulesets/9071701 \
-  --jq '.bypass_actors[] | {actor_type: .actor_type, bypass_mode: .bypass_mode}'
+  --jq '{bypass_actors: .bypass_actors, current_user_can_bypass: .current_user_can_bypass}'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-13): the enforced ruleset **does** configure a bypass actor:
+
 ```json
 {
-  "actor_type": "RepositoryRole",
-  "bypass_mode": "pull_request"
+  "bypass_actors": [
+    { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }
+  ],
+  "current_user_can_bypass": "pull_requests_only"
 }
 ```
 
-Bypass mode is "pull_request" (not "always") ✅
+> The committed `config/ruleset-main.json` lists `scanalesespinoza` (`RepositoryCollaborator`, bypass mode `pull_request`) as the intended allowlist, but the enforced ruleset configures a `RepositoryRole` (actor id 5) bypass actor instead. Both use `pull_request` bypass mode, so the drift is the **actor identity** (allowlisted user vs role), not the presence of bypass actors. This is drift to reconcile (see [BRANCH_PROTECTION_AUDIT.md](./BRANCH_PROTECTION_AUDIT.md)).
 
 ## Full Ruleset Configuration
 
@@ -85,7 +88,7 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
   --jq '{name: .name, enforcement: .enforcement, rules: (.rules | map(.type))}'
 ```
 
-**Result**:
+**Result** (re-verified 2026-08-11):
 ```json
 {
   "enforcement": "active",
@@ -94,7 +97,6 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
     "deletion",
     "non_fast_forward",
     "pull_request",
-    "copilot_code_review",
     "required_status_checks",
     "commit_message_pattern"
   ]
@@ -105,10 +107,11 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 
 | Requirement | Documented (ruleset-main.json) | Actual (API) | Status |
 |-------------|-------------------------------|--------------|--------|
-| Required status checks | 6 checks | 6 checks | ✅ MATCH |
+| Required status checks | 6 checks | 3 checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) — snapshot 2026-08-11 | ⚠️ DRIFT |
 | Commit message pattern | Conventional Commits regex | Conventional Commits regex | ✅ MATCH |
-| Conversation resolution | Required | Enabled (true) | ✅ MATCH |
-| Bypass mode | pull_request | pull_request | ✅ MATCH |
+| Conversation resolution | Required | Enabled (`required_review_thread_resolution: true`) | ✅ MATCH |
+| Required approvals | 0 (committed baseline) | 0 | ✅ MATCH |
+| Bypass actors | `RepositoryCollaborator` `scanalesespinoza` (`pull_request`) | `RepositoryRole` id 5 (`pull_request`) — re-verified 2026-08-13 | ⚠️ DRIFT |
 | Branch deletion protection | Enabled | deletion rule | ✅ MATCH |
 | Force push protection | Enabled | non_fast_forward rule | ✅ MATCH |
 
@@ -134,6 +137,8 @@ gh api repos/os-santiago/homedir/rulesets/9071701 \
 2. ✅ Documentation updated
 3. 🔄 Monitor next PR to verify checks are enforced in practice
 4. 🔄 Close issue #988 after PR merge
+5. ⚠️ **Reconciling drift (2026-08-13)**: the enforced ruleset requires 3 aggregate checks (`Quality Summary`, `CI Summary`, `Quality Gate Summary`) instead of the 6 individual contexts in the committed `config/ruleset-main.json`, and configures a `RepositoryRole` (id 5) bypass actor in `pull_request` mode instead of the allowlisted `scanalesespinoza` (`RepositoryCollaborator`) from the committed baseline. 0 approvals matches the committed baseline (`required_approving_review_count: 0`) — no drift there. Update `BRANCH_PROTECTION_IMPLEMENTATION.md` / `BRANCH_PROTECTION_AUDIT.md` baselines to match the enforced ruleset (see #1449).
+6. ⏳ **Deferred exceptions (2026-08-13, CodeRabbit)**: the remaining drifts are tracked as time-bounded exceptions with owners instead of being normalized into the normative baseline: (a) `required_approving_review_count: 0` — owner: core maintainers, review by 2026-09-13; (b) bypass actor `RepositoryRole` id 5 vs allowlisted `scanalesespinoza` — owner: core maintainers, reconcile by 2026-09-13. Both tracked via #1449.
 
 ## References
 
