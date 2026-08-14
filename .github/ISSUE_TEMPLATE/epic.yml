@@ -1,7 +1,7 @@
 name: Epic Issue
 description: Strategic initiative with multiple parent/child issues
 title: "[EPIC] "
-labels: ["type:epic", "priority:P1"]
+labels: ["priority:P1"]
 body:
   - type: markdown
     attributes:

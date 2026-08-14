@@ -1,7 +1,7 @@
 name: Parent Issue
 description: Feature or improvement with multiple child tasks
 title: "[PARENT] "
-labels: ["type:parent-issue", "type:enhancement"]
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
