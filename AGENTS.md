@@ -90,6 +90,10 @@ These labels track the automated AI SDLC workflow state:
 
 **When creating PRs:**
 1. **Always** reference the issue: `Closes #XXX` or `Refs #XXX`
+   - **IMPORTANT**: When closing multiple issues, repeat the keyword per issue:
+     `Closes #10` on one line, `Closes #11` on the next. Do NOT use `Closes #10, #11`
+     — GitHub only auto-closes the first issue in a comma-separated list without
+     repeated keywords. This caused 9 issues to stay open after their PRs merged.
 2. Add `wip-pr` if still working on it (draft PR)
 3. Do NOT add `scc-*` labels - these are managed by automation
 4. Let CI and human reviewers add other labels as needed

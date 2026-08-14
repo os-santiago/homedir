@@ -1,7 +1,7 @@
 name: Child Issue
 description: Specific task within a parent issue
 title: ""
-labels: ["type:child-issue", "type:task"]
+labels: []
 body:
   - type: markdown
     attributes:
