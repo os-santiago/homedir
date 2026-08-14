@@ -7191,6 +7191,18 @@ public interface AppMessages {
   @Message("Verification unavailable")
   String achievements_verification_unavailable();
 
+  @Message("PRO")
+  String achievement_highlight_pro_label();
+
+  @Message("Developer Program Member")
+  String achievement_highlight_developer_program_label();
+
+  @Message("Security Bug Bounty Hunter")
+  String achievement_highlight_security_bounty_label();
+
+  @Message("Discussions answered")
+  String achievement_highlight_galaxy_brain_label();
+
   @Message(
       "ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización")
   String volunteers_export_csv_header();

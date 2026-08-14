@@ -69,6 +69,20 @@
           {#else}achievement-locked{/if}">
 
           <div class="achievement-card-header">
+            {#if guide.achievement.iconUrl}
+              <img src="{guide.achievement.iconUrl}"
+                   alt=""
+                   loading="lazy"
+                   class="achievement-icon {#if userSnapshot}
+                     {#for status in userSnapshot.statuses}
+                       {#if status.key == guide.achievement.key}
+                         {#if status.unlocked}achievement-icon-unlocked{#else}achievement-icon-locked{/if}
+                       {/if}
+                     {/for}
+                   {#else}achievement-icon-locked{/if}" />
+            {#else}
+              <span class="material-symbols-outlined achievement-icon-fallback">emoji_events</span>
+            {/if}
             <h2 class="achievement-title">{guide.achievement.title}</h2>
             {#if userSnapshot}
               {#for status in userSnapshot.statuses}
@@ -178,7 +192,14 @@
         <div class="highlights-grid">
           {#for highlight in highlights}
           <article class="highlight-card">
-            <h3 class="highlight-title">{highlight.title}</h3>
+            <div class="highlight-profile-preview">
+              <span class="highlight-profile-badge">
+                {#if highlight.iconUrl}
+                  <img src="{highlight.iconUrl}" alt="" class="highlight-badge-icon" />
+                {/if}
+                {highlight.profileLabel}
+              </span>
+            </div>
             <p class="highlight-description">{highlight.description}</p>
             <a href="{highlight.docUrl}" target="_blank" rel="noopener noreferrer"
                class="highlight-doc-link">
