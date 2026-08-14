@@ -13,7 +13,7 @@
 [![Language](https://img.shields.io/github/languages/top/os-santiago/homedir?style=for-the-badge&logo=java&logoColor=white&color=ED8B00)](https://github.com/os-santiago/homedir)
 [![Last Commit](https://img.shields.io/github/last-commit/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/commits/main)
 [![Version](https://img.shields.io/github/v/release/os-santiago/homedir?label=Version&style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir/releases)
-[![Maven Version](https://img.shields.io/badge/version-3.403.1-blue?style=for-the-badge&logo=apache-maven&logoColor=white)](https://github.com/os-santiago/homedir/releases)
+[![Maven Version](https://img.shields.io/badge/version-3.630.0-blue?style=for-the-badge&logo=apache-maven&logoColor=white)](https://github.com/os-santiago/homedir/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20chat-5865F2?logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/3eawzc9ybc)
 [![Repo Size](https://img.shields.io/github/repo-size/os-santiago/homedir?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir)
 [![Project Status: Active](https://img.shields.io/badge/status-active-brightgreen?style=for-the-badge&logo=github&logoColor=white)](https://github.com/os-santiago/homedir)
@@ -29,7 +29,14 @@ Homedir is a Quarkus-based community platform for DevRel/Open Source initiatives
 ## Repository Layout
 - `quarkus-app/`: main Quarkus application (backend + templates + static assets).
 - `docs/`: product and technical documentation (EN/ES).
+- `config/`: governance documentation (labels, branch protection, priorities).
 - `platform/`: VPS deployment scripts, env template, systemd/nginx assets.
+- `scripts/`: shared CI/ops scripts (versioning, tests, i18n validation).
+- `deployment/`: deployment and orchestration assets.
+- `container/`: container build assets.
+- `modules/`: optional modular prototypes/proposals.
+- `src/`: support tooling (e.g., Python worker).
+- `tests/`: Playwright E2E and JS unit tests.
 - `tools/community-curator/`: curated content generation and deployment tooling.
 
 ## Getting Started
@@ -81,7 +88,7 @@ Public image repository:
 
 Tags published by release pipeline:
 - `latest`
-- semantic tags like `3.360.1` (see [Releases](https://github.com/os-santiago/homedir/releases))
+- semantic tags like `3.630.0` (see [Releases](https://github.com/os-santiago/homedir/releases))
 
 Create an env file from `platform/env.example` and fill required values (do not commit secrets), then run:
 
@@ -100,7 +107,7 @@ docker run --rm --name homedir \
   -p 8080:8080 \
   --env-file ./.env.homedir \
   -v "$(pwd)/.data:/work/data" \
-  quay.io/sergio_canales_e/homedir:3.360.1
+  quay.io/sergio_canales_e/homedir:3.630.0
 ```
 
 ### 4) Build your own image from source

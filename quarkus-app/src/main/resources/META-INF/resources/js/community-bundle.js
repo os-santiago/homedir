@@ -68,23 +68,7 @@
     if (value == null) {
       return "";
     }
-    if (window.HomeDirUtils && window.HomeDirUtils.escapeHtml) {
-      return window.HomeDirUtils.escapeHtml(value);
-    }
-    return String(value).replace(/[&<>"']/g, (match) => {
-      switch (match) {
-        case "&":
-          return "&amp;";
-        case "<":
-          return "&lt;";
-        case ">":
-          return "&gt;";
-        case "\"":
-          return "&quot;";
-        default:
-          return "&#39;";
-      }
-    });
+    return window.HomeDirUtils.escapeHtml(value);
   }
 
   function showFeedback(message, isError) {

@@ -8,11 +8,12 @@ Homedir toma la seguridad de nuestros usuarios y colaboradores en serio. Si cree
 
 Solo damos soporte a la línea de versión mayor actualmente activa. Cuando se publica una nueva versión mayor, las anteriores quedan sin soporte inmediatamente.
 
-**Versión mayor activa actual: `2.x`**
+**Versión mayor activa actual: `3.x`**
 
 | Versión | Soporte |
 |-------:|-----------|
-| 2.x | Activa |
+| 3.x | Activa |
+| 2.x | Sin soporte |
 | < 2.x | Sin soporte |
 
 > Esta política mantiene el proyecto rápido y seguro, en línea con nuestro enfoque de desarrollo basado en trunk.
