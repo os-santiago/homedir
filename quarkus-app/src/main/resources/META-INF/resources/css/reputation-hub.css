@@ -242,6 +242,17 @@
   padding: 0.3rem 0;
 }
 
+.hub-secondary-grid .hub-panel h2,
+.hub-secondary-grid .hub-panel-intro,
+.hub-secondary-grid .hub-recognition-hint,
+.hub-secondary-grid .hub-empty {
+  text-align: center;
+}
+
+.hub-secondary-grid .hub-how-list {
+  text-align: center;
+}
+
 .hub-how-back {
   display: inline-block;
   border: 1px solid rgba(255, 255, 255, 0.34);

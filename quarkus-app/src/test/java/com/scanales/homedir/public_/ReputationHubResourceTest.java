@@ -249,4 +249,18 @@ class ReputationHubResourceTest {
         .body(containsString("data-recognition-type=\"recommended\""))
         .body(containsString("/js/reputation-recognition.js?v="));
   }
+
+  @Test
+  void reputationHubCssCentersInstructionalSections() {
+    given()
+        .when()
+        .get("/css/reputation-hub.css")
+        .then()
+        .statusCode(200)
+        .body(containsString(".hub-secondary-grid .hub-panel h2"))
+        .body(containsString(".hub-secondary-grid .hub-panel-intro"))
+        .body(containsString(".hub-secondary-grid .hub-recognition-hint"))
+        .body(containsString(".hub-secondary-grid .hub-empty"))
+        .body(containsString(".hub-secondary-grid .hub-how-list"));
+  }
 }
