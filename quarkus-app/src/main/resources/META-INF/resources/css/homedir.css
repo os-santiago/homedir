@@ -3783,6 +3783,14 @@ footer {
   text-decoration: none;
 }
 
+.event-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1.35;
+  text-align: start;
+}
+
 .event-date-box {
   background: rgba(var(--black-rgb), 0.3);
   padding: 0.5rem;
@@ -5790,6 +5798,7 @@ footer {
 
 .home-event-details .home-collaboration-item {
   display: flex;
+  align-items: baseline;
   gap: 0.35rem;
   padding: 0.55rem 0.72rem;
 }
