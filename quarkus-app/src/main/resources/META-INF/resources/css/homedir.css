@@ -3791,6 +3791,17 @@ footer {
   border-radius: 4px;
 }
 
+.event-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1.35;
+}
+
+.event-meta .material-symbols-outlined {
+  flex-shrink: 0;
+}
+
 .event-day {
   display: block;
   font-size: 1.2rem;

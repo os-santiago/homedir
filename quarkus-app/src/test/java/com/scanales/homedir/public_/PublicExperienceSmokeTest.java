@@ -60,6 +60,26 @@ public class PublicExperienceSmokeTest {
   }
 
   @Test
+  void eventsDateChipUsesBalancedLineHeightForTbaFallback() {
+    String html = fetchHtmlWithBudget("/eventos", EVENTS_HTML_BUDGET_BYTES);
+    assertTrue(html.contains("event-date-chip"), "date chip must be rendered");
+    assertTrue(
+        html.contains("line-height: 1.35"), "chip must use balanced line-height for multi-line TBA");
+    assertTrue(
+        html.contains("justify-content: center"),
+        "chip must center multi-line TBA fallback text horizontally");
+  }
+
+  @Test
+  void homedirCssStylesEventMetaForVerticalAlignment() {
+    String css = given().when().get("/css/homedir.css").then().statusCode(200).extract().asString();
+    assertTrue(css.contains(".event-meta"), "homedir.css must define .event-meta layout");
+    assertTrue(
+        css.contains("display: inline-flex"), "event meta must align icon and date vertically");
+    assertTrue(css.contains("align-items: center"), "event meta must vertically center its content");
+  }
+
+  @Test
   void projectsPageAvoidsKnownRuntimeRegressionPatterns() {
     String html = fetchHtmlWithBudget("/proyectos", PROJECTS_HTML_BUDGET_BYTES);
     assertTrue(html.contains("window.userAuthenticated"));
