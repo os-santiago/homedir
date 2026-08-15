@@ -32,7 +32,7 @@ public class TrendingService {
   @ConfigProperty(name = "trending.request-timeout", defaultValue = "PT15S")
   Duration requestTimeout;
 
-  @ConfigProperty(name = "trending.cache-ttl", defaultValue = "PT48H")
+  @ConfigProperty(name = "trending.cache-ttl", defaultValue = "PT6H")
   Duration cacheTtl;
 
   @ConfigProperty(name = "trending.default-count", defaultValue = "10")
@@ -67,6 +67,20 @@ public class TrendingService {
   private static final Pattern STARS_PATTERN =
       Pattern.compile(
           "([\\d,]+)\\s*stars\\s+(?:today|this\\s+week|this\\s+month)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern STARS_TODAY_PATTERN =
+      Pattern.compile(
+          "([\\d,]+)\\s*</a>\\s*(?:</div>\\s*)?<span[^>]*>\\s*stars\\s+today",
+          Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern FORKS_PATTERN =
+      Pattern.compile(
+          "([\\d,]+)\\s*</a>\\s*(?:</div>\\s*)?<span[^>]*>\\s*forks", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CONTRIBUTORS_PATTERN =
+      Pattern.compile(
+          "([\\d,]+)\\s*</a>\\s*(?:</div>\\s*)?<span[^>]*>\\s*contributors",
+          Pattern.CASE_INSENSITIVE);
 
   private static final Pattern LANGUAGE_PATTERN =
       Pattern.compile(
@@ -244,6 +258,36 @@ public class TrendingService {
         }
       }
 
+      int starsToday = 0;
+      Matcher starsTodayMatcher = STARS_TODAY_PATTERN.matcher(article);
+      if (starsTodayMatcher.find()) {
+        String starsTodayStr = starsTodayMatcher.group(1).replace(",", "");
+        try {
+          starsToday = Integer.parseInt(starsTodayStr);
+        } catch (NumberFormatException ignored) {
+        }
+      }
+
+      int forks = 0;
+      Matcher forksMatcher = FORKS_PATTERN.matcher(article);
+      if (forksMatcher.find()) {
+        String forksStr = forksMatcher.group(1).replace(",", "");
+        try {
+          forks = Integer.parseInt(forksStr);
+        } catch (NumberFormatException ignored) {
+        }
+      }
+
+      int contributors = 0;
+      Matcher contributorsMatcher = CONTRIBUTORS_PATTERN.matcher(article);
+      if (contributorsMatcher.find()) {
+        String contributorsStr = contributorsMatcher.group(1).replace(",", "");
+        try {
+          contributors = Integer.parseInt(contributorsStr);
+        } catch (NumberFormatException ignored) {
+        }
+      }
+
       String language = "";
       Matcher langMatcher = LANGUAGE_PATTERN.matcher(article);
       if (langMatcher.find()) {
@@ -252,10 +296,51 @@ public class TrendingService {
 
       String url = "https://github.com/" + owner + "/" + name;
 
-      repos.add(new TrendingRepo(name, owner, description, stars, language, url));
+      String descriptionEs = TrendingDescriptionCatalog.get(owner, name);
+
+      repos.add(
+          new TrendingRepo(
+              name, owner, description, stars, starsToday, forks, contributors, language, url,
+              descriptionEs));
     }
 
     return repos;
+  }
+
+  /** Filters a list of repos by language, minimum stars and free-text search. */
+  public List<TrendingRepo> filterRepos(
+      List<TrendingRepo> repos, String language, Integer minStars, String query) {
+    if (repos == null || repos.isEmpty()) {
+      return repos;
+    }
+    return repos.stream()
+        .filter(r -> language == null || language.isBlank() || language.equalsIgnoreCase(r.language()))
+        .filter(r -> minStars == null || r.stars() >= minStars)
+        .filter(
+            r ->
+                query == null
+                    || query.isBlank()
+                    || matchesQuery(r, query.trim()))
+        .toList();
+  }
+
+  /** Returns the distinct non-blank languages from a repo list, sorted. */
+  public List<String> extractLanguages(List<TrendingRepo> repos) {
+    if (repos == null) {
+      return List.of();
+    }
+    return repos.stream()
+        .map(TrendingRepo::language)
+        .filter(l -> l != null && !l.isBlank())
+        .distinct()
+        .sorted(String.CASE_INSENSITIVE_ORDER)
+        .toList();
+  }
+
+  private static boolean matchesQuery(TrendingRepo repo, String query) {
+    String needle = query.toLowerCase();
+    return (repo.name() != null && repo.name().toLowerCase().contains(needle))
+        || (repo.owner() != null && repo.owner().toLowerCase().contains(needle));
   }
 
   private TrendingCacheSnapshot getCache(TrendingPeriod period) {

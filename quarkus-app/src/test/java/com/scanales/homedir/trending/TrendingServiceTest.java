@@ -96,6 +96,122 @@ public class TrendingServiceTest {
   }
 
   @Test
+  public void testParseHtmlExtractsStarsToday() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    TrendingRepo react = repos.get(0);
+    assertEquals(1234, react.starsToday());
+    assertEquals(45678, react.stars(), "total stars should differ from stars today");
+
+    TrendingRepo goname =
+        repos.stream().filter(r -> r.name().equals("goname")).findFirst().orElseThrow();
+    assertEquals(3, goname.starsToday());
+  }
+
+  @Test
+  public void testParseHtmlExtractsForks() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    TrendingRepo react = repos.get(0);
+    assertEquals(12345, react.forks());
+
+    TrendingRepo hdl =
+        repos.stream().filter(r -> r.name().equals("hdl-lang")).findFirst().orElseThrow();
+    assertEquals(34, hdl.forks());
+  }
+
+  @Test
+  public void testParseHtmlExtractsContributors() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    TrendingRepo react = repos.get(0);
+    assertEquals(1001, react.contributors());
+
+    TrendingRepo ruff = repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
+    assertEquals(89, ruff.contributors());
+  }
+
+  @Test
+  public void testParseHtmlFillsDescriptionEsFromCatalog() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    TrendingRepo react = repos.get(0);
+    assertEquals(
+        "Biblioteca declarativa, eficiente y flexible de JavaScript para construir interfaces de usuario.",
+        react.descriptionEs());
+
+    TrendingRepo ruff = repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
+    assertEquals("Linter y formateador de Python extremadamente rápido, escrito en Rust.", ruff.descriptionEs());
+  }
+
+  @Test
+  public void testParseHtmlDescriptionEsFallsBackToNull() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    TrendingRepo goname =
+        repos.stream().filter(r -> r.name().equals("goname")).findFirst().orElseThrow();
+    assertNull(goname.descriptionEs(), "unknown repos should have null descriptionEs");
+  }
+
+  @Test
+  public void testFilterReposByLanguage() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    List<TrendingRepo> rust = trendingService.filterRepos(repos, "Rust", null, null);
+    assertEquals(1, rust.size());
+    assertEquals("ruff", rust.get(0).name());
+
+    List<TrendingRepo> none = trendingService.filterRepos(repos, "Kotlin", null, null);
+    assertTrue(none.isEmpty());
+  }
+
+  @Test
+  public void testFilterReposByMinStars() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    List<TrendingRepo> big = trendingService.filterRepos(repos, null, 1000, null);
+    assertEquals(3, big.size(), "react, ruff, langchain have >= 1000 stars");
+    assertTrue(big.stream().allMatch(r -> r.stars() >= 1000));
+
+    List<TrendingRepo> huge = trendingService.filterRepos(repos, null, 100000, null);
+    assertTrue(huge.isEmpty());
+  }
+
+  @Test
+  public void testFilterReposByQuery() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    List<TrendingRepo> byName = trendingService.filterRepos(repos, null, null, "react");
+    assertEquals(1, byName.size());
+    assertEquals("react", byName.get(0).name());
+
+    List<TrendingRepo> byOwner = trendingService.filterRepos(repos, null, null, "astral");
+    assertEquals(1, byOwner.size());
+    assertEquals("ruff", byOwner.get(0).name());
+
+    List<TrendingRepo> combined = trendingService.filterRepos(repos, null, null, "langchain");
+    assertEquals(1, combined.size());
+  }
+
+  @Test
+  public void testFilterReposNullInputs() {
+    assertNull(trendingService.filterRepos(null, null, null, null));
+    assertTrue(trendingService.filterRepos(List.of(), null, null, null).isEmpty());
+
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+    assertEquals(repos.size(), trendingService.filterRepos(repos, null, null, null).size());
+    assertEquals(repos.size(), trendingService.filterRepos(repos, "", null, "").size());
+  }
+
+  @Test
+  public void testExtractLanguages() {
+    List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
+
+    List<String> languages = trendingService.extractLanguages(repos);
+    assertEquals(List.of("Go", "JavaScript", "Python", "Rust"), languages);
+  }
+
+  @Test
   public void testParseHtmlHandlesMissingLanguage() {
     List<TrendingRepo> repos = trendingService.parseHtml(fixtureHtml);
 
