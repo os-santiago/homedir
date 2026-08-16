@@ -259,12 +259,8 @@ def test_notification_center_has_no_error_state() -> None:
 def test_no_unused_notification_error_i18n() -> None:
     """The notifications_center_error i18n key should NOT exist since the
     error state element was removed."""
-    en = Path(
-        "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages.properties"
-    ).read_text()
-    es = Path(
-        "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages_es.properties"
-    ).read_text()
+    en = Path("quarkus-app/src/main/resources/i18n.properties").read_text()
+    es = Path("quarkus-app/src/main/resources/i18n_es.properties").read_text()
     assert "notifications_center_error=" not in en
     assert "notifications_center_error=" not in es
 
