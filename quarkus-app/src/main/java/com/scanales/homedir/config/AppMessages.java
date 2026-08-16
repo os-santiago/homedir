@@ -6758,6 +6758,45 @@ public interface AppMessages {
   @Message("Visit repository")
   String trending_visit_repo();
 
+  @Message("Trending period selector")
+  String trending_period_selector_aria();
+
+  @Message("Language")
+  String trending_filter_language();
+
+  @Message("All languages")
+  String trending_filter_language_all();
+
+  @Message("Minimum stars")
+  String trending_filter_min_stars();
+
+  @Message("Any amount")
+  String trending_filter_min_any();
+
+  @Message("Search")
+  String trending_filter_search();
+
+  @Message("Search by name or owner…")
+  String trending_filter_search_placeholder();
+
+  @Message("Apply")
+  String trending_filter_apply();
+
+  @Message("Retry")
+  String trending_retry();
+
+  @Message("No repositories match the current filters.")
+  String trending_no_results();
+
+  @Message("{count} stars today")
+  String trending_stars_today(int count);
+
+  @Message("{count} forks")
+  String trending_forks(int count);
+
+  @Message("{count} contributors")
+  String trending_contributors(int count);
+
   @Message("Support")
   String footer_support();
 

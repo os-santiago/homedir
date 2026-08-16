@@ -22,7 +22,11 @@ public class TrendingResourceTest {
         "/trending?period=weekly&count=10",
         "/trending?period=invalid",
         "/trending?count=1",
-        "/trending?count=100");
+        "/trending?count=100",
+        "/trending?period=daily&count=5&lang=JavaScript",
+        "/trending?period=daily&count=5&minStars=1000",
+        "/trending?period=daily&count=5&q=react",
+        "/trending?period=daily&count=5&lang=Go&minStars=10&q=goname");
   }
 
   @ParameterizedTest(name = "{0}")

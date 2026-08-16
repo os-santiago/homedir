@@ -13,24 +13,67 @@
         <div class="hd-card trending-card">
             <h1 class="hd-page-title">{i18n:trending_heading}</h1>
 
-            <div class="trending-period-selector">
-                <a href="/trending?period=daily&count={count}"
-                   class="hd-btn {#if period == 'daily'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+            <div class="trending-period-selector" role="group" aria-label="{i18n:trending_period_selector_aria}">
+                <a href="/trending?period=daily&count={count}{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
+                   class="hd-btn {#if period == 'daily'}hd-btn-primary{#else}hd-btn-secondary{/if}" aria-current="{#if period == 'daily'}page{#else}false{/if}">
                     {i18n:trending_period_daily}
                 </a>
-                <a href="/trending?period=weekly&count={count}"
-                   class="hd-btn {#if period == 'weekly'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+                <a href="/trending?period=weekly&count={count}{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
+                   class="hd-btn {#if period == 'weekly'}hd-btn-primary{#else}hd-btn-secondary{/if}" aria-current="{#if period == 'weekly'}page{#else}false{/if}">
                     {i18n:trending_period_weekly}
                 </a>
-                <a href="/trending?period=monthly&count={count}"
-                   class="hd-btn {#if period == 'monthly'}hd-btn-primary{#else}hd-btn-secondary{/if}">
+                <a href="/trending?period=monthly&count={count}{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
+                   class="hd-btn {#if period == 'monthly'}hd-btn-primary{#else}hd-btn-secondary{/if}" aria-current="{#if period == 'monthly'}page{#else}false{/if}">
                     {i18n:trending_period_monthly}
                 </a>
             </div>
 
+            <form method="get" action="/trending" class="trending-filters" role="search">
+                <input type="hidden" name="period" value="{period}" />
+                <input type="hidden" name="count" value="{count}" />
+
+                <div class="trending-filter-field">
+                    <label for="trendingLang" class="trending-filter-label">{i18n:trending_filter_language}</label>
+                    <select id="trendingLang" name="lang" class="hd-form-input trending-filter-select" aria-label="{i18n:trending_filter_language}">
+                        <option value="" {#if !selectedLanguage}selected{/if}>{i18n:trending_filter_language_all}</option>
+                        {#for lang in languages}
+                        <option value="{lang}" {#if selectedLanguage == lang}selected{/if}>{lang}</option>
+                        {/for}
+                    </select>
+                </div>
+
+                <div class="trending-filter-field">
+                    <label for="trendingMinStars" class="trending-filter-label">{i18n:trending_filter_min_stars}</label>
+                    <select id="trendingMinStars" name="minStars" class="hd-form-input trending-filter-select" aria-label="{i18n:trending_filter_min_stars}">
+                        <option value="" {#if !minStars}selected{/if}>{i18n:trending_filter_min_any}</option>
+                        <option value="100" {#if minStars == 100}selected{/if}>100</option>
+                        <option value="1000" {#if minStars == 1000}selected{/if}>1 000</option>
+                        <option value="10000" {#if minStars == 10000}selected{/if}>10 000</option>
+                        <option value="50000" {#if minStars == 50000}selected{/if}>50 000</option>
+                    </select>
+                </div>
+
+                <div class="trending-filter-field trending-filter-search">
+                    <label for="trendingQuery" class="trending-filter-label">{i18n:trending_filter_search}</label>
+                    <input id="trendingQuery" type="search" name="q" value="{query}"
+                           class="hd-form-input" placeholder="{i18n:trending_filter_search_placeholder}"
+                           aria-label="{i18n:trending_filter_search}" />
+                </div>
+
+                <button type="submit" class="hd-btn hd-btn-sm hd-btn-primary trending-filter-apply">
+                    {i18n:trending_filter_apply}
+                </button>
+            </form>
+
             {#if repos.isEmpty()}
-            <div class="hd-alert hd-alert-info">
+            <div class="hd-alert hd-alert-info trending-error" role="alert">
                 <p>{i18n:trending_error_loading}</p>
+                {#if selectedLanguage || minStars || query}
+                <p>{i18n:trending_no_results}</p>
+                {/if}
+                <a href="/trending?period={period}&count={count}" class="hd-btn hd-btn-sm hd-btn-secondary">
+                    {i18n:trending_retry}
+                </a>
             </div>
             {#else}
             <div class="hd-grid trending-grid">
@@ -57,15 +100,36 @@
                     <div class="trending-repo-meta">
                         {#if repo.language}
                         <span class="trending-repo-language">
-                            <span class="material-symbols-outlined">code</span>
+                            <span class="material-symbols-outlined" aria-hidden="true">code</span>
                             {repo.language}
                         </span>
                         {/if}
 
                         {#if repo.stars > 0}
-                        <span class="trending-repo-stars">
-                            <span class="material-symbols-outlined">star</span>
+                        <span class="trending-repo-stars" aria-label="{i18n:trending_stars(repo.stars)}">
+                            <span class="material-symbols-outlined" aria-hidden="true">star</span>
                             {i18n:trending_stars(repo.stars)}
+                        </span>
+                        {/if}
+
+                        {#if repo.starsToday > 0}
+                        <span class="trending-repo-metric" aria-label="{i18n:trending_stars_today(repo.starsToday)}">
+                            <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                            {i18n:trending_stars_today(repo.starsToday)}
+                        </span>
+                        {/if}
+
+                        {#if repo.forks > 0}
+                        <span class="trending-repo-metric" aria-label="{i18n:trending_forks(repo.forks)}">
+                            <span class="material-symbols-outlined" aria-hidden="true">fork_right</span>
+                            {i18n:trending_forks(repo.forks)}
+                        </span>
+                        {/if}
+
+                        {#if repo.contributors > 0}
+                        <span class="trending-repo-metric" aria-label="{i18n:trending_contributors(repo.contributors)}">
+                            <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+                            {i18n:trending_contributors(repo.contributors)}
                         </span>
                         {/if}
                     </div>
@@ -80,13 +144,13 @@
             </div>
             {/if}
 
-            <div class="trending-count-selector">
+            <div class="trending-count-selector" role="group" aria-label="{i18n:trending_show_more}">
                 <span>{i18n:trending_show_more}:</span>
-                <a href="/trending?period={period}&count=1"
+                <a href="/trending?period={period}&count=1{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
                    class="hd-btn hd-btn-sm {#if count == 1}hd-btn-primary{#else}hd-btn-secondary{/if}">1</a>
-                <a href="/trending?period={period}&count=5"
+                <a href="/trending?period={period}&count=5{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
                    class="hd-btn hd-btn-sm {#if count == 5}hd-btn-primary{#else}hd-btn-secondary{/if}">5</a>
-                <a href="/trending?period={period}&count=10"
+                <a href="/trending?period={period}&count=10{#if selectedLanguage}&lang={selectedLanguage}{/if}{#if minStars}&minStars={minStars}{/if}{#if query}&q={query}{/if}"
                    class="hd-btn hd-btn-sm {#if count == 10}hd-btn-primary{#else}hd-btn-secondary{/if}">10</a>
             </div>
 
