@@ -168,11 +168,13 @@ class ReputationHubResourceTest {
             "7003",
             Instant.parse("2026-03-01T00:00:00Z")));
 
-    assertTrue(reputationEngineService.trackContentPublished("hub.user.three@example.com", "thread-c"));
+    assertTrue(
+        reputationEngineService.trackContentPublished("hub.user.three@example.com", "thread-c"));
     assertTrue(
         reputationEngineService.trackEventSpeaker(
             "hub.user.three@example.com", "submission-c", "event-c"));
-    assertTrue(reputationEngineService.trackQuestCompleted("hub.user.three@example.com", "quest-c"));
+    assertTrue(
+        reputationEngineService.trackQuestCompleted("hub.user.three@example.com", "quest-c"));
     assertTrue(reputationEngineService.trackEventAttended("hub.user.three@example.com", "talk-c"));
     assertTrue(
         reputationEngineService.trackVolunteerEngaged(
@@ -296,6 +298,6 @@ class ReputationHubResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("noavatar@example.com"))
-        .body(containsString("hub-avatar--placeholder"));
+        .body(containsString("hub-avatar-fallback"));
   }
 }
