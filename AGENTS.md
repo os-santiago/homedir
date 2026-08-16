@@ -274,9 +274,8 @@ OR: `pr:blocked` (merge conflicts or other blocker — needs contributor action)
 - JS: `quarkus-app/src/main/resources/META-INF/resources/js/`
 
 **i18n:**
-- `quarkus-app/src/main/resources/i18n.properties` (default/fallback)
-- `quarkus-app/src/main/resources/i18n_en.properties` (English)
-- `quarkus-app/src/main/resources/i18n_es.properties` (Spanish)
+- `quarkus-app/src/main/resources/messages/i18n.properties` (English default)
+- `quarkus-app/src/main/resources/messages/i18n_es.properties` (Spanish)
 - `quarkus-app/src/main/java/com/scanales/homedir/config/AppMessages.java` (Java interface)
 
 **Configuration:**

@@ -302,7 +302,7 @@ def test_i18n_messages_defined() -> None:
 
 def test_i18n_spanish_translations_exist() -> None:
     """Spanish translations must exist in i18n_es.properties."""
-    props = (ROOT / "quarkus-app/src/main/resources/i18n_es.properties").read_text()
+    props = (ROOT / "quarkus-app/src/main/resources/messages/i18n_es.properties").read_text()
     assert "nav_achievements=" in props, "Spanish nav_achievements missing"
     assert "achievements_heading=" in props, "Spanish achievements_heading missing"
     assert "achievements_claim_xp=" in props, "Spanish achievements_claim_xp missing"

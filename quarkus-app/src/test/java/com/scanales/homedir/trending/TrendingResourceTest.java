@@ -29,6 +29,7 @@ public class TrendingResourceTest {
   @MethodSource("trendingPageParams")
   public void testTrendingPage(String path) {
     RestAssured.given()
+        .header("Accept-Language", "en")
         .when()
         .get(path)
         .then()
@@ -46,6 +47,7 @@ public class TrendingResourceTest {
   public void testApiTrendingEndpoint(String path) {
     String apiPath = path.replace("/trending", "/api/trending");
     RestAssured.given()
+        .header("Accept-Language", "en")
         .when()
         .get(apiPath)
         .then()
@@ -58,7 +60,15 @@ public class TrendingResourceTest {
   @ParameterizedTest(name = "count selector appears on {0}")
   @MethodSource("trendingPageParams")
   public void testCountSelectorStructure(String path) {
-    String body = RestAssured.given().when().get(path).then().statusCode(200).extract().asString();
+    String body =
+        RestAssured.given()
+            .header("Accept-Language", "en")
+            .when()
+            .get(path)
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
 
     // The count selector links should always be in the page
     // (they may be inside or outside the if-empty block depending on data)
