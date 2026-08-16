@@ -18,6 +18,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.coobird.thumbnailator.Thumbnails;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -32,10 +34,14 @@ public class SpeakerPhotoProxyService {
           "www.gravatar.com",
           "secure.gravatar.com",
           "lh3.googleusercontent.com", // Google Photos public URLs
+          "drive.google.com", // migrated via direct download endpoint
           "cloudinary.com",
           "res.cloudinary.com",
           "imgur.com",
           "i.imgur.com");
+
+  private static final Pattern DRIVE_VIEW_PATTERN =
+      Pattern.compile("drive\\.google\\.com/file/d/([A-Za-z0-9_-]+)");
 
   @ConfigProperty(name = "speaker.photo.cache.enabled", defaultValue = "true")
   boolean cacheEnabled;
@@ -63,10 +69,12 @@ public class SpeakerPhotoProxyService {
 
   @Inject SpeakerService speakerService;
 
+  @Inject EventService eventService;
+
   public record PhotoResult(Path file, String contentType, String etag) {}
 
   public PhotoResult getPhoto(String speakerId) {
-    com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(speakerId);
+    com.scanales.homedir.model.Speaker sp = resolveSpeaker(speakerId);
 
     // 1. Check cache
     if (cacheEnabled && sp != null && sp.getPhotoUrl() != null) {
@@ -96,6 +104,30 @@ public class SpeakerPhotoProxyService {
     // 4. Generate default avatar
     Log.debugf("Generating default avatar for speaker %s", speakerId);
     return generateDefaultAvatar(sp != null ? sp.getName() : "?");
+  }
+
+  /** Resolves a speaker from the global registry or from any event agenda. */
+  private com.scanales.homedir.model.Speaker resolveSpeaker(String speakerId) {
+    com.scanales.homedir.model.Speaker sp = speakerService.getSpeaker(speakerId);
+    if (sp != null) {
+      return sp;
+    }
+    for (com.scanales.homedir.model.Event event : eventService.listEvents()) {
+      if (event.getAgenda() == null) {
+        continue;
+      }
+      for (com.scanales.homedir.model.Talk talk : event.getAgenda()) {
+        if (talk.getSpeakers() == null) {
+          continue;
+        }
+        for (com.scanales.homedir.model.Speaker s : talk.getSpeakers()) {
+          if (s != null && speakerId.equals(s.getId())) {
+            return s;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private PhotoResult getCached(String speakerId, String url) {
@@ -155,7 +187,8 @@ public class SpeakerPhotoProxyService {
   }
 
   private PhotoResult fetchAndCache(String speakerId, String url) {
-    if (!isAllowedUrl(url)) {
+    String fetchUrl = toDirectImageUrl(url);
+    if (!isAllowedUrl(fetchUrl)) {
       Log.warnf("Rejected photo URL from disallowed domain: %s", url);
       return null;
     }
@@ -171,7 +204,7 @@ public class SpeakerPhotoProxyService {
 
       HttpRequest request =
           HttpRequest.newBuilder()
-              .uri(URI.create(url))
+              .uri(URI.create(fetchUrl))
               .timeout(Duration.ofSeconds(fetchTimeoutSeconds))
               .header("User-Agent", "HomedirBot/1.0 (+https://homedir.opensourcesantiago.io)")
               .build();
@@ -180,7 +213,7 @@ public class SpeakerPhotoProxyService {
           client.send(request, HttpResponse.BodyHandlers.ofFile(tempFile));
 
       if (response.statusCode() != 200) {
-        Log.warnf("Failed to fetch photo from %s: HTTP %d", url, response.statusCode());
+        Log.warnf("Failed to fetch photo from %s: HTTP %d", fetchUrl, response.statusCode());
         Files.deleteIfExists(tempFile);
         return null;
       }
@@ -188,14 +221,14 @@ public class SpeakerPhotoProxyService {
       // Check size
       long size = Files.size(tempFile);
       if (size > maxSizeMb * 1024 * 1024) {
-        Log.warnf("Photo too large from %s: %d MB", url, size / 1024 / 1024);
+        Log.warnf("Photo too large from %s: %d MB", fetchUrl, size / 1024 / 1024);
         Files.deleteIfExists(tempFile);
         return null;
       }
 
       // Validate image
       if (!isValidImage(tempFile)) {
-        Log.warnf("Invalid image from URL: %s", url);
+        Log.warnf("Invalid image from URL: %s", fetchUrl);
         Files.deleteIfExists(tempFile);
         return null;
       }
@@ -237,6 +270,21 @@ public class SpeakerPhotoProxyService {
       Log.warnf(e, "Error fetching photo from %s for speaker %s", url, speakerId);
       return null;
     }
+  }
+
+  /**
+   * Converts a Google Drive view URL ({@code drive.google.com/file/d/{id}/view...}) into a direct
+   * image URL that can be downloaded server-side. Non-Drive URLs are returned unchanged.
+   */
+  static String toDirectImageUrl(String url) {
+    if (url == null) {
+      return null;
+    }
+    Matcher m = DRIVE_VIEW_PATTERN.matcher(url);
+    if (m.find()) {
+      return "https://drive.google.com/uc?export=view&id=" + m.group(1);
+    }
+    return url;
   }
 
   private boolean isAllowedUrl(String urlStr) {

@@ -293,7 +293,7 @@
                                     {#for s in t.speakers}
                                     <a href="/speaker/{s.id}?event={event.id}" title="{s.name}" style="text-decoration: none;">
                                         {#if app:validUrl(s.photoUrl)}
-                                        <img src="{s.photoUrl}" alt="{s.name}" class="avatar">
+                                        <img src="/speaker/{s.id}/photo" alt="{s.name}" class="avatar">
                                         {#else}
                                         <span class="avatar placeholder"><span class="material-symbols-outlined" style="font-size: 16px;">person</span></span>
                                         {/if}
