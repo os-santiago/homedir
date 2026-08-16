@@ -156,6 +156,40 @@ class ReputationHubResourceTest {
   }
 
   @Test
+  void reputationHubShowsInitialsFallbackForMembersWithoutAvatar() {
+    userProfileService.linkGithub(
+        "hub.user.three@example.com",
+        "Hub User Three",
+        "hub.user.three@example.com",
+        new UserProfile.GithubAccount(
+            "hub-user-three",
+            "https://github.com/hub-user-three",
+            null,
+            "7003",
+            Instant.parse("2026-03-01T00:00:00Z")));
+
+    assertTrue(reputationEngineService.trackContentPublished("hub.user.three@example.com", "thread-c"));
+    assertTrue(
+        reputationEngineService.trackEventSpeaker(
+            "hub.user.three@example.com", "submission-c", "event-c"));
+    assertTrue(reputationEngineService.trackQuestCompleted("hub.user.three@example.com", "quest-c"));
+    assertTrue(reputationEngineService.trackEventAttended("hub.user.three@example.com", "talk-c"));
+    assertTrue(
+        reputationEngineService.trackVolunteerEngaged(
+            "hub.user.three@example.com", "volunteer", "volunteer-c"));
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/reputation-hub")
+        .then()
+        .statusCode(200)
+        .body(containsString("hub-avatar-fallback"))
+        .body(containsString("Hub User Three"))
+        .body(not(containsString("https://avatars.githubusercontent.com/u/7003")));
+  }
+
+  @Test
   void reputationHubRendersLocalizedCopyInSpanish() {
     given()
         .header("Accept-Language", "en")
