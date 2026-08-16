@@ -63,6 +63,37 @@
   font-size: 0.84rem;
 }
 
+.hub-instructional-panel h2,
+.hub-instructional-panel .hub-panel-intro,
+.hub-instructional-panel .hub-recognition-hint,
+.hub-instructional-panel .hub-empty {
+  text-align: center;
+}
+
+.hub-instructional-panel .hub-how-list {
+  justify-items: center;
+}
+
+.hub-instructional-panel .hub-how-list li {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.hub-instructional-panel .hub-how-list strong,
+.hub-instructional-panel .hub-how-list p {
+  text-align: center;
+}
+
+.hub-instructional-panel .hub-recognition-item {
+  text-align: left;
+}
+
 .hub-migration-banner {
   grid-column: 1 / -1;
   margin: 0;
