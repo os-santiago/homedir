@@ -36,7 +36,7 @@ TEST_FILE_PATTERNS = [
 ]
 
 I18N_FILES = {
-    "i18n.properties", "i18n_en.properties", "i18n_es.properties",
+    "i18n.properties", "i18n_es.properties",
     "AppMessages.java",
 }
 
@@ -122,15 +122,15 @@ def validate_i18n(pr) -> tuple:
         return True, "No i18n files modified (label not required but acceptable)."
 
     # If any i18n file is modified, check that both EN and ES are present
-    has_en = "i18n_en.properties" in modified_i18n
+    has_en = "i18n.properties" in modified_i18n
     has_es = "i18n_es.properties" in modified_i18n
 
     if has_en and has_es:
         return True, "Both EN and ES i18n files modified."
     if has_en and not has_es:
-        return False, "i18n_en.properties modified but i18n_es.properties is missing. Add ES translations."
+        return False, "i18n.properties modified but i18n_es.properties is missing. Add ES translations."
     if has_es and not has_en:
-        return False, "i18n_es.properties modified but i18n_en.properties is missing. Add EN translations."
+        return False, "i18n_es.properties modified but i18n.properties is missing. Add EN translations."
 
     return True, "i18n files modified (base only)."
 

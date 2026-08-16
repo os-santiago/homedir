@@ -9,18 +9,18 @@ RESOURCE_DIR = ROOT / "quarkus-app" / "src" / "main" / "resources"
 TEMPLATE_DIR = RESOURCE_DIR / "templates"
 APP_MESSAGES = ROOT / "quarkus-app" / "src" / "main" / "java" / "com" / "scanales" / "homedir" / "config" / "AppMessages.java"
 BUNDLES = [
-    RESOURCE_DIR / "i18n.properties",
-    RESOURCE_DIR / "i18n_en.properties",
-    RESOURCE_DIR / "i18n_es.properties",
+    RESOURCE_DIR / "messages" / "i18n.properties",
+    RESOURCE_DIR / "messages" / "i18n_es.properties",
 ]
 KEY_RE = re.compile(r"^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$")
 I18N_REFERENCE_RE = re.compile(r"\{i18n:([A-Za-z0-9_.-]+)(?:\([^{}]*\))?\}")
 APP_MESSAGE_METHOD_RE = re.compile(r"\bString\s+([A-Za-z0-9_]+)\s*\([^)]*\)\s*;")
 REDUNDANT_FILES = [
+    RESOURCE_DIR / "i18n.properties",
+    RESOURCE_DIR / "i18n_en.properties",
+    RESOURCE_DIR / "i18n_es.properties",
     RESOURCE_DIR / "messages.properties",
     RESOURCE_DIR / "messages_es.properties",
-    RESOURCE_DIR / "messages" / "i18n.properties",
-    RESOURCE_DIR / "messages" / "i18n_es.properties",
 ]
 
 

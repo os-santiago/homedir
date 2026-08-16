@@ -17,21 +17,22 @@ public class I18nIntegrityTest {
 
   @Test
   void everyMessageMethodHasKeyInEnAndEsBundles() throws Exception {
-    Set<String> enKeys = loadKeys("/i18n.properties");
-    Set<String> esKeys = loadKeys("/i18n_es.properties");
+    Set<String> enKeys = loadKeys("/messages/i18n.properties");
+    Set<String> esKeys = loadKeys("/messages/i18n_es.properties");
 
     for (Method method : AppMessages.class.getDeclaredMethods()) {
       String key = method.getName();
-      assertTrue(enKeys.contains(key), "Missing key '" + key + "' in i18n.properties");
-      assertTrue(esKeys.contains(key), "Missing key '" + key + "' in i18n_es.properties");
+      assertTrue(enKeys.contains(key), "Missing key '" + key + "' in messages/i18n.properties");
+      assertTrue(esKeys.contains(key), "Missing key '" + key + "' in messages/i18n_es.properties");
     }
   }
 
   @Test
   void enAndEsBundlesHaveIdenticalKeySets() throws Exception {
-    Set<String> enKeys = loadKeys("/i18n.properties");
-    Set<String> esKeys = loadKeys("/i18n_es.properties");
-    assertEquals(enKeys, esKeys, "i18n.properties and i18n_es.properties key sets differ");
+    Set<String> enKeys = loadKeys("/messages/i18n.properties");
+    Set<String> esKeys = loadKeys("/messages/i18n_es.properties");
+    assertEquals(
+        enKeys, esKeys, "messages/i18n.properties and messages/i18n_es.properties key sets differ");
   }
 
   private static Set<String> loadKeys(String resource) throws Exception {
