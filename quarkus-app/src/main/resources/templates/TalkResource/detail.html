@@ -88,7 +88,7 @@
         {#for s in talk.speakers}
         <a href="/speaker/{s.id}{#if event}?event={event.id}{/if}" title="{s.name}" class="hd-link">
           {#if app:validUrl(s.photoUrl)}
-          <img src="{s.photoUrl}" alt="{s.name}" class="avatar" width="48" height="48">
+          <img src="/speaker/{s.id}/photo" alt="{s.name}" class="avatar" width="48" height="48">
           {#else}
           <span class="avatar placeholder"><span class="material-symbols-outlined">person</span></span>
           {/if}
