@@ -36,7 +36,7 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Home</a>"));
+        .body(containsString(">Inicio</a>"));
   }
 
   @Test
@@ -49,7 +49,7 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Home</a>"));
+        .body(containsString(">Inicio</a>"));
   }
 
   @Test
@@ -63,7 +63,7 @@ public class HomeTimelineTest {
         .then()
         .statusCode(200)
         .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Home</a>"));
+        .body(containsString(">Inicio</a>"));
   }
 
   @Test
