@@ -16,15 +16,15 @@
     <p class="section-subtitle">{i18n:reputation_hub_intro}</p>
   </header>
   {#include fragments/community-submenu.html /}
-  {#if showHubMigrationBanner}
-    <article class="hub-migration-banner">
-      <span class="hub-migration-badge">{i18n:reputation_hub_migration_badge}</span>
-      <h2>{i18n:reputation_hub_migration_title}</h2>
-      <p>{i18n:reputation_hub_migration_desc}</p>
-    </article>
-  {/if}
 
   <section class="page-grid">
+    {#if showHubMigrationBanner}
+      <article class="hub-migration-banner events-full-width">
+        <span class="hub-migration-badge">{i18n:reputation_hub_migration_badge}</span>
+        <h2>{i18n:reputation_hub_migration_title}</h2>
+        <p>{i18n:reputation_hub_migration_desc}</p>
+      </article>
+    {/if}
     <div class="section-card events-full-width hub-shell">
       <div class="hub-hero-grid">
         <article class="hub-hero-card">
