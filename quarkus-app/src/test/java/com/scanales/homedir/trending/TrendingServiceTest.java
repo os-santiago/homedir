@@ -127,7 +127,8 @@ public class TrendingServiceTest {
     TrendingRepo react = repos.get(0);
     assertEquals(1001, react.contributors());
 
-    TrendingRepo ruff = repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
+    TrendingRepo ruff =
+        repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
     assertEquals(89, ruff.contributors());
   }
 
@@ -140,8 +141,11 @@ public class TrendingServiceTest {
         "Biblioteca declarativa, eficiente y flexible de JavaScript para construir interfaces de usuario.",
         react.descriptionEs());
 
-    TrendingRepo ruff = repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
-    assertEquals("Linter y formateador de Python extremadamente rápido, escrito en Rust.", ruff.descriptionEs());
+    TrendingRepo ruff =
+        repos.stream().filter(r -> r.name().equals("ruff")).findFirst().orElseThrow();
+    assertEquals(
+        "Linter y formateador de Python extremadamente rápido, escrito en Rust.",
+        ruff.descriptionEs());
   }
 
   @Test

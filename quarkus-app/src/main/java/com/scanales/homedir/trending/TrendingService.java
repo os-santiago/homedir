@@ -300,7 +300,15 @@ public class TrendingService {
 
       repos.add(
           new TrendingRepo(
-              name, owner, description, stars, starsToday, forks, contributors, language, url,
+              name,
+              owner,
+              description,
+              stars,
+              starsToday,
+              forks,
+              contributors,
+              language,
+              url,
               descriptionEs));
     }
 
@@ -314,13 +322,10 @@ public class TrendingService {
       return repos;
     }
     return repos.stream()
-        .filter(r -> language == null || language.isBlank() || language.equalsIgnoreCase(r.language()))
-        .filter(r -> minStars == null || r.stars() >= minStars)
         .filter(
-            r ->
-                query == null
-                    || query.isBlank()
-                    || matchesQuery(r, query.trim()))
+            r -> language == null || language.isBlank() || language.equalsIgnoreCase(r.language()))
+        .filter(r -> minStars == null || r.stars() >= minStars)
+        .filter(r -> query == null || query.isBlank() || matchesQuery(r, query.trim()))
         .toList();
   }
 

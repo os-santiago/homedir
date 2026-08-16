@@ -66,8 +66,7 @@ public final class TrendingDescriptionCatalog {
               "vercel/next.js",
               "Framework de React para la web, con renderizado del lado del servidor y generación estática."),
           Map.entry(
-              "facebook/jest",
-              "Framework de pruebas de JavaScript con enfoque en la simplicidad."),
+              "facebook/jest", "Framework de pruebas de JavaScript con enfoque en la simplicidad."),
           Map.entry(
               "npm/cli",
               "La CLI de npm, el administrador de paquetes de JavaScript más grande del mundo."));

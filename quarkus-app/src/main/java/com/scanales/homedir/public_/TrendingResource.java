@@ -60,7 +60,8 @@ public class TrendingResource {
     Integer minStars = normalizeMinStars(minStarsParam);
 
     List<TrendingRepo> repos = trendingService.getTrending(period, count);
-    List<TrendingRepo> filtered = trendingService.filterRepos(repos, langParam, minStars, queryParam);
+    List<TrendingRepo> filtered =
+        trendingService.filterRepos(repos, langParam, minStars, queryParam);
     List<String> languages = trendingService.extractLanguages(repos);
 
     String lastUpdated = formatLastUpdated(repos);
