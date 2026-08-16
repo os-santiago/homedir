@@ -298,6 +298,6 @@ class ReputationHubResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("noavatar@example.com"))
-        .body(containsString("hub-avatar--placeholder"));
+        .body(containsString("hub-avatar-fallback"));
   }
 }
