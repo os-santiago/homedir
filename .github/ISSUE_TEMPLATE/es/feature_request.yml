@@ -1,12 +1,13 @@
 name: Solicitud de Funcionalidad
 description: Sugiere una nueva funcionalidad o mejora
 title: "[Feature] "
-labels: ["enhancement", "triage"]
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
         Gracias por sugerir una funcionalidad. Describe el problema que resuelve.
+        _Plantilla en español. English template available at the top level._
 
   - type: dropdown
     id: priority

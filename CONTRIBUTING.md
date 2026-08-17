@@ -45,17 +45,47 @@ This certifies that you have the right to submit the contribution under the Apac
 
 ## Pull Request Guidelines
 
-- Reference the issue: `Closes #XXX`
-- Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `chore:`, etc.
-- Ensure all CI checks pass
+- **MUST** reference the issue: `Closes #XXX` or `Fixes #XXX` — no exceptions. If there's no issue, create one first.
+- **MUST** use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `chore:`, etc.
+- **MUST** write PR title, body, and commits in **English**.
+- **MUST** use branch naming: `feat/issue-XXX-description`, `fix/issue-XXX-description`, `docs/issue-XXX-description`.
+- **MUST** include `Signed-off-by` in commits (`git commit -s`).
+- **MUST** add exactly one `pr:risk-*` label (`pr:risk-low`, `pr:risk-medium`, `pr:risk-high`, `pr:risk-critical`) based on change type
+- **MUST NOT** apply `pr:` state labels (`pr:draft`, `pr:needs-review`, `pr:approved`, etc.) — those are managed by automation
+- Ensure all CI checks pass before merge
 - Update documentation if needed
 - Add tests for new functionality
+- Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`) when available
 
 ## Code Style
 
 - Java: Follow existing project conventions (Quarkus)
 - Python: Follow PEP 8
-- Documentation: Use Markdown with English as primary, Spanish stubs where applicable
+- Documentation: Use Markdown. Both English and Spanish are acceptable.
+
+## Language Policy
+
+| Element | Rule |
+|---------|------|
+| **PRs** (title, body, commits, branch names) | English **mandatory** — no exceptions |
+| **Issues** | English **default** (EN templates). Spanish **optional** via `es/` templates |
+| **Documentation** | Both English and Spanish are acceptable |
+| **Internal rules/governance** | Both English and Spanish are acceptable |
+| **Labels** | English only (no legacy ES labels) |
+
+**Deprecated labels:** The following Spanish labels are deprecated and will be auto-migrated to their English equivalents by CI:
+
+| Legacy (ES) | Canonical (EN) |
+|-------------|----------------|
+| `error` | `bug` |
+| `mejora` | `enhancement` |
+| `buen primer issue` | `good first issue` |
+| `no valido` | `invalid` |
+| `no solucionar` | `wontfix` |
+| `pregunta` | `question` |
+| `Se necesita ayuda` | `help wanted` |
+
+Do not apply legacy ES labels to new issues or PRs.
 
 ## Labels Guide
 
@@ -86,7 +116,6 @@ Labels help organize issues and PRs, track their status, and identify work eligi
 **Status Labels:**
 - `good first issue` / `buen primer issue` - Good for newcomers
 - `help wanted` / `Se necesita ayuda` - Extra attention needed
-- `wip-pr` - Someone is working on this (has a PR or draft PR)
 - `needs-human` - Requires human decision or intervention
 
 **Resolution Labels:**
@@ -96,40 +125,73 @@ Labels help organize issues and PRs, track their status, and identify work eligi
 
 ### Pull Request Labels
 
-**Workflow Status:**
-- `wip-pr` - Work in progress
-- `ready-to-implement` - Ready for review/merge
+**PR State Labels** (managed by automation — do NOT apply manually):
+- `pr:draft` - PR is draft / work in progress
+- `pr:checks-pending` - CI checks are running
+- `pr:checks-failed` - CI checks are failing
+- `pr:needs-review` - CI green, ready for maintainer review
+- `pr:changes-requested` - Maintainer requested changes
+- `pr:approved` - Required human approvals met per risk level
+- `pr:merged` - PR has been merged
+- `pr:blocked` - Blocked: merge conflicts or other blocker
 
-**Automated SDLC Labels (managed by automation):**
-- `scc-queued` - In AI SDLC queue
-- `scc-running` - AI worker claimed this
-- `scc-pr-open` - AI worker opened PR
-- `scc-waiting-checks` - Waiting for CI checks
-- `scc-under-review` - Under automated review
-- `scc-approved` - Passed checks and review
-- `scc-merged` - Successfully merged
-- `scc-failed` - Failed, needs inspection
-- `scc-failing-checks` - Has failing CI checks
-- `scc-coverage-gap` - Lacks issue coverage
+**PR Risk Labels** (applied by contributor, exactly one required):
+- `pr:risk-low` - Docs, typos, config (min 1 approval)
+- `pr:risk-medium` - Features, refactors, new deps (min 2 approvals, 1 code owner)
+- `pr:risk-high` - Security, breaking changes (min 2 approvals, code owners + security)
+- `pr:risk-critical` - Auth, encryption, financial (min 3 approvals, code owners + security)
+
+**PR Self-Attestation Labels** (applied by contributor, auto-validated by CI):
+- `pr:traceability-ok` - `Closes #N` present, issue exists with priority + type labels
+- `pr:acceptance-ok` - All acceptance criteria from linked issue are met
+- `pr:tests-ok` - Tests added/updated for new functionality
+- `pr:i18n-ok` - i18n complete (EN + ES) for user-facing changes
 
 ### How to Use Labels
 
 **When creating an issue:**
-1. Add a **type label** (`bug`, `feature-request`, etc.)
-2. Add a **priority label** if urgent (`priority:P0`, `priority:P1`)
+1. **MUST** add a **type label** (`bug`, `enhancement`, `documentation`, `feature-request`, `platform-maintenance`)
+2. **MUST** add a **priority label** (`priority:P0`–`priority:P3`). If unsure, use `priority:P2`.
 3. Admins will add **Bounty Hunter labels** if eligible
 4. Add `help wanted` if you need assistance
+5. Add `needs-human` if a human decision is required
 
 **When creating a PR:**
-1. Reference the issue: `Closes #XXX`
-2. Add `wip-pr` if still working on it
-3. CI and reviewers will add other labels as needed
+1. **MUST** reference the issue: `Closes #XXX` or `Fixes #XXX`
+2. **MUST** add exactly one `pr:risk-*` label based on change type
+3. **SHOULD** add self-attestation labels (`pr:traceability-ok`, `pr:tests-ok`, `pr:i18n-ok`, `pr:acceptance-ok`) when applicable
+4. CI will auto-assign PR state labels (`pr:checks-pending`, `pr:needs-review`, `pr:approved`, etc.)
+5. **MUST NOT** apply `pr:` state labels manually — those are managed by automation
 
 **Note:** Bounty Hunter points are awarded when:
 - Issue is validated by admins (for issue creators)
 - PR is merged (for PR authors)
 
 See [GOVERNANCE.md](GOVERNANCE.md) for label management permissions.
+
+## Interacting with AI-Assisted PRs
+
+This repository uses AI-assisted workflows where contributors' AI tools pre-verify and tag PRs. Here's how to interact:
+
+- If a PR has `pr:draft`, the contributor is still working — don't review yet
+- If a PR has `pr:needs-review`, CI is green and it's ready for maintainer review
+- If a PR has `pr:changes-requested`, a maintainer has requested changes — wait for the contributor to address them
+- If a PR has `pr:approved`, the required human approvals have been met based on the `pr:risk-*` label
+- Self-attestation labels (`pr:traceability-ok`, `pr:tests-ok`, `pr:i18n-ok`, `pr:acceptance-ok`) indicate the contributor's AI has pre-verified these aspects — the `pr-readiness-validator.yml` workflow auto-validates and removes false claims
+- If an issue has the `needs-human` label, it requires human decision — AI agents should not proceed
+- The PR label lifecycle: `pr:draft` → `pr:checks-pending` → `pr:needs-review` → `pr:approved` → `pr:merged`
+
+## Governance Documents
+
+The repository includes governance documents in `config/docs/governance/`. Contributors should be aware of:
+
+- [Definition of Ready/Done](config/docs/governance/DEFINITION_OF_READY_DONE.md) — Criteria for issues to be ready for work and complete
+- [Triage Runbook](config/docs/governance/TRIAGE_RUNBOOK.md) — Issue triage process
+- [PR Review Policy](config/docs/governance/PR_REVIEW_POLICY.md) — Approval requirements by risk level
+- [Severity/Priority Contract](config/docs/governance/SEVERITY_PRIORITY_CONTRACT.md) — Severity × Priority matrix
+- [Label Taxonomy](config/docs/governance/LABEL_TAXONOMY.md) — Canonical label catalog
+- [Reviewer Checklist](config/docs/governance/REVIEWER_CHECKLIST.md) — Review checklist by change type
+- [AGENTS.md](AGENTS.md) — Full guide for AI agents working on this repo
 
 ## Need Help?
 

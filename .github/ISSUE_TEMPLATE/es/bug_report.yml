@@ -1,12 +1,13 @@
 name: Reporte de Bug
 description: Reporta un error para ayudarnos a mejorar
 title: "[Bug] "
-labels: ["bug", "triage"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Gracias por reportar un error. Proporciona la mayor cantidad de detalles posible.
+        _Plantilla en español. English template available at the top level._
 
   - type: dropdown
     id: severity

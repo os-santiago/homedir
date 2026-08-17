@@ -34,7 +34,14 @@ public class TrendingResource {
   @CheckedTemplate
   static class Templates {
     static native TemplateInstance index(
-        List<TrendingRepo> repos, String period, int count, String lastUpdated);
+        List<TrendingRepo> repos,
+        String period,
+        int count,
+        String lastUpdated,
+        List<String> languages,
+        String selectedLanguage,
+        Integer minStars,
+        String query);
   }
 
   @GET
@@ -43,25 +50,48 @@ public class TrendingResource {
   public TemplateInstance index(
       @QueryParam("period") String periodParam,
       @QueryParam("count") Integer countParam,
+      @QueryParam("lang") String langParam,
+      @QueryParam("minStars") Integer minStarsParam,
+      @QueryParam("q") String queryParam,
       @jakarta.ws.rs.CookieParam("QP_LOCALE") String localeCookie) {
 
     TrendingPeriod period = TrendingPeriod.fromString(periodParam);
     int count = normalizeCount(countParam);
+    Integer minStars = normalizeMinStars(minStarsParam);
 
     List<TrendingRepo> repos = trendingService.getTrending(period, count);
+    List<TrendingRepo> filtered =
+        trendingService.filterRepos(repos, langParam, minStars, queryParam);
+    List<String> languages = trendingService.extractLanguages(repos);
 
     String lastUpdated = formatLastUpdated(repos);
 
     boolean authenticated = isAuthenticated();
     String name = currentUserName();
 
-    TemplateInstance template = Templates.index(repos, period.toGithubPath(), count, lastUpdated);
+    TemplateInstance template =
+        Templates.index(
+            filtered,
+            period.toGithubPath(),
+            count,
+            lastUpdated,
+            languages,
+            langParam,
+            minStars,
+            queryParam);
 
     return TemplateLocaleUtil.apply(template, localeCookie)
         .data("activePage", "trending")
         .data("userAuthenticated", authenticated)
         .data("userName", name)
         .data("userInitial", initialFrom(name));
+  }
+
+  private Integer normalizeMinStars(Integer minStars) {
+    if (minStars == null || minStars < 0) {
+      return null;
+    }
+    return minStars;
   }
 
   private int normalizeCount(Integer count) {

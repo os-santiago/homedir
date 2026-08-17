@@ -1,12 +1,13 @@
 name: Feature Request
 description: Suggest a new feature or enhancement
 title: "[Feature] "
-labels: ["enhancement", "triage"]
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for suggesting a feature! Please describe the problem you're trying to solve.
+        _Please write in English. Spanish template available at `es/` if needed._
 
   - type: dropdown
     id: priority

@@ -6758,6 +6758,45 @@ public interface AppMessages {
   @Message("Visit repository")
   String trending_visit_repo();
 
+  @Message("Trending period selector")
+  String trending_period_selector_aria();
+
+  @Message("Language")
+  String trending_filter_language();
+
+  @Message("All languages")
+  String trending_filter_language_all();
+
+  @Message("Minimum stars")
+  String trending_filter_min_stars();
+
+  @Message("Any amount")
+  String trending_filter_min_any();
+
+  @Message("Search")
+  String trending_filter_search();
+
+  @Message("Search by name or owner…")
+  String trending_filter_search_placeholder();
+
+  @Message("Apply")
+  String trending_filter_apply();
+
+  @Message("Retry")
+  String trending_retry();
+
+  @Message("No repositories match the current filters.")
+  String trending_no_results();
+
+  @Message("{count} stars today")
+  String trending_stars_today(int count);
+
+  @Message("{count} forks")
+  String trending_forks(int count);
+
+  @Message("{count} contributors")
+  String trending_contributors(int count);
+
   @Message("Support")
   String footer_support();
 
@@ -7190,6 +7229,18 @@ public interface AppMessages {
 
   @Message("Verification unavailable")
   String achievements_verification_unavailable();
+
+  @Message("PRO")
+  String achievement_highlight_pro_label();
+
+  @Message("Developer Program Member")
+  String achievement_highlight_developer_program_label();
+
+  @Message("Security Bug Bounty Hunter")
+  String achievement_highlight_security_bounty_label();
+
+  @Message("Discussions answered")
+  String achievement_highlight_galaxy_brain_label();
 
   @Message(
       "ID,User ID,Nombre,Email,Estado,Sobre mí,Razón para unirse,Diferenciador,Rating,Notas de revisión,Fecha creación,Fecha actualización")

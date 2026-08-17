@@ -13,18 +13,13 @@ A Discord bot designed to help manage community interactions and GitHub issue tr
 
 ## Discord Slash Commands
 
-### `/ayuda` - Help Command
-Displays comprehensive help information about available bot commands and features.
+### `/crear-issue` - Create Issue Command
+Creates a new GitHub issue in the configured repository.
 
 **Usage:**
 ```
-/ayuda
+/crear-issue <titulo> [descripcion] [labels]
 ```
-
-**Response:** Provides a formatted embed with:
-- List of available commands
-- Brief description of each command
-- How to use the bot effectively
 
 ### `/mis-issues` - My Issues Command
 Retrieves and displays GitHub issues assigned to or created by the user.
@@ -80,14 +75,13 @@ DISCORD_GUILD_ID=your_guild_id_here  # Optional, for guild-specific commands
 
 # GitHub Configuration
 GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_REPO_OWNER=your_organization_or_username
-GITHUB_REPO_NAME=your_repository_name
+GITHUB_REPO=owner/repository  # e.g. os-santiago/homedir
 
-# Bot Configuration (Optional)
-BOT_PREFIX=!  # Fallback prefix for non-slash commands
+# Logging (Optional)
 LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-COMMAND_COOLDOWN=5  # Seconds between command uses per user
 ```
+
+> **Note**: Aligns with `.env.example`. There is no `GITHUB_REPO_OWNER`/`GITHUB_REPO_NAME` split nor a `BOT_PREFIX` fallback; GitHub is configured with the single `GITHUB_REPO` variable in `owner/repo` format.
 
 ### Step 4: Configure Discord Bot Permissions
 
@@ -176,7 +170,7 @@ To deploy commands to a specific guild (faster updates during development):
 ┌─────────────────┐
 │  Discord User   │
 └────────┬────────┘
-         │ /ayuda or /mis-issues
+         │ /crear-issue or /mis-issues
          ▼
 ┌─────────────────────────┐
 │   Discord.py Client     │
@@ -285,7 +279,7 @@ Key metrics to monitor:
 - [ ] Implement database for persistent storage (PostgreSQL)
 - [ ] Add health check endpoint
 - [ ] Enhance error messages with suggested actions
-- [ ] Add more slash commands (e.g., `/create-issue`, `/search-issues`)
+- [ ] Add more slash commands (e.g., `/search-issues`, `/ayuda` help command)
 
 #### Medium-term (3-6 months)
 - [ ] Multi-server support with isolated configurations
@@ -396,6 +390,6 @@ For support, please:
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** 2026-06-18  
+**Version:** 1.0.1  
+**Last Updated:** 2026-08-11  
 **Maintainer:** HomeDir Team

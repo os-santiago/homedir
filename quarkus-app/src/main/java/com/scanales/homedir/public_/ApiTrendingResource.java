@@ -19,7 +19,11 @@ public class ApiTrendingResource {
   public TemplateInstance index(
       @QueryParam("period") String periodParam,
       @QueryParam("count") Integer countParam,
+      @QueryParam("lang") String langParam,
+      @QueryParam("minStars") Integer minStarsParam,
+      @QueryParam("q") String queryParam,
       @CookieParam("QP_LOCALE") String localeCookie) {
-    return delegate.index(periodParam, countParam, localeCookie);
+    return delegate.index(
+        periodParam, countParam, langParam, minStarsParam, queryParam, localeCookie);
   }
 }

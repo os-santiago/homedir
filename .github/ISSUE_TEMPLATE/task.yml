@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Use this template for well-defined tasks. For bugs, use the Bug Report template.
+        _Please write in English. Spanish template available at `es/` if needed._
 
   - type: dropdown
     id: type

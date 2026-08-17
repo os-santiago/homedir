@@ -1,12 +1,13 @@
 name: Bug Report
 description: Report a bug to help us improve
 title: "[Bug] "
-labels: ["bug", "triage"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+        _Please write in English. Spanish template available at `es/` if needed._
 
   - type: dropdown
     id: severity

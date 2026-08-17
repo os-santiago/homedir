@@ -3,6 +3,8 @@
 **Parent Issue:** [#838 - IA Governance](https://github.com/os-santiago/homedir/issues/838)  
 **Issue:** [#858 - DAST/Fuzzing Integration](https://github.com/os-santiago/homedir/issues/858)
 
+> **Status**: ⚠️ **DRAFT — NOT IMPLEMENTED.** The artifacts referenced in this spec do not exist in the repo (verified 2026-08-11): `.github/workflows/dast-scan.yml`, `docker-compose.test.yml`, `Dockerfile.test`, `.zap/`, and `docs/api/openapi.yaml` are all absent. The pinned action versions also contradict the current [action-versioning policy](../ci/action-versioning-policy.md). Treat this document as a design proposal to be re-validated if DAST is resumed.
+
 ## Executive Summary
 
 This specification defines the integration of Dynamic Application Security Testing (DAST) into the homedir CI/CD pipeline. It establishes a phased rollout strategy starting with passive scanning (advisory), progressing to active scanning (enforcing), and culminating in fuzzing-based testing for high-risk endpoints. The specification prioritizes endpoints based on the authorization matrix (issue #854) and input validation baseline (issue #857), with clear thresholds for blocking vs. advisory findings.

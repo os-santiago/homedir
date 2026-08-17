@@ -1,5 +1,9 @@
 # Branch Protection Continuous Audit Specification
 
+> **Status**: ❌ NOT IMPLEMENTED. This is a draft specification from issue #853 (closed, but never built).
+> There is no scheduled audit workflow and no `scripts/ci/audit-branch-protection.sh`.
+> The repository does commit a canonical ruleset baseline at `config/ruleset-main.json`, and the only related tooling that exists is `config/scripts/governance/update-branch-protection.sh` (used to push an updated ruleset). Implement this spec before expecting the claims below to be true.
+
 ## Purpose
 
 This document defines continuous automated auditing of branch protection rules to detect configuration drift and ensure `main` branch protection remains compliant with the [canonical baseline](#baseline-requirements).
@@ -26,11 +30,11 @@ The audit verifies the following configuration for the `main` branch:
 |---------|---------------|-----------|---------------------|
 | **Deletion protection** | Enabled | `ruleset.rules[].type = "deletion"` | **Critical** |
 | **Force push protection** | Enabled | `ruleset.rules[].type = "non_fast_forward"` | **Critical** |
-| **Required status checks** | 6 universal checks configured | `ruleset.rules[].parameters.required_status_checks` | **High** |
+| **Required status checks** | 3 aggregate checks enforced (`Quality Summary`, `CI Summary`, `Quality Gate Summary`); committed baseline lists 6 individual contexts (see `config/ruleset-main.json`) | `ruleset.rules[].parameters.required_status_checks` | **High** |
 | **Pull request required** | Enabled (except bypass actors) | `ruleset.rules[].type = "pull_request"` | **Critical** |
-| **Conversation resolution** | Required | `ruleset.rules[].parameters.required_conversation_resolution = true` | **High** |
-| **Required approvals** | ≥1 approval | `ruleset.rules[].parameters.required_approving_review_count ≥ 1` | **High** |
-| **Commit message pattern** | Conventional Commits regex | `ruleset.rules[].parameters.operator = "starts_with"` | **Medium** |
+| **Conversation resolution** | Required | `ruleset.rules[].parameters.required_review_thread_resolution = true` | **High** |
+| **Required approvals** | 0 approvals (per committed baseline) | `ruleset.rules[].parameters.required_approving_review_count = 0` | **High** |
+| **Commit message pattern** | Conventional Commits regex | `ruleset.rules[].parameters.operator = "regex"` | **Medium** |
 | **Bypass actors** | Only authorized users | `ruleset.bypass_actors[].actor_id` matches allowlist | **Critical** |
 | **Bypass mode** | `pull_request` only (not `always`) | `ruleset.bypass_actors[].bypass_mode = "pull_request"` | **High** |
 
@@ -42,11 +46,13 @@ The audit verifies the following configuration for the `main` branch:
 
 ## Audit Frequency
 
+> **Note**: The scheduled/post-change triggers below are the *intended* design. No CI workflow currently runs them.
+
 | Audit Type | Frequency | Trigger | Purpose |
 |------------|-----------|---------|---------|
 | **Scheduled** | Daily at 09:00 UTC | Cron (`0 9 * * *`) | Detect slow drift |
 | **On-demand** | Manual workflow dispatch | Maintainer request | Pre/post-change verification |
-| **Post-change** | On push to `.github/ruleset-*.json` | GitHub Actions `paths:` filter | Immediate validation after config change |
+| **Post-change** | On push to committed baseline(s) | GitHub Actions `paths:` filter on `config/ruleset-main.json` and `config/scripts/governance/update-branch-protection.sh` | Immediate validation after config change |
 
 ## Audit Implementation
 
@@ -64,7 +70,9 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 
 ### Audit Script Specification
 
-**Location**: `scripts/ci/audit-branch-protection.sh`
+> **Status**: The location below (`scripts/ci/audit-branch-protection.sh`) does **not exist**. The only related tooling committed is `config/scripts/governance/update-branch-protection.sh`, which **does not read `config/ruleset-main.json`**: it generates its ruleset payload via an inline heredoc (6 job contexts, `copilot_code_review`, and a `RepositoryRole` bypass actor id 5). That heredoc payload diverges from the committed baseline; its bypass actor (`RepositoryRole` id 5, `pull_request`) **matches** the enforced ruleset (re-verified 2026-08-13), while the check contexts still differ (6 individual vs 3 aggregate). So the script must be updated to consume `config/ruleset-main.json` (or its payload reconciled) when the continuous audit is implemented. If the audit is built later, it should follow this spec.
+
+**Planned location**: `scripts/ci/audit-branch-protection.sh`
 
 **Inputs** (environment variables):
 - `GITHUB_REPOSITORY` (e.g., `os-santiago/homedir`)
@@ -90,7 +98,7 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 **JSON Report** (`audit-report.json`):
 ```json
 {
-  "audit_timestamp": "2026-06-24T09:00:00Z",
+  "audit_timestamp": "2026-08-13T09:00:00Z",
   "repository": "os-santiago/homedir",
   "branch": "main",
   "status": "DRIFT_DETECTED",
@@ -98,19 +106,34 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
     {
       "control": "required_status_checks",
       "severity": "HIGH",
-      "expected": ["PR Quality — Suite / style", "PR Quality — Suite / static", ...],
-      "actual": ["PR Quality — Suite / style"],
-      "missing": ["PR Quality — Suite / static", ...],
-      "recommendation": "Add missing required checks to ruleset-main.json"
+      "expected": [
+        "PR Quality — Suite / style",
+        "PR Quality — Suite / static",
+        "PR Quality — Suite / arch",
+        "PR Quality — Suite / tests_cov",
+        "PR Quality — Suite / deps",
+        "PR CI (Build, Native, SBOM/Scan) / sbom"
+      ],
+      "actual": ["Quality Summary", "CI Summary", "Quality Gate Summary"],
+      "missing": ["PR Quality — Suite / style", "PR Quality — Suite / static", "PR Quality — Suite / arch", "PR Quality — Suite / tests_cov", "PR Quality — Suite / deps", "PR CI (Build, Native, SBOM/Scan) / sbom"],
+      "recommendation": "Reconcile required status checks between the enforced ruleset (3 aggregate gates) and `config/ruleset-main.json` baseline (6 individual contexts)"
+    },
+    {
+      "control": "bypass_actors",
+      "severity": "CRITICAL",
+      "expected": [{"actor_id": "scanalesespinoza", "actor_type": "RepositoryCollaborator", "bypass_mode": "pull_request"}],
+      "actual": [{"actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request"}],
+      "missing": [],
+      "recommendation": "Reconcile the bypass actor identity: baseline allowlist is `scanalesespinoza` (RepositoryCollaborator), enforced uses `RepositoryRole` id 5; both use `pull_request` bypass mode"
     }
   ],
   "summary": {
     "total_controls": 9,
-    "compliant": 6,
-    "drift": 3,
-    "critical_findings": 0,
+    "compliant": 7,
+    "drift": 2,
+    "critical_findings": 1,
     "high_findings": 1,
-    "medium_findings": 2
+    "medium_findings": 0
   }
 }
 ```
@@ -122,27 +145,29 @@ gh api repos/{owner}/{repo}/rulesets/{ruleset_id}
 **Status**: 🔴 DRIFT DETECTED
 **Repository**: os-santiago/homedir
 **Branch**: main
-**Timestamp**: 2026-06-24 09:00:00 UTC
+**Timestamp**: 2026-08-13 09:00:00 UTC
 
 ### Findings
 
 | Control | Severity | Status | Details |
 |---------|----------|--------|---------|
-| Required Status Checks | HIGH | ❌ Drift | Missing 5 of 6 universal checks |
+| Required Status Checks | HIGH | ❌ Drift | Enforced uses 3 aggregate gates; committed baseline lists 6 individual contexts |
+| Bypass Actors | CRITICAL | ❌ Drift | Baseline allowlist `scanalesespinoza` (RepositoryCollaborator) vs enforced `RepositoryRole` id 5 |
+| Pull Request Required | CRITICAL | ✅ Compliant | Enabled (`type = "pull_request"`) |
+| Conversation Resolution | HIGH | ✅ Compliant | Enabled (`required_review_thread_resolution: true`) |
 | Deletion Protection | CRITICAL | ✅ Compliant | Enabled |
-| Force Push Protection | CRITICAL | ✅ Compliant | Enabled |
-| Pull Request Required | CRITICAL | ✅ Compliant | Enabled |
-| Conversation Resolution | HIGH | ❌ Drift | Currently disabled |
 
 ### Recommendations
 
-1. **HIGH**: Add missing required status checks to `ruleset-main.json`
-2. **HIGH**: Enable `required_conversation_resolution` in ruleset
+1. **HIGH**: Reconcile required status checks between the enforced ruleset (3 aggregate gates) and the committed baseline (6 individual contexts).
+2. **CRITICAL**: Reconcile bypass actor identity (`RepositoryCollaborator scanalesespinoza` baseline vs enforced `RepositoryRole` id 5).
 
 ### Compliance Score
 
-**6/9 controls compliant (66.7%)**
+**7/9 controls compliant (77.8%)**
 ```
+
+> **Note**: The examples above reflect the verification snapshot of 2026-08-13 against the enforced ruleset `9071701` (`gh api repos/os-santiago/homedir/rulesets/9071701`) and the committed baseline `config/ruleset-main.json`. Update the timestamps and counts when this audit spec is implemented and run.
 
 ## Alerting and Escalation
 
@@ -210,7 +235,7 @@ Governance Debt = (Critical Findings × 10) + (High Findings × 3) + (Medium Fin
 - **Governance Debt**: ≤5 points
 
 **Reporting**:
-- Monthly summary published to `docs/governance/audit-history/YYYY-MM.md`
+- Monthly summary published to `docs/governance/audit-history/YYYY-MM.md` *(directory does not exist yet)*
 - Trend chart tracking compliance score over time
 - Escalation to leadership if score <90% for 2 consecutive months
 
@@ -241,7 +266,7 @@ When drift is detected:
    - Verify if change was approved via PR to `ruleset-*.json`
 3. **Remediate**:
    - **If accidental**: Revert to compliant state via PR to `ruleset-main.json`
-   - **If intentional**: Document exception in `gate_exceptions.log`, create follow-up issue to remove exception
+   - **If intentional**: Document exception in `gate_exceptions.log` *(file does not exist yet)*, create follow-up issue to remove exception
 
 ### 2. Drift Resolution Process
 
@@ -258,7 +283,7 @@ When drift is detected:
 
 If drift is **intentional** (e.g., temporary bypass for emergency):
 
-1. Document in `config/docs/governance/gate_exceptions.log`:
+1. Document in `config/docs/governance/gate_exceptions.log` *(file does not exist yet)*:
    ```
    2026-06-24 | Drift: required_status_checks reduced | Emergency release bypass | Restoring by 2026-06-26 | @maintainer
    ```
@@ -270,60 +295,67 @@ If drift is **intentional** (e.g., temporary bypass for emergency):
 
 ### Canonical Ruleset Configuration
 
-The audit compares against this baseline (from `ruleset-main.json`):
+The audit compares against this baseline (committed at `config/ruleset-main.json`):
 
 ```json
 {
-  "name": "main branch protection",
+  "name": "PR Quality Suite (required checks, no manual reviews)",
   "target": "branch",
+  "source_type": "Repository",
   "enforcement": "active",
   "conditions": {
-    "ref_name": {"include": ["refs/heads/main"], "exclude": []}
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
   },
   "rules": [
-    {"type": "deletion"},
-    {"type": "non_fast_forward"},
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
     {
       "type": "required_status_checks",
       "parameters": {
+        "strict_required_status_checks_policy": true,
         "required_status_checks": [
-          {"context": "PR Quality — Suite / style"},
-          {"context": "PR Quality — Suite / static"},
-          {"context": "PR Quality — Suite / arch"},
-          {"context": "PR Quality — Suite / tests_cov"},
-          {"context": "PR Quality — Suite / deps"},
-          {"context": "PR CI (Build, Native, SBOM/Scan) / sbom"}
-        ],
-        "strict_required_status_checks_policy": true
+          { "context": "PR Quality — Suite / style" },
+          { "context": "PR Quality — Suite / static" },
+          { "context": "PR Quality — Suite / arch" },
+          { "context": "PR Quality — Suite / tests_cov" },
+          { "context": "PR Quality — Suite / deps" },
+          { "context": "PR CI (Build, Native, SBOM/Scan) / sbom" }
+        ]
       }
     },
     {
-      "type": "pull_request",
+      "type": "pull_request_reviews",
       "parameters": {
-        "required_approving_review_count": 1,
-        "dismiss_stale_reviews_on_push": true,
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
         "require_code_owner_review": false,
-        "require_last_push_approval": false,
-        "required_review_thread_resolution": true
+        "require_last_push_approval": false
       }
     },
     {
       "type": "commit_message_pattern",
       "parameters": {
-        "operator": "starts_with",
-        "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\[.*\\])?(\\(.*\\))?(!)?: .*"
+        "name": "Conventional Commits",
+        "negate": false,
+        "operator": "regex",
+        "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\[[^\\]]+\\])?(\\([\\w\\-.]+\\))?(!)?: [\\w ].*"
       }
     }
   ],
   "bypass_actors": [
     {
-      "actor_id": <GitHub_user_ID>,
-      "actor_type": "RepositoryRole",
+      "actor_id": "scanalesespinoza",
+      "actor_type": "RepositoryCollaborator",
       "bypass_mode": "pull_request"
     }
   ]
 }
 ```
+
+> This is the **committed target state** in `config/ruleset-main.json`. The enforced ruleset (ID 9071701) currently diverges from it (see [BRANCH_PROTECTION_VALIDATION.md](./BRANCH_PROTECTION_VALIDATION.md)); that drift is what this audit detects.
 
 ### Allowed Bypass Actors
 
@@ -331,7 +363,7 @@ Only the following users/teams are authorized as bypass actors:
 
 | Actor | GitHub Username | Actor Type | Bypass Mode | Justification |
 |-------|----------------|------------|-------------|---------------|
-| Repository Owner | `scanalesespinoza` | RepositoryRole | `pull_request` | Emergency hotfix authority |
+| Repository Collaborator | `scanalesespinoza` | RepositoryCollaborator | `pull_request` | Emergency hotfix authority |
 
 **Drift detection**: If any other actor appears in `bypass_actors[]`, audit raises **CRITICAL** finding.
 
@@ -373,7 +405,7 @@ Every quarter, maintainers must:
 
 ### Audit Script Updates
 
-When updating `scripts/ci/audit-branch-protection.sh`:
+When updating the audit script (`scripts/ci/audit-branch-protection.sh` once implemented):
 
 1. Create PR with changes to script
 2. Run audit in dry-run mode against test repository
@@ -383,9 +415,8 @@ When updating `scripts/ci/audit-branch-protection.sh`:
 ## Related Documents
 
 - [Status Check Matrix](./STATUS_CHECK_MATRIX.md) - Defines required checks audited
-- [Conversation Resolution Policy](./CONVERSATION_RESOLUTION_POLICY.md) - Review requirements audited
 - [Emergency Break-Glass Runbook](./EMERGENCY_BREAK_GLASS_RUNBOOK.md) - Bypass procedures
-- `ruleset-main.json` - Canonical configuration baseline
+- `config/ruleset-main.json` - Canonical configuration baseline (committed)
 
 ## Revision History
 

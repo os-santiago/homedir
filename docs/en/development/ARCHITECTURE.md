@@ -5,10 +5,11 @@ This document describes architectural patterns, design decisions, and technical 
 
 ## Key Improvements (Issue #733)
 
-### 1. H2 Database Credentials Externalization ✅
+### 1. H2 Database Path Externalization ✅
 - **File**: CommunityVoteService.java
-- **Change**: Hardcoded credentials removed
-- **Configuration**: Use `community.votes.db.username` and `community.votes.db.password`
+- **Change**: The H2 database **path** is configurable via `community.votes.db.path` (no longer a hardcoded location); credentials are **not** externalized
+- **Configuration**: Use `community.votes.db.path` (defaults to `data/community/votes/community-votes`)
+- **Note**: The connection still uses hardcoded embedded-H2 credentials (`DriverManager.getConnection(jdbcUrl, "sa", "")` in `CommunityVoteService.connection()`), which is acceptable for an embedded file database but should be externalized if credentials ever need to change
 
 ### 2. HTTP Client Reuse ✅
 - **Pattern**: Singleton HttpClient instances (not per-request)
@@ -23,7 +24,7 @@ This document describes architectural patterns, design decisions, and technical 
 
 ### Persistence
 - File-based JSON with atomic writes (PersistenceService)
-- H2 embedded for votes (credentials now externalized)
+- H2 embedded for votes (path configurable via `community.votes.db.path`; embedded credentials `sa`/`""` hardcoded)
 - Schema versioning
 
 ### Concurrency
@@ -76,9 +77,9 @@ The TrendingService scrapes GitHub's trending page to display popular repositori
 The implementation uses only JDK HttpClient and regex parsing, avoiding external scraping libraries to maintain minimal dependencies.
 
 ## Pending Improvements
-- AppMessages.java split by domain (2589 lines → multiple files)
+- AppMessages.java split by domain (7358 lines → multiple files, still pending)
 - WebSocket race condition fixes
 - Bounded deduplication maps
 - Template i18n improvements
 
-See REFACTORING.md for implementation details.
+See the project backlog and archive for refactoring implementation details.

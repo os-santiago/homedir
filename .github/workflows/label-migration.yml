@@ -1,0 +1,43 @@
+name: Label Migration
+
+on:
+  schedule:
+    # Daily at 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  migrate-labels:
+    name: Migrate Legacy ES Labels to EN
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub
+
+      - name: Migrate legacy labels
+        id: migrate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/ci/migrate_labels.py
+
+      - name: Summary
+        if: steps.migrate.outputs.migration_count != '0'
+        run: |
+          echo "Migrated ${{ steps.migrate.outputs.migration_count }} legacy labels."
+          echo "Details: ${{ steps.migrate.outputs.details }}"

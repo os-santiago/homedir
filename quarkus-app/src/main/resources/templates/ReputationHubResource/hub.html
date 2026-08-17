@@ -16,15 +16,15 @@
     <p class="section-subtitle">{i18n:reputation_hub_intro}</p>
   </header>
   {#include fragments/community-submenu.html /}
-  {#if showHubMigrationBanner}
-    <article class="hub-migration-banner">
-      <span class="hub-migration-badge">{i18n:reputation_hub_migration_badge}</span>
-      <h2>{i18n:reputation_hub_migration_title}</h2>
-      <p>{i18n:reputation_hub_migration_desc}</p>
-    </article>
-  {/if}
 
   <section class="page-grid">
+    {#if showHubMigrationBanner}
+      <article class="hub-migration-banner events-full-width">
+        <span class="hub-migration-badge">{i18n:reputation_hub_migration_badge}</span>
+        <h2>{i18n:reputation_hub_migration_title}</h2>
+        <p>{i18n:reputation_hub_migration_desc}</p>
+      </article>
+    {/if}
     <div class="section-card events-full-width hub-shell">
       <div class="hub-hero-grid">
         <article class="hub-hero-card">
@@ -224,7 +224,7 @@
       </div>
 
       <div class="hub-secondary-grid">
-        <article class="hub-panel">
+        <article class="hub-panel hub-instructional-panel">
           <h2>{#if resolvedLocaleCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</h2>
           <p class="hub-panel-intro">
             {#if hub.viewerGuidance??}
@@ -336,7 +336,7 @@
           </ul>
         </article>
 
-        <article class="hub-panel">
+        <article class="hub-panel hub-instructional-panel">
           <h2>{i18n:reputation_hub_recognized_title}</h2>
           {#if !userAuthenticated}
             <p class="hub-recognition-hint">{i18n:reputation_hub_recognize_signin_hint}</p>
@@ -406,7 +406,7 @@
           </ul>
         </article>
 
-        <article class="hub-panel">
+        <article class="hub-panel hub-instructional-panel">
           <h2><a class="hub-how-link" href="/comunidad/reputation-hub/how">{i18n:reputation_hub_how_title}</a></h2>
           <ul class="hub-how-list">
             <li>

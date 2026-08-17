@@ -3,6 +3,10 @@ description: Una unidad de trabajo bien definida
 title: ""
 labels: []
 body:
+  - type: markdown
+    attributes:
+      value: |
+        _Plantilla en español. English template available at the top level._
   - type: dropdown
     id: type
     attributes:

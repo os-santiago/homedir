@@ -1,0 +1,48 @@
+name: PR Readiness Validator
+
+on:
+  pull_request:
+    types: [opened, edited, labeled, reopened, ready_for_review, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to validate (optional, validates all open PRs if not provided)'
+        required: false
+        type: number
+
+permissions:
+  pull-requests: write
+  issues: read
+  contents: read
+
+jobs:
+  validate-readiness:
+    name: Validate PR Self-Attestation Labels
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub
+
+      - name: Validate self-attestation labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/ci/validate_pr_readiness.py
+
+      - name: Report
+        run: |
+          echo "PR readiness validation complete. Check workflow logs for details."

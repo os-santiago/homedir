@@ -1,7 +1,9 @@
 .hub-shell,
 .hub-shell:hover,
 .hub-how-shell,
-.hub-how-shell:hover {
+.hub-how-shell:hover,
+.hub-migration-banner,
+.hub-migration-banner:hover {
   transform: none;
   animation: none;
   cursor: default;
@@ -61,12 +63,45 @@
   font-size: 0.84rem;
 }
 
+.hub-instructional-panel h2,
+.hub-instructional-panel .hub-panel-intro,
+.hub-instructional-panel .hub-recognition-hint,
+.hub-instructional-panel .hub-empty {
+  text-align: center;
+}
+
+.hub-instructional-panel .hub-how-list {
+  justify-items: center;
+}
+
+.hub-instructional-panel .hub-how-list li {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.hub-instructional-panel .hub-how-list strong,
+.hub-instructional-panel .hub-how-list p {
+  text-align: center;
+}
+
+.hub-instructional-panel .hub-recognition-item {
+  text-align: left;
+}
+
 .hub-migration-banner {
-  margin: 0 0 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 2px solid rgba(255, 255, 255, 0.32);
   border-radius: 10px;
-  padding: 0.75rem 0.9rem;
-  background: rgba(15, 23, 42, 0.52);
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
 }
 
 .hub-migration-banner h2 {

@@ -26,7 +26,7 @@ Describes the nature of the issue/PR.
 | `documentation` | `#0075ca` | Documentation improvements | Changes to `*.md` files, docs/, comments, or examples |
 | `question` | `#d876e3` | Further information is requested | Seeking clarification, not reporting a bug |
 
-**Deprecated**: `error` (ES), `mejora` (ES) - see migration table
+**Deprecated**: `error` (ES), `mejora` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 2. Priority (Traffic Light Colors)
 
@@ -51,7 +51,7 @@ Indicates issue disposition or workflow state.
 | `wontfix` | `#ffffff` | Will not be worked on | Out of scope, by design, or superseded |
 | `invalid` | `#e4e669` | Doesn't seem right | Cannot reproduce, incomplete info, not a real issue |
 
-**Deprecated**: `no valido` (ES), `no solucionar` (ES) - see migration table
+**Deprecated**: `no valido` (ES), `no solucionar` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 4. Collaboration (Purple Spectrum)
 
@@ -63,7 +63,7 @@ Signals for external contributors and automation.
 | `help wanted` | `#008672` | Extra attention needed | Expertise gap, blocker, seeking collaborator |
 | `wos-review` | `#7057ff` | Trigger WOS delegation | Issue should be routed to Workspace OS for automated triage |
 
-**Deprecated**: `buen primer issue` (ES), `Se necesita ayuda` (ES) - see migration table
+**Deprecated**: `buen primer issue` (ES), `Se necesita ayuda` (ES) - removed from the repository on 2026-08-11, see migration table
 
 ### 5. Domain (Specialized)
 
@@ -77,11 +77,65 @@ Subject area or subsystem affected.
 
 **Note**: Domain labels are not mutually exclusive. An issue can have multiple domain labels.
 
+### 6. PR State (Lifecycle — managed by automation)
+
+Mutually exclusive labels tracking the PR lifecycle. Managed by `pr-state-labeler.yml` workflow — do NOT apply manually.
+
+| Label | Color | Description | When Applied |
+|-------|-------|-------------|--------------|
+| `pr:draft` | `#bfdadc` | Draft / WIP | PR is draft |
+| `pr:checks-pending` | `#fbca04` | CI running | Checks in progress |
+| `pr:checks-failed` | `#d73a4a` | CI failing | One or more checks failed |
+| `pr:needs-review` | `#1d76db` | Ready for review | CI green, awaiting human approvals |
+| `pr:changes-requested` | `#d93f0b` | Changes requested | Maintainer requested changes |
+| `pr:approved` | `#0e8a16` | Approved | Human approvals meet risk-level threshold |
+| `pr:merged` | `#006700` | Merged | PR merged to main |
+| `pr:blocked` | `#b60205` | Blocked | Merge conflicts or other blocker |
+
+### 7. PR Risk (Contributor-applied — exactly one required)
+
+Determines required human approval count. Applied by contributor/AI at PR creation.
+
+| Label | Color | Risk Criteria | Min Approvals |
+|-------|-------|---------------|---------------|
+| `pr:risk-low` | `#0e8a16` | Docs, typos, config tweaks | 1 |
+| `pr:risk-medium` | `#fbca04` | Features, refactors, new deps | 2 (1 code owner) |
+| `pr:risk-high` | `#d93f0b` | Security, breaking changes, data migration | 2 (code owners + security) |
+| `pr:risk-critical` | `#b60205` | Auth, encryption, financial, compliance | 3 (code owners + security) |
+
+### 8. PR Self-Attestation (Contributor-applied — auto-validated)
+
+Pre-verified by contributor's AI. The `pr-readiness-validator.yml` workflow auto-validates and removes false claims.
+
+| Label | Color | Description | Auto-Validated? |
+|-------|-------|-------------|-----------------|
+| `pr:traceability-ok` | `#5319e7` | `Closes #N` present, issue has priority + type | Yes |
+| `pr:acceptance-ok` | `#5319e7` | All acceptance criteria met | No (trust contributor) |
+| `pr:tests-ok` | `#5319e7` | Tests added for new functionality | Yes (test files in diff) |
+| `pr:i18n-ok` | `#5319e7` | EN + ES translations complete | Yes (i18n file check) |
+
+**Deprecated**: All `scc-*` labels (scc-approved, scc-under-review, scc-waiting-checks, etc.) and `wip-pr` have been removed from the repository. The `pr:*` system replaces them entirely.
+
+### 9. Operational / AI SDLC (mixed: human + automation)
+
+Operational labels still in use by the AI SDLC workflow and triage queue. Managed by `ai-sdlc-*` automation and maintainers. Contributors do not apply them manually.
+
+| Label | Description | When to Use |
+|-------|-------------|-------------|
+| `ready-to-implement` | Admission criteria passed | Maintainer-applied trigger authorizing the issue to enter the AI SDLC queue |
+| `needs-human` | Requires human decision/intervention | Automation cannot proceed safely without a human |
+| `ai-sdlc-track` | AI SDLC is tracking this PR | Automation monitor enabling on the PR |
+| `ai-sdlc-assist` | AI SDLC may assist this PR when safe | Safety-assessed assist opportunity |
+
+**Note**: `ai-sdlc-*` labels are created/managed by automation. Humans only apply `ready-to-implement` and `needs-human`.
+
 ## Legacy Label Migration
 
 ### Deprecated Labels
 
-The following legacy labels are deprecated and should be migrated:
+The following legacy labels were deprecated and fully migrated to their canonical
+equivalents (deleted from the repository on 2026-08-11). The migration workflow keeps
+guarding against re-creation:
 
 | Legacy Label (ES) | Canonical Label (EN) | Auto-Migrate? | Deprecation Date |
 |-------------------|----------------------|---------------|------------------|
@@ -95,55 +149,58 @@ The following legacy labels are deprecated and should be migrated:
 
 ### Migration Strategy
 
-**Phase 1: Dual Labeling (2026-06-24 → 2026-07-15)**
-- Keep both legacy (ES) and canonical (EN) labels active
-- Apply both labels to new issues during transition
-- Update historical issues opportunistically (when touched)
+**Phase 1: Dual Labeling (2026-06-24 → 2026-07-15)** ✅ **Completed**
 
-**Phase 2: Automated Migration (2026-07-15)**
-- Run bulk migration script to replace all legacy labels with canonical equivalents
-- Archive legacy labels (do not delete - preserve issue history)
-- Update issue templates to only show canonical labels
+- Both legacy (ES) and canonical (EN) labels were kept active
+- Both labels applied to new issues during transition
+- Historical issues updated opportunistically
 
-**Phase 3: Enforcement (2026-07-16+)**
-- Remove legacy labels from label picker
-- Bot automatically replaces any legacy labels with canonical equivalents
-- Update governance docs to reference only canonical taxonomy
+**Phase 2: Automated Migration (2026-07-15)** ✅ **Completed**
+
+- Executed via PRs #1423 and #1426 on 2026-08-11:
+  - Added `scripts/ci/migrate_labels.py` + `.github/workflows/label-migration.yml` (daily auto-migration)
+  - Deleted all legacy ES labels (`error`, `mejora`, `buen primer issue`, `no valido`,
+    `no solucionar`, `pregunta`, `Se necesita ayuda`, `evento`, `hackathon`, `codex`)
+
+**Phase 3: Enforcement (2026-07-16+)** ✅ **Active**
+
+- Legacy labels removed from the label picker (deleted, not archived)
+- `label-migration.yml` workflow automatically replaces any re-created legacy labels daily
+- Governance docs reference only the canonical taxonomy
 
 ### Migration Script
 
-```bash
-#!/usr/bin/env bash
-# scripts/ci/migrate-labels.sh
-# Migrates legacy ES labels to canonical EN labels
+The automated migration runs from the GitHub Actions workflow
+[`.github/workflows/label-migration.yml`](../../../.github/workflows/label-migration.yml),
+which invokes [`scripts/ci/migrate_labels.py`](../../../scripts/ci/migrate_labels.py) daily
+(at 09:00 UTC) and on manual dispatch (`workflow_dispatch`).
 
-REPO="os-santiago/homedir"
+```python
+# scripts/ci/migrate_labels.py
+# Migrates re-created legacy ES labels to canonical EN labels.
 
-declare -A LABEL_MAP=(
-  ["error"]="bug"
-  ["mejora"]="enhancement"
-  ["buen primer issue"]="good first issue"
-  ["no valido"]="invalid"
-  ["no solucionar"]="wontfix"
-  ["pregunta"]="question"
-  ["Se necesita ayuda"]="help wanted"
-)
+LABEL_MIGRATION_MAP = {
+    "error": "bug",
+    "mejora": "enhancement",
+    "buen primer issue": "good first issue",
+    "no valido": "invalid",
+    "no solucionar": "wontfix",
+    "pregunta": "question",
+    "Se necesita ayuda": "help wanted",
+}
 
-for legacy in "${!LABEL_MAP[@]}"; do
-  canonical="${LABEL_MAP[$legacy]}"
-  echo "Migrating '$legacy' → '$canonical'..."
-  
-  # Find all issues with legacy label
-  issues=$(gh issue list --repo "$REPO" --label "$legacy" --state all --limit 1000 --json number --jq '.[].number')
-  
-  for issue in $issues; do
-    echo "  Issue #$issue: adding '$canonical', removing '$legacy'"
-    gh issue edit "$issue" --repo "$REPO" --add-label "$canonical" --remove-label "$legacy"
-  done
-done
-
-echo "Migration complete. Archive legacy labels manually via GitHub UI."
+# Labels that are NOT migrated (valid domain labels with no EN equivalent)
+SKIP_LABELS = {"evento", "hackathon"}
 ```
+
+Run manually:
+
+```bash
+python scripts/ci/migrate_labels.py  # requires GITHUB_TOKEN and REPOSITORY env vars
+```
+
+The script idempotently replaces any legacy label present on open issues/PRs with its
+canonical equivalent and posts a comment summarizing the migration.
 
 ## Label Usage Guidelines
 
@@ -208,7 +265,7 @@ Color palette by category:
 
 ## Related Documents
 
-- [Issue Triage Workflow](./TRIAGE_WORKFLOW.md) (future)
+- [Issue Triage Workflow](./TRIAGE_RUNBOOK.md)
 - [Definition of Ready/Done](./DEFINITION_OF_READY_DONE.md)
 - [Status Check Matrix](./STATUS_CHECK_MATRIX.md)
 
@@ -217,6 +274,7 @@ Color palette by category:
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-06-24 | Claude (via WOS) | Initial taxonomy for issue #840 |
+| 2026-08-13 | Seb (via WOS) | Mark migration phases 1-2 complete, document label deletion and `label-migration.yml` workflow, fix migration script reference |
 
 ---
 

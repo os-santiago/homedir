@@ -1,0 +1,62 @@
+name: Board Sync
+
+on:
+  issues:
+    types: [opened, closed, labeled, unlabeled, assigned, unassigned]
+  # Use pull_request_target so the workflow runs the trusted base-branch script,
+  # not the PR's modified version. This prevents token exfiltration via a
+  # malicious script in the PR branch.
+  pull_request_target:
+    types: [opened, closed, reopened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to sync'
+        required: true
+        type: number
+
+permissions:
+  issues: read
+  pull-requests: read
+  contents: read
+  # projects: write is NOT needed here because the script uses a PAT
+  # (secrets.GH_TOKEN) for GraphQL mutations, not the automatic GITHUB_TOKEN.
+  # The permissions block only restricts the automatic token, not PATs.
+
+jobs:
+  sync-board:
+    name: Sync Project #6 Board Fields
+    runs-on: ubuntu-latest
+    # Skip bots and fork PRs (fork PRs can't access secrets.GH_TOKEN)
+    if: github.actor != 'github-actions[bot]' && github.actor != 'dependabot[bot]' && !(github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork)
+    steps:
+      - name: Checkout repository (base branch only — never the PR ref)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Sync board fields
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+          ISSUE_ASSIGNEES: ${{ join(github.event.issue.assignees.*.login, ',') }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+        run: |
+          python scripts/ci/sync_board_fields.py
+
+      - name: Report
+        if: always()
+        run: |
+          echo "Board sync completed. Check workflow logs for details."
