@@ -2881,6 +2881,8 @@ body {
   align-items: center;
   gap: 0.5rem;
   color: var(--color-text-main);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .header-logo-text {
