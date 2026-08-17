@@ -273,10 +273,16 @@ footer {
 }
 
 .hd-logo-subtitle,
-.logo-subtitle {
+.logo-subtitle,
+.header-logo-subtitle {
   font-size: 0.55rem;
   opacity: 0.8;
   letter-spacing: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hd-main-nav {
@@ -6322,6 +6328,7 @@ footer {
 
 .header-left {
   flex: 1;
+  min-width: 0;
   display: flex;
   justify-content: flex-start;
 }
@@ -6336,6 +6343,7 @@ footer {
 
 .header-right {
   flex: 1;
+  min-width: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -6408,6 +6416,13 @@ footer {
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
+  }
+
+  /* On tablet/mobile, hide subtitle to save space and prevent overflow */
+  .hd-logo-subtitle,
+  .logo-subtitle,
+  .header-logo-subtitle {
+    display: none;
   }
 }
 
