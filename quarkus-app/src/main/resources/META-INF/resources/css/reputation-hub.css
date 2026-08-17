@@ -177,6 +177,12 @@
   object-fit: cover;
 }
 
+.hub-avatar--placeholder {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  border-style: dashed;
+}
+
 .hub-member {
   display: grid;
   gap: 0.15rem;

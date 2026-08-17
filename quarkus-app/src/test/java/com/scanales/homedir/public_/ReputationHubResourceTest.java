@@ -249,4 +249,19 @@ class ReputationHubResourceTest {
         .body(containsString("data-recognition-type=\"recommended\""))
         .body(containsString("/js/reputation-recognition.js?v="));
   }
+
+  @Test
+  void reputationHubRendersPlaceholderAvatarWhenUserHasNoAvatarOrHandle() {
+    assertTrue(
+        reputationEngineService.trackQuestCompleted("noavatar@example.com", "quest-noavatar"));
+
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/reputation-hub")
+        .then()
+        .statusCode(200)
+        .body(containsString("noavatar@example.com"))
+        .body(containsString("hub-avatar--placeholder"));
+  }
 }
