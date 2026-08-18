@@ -6373,6 +6373,11 @@ footer {
   justify-content: flex-start;
 }
 
+.header-logo-link {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .nav-actions.header-center {
   flex: 2;
   display: flex;
