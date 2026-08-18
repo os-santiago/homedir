@@ -370,7 +370,7 @@ body {
   font-size: 1.2rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
-  color: var(--color-primary);
+  color: var(--color-primary-on-light);
   text-transform: uppercase;
   letter-spacing: 3px;
   text-shadow: 2px 2px 0 rgba(var(--black-rgb), 0.2);
@@ -693,8 +693,9 @@ body {
   transition: all 0.2s ease;
 }
 
-.form-input:focus {
-  outline: none;
+.form-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
   border-color: var(--color-accent);
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
   background: rgba(var(--black-rgb), 0.8);
@@ -2614,6 +2615,13 @@ body {
   color: var(--color-error);
 }
 
+.metric-value-error::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
 .metric-value-small {
   font-size: 1rem;
 }
@@ -2633,6 +2641,13 @@ body {
 
 .text-error {
   color: var(--color-error);
+}
+
+.text-error::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
 }
 
 .admin-footer-config {
@@ -3117,6 +3132,13 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.text-error-header::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
 .retro-box-success {
   margin-top: 1rem;
   border-color: #00fa9a;
@@ -3438,7 +3460,14 @@ body {
 }
 
 .text-danger {
-  color: red;
+  color: var(--color-error);
+}
+
+.text-danger::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
 }
 
 .about-actions {

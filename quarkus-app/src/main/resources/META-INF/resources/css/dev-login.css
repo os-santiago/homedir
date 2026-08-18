@@ -122,7 +122,7 @@ body.dev-login-page {
     transition: all 0.2s ease;
 }
 
-.dev-form-input:focus {
+.dev-form-input:focus-visible {
     outline: none;
     border-color: #ffd700;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
