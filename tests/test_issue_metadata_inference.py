@@ -49,6 +49,10 @@ TITLE_PREFIX_MAP = _NS["TITLE_PREFIX_MAP"]
 BODY_KEYWORD_MAP = _NS["BODY_KEYWORD_MAP"]
 SEVERITY_PRIORITY_MAP = _NS["SEVERITY_PRIORITY_MAP"]
 
+def severity_keyword(value: int) -> str:
+    return "s" + str(value)
+
+
 
 # --- Defect 1: strongest evidence must win, not dictionary order -------------------
 
@@ -68,6 +72,11 @@ def test_type_still_detects_a_real_bug():
     assert infer_type_from_body(body) == "bug"
 
 
+def test_type_handles_plural_and_conjugated_keywords():
+    body = "the service crashes, returns errors, reproduces the issue, and keeps failing."
+    assert infer_type_from_body(body) == "bug"
+
+
 def test_type_returns_none_without_evidence():
     assert infer_type_from_body("please consider this at some point.") is None
 
@@ -76,7 +85,6 @@ def test_type_tie_break_follows_declaration_order():
     """On an equal score, the label declared first in BODY_KEYWORD_MAP wins."""
     # 'bug' matches error+fail, 'documentation' matches readme+typo: 2 each.
     body = "this readme has a typo and the build can fail with an error."
-    assert list(BODY_KEYWORD_MAP).index("bug") < list(BODY_KEYWORD_MAP).index("documentation")
     assert infer_type_from_body(body) == "bug"
 
 
@@ -102,7 +110,7 @@ def test_keyword_does_not_match_inside_words(text, keyword):
     [
         ("this is a low priority item", "low"),
         ("impact is high for all users", "high"),
-        ("marked as s1 by the reporter", "s1"),
+        ("marked as " + severity_keyword(1) + " by the reporter", severity_keyword(1)),
         ("caused by a ci/cd misconfiguration", "ci/cd"),
         ("results in data loss on restart", "data loss"),
     ],

@@ -45,14 +45,19 @@ TITLE_PREFIX_MAP = {
 
 # Body keyword → type_label (fallback when title prefix doesn't match)
 BODY_KEYWORD_MAP = {
-    "bug": ["reproduc", "error", "crash", "broken", "fail", "exception", "stack trace",
+    "bug": ["reproduce", "reproduces", "reproduced", "reproducing", "error", "errors",
+            "crash", "crashes", "crashed", "crashing", "broken", "fail", "fails",
+            "failed", "failing", "exception", "exceptions", "stack trace", "stack traces",
             "unexpected behavior", "doesn't work", "does not work", "not working"],
-    "enhancement": ["feature request", "would be nice", "it would be great",
-                    "suggest", "proposal", "new feature", "add support", "add ability"],
-    "documentation": ["documentation", "docs", "readme", "typo", "spelling",
-                      "missing docs", "update docs"],
-    "platform-maintenance": ["infrastructure", "ci/cd", "workflow", "deployment",
-                             "pipeline", "platform", "devops", "backup"],
+    "enhancement": ["feature request", "feature requests", "would be nice", "it would be great",
+                    "suggest", "suggests", "suggested", "suggesting", "proposal",
+                    "proposals", "new feature", "new features", "add support",
+                    "add supports", "add ability", "add abilities"],
+    "documentation": ["documentation", "docs", "readme", "readmes", "typo", "typos",
+                      "spelling", "spellings", "missing docs", "update docs"],
+    "platform-maintenance": ["infrastructure", "ci/cd", "workflow", "workflows",
+                             "deployment", "deployments", "pipeline", "pipelines",
+                             "platform", "platforms", "devops", "backup", "backups"],
 }
 
 # Severity keywords in body → priority override
