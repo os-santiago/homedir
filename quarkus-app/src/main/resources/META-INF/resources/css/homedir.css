@@ -5654,6 +5654,10 @@ footer {
   letter-spacing: 1px;
 }
 
+.home-priority-grid .home-priority-actions {
+  margin-top: auto;
+}
+
 .home-priority-spotlight {
   display: flex;
   flex-direction: column;
