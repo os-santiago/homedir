@@ -46,9 +46,28 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
+.hub-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .hub-hero-card h2 {
   margin: 0.2rem 0 0;
   font-size: 1.4rem;
+}
+
+.hub-panel-centered {
+  text-align: center;
+}
+
+.hub-panel-centered h2,
+.hub-panel-centered .hub-panel-intro {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 560px;
 }
 
 .hub-panel h2,
@@ -61,37 +80,6 @@
   margin: -0.3rem 0 0.75rem;
   opacity: 0.88;
   font-size: 0.84rem;
-}
-
-.hub-instructional-panel h2,
-.hub-instructional-panel .hub-panel-intro,
-.hub-instructional-panel .hub-recognition-hint,
-.hub-instructional-panel .hub-empty {
-  text-align: center;
-}
-
-.hub-instructional-panel .hub-how-list {
-  justify-items: center;
-}
-
-.hub-instructional-panel .hub-how-list li {
-  display: grid;
-  gap: 0.35rem;
-  justify-items: center;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.26);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 0.6rem 0.75rem;
-}
-
-.hub-instructional-panel .hub-how-list strong,
-.hub-instructional-panel .hub-how-list p {
-  text-align: center;
-}
-
-.hub-instructional-panel .hub-recognition-item {
-  text-align: left;
 }
 
 .hub-migration-banner {
@@ -177,10 +165,15 @@
   object-fit: cover;
 }
 
-.hub-avatar--placeholder {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.1);
-  border-style: dashed;
+.hub-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #4f46e5);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
 }
 
 .hub-member {
