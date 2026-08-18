@@ -74,6 +74,8 @@
                 <span class="hub-rank">#{standing.leader.rank}</span>
                 {#if standing.leader.avatarUrl}
                   <img class="hub-avatar" src="{standing.leader.avatarUrl}" alt="{standing.leader.displayName}"/>
+                {#else}
+                  <span class="hub-avatar hub-avatar--placeholder" aria-hidden="true"></span>
                 {/if}
                 <div class="hub-member">
                   {#if standing.leader.profilePath}
@@ -127,6 +129,8 @@
                   <span class="hub-rank">#{entry.rank}</span>
                   {#if entry.avatarUrl}
                     <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                  {#else}
+                    <span class="hub-avatar hub-avatar--placeholder" aria-hidden="true"></span>
                   {/if}
                   <div class="hub-member">
                     {#if entry.profilePath}
@@ -155,6 +159,8 @@
                 <span class="hub-rank">#{entry.rank}</span>
                 {#if entry.avatarUrl}
                   <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {#else}
+                  <span class="hub-avatar hub-avatar--placeholder" aria-hidden="true"></span>
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
@@ -180,6 +186,8 @@
                 <span class="hub-rank">#{entry.rank}</span>
                 {#if entry.avatarUrl}
                   <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {#else}
+                  <span class="hub-avatar hub-avatar--placeholder" aria-hidden="true"></span>
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
@@ -205,6 +213,8 @@
                 <span class="hub-rank">#{entry.rank}</span>
                 {#if entry.avatarUrl}
                   <img class="hub-avatar" src="{entry.avatarUrl}" alt="{entry.displayName}"/>
+                {#else}
+                  <span class="hub-avatar hub-avatar--placeholder" aria-hidden="true"></span>
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
