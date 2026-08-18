@@ -200,6 +200,38 @@
   min-height: 44px;
 }
 
+/* Consistent btn--filter styling for All/Unread filter buttons.
+   Overrides the generic .hd-tab active gradient so both buttons share
+   the same visual language regardless of active state. */
+.notifications-center .quest-tabs .btn--filter {
+  background: rgba(var(--white-rgb), 0.06);
+  color: rgba(var(--white-rgb), 0.7);
+  border: 1px solid rgba(var(--white-rgb), 0.15);
+  border-radius: 6px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: none;
+  letter-spacing: 0;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.notifications-center .quest-tabs .btn--filter:hover {
+  background: rgba(var(--white-rgb), 0.12);
+  color: var(--white-rgb);
+  border-color: rgba(var(--white-rgb), 0.25);
+  transform: none;
+}
+
+.notifications-center .quest-tabs .btn--filter.active,
+.notifications-center .quest-tabs .btn--filter[aria-pressed="true"] {
+  background: rgba(var(--white-rgb), 0.15);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  font-weight: 700;
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
   .notifications-center .actions {
     flex-direction: column;
