@@ -52,16 +52,16 @@
       <div class="user-menu-toggle">
         <a href="/private/profile" class="user-profile-link user-profile-link-styled">
           {#if userSession.avatarUrl}
-          <img src="{userSession.avatarUrl}" alt="{i18n:header_avatar_alt}" class="avatar-circle header-avatar-circle">
-          {#else}
-          <div class="avatar-circle header-avatar-fallback">
+          <img src="{userSession.avatarUrl}" alt="{i18n:header_avatar_alt}" class="avatar-circle header-avatar-circle"
+            data-hd-avatar-img data-hd-avatar-fallback=".header-avatar-fallback">
+          {/if}
+          <div class="avatar-circle header-avatar-fallback{#if userSession.avatarUrl} hd-avatar-fallback-hidden{/if}">
             {#if userSession.displayName}
             {userSession.displayName.substring(0,1)}
             {#else}
             {userInitial}
             {/if}
           </div>
-          {/if}
           <span class="user-name">
             {#if userSession.questClass}
             <span title="{userSession.questClass.displayName}" class="user-class-icon" aria-hidden="true">

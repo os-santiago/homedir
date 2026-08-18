@@ -653,6 +653,20 @@ public class ProfileResourceTest {
         .body(containsString("data-profile-nav=\"overview-panel\""));
   }
 
+  @Test
+  public void profileAvatarRendersFallbackMarkup() {
+    // setup() links GitHub with an avatar, so the spotlight <img> must include
+    // the fallback hooks used by the JS onerror handler (issue #1485).
+    given()
+        .when()
+        .get("/private/profile")
+        .then()
+        .statusCode(200)
+        .body(containsString("data-hd-avatar-img"))
+        .body(containsString("hd-profile-avatar-fallback"))
+        .body(containsString("hd-avatar-fallback-hidden"));
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {

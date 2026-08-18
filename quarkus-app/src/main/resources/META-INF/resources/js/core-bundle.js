@@ -594,6 +594,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dropdown) dropdown.classList.remove('show');
     }
   });
+
+  // Avatar fallback: when an external avatar fails to load, hide the broken
+  // <img> and reveal the initial-based placeholder next to it.
+  document.querySelectorAll('[data-hd-avatar-img]').forEach((img) => {
+    img.addEventListener('error', () => {
+      const fallbackSelector = img.getAttribute('data-hd-avatar-fallback');
+      if (fallbackSelector) {
+        const fallback = img.parentElement.querySelector(fallbackSelector);
+        if (fallback) {
+          fallback.classList.remove('hd-avatar-fallback-hidden');
+        }
+      }
+      img.classList.add('hd-avatar-fallback-hidden');
+    });
+  });
 });
 (function () {
     const origFetch = window.fetch;
