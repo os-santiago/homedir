@@ -350,7 +350,7 @@
 
 /* Dialog focus styles */
 .notifications-center dialog:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-accent);
 }
 .notifications-center dialog::backdrop {
   background: var(--overlay-dark);

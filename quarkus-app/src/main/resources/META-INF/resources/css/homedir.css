@@ -29,17 +29,22 @@
   --mint-rgb: 120, 255, 160;
 
   --color-accent: #ffd700;
+  --color-accent-on-light: #8a6d00; 
   --color-text-main: #ffffff;
   --color-text-muted: rgba(var(--white-rgb), 0.9);
-  --card-bg: rgba(var(--black-rgb), 0.45);
+  --card-bg: rgba(var(--black-rgb), 0.6);
   --color-primary: #667eea;
+  --color-primary-on-light: #3f5cd4;
   --color-mint: rgba(var(--mint-rgb), 0.85);
   --color-surface-dark: rgba(var(--black-rgb), 0.35);
   --color-border: rgba(var(--white-rgb), 0.2);
   --color-gradient-end: #764ba2;
   --color-error: #ff4444;
+  --color-error-on-light: #c62828;
   --color-warning: #ffa500;
+  --color-warning-on-light: #9a5500;
   --color-success: #55c47a;
+  --color-success-on-light: #1e7e34;
   --color-dark-bg: #111;
   --color-dark-text: #333;
 
@@ -74,6 +79,15 @@ body {
   min-height: 100vh;
 }
 
+.homedir-body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(var(--black-rgb), 0.35);
+  pointer-events: none;
+}
+
 /* Removed Pixel grid sutil en el fondo */
 
 /* Base Tag Styles */
@@ -104,7 +118,7 @@ footer {
   width: 100%;
   padding: 3rem 0;
   text-align: center;
-  opacity: 0.8;
+  color: #c8c8d8;
   font-size: 0.8rem;
   position: relative;
   z-index: 1;
@@ -431,8 +445,12 @@ footer {
   font-family: var(--font-body);
   font-size: 0.72rem;
   line-height: 1.2;
-  outline: none;
   cursor: pointer;
+}
+
+.header-locale-select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .header-locale-select option {
@@ -1305,7 +1323,7 @@ footer {
 }
 
 .hd-profile-nav-btn:focus-visible {
-  outline: 2px solid rgba(96, 205, 255, 0.72);
+  outline: 2px solid #60cdff;
   outline-offset: 2px;
 }
 
@@ -2423,7 +2441,7 @@ footer {
 
 .btn:focus-visible,
 .hd-btn:focus-visible {
-  outline: 2px solid rgba(96, 205, 255, 0.72);
+  outline: 2px solid #60cdff;
   outline-offset: 2px;
 }
 
@@ -3278,6 +3296,13 @@ footer {
   border: 1px solid rgba(255, 0, 80, 0.2);
 }
 
+.hd-alert-danger::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
 /* Talks */
 .talk-row {
   display: flex;
@@ -3547,6 +3572,13 @@ footer {
   font-weight: bold;
   letter-spacing: 1px;
   font-size: 0.9rem;
+}
+
+.dashboard-warning::before {
+  content: "error";
+  font-family: "Material Symbols Outlined";
+  vertical-align: middle;
+  margin-right: 0.4rem;
 }
 
 .dashboard-header {
