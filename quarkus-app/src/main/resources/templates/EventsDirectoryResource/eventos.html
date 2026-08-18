@@ -133,21 +133,23 @@
       </div>
 
       <div class="event-countdown-panel">
-        <p class="event-countdown-label">{i18n:events_countdown_title}</p>
-        <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
-          {#if event.ongoing}{i18n:events_countdown_live_badge}{#else}{i18n:events_countdown_days_short(event.daysUntil)}{/if}
-        </strong>
-        <p class="event-countdown-caption">
-          {#if event.ongoing}
-          {i18n:events_countdown_live}
-          {#else if event.daysUntil == 0}
-          {i18n:events_countdown_today}
-          {#else if event.daysUntil == 1}
-          {i18n:events_countdown_tomorrow}
-          {#else}
-          {i18n:events_countdown_days(event.daysUntil)}
-          {/if}
-        </p>
+        <div class="event-countdown-info">
+          <p class="event-countdown-label">{i18n:events_countdown_title}</p>
+          <strong class="event-countdown-value {#if event.ongoing}is-live{/if}">
+            {#if event.ongoing}{i18n:events_countdown_live_badge}{#else}{i18n:events_countdown_days_short(event.daysUntil)}{/if}
+          </strong>
+          <p class="event-countdown-caption">
+            {#if event.ongoing}
+            {i18n:events_countdown_live}
+            {#else if event.daysUntil == 0}
+            {i18n:events_countdown_today}
+            {#else if event.daysUntil == 1}
+            {i18n:events_countdown_tomorrow}
+            {#else}
+            {i18n:events_countdown_days(event.daysUntil)}
+            {/if}
+          </p>
+        </div>
         <span class="btn btn--primary event-highlight-open">{i18n:btn_view_details}</span>
       </div>
     </a>
@@ -203,7 +205,7 @@
     display: grid;
     grid-template-columns: 92px minmax(0, 1fr) 160px;
     gap: 0.9rem;
-    align-items: center;
+    align-items: stretch;
     text-decoration: none;
     color: inherit;
     min-height: 172px;
@@ -222,6 +224,7 @@
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.22);
     background: rgba(0, 0, 0, 0.25);
+    align-self: center;
   }
 
   .event-highlight-logo {
@@ -368,9 +371,13 @@
     border-left: 1px solid rgba(255, 255, 255, 0.18);
     padding-left: 0.75rem;
     min-height: 120px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .event-countdown-info {
+    margin: auto 0;
     display: grid;
-    align-content: center;
-    justify-items: start;
     gap: 0.15rem;
   }
 
@@ -399,7 +406,7 @@
   }
 
   .event-highlight-open {
-    margin-top: 0.4rem;
+    margin-top: auto;
     font-size: 0.74rem;
     padding: 0.28rem 0.54rem;
   }
@@ -487,6 +494,14 @@
       align-items: baseline;
       gap: 0.45rem;
       flex-wrap: wrap;
+    }
+
+    .event-countdown-info {
+      display: contents;
+    }
+
+    .event-highlight-open {
+      margin-top: 0.4rem;
     }
 
     .event-countdown-value {
