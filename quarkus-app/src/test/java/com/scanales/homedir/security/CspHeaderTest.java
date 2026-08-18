@@ -54,6 +54,8 @@ public class CspHeaderTest {
     MatcherAssert.assertThat(cspHeader, containsString("img-src"));
     MatcherAssert.assertThat(cspHeader, containsString("https://cdn.simpleicons.org"));
     MatcherAssert.assertThat(cspHeader, containsString("https://avatars.githubusercontent.com"));
+    MatcherAssert.assertThat(cspHeader, containsString("https://lh3.googleusercontent.com"));
+    MatcherAssert.assertThat(cspHeader, containsString("https://cdn.discordapp.com"));
     MatcherAssert.assertThat(cspHeader, containsString("https://santiago.devopsdayschile.cl"));
   }
 

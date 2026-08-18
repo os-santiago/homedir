@@ -50,16 +50,13 @@
             <article class="hd-card hd-profile-spotlight">
                 <div class="hd-profile-avatar-wrap">
                     {#if picture??}
-                    <img src="{picture}" alt="{name}" class="hd-profile-avatar">
-                    {#else}
-                    {#if github != null && github.avatarUrl != null}
-                    <img src="{github.avatarUrl}" alt="{name}" class="hd-profile-avatar">
+                    <img src="{picture}" alt="{name}" class="hd-profile-avatar" data-hd-avatar-img data-hd-avatar-fallback=".hd-profile-avatar-fallback">
+                    {#else if github != null && github.avatarUrl != null}
+                    <img src="{github.avatarUrl}" alt="{name}" class="hd-profile-avatar" data-hd-avatar-img data-hd-avatar-fallback=".hd-profile-avatar-fallback">
                     {#else if discord != null && discord.avatarUrl != null}
-                    <img src="{discord.avatarUrl}" alt="{name}" class="hd-profile-avatar">
-                    {#else}
-                    <span class="hd-profile-avatar-fallback">{userInitial}</span>
+                    <img src="{discord.avatarUrl}" alt="{name}" class="hd-profile-avatar" data-hd-avatar-img data-hd-avatar-fallback=".hd-profile-avatar-fallback">
                     {/if}
-                    {/if}
+                    <span class="hd-profile-avatar-fallback{#if picture?? || (github != null && github.avatarUrl != null) || (discord != null && discord.avatarUrl != null)} hd-avatar-fallback-hidden{/if}">{userInitial}</span>
                 </div>
                 <div class="hd-profile-spotlight-main">
                     <h3>{name}</h3>

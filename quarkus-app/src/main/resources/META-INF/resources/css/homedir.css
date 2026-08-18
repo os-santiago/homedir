@@ -2856,6 +2856,10 @@ footer {
   border: 1px solid rgba(var(--white-rgb), 0.5);
 }
 
+.hd-avatar-fallback-hidden {
+  display: none;
+}
+
 .user-menu-btn-styled {
   background: none;
   border: none;
