@@ -63,11 +63,51 @@ body:
     id: acceptance
     attributes:
       label: Acceptance Criteria
-      description: What must be true for this to be considered complete?
+      description: |
+        What must be true for this to be considered complete?
+        **⚠️ AI-SDLC Requirement: Maximum 2 criteria for autonomous implementation**
       placeholder: |
         - [ ] Feature works in X scenario
-        - [ ] Documentation updated
-        - [ ] Tests pass
+        - [ ] Tests pass (validation command below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_files
+    attributes:
+      label: Affected Files (Best Guess)
+      description: Which files will likely need changes? (Helps AI-SDLC scope the work)
+      placeholder: |
+        - src/main/java/com/example/FeatureService.java
+        - src/main/resources/templates/feature.html
+        - src/test/java/com/example/FeatureServiceTest.java
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation Command
+      description: How can the implementation be validated? (Required for AI-SDLC)
+      placeholder: |
+        mvn test -Dtest=FeatureServiceTest
+        or
+        curl http://localhost:8080/api/feature | jq
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: |
+        **Simple**: 1 file, <50 lines, obvious implementation
+        **Medium**: 2-3 files, <200 lines, clear scope
+        **Complex**: >3 files or architectural decision (may need decomposition)
+      options:
+        - Simple
+        - Medium
+        - Complex
     validations:
       required: true
 
@@ -77,7 +117,9 @@ body:
       label: Definition of Ready
       options:
         - label: Problem clearly defined
-        - label: Acceptance criteria defined
+        - label: Acceptance criteria defined (max 2 for AI-SDLC)
+        - label: Affected files identified
+        - label: Validation command specified
         - label: No duplicate issue exists
         - label: Area identified
     validations:

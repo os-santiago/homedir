@@ -81,14 +81,68 @@ body:
       description: Environment details (OS, browser, version, logs, screenshots)
       placeholder: Homedir v3.x, Java 21, Chrome 120, Windows 11
 
-  - type: checkboxes
+  - type: textarea
+    id: affected_files
+    attributes:
+      label: Affected Files (Best Guess)
+      description: Which files likely contain the bug? (Helps AI-SDLC locate the issue)
+      placeholder: |
+        - src/main/java/com/scanales/homedir/service/BuggyService.java
+        - src/main/resources/templates/buggy-page.html
+    validations:
+      required: true
+
+  - type: textarea
     id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: |
+        How do we know the bug is fixed?
+        **⚠️ AI-SDLC Requirement: Maximum 2 criteria for autonomous implementation**
+      placeholder: |
+        - [ ] Bug no longer reproduces following steps above
+        - [ ] Regression test passes
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation Command
+      description: How can the fix be validated? (Required for AI-SDLC)
+      placeholder: |
+        mvn test -Dtest=BuggyServiceTest
+        or
+        curl http://localhost:8080/api/endpoint | grep "expected"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Fix Complexity
+      description: |
+        **Simple**: 1 file, <50 lines, obvious fix
+        **Medium**: 2-3 files, <200 lines, clear scope
+        **Complex**: >3 files or root cause unclear (may need investigation)
+      options:
+        - Simple
+        - Medium
+        - Complex
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: definition
     attributes:
       label: Definition of Ready
       options:
         - label: Impact and severity assessed
         - label: Steps to reproduce are clear
+        - label: Expected vs actual behavior defined
+        - label: Affected files identified
+        - label: Acceptance criteria defined (max 2 for AI-SDLC)
+        - label: Validation command specified
         - label: No duplicate issue exists
-        - label: Technical context provided
     validations:
       required: true
