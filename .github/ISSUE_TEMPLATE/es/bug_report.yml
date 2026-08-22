@@ -72,14 +72,68 @@ body:
       label: Contexto Tecnico
       description: Entorno, logs, capturas de pantalla
 
-  - type: checkboxes
+  - type: textarea
+    id: affected_files
+    attributes:
+      label: Archivos Afectados (Estimación)
+      description: ¿Qué archivos probablemente contienen el bug? (Ayuda al AI-SDLC a localizar el problema)
+      placeholder: |
+        - src/main/java/com/scanales/homedir/service/ServicioConBug.java
+        - src/main/resources/templates/pagina-con-error.html
+    validations:
+      required: true
+
+  - type: textarea
     id: acceptance
+    attributes:
+      label: Criterios de Aceptación
+      description: |
+        ¿Cómo sabemos que el bug está corregido?
+        **⚠️ Requisito AI-SDLC: Máximo 2 criterios para implementación autónoma**
+      placeholder: |
+        - [ ] El bug ya no se reproduce siguiendo los pasos anteriores
+        - [ ] La prueba de regresión pasa
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Comando de Validación
+      description: ¿Cómo se puede validar la corrección? (Requerido para AI-SDLC)
+      placeholder: |
+        mvn test -Dtest=ServicioConBugTest
+        o
+        curl http://localhost:8080/api/endpoint | grep "esperado"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complejidad del Fix
+      description: |
+        **Simple**: 1 archivo, <50 líneas, corrección obvia
+        **Medio**: 2-3 archivos, <200 líneas, alcance claro
+        **Complejo**: >3 archivos o causa raíz poco clara (puede necesitar investigación)
+      options:
+        - Simple
+        - Medio
+        - Complejo
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: definition
     attributes:
       label: Definition of Ready
       options:
         - label: Impacto y severidad evaluados
         - label: Pasos para reproducir claros
+        - label: Comportamiento esperado vs actual definido
+        - label: Archivos afectados identificados
+        - label: Criterios de aceptación definidos (máx 2 para AI-SDLC)
+        - label: Comando de validación especificado
         - label: No existe issue duplicado
-        - label: Contexto tecnico proporcionado
     validations:
       required: true
