@@ -3123,6 +3123,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  overflow-wrap: break-word;
 }
 
 .hd-panel.centered .hd-list-log .hd-list-content strong {
