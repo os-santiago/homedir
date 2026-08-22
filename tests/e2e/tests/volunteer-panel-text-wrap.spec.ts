@@ -12,7 +12,16 @@ test.describe('Volunteer panel text wrapping', () => {
   test.beforeEach(async ({ page }) => {
     // Start with a narrow viewport to test text wrapping
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/private/profile');
+    
+    // Log in with dev user
+    await page.goto('/login.html');
+    await page.locator('#username').fill('user@example.com');
+    await page.locator('#password').fill('userpass');
+    await Promise.all([
+      page.waitForURL('**/profile'),
+      page.locator('button[type="submit"]').click(),
+    ]);
+    
     await page.waitForLoadState('networkidle');
   });
 
