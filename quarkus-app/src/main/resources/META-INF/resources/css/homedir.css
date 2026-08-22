@@ -13,6 +13,21 @@
   box-sizing: border-box;
 }
 
+/* WCAG 2.4.7 / 1.4.11 — Global focus-visible baseline (3:1 contrast minimum).
+   Ensures every interactive element has a visible focus indicator for keyboard users.
+   Specific component styles below override this with tailored indicators. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-accent, #ffd700);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .text-nowrap {
   white-space: nowrap;
 }
@@ -327,6 +342,13 @@ footer {
 .nav-link.nav-link-active {
   opacity: 1;
   border-bottom-color: var(--color-accent);
+}
+
+.hd-nav-link:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .hd-user-area {
@@ -1037,12 +1059,14 @@ footer {
   border-color: rgba(var(--white-rgb), 0.16);
 }
 
-.homedir-main.admin-context-main .form-input:focus,
-.homedir-main.admin-context-main .form-select:focus,
-.homedir-main.admin-context-main .form-textarea:focus,
-.homedir-main.admin-context-main .hd-form-input:focus {
+.homedir-main.admin-context-main .form-input:focus-visible,
+.homedir-main.admin-context-main .form-select:focus-visible,
+.homedir-main.admin-context-main .form-textarea:focus-visible,
+.homedir-main.admin-context-main .hd-form-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
   border-color: rgba(255, 215, 0, 0.5);
-  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.14);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
 }
 
 .admin-shell-header {
@@ -2972,6 +2996,13 @@ footer {
   color: var(--color-text-main);
 }
 
+.dropdown-item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  background: rgba(var(--white-rgb), 0.1);
+  color: var(--color-text-main);
+}
+
 .dropdown-item .material-symbols-outlined {
   font-size: 1.2rem;
   opacity: 0.8;
@@ -3380,8 +3411,9 @@ footer {
   font-family: inherit;
 }
 
-.hd-form-input:focus {
-  outline: 2px solid #a64bf4;
+.hd-form-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
   border-color: transparent;
 }
 
@@ -3418,6 +3450,11 @@ footer {
   background: rgba(var(--white-rgb), 0.2);
   color: var(--color-accent);
   transform: translateY(-2px);
+}
+
+.hd-tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .hd-tab.active {
@@ -6481,6 +6518,8 @@ footer {
 }
 .skip-link:focus {
   top: 0;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Error pages */
