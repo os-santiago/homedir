@@ -1,0 +1,73 @@
+# AI-SDLC Worker Container
+# Production-ready container for autonomous AI-SDLC worker
+FROM ubuntu:24.04
+
+LABEL org.opencontainers.image.source="https://github.com/os-santiago/homedir"
+LABEL org.opencontainers.image.description="AI-SDLC Worker - Autonomous Software Development Lifecycle"
+LABEL org.opencontainers.image.authors="os-santiago"
+
+# Install system dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    jq \
+    ca-certificates \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install GitHub CLI
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y gh && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install SCC (Sony Code Composer)
+RUN curl -sL https://github.com/sony/model_optimization/releases/latest/download/scc-linux-x64 -o /usr/local/bin/scc && \
+    chmod +x /usr/local/bin/scc
+
+# Create application directories
+RUN mkdir -p /app/platform/scripts \
+             /app/platform/config \
+             /var/lib/homedir-sdlc \
+             /srv/homedir-sdlc/worktrees
+
+# Copy worker scripts
+COPY platform/scripts/sdlc/homedir-sdlc-worker.sh /app/platform/scripts/
+COPY platform/scripts/sdlc/homedir-sdlc-doctor.sh /app/platform/scripts/
+COPY platform/scripts/sdlc/homedir-sdlc-labels.sh /app/platform/scripts/
+COPY platform/scripts/sdlc/homedir-sdlc-status.sh /app/platform/scripts/
+COPY platform/scripts/sdlc/homedir-sdlc-openclaw-listener.sh /app/platform/scripts/
+COPY platform/scripts/policy-loader.sh /app/platform/scripts/
+COPY platform/scripts/policy-matcher.sh /app/platform/scripts/
+
+# Copy policy configuration
+COPY platform/config/autonomous-decision-policy.yaml /app/platform/config/
+
+# Make scripts executable
+RUN chmod +x /app/platform/scripts/*.sh
+
+# Configure git (will use container's env for credentials)
+RUN git config --global user.name "homedir-sdlc[bot]" && \
+    git config --global user.email "homedir-sdlc@users.noreply.github.com" && \
+    git config --global credential.helper store
+
+# Set working directory
+WORKDIR /app
+
+# Environment variables (defaults, can be overridden)
+ENV PLATFORM_DIR=/app/platform \
+    SCC_BIN=/usr/local/bin/scc \
+    HOMEDIR_SDLC_STATE_DIR=/var/lib/homedir-sdlc \
+    HOMEDIR_SDLC_WORKDIR=/srv/homedir-sdlc/worktrees/homedir \
+    PATH="/app/platform/scripts:${PATH}"
+
+# Healthcheck
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+  CMD test -f /var/lib/homedir-sdlc/heartbeat.json && \
+      test $(( $(date +%s) - $(date -d "$(jq -r '.updated_at' /var/lib/homedir-sdlc/heartbeat.json)" +%s 2>/dev/null || echo 0) )) -lt 600 || exit 1
+
+# Default command (can be overridden)
+CMD ["/app/platform/scripts/homedir-sdlc-worker.sh", "reconcile"]
