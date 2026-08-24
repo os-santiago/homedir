@@ -109,4 +109,46 @@ class BountyHunterServiceTest {
     List<BountyHunterScore> result = service.getLeaderboard(10);
     assertEquals(2, result.size());
   }
+
+  @Test
+  void awardIssueCreationPoints_duplicate_returnsExistingScore() {
+    String userId = "testuser";
+    String issueNumber = "123";
+    String label = "bug-impact-medium";
+    String validatedBy = "admin";
+    long points = 15L;
+
+    when(configService.getPointsForLabel(label)).thenReturn(points);
+    when(configService.isAdminUser(validatedBy)).thenReturn(true);
+    when(repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_LABEL_APPROVED)).thenReturn(true);
+    
+    BountyHunterScore existingScore = new BountyHunterScore(userId, 50L, 50L, 0L, BountyHunterLevel.NOVICE, 3, 0, Instant.now());
+    when(repository.findScoreByUserId(userId)).thenReturn(Optional.of(existingScore));
+
+    BountyHunterScore result = service.awardIssueCreationPoints(userId, issueNumber, label, validatedBy);
+
+    assertEquals(50L, result.totalPoints()); // Points did not increase
+    verify(repository, never()).saveScore(any());
+    verify(repository, never()).appendEvent(any());
+  }
+
+  @Test
+  void awardIssueResolutionPoints_duplicate_returnsExistingScore() {
+    String userId = "testuser";
+    String issueNumber = "127";
+    String label = "feature-request";
+    long points = 20L;
+
+    when(configService.getPointsForLabel(label)).thenReturn(points);
+    when(repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_RESOLVED_BY_PR)).thenReturn(true);
+    
+    BountyHunterScore existingScore = new BountyHunterScore(userId, 100L, 0L, 100L, BountyHunterLevel.EXPERIENCED, 0, 2, Instant.now());
+    when(repository.findScoreByUserId(userId)).thenReturn(Optional.of(existingScore));
+
+    BountyHunterScore result = service.awardIssueResolutionPoints(userId, issueNumber, "45", label);
+
+    assertEquals(100L, result.totalPoints()); // Points did not increase
+    verify(repository, never()).saveScore(any());
+    verify(repository, never()).appendEvent(any());
+  }
 }

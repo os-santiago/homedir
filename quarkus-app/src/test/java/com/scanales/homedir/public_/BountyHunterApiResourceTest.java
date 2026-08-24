@@ -8,6 +8,8 @@ import static org.mockito.Mockito.*;
 import com.scanales.homedir.reputation.bounty.*;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
+
 import io.restassured.http.ContentType;
 import java.time.Instant;
 import java.util.List;
@@ -169,6 +171,7 @@ class BountyHunterApiResourceTest {
   }
 
   @Test
+  @TestSecurity(user = "admin", roles = "admin")
   void resolveIssue_validRequest_returnsSuccess() {
     BountyHunterScore score =
         new BountyHunterScore(
@@ -232,5 +235,23 @@ class BountyHunterApiResourceTest {
         .body("[0].name", equalTo("NONE"))
         .body("[1].name", equalTo("NOVICE"))
         .body("[1].requiredPoints", equalTo(50));
+  }
+  @Test
+  void resolveIssue_unauthorized_returns401() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+        {
+          "userId": "testuser",
+          "issueNumber": "123",
+          "prNumber": "456",
+          "labelName": "feature-request"
+        }
+        """)
+        .when()
+        .post("/api/bounty-hunters/resolve-issue")
+        .then()
+        .statusCode(401);
   }
 }

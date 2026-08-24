@@ -51,4 +51,11 @@ public class BountyHunterRepository {
   public long countScores() {
     return scores.size();
   }
+
+  public boolean hasEventForIssue(String userId, String issueNumber, BountyHunterEventType type) {
+    synchronized (events) {
+      return events.stream()
+          .anyMatch(e -> e.userId().equals(userId) && e.issueNumber().equals(issueNumber) && e.eventType() == type);
+    }
+  }
 }
