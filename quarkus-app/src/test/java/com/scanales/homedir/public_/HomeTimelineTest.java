@@ -27,7 +27,7 @@ public class HomeTimelineTest {
   }
 
   @Test
-  public void homeFallbackLocaleIsSpanishWhenHeaderIsUnsupported() {
+  public void homeFallbackLocaleIsEnglishWhenHeaderIsUnsupported() {
     given()
         .header("Accept-Language", "fr-FR,fr;q=0.9")
         .accept("text/html")
@@ -35,8 +35,8 @@ public class HomeTimelineTest {
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("<html lang=\"es\">"))
-        .body(containsString(">Inicio</a>"));
+        .body(containsString("<html lang=\"en\">"))
+        .body(containsString(">Home</a>"));
   }
 
   @Test

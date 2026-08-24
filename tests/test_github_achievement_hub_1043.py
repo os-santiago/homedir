@@ -301,11 +301,16 @@ def test_i18n_messages_defined() -> None:
 
 
 def test_i18n_spanish_translations_exist() -> None:
-    """Spanish translations must exist in i18n_es.properties."""
-    props = (ROOT / "quarkus-app/src/main/resources/messages/i18n_es.properties").read_text()
-    assert "nav_achievements=" in props, "Spanish nav_achievements missing"
-    assert "achievements_heading=" in props, "Spanish achievements_heading missing"
-    assert "achievements_claim_xp=" in props, "Spanish achievements_claim_xp missing"
+    """Spanish translations must exist in i18n_es.properties with actual Spanish values."""
+    props = (ROOT / "quarkus-app/src/main/resources/messages/i18n_es.properties").read_text(encoding="utf-8")
+    # Check keys exist and have non-empty, non-English values
+    for key in ("nav_achievements", "achievements_heading", "achievements_claim_xp"):
+        assert f"{key}=" in props, f"Spanish {key} missing"
+        # Extract value and ensure it's not empty, not English, not a placeholder
+        value = props.split(f"{key}=")[1].split("\n")[0].strip()
+        assert value, f"Spanish {key} has empty value"
+        assert not value.isascii() or value.lower() != value, \
+            f"Spanish {key} appears to be English/placeholder: '{value}'"
 
 
 def test_nav_link_added_to_header() -> None:

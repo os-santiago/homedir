@@ -832,7 +832,7 @@ public class AdminCampaignsResource {
 
   private AdminCampaignsCopy localizedCopy(String localeCode) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
-    ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("messages/i18n", locale);
     return new AdminCampaignsCopy(
         text(bundle, "campaigns_admin_page_title"),
         text(bundle, "campaigns_admin_subtitle"),
@@ -1295,7 +1295,7 @@ public class AdminCampaignsResource {
       CampaignService.CampaignPreviewSnapshot view,
       AdminCampaignFilters filters) {
     Locale locale = Locale.forLanguageTag("en".equalsIgnoreCase(localeCode) ? "en" : "es");
-    ResourceBundle bundle = ResourceBundle.getBundle("i18n", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("messages/i18n", locale);
     Set<String> issueDraftIds = new LinkedHashSet<>();
     for (CampaignService.CampaignPublishRecoveryItem item : view.recoveryItems()) {
       issueDraftIds.add(item.draftId());

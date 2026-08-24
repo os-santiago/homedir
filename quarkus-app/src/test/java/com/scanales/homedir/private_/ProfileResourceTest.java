@@ -55,6 +55,7 @@ public class ProfileResourceTest {
     challengeService.resetForTests();
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
     userProfiles.updateLocale(currentUserEmail(), "en");
     eventService.saveEvent(
         new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));

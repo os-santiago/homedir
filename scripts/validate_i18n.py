@@ -19,6 +19,7 @@ REDUNDANT_FILES = [
     RESOURCE_DIR / "i18n.properties",
     RESOURCE_DIR / "i18n_en.properties",
     RESOURCE_DIR / "i18n_es.properties",
+    RESOURCE_DIR / "messages" / "i18n_en.properties",
     RESOURCE_DIR / "messages.properties",
     RESOURCE_DIR / "messages_es.properties",
 ]
