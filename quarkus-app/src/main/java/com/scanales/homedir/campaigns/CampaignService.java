@@ -3339,7 +3339,8 @@ public class CampaignService {
     String eventLabel =
         item.eventCode().isBlank()
             ? bundleText(bundle, "campaigns_admin_audit_system")
-            : bundleText(bundle, "campaigns_admin_audit_event_" + item.eventCode().replace('.', '_'));
+            : bundleText(
+                bundle, "campaigns_admin_audit_event_" + item.eventCode().replace('.', '_'));
     String channelLabel =
         item.channel().isBlank() ? "—" : bundleText(bundle, "campaigns_channel_" + item.channel());
     String outcomeLabel =

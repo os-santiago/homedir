@@ -7600,7 +7600,8 @@ public interface AppMessages {
   String campaigns_admin_linkedin_landing_label();
 
   @Message("campaigns_admin_linkedin_message")
-  String campaigns_admin_linkedin_message(Object title, Object body, Object evidence, Object ctaLabel, Object ctaUrl);
+  String campaigns_admin_linkedin_message(
+      Object title, Object body, Object evidence, Object ctaLabel, Object ctaUrl);
 
   @Message("campaigns_admin_linkedin_message_label")
   String campaigns_admin_linkedin_message_label();
@@ -8810,5 +8811,4 @@ public interface AppMessages {
 
   @Message("public_profile_challenges_completed_on")
   String public_profile_challenges_completed_on();
-
 }
