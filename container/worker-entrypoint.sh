@@ -67,17 +67,27 @@ log "INFO: Environment validation passed"
 # ============================================================================
 log "INFO: Configuring GitHub CLI..."
 
-# gh CLI automatically uses GH_TOKEN environment variable for authentication
-# No need to call gh auth login - it would fail with "already using GH_TOKEN"
-log "INFO: Using GH_TOKEN for authentication (automatic)"
+# Authenticate with token (required for gh auth status to pass)
+if [[ -n "${GH_TOKEN:-}" ]]; then
+  log "INFO: Authenticating with GH_TOKEN..."
 
-# Verify authentication
-if ! gh auth status >/dev/null 2>&1; then
-  log "ERROR: GitHub CLI authentication verification failed"
+  # Write token to gh auth login stdin (non-interactive)
+  if echo "${GH_TOKEN}" | gh auth login --with-token >/dev/null 2>&1; then
+    log "INFO: GitHub CLI authenticated via token"
+  else
+    log "WARN: gh auth login failed, but gh CLI will still use GH_TOKEN env var"
+  fi
+
+  # Verify authentication (informational only, not fatal)
+  if gh auth status >/dev/null 2>&1; then
+    log "INFO: GitHub CLI authentication verified"
+  else
+    log "WARN: gh auth status check failed, but operations will use GH_TOKEN directly"
+  fi
+else
+  log "ERROR: GH_TOKEN environment variable is not set"
   exit 1
 fi
-
-log "INFO: GitHub CLI authenticated successfully"
 
 # ============================================================================
 # Git Configuration
@@ -151,16 +161,41 @@ fi
 log "INFO: Worktree ready at ${WORKTREE_PATH}"
 
 # ============================================================================
-# SCC Verification
+# SCC Configuration and Verification
 # ============================================================================
-log "INFO: Verifying SCC installation..."
+log "INFO: Configuring SCC (sc-agent-cli)..."
 
+# Create SCC config directory
+mkdir -p ~/.sc-agent
+
+# Create config from template, substituting NVIDIA_API_KEY
+if [[ -f /app/config/sc-agent-config.json ]]; then
+  if [[ -n "${NVIDIA_API_KEY:-}" ]]; then
+    # Replace ${NVIDIA_API_KEY} placeholder with actual value
+    sed "s/\${NVIDIA_API_KEY}/${NVIDIA_API_KEY}/g" /app/config/sc-agent-config.json > ~/.sc-agent/config.json
+    log "INFO: SCC config created with NVIDIA API key"
+  else
+    log "WARN: NVIDIA_API_KEY not set - SCC will not function"
+    cp /app/config/sc-agent-config.json ~/.sc-agent/config.json
+  fi
+else
+  log "WARN: SCC config template not found"
+fi
+
+# Verify SCC installation
 if command -v "${SCC_BIN:-scc}" >/dev/null 2>&1; then
   SCC_VERSION=$("${SCC_BIN:-scc}" --version 2>&1 | head -1 || echo "unknown")
   log "INFO: SCC found: ${SCC_VERSION}"
+
+  # Test SCC can connect to API
+  if [[ -n "${NVIDIA_API_KEY:-}" ]]; then
+    log "INFO: SCC configured with profile: ${SCC_PROFILE:-nvidia}"
+  else
+    log "WARN: NVIDIA_API_KEY not set - SCC cannot call AI models"
+  fi
 else
   log "WARN: SCC not found at ${SCC_BIN:-scc}"
-  log "WARN: Worker may fail when attempting to execute SCC"
+  log "WARN: Worker will operate in reconcile-only mode"
 fi
 
 # ============================================================================

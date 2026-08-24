@@ -1,0 +1,14 @@
+{
+  "defaultProfile": "nvidia",
+  "profiles": {
+    "nvidia": {
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKey": "${NVIDIA_API_KEY}",
+      "model": "meta/llama-3.3-70b-instruct"
+    }
+  },
+  "permissions": {
+    "autoApprove": ["read", "list", "search"],
+    "requireConfirmation": ["write", "exec"]
+  }
+}

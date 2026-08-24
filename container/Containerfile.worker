@@ -18,6 +18,11 @@ RUN apt-get update && \
     openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 20.x (required for sc-agent-cli)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
     chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
@@ -26,9 +31,20 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     apt-get install -y gh && \
     rm -rf /var/lib/apt/lists/*
 
-# Install SCC (Sony Code Composer)
-RUN curl -sL https://github.com/sony/model_optimization/releases/latest/download/scc-linux-x64 -o /usr/local/bin/scc && \
-    chmod +x /usr/local/bin/scc
+# Install SCC (sc-agent-cli from local repo - pre-built)
+# Note: Requires sc-agent-cli repo at build context with dist/ already compiled
+# Build command: podman build --build-context sc-agent-cli=../sc-agent-cli -f container/Containerfile.worker .
+COPY --from=sc-agent-cli package.json package-lock.json /tmp/sc-agent-cli/
+COPY --from=sc-agent-cli bin /tmp/sc-agent-cli/bin/
+COPY --from=sc-agent-cli dist /tmp/sc-agent-cli/dist/
+RUN cd /tmp/sc-agent-cli && \
+    npm install --omit=dev --ignore-scripts && \
+    mkdir -p /usr/local/lib/node_modules/sc-agent-cli && \
+    cp -r package.json bin dist node_modules /usr/local/lib/node_modules/sc-agent-cli/ && \
+    chmod +x /usr/local/lib/node_modules/sc-agent-cli/bin/sc.js && \
+    ln -s /usr/local/lib/node_modules/sc-agent-cli/bin/sc.js /usr/local/bin/sc && \
+    ln -s /usr/local/bin/sc /usr/local/bin/scc && \
+    cd / && rm -rf /tmp/sc-agent-cli
 
 # Create application directories
 RUN mkdir -p /app/platform/scripts \
@@ -45,11 +61,17 @@ COPY platform/scripts/sdlc/homedir-sdlc-openclaw-listener.sh /app/platform/scrip
 COPY platform/scripts/policy-loader.sh /app/platform/scripts/
 COPY platform/scripts/policy-matcher.sh /app/platform/scripts/
 
+# Copy entrypoint
+COPY container/worker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
+
+# Copy SCC configuration template
+COPY container/sc-agent-config.json /app/config/sc-agent-config.json
+
 # Copy policy configuration
 COPY platform/config/autonomous-decision-policy.yaml /app/platform/config/
 
 # Make scripts executable
-RUN chmod +x /app/platform/scripts/*.sh
+RUN chmod +x /app/platform/scripts/*.sh /usr/local/bin/worker-entrypoint.sh
 
 # Configure git (will use container's env for credentials)
 RUN git config --global user.name "homedir-sdlc[bot]" && \
@@ -71,5 +93,8 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
   CMD test -f /var/lib/homedir-sdlc/heartbeat.json && \
       test $(( $(date +%s) - $(date -d "$(jq -r '.updated_at' /var/lib/homedir-sdlc/heartbeat.json)" +%s 2>/dev/null || echo 0) )) -lt 600 || exit 1
 
+# Entrypoint handles authentication and setup
+ENTRYPOINT ["/usr/local/bin/worker-entrypoint.sh"]
+
 # Default command (can be overridden)
-CMD ["/app/platform/scripts/homedir-sdlc-worker.sh", "reconcile"]
+CMD ["reconcile"]
