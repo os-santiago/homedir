@@ -573,6 +573,16 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void economyCatalogPageDefaultsToEnglishWithoutLocaleState() {
+    given()
+        .when()
+        .get("/private/profile/catalog")
+        .then()
+        .statusCode(200)
+        .body(containsString("Economy catalog"));
+  }
+
+  @Test
   public void economyStoreScriptKnowsAboutOwnedItems() {
     given()
         .header("Accept-Language", "en")
