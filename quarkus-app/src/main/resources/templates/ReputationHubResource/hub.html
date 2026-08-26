@@ -234,6 +234,7 @@
       </div>
 
       <div class="hub-secondary-grid">
+        <div class="tutorial-card" data-tutorial="reputation-hub">
         <article class="hub-panel">
           <h2>{#if resolvedLocaleCode == 'es'}Cómo crecer desde aquí{#else}How to grow from here{/if}</h2>
           <p class="hub-panel-intro">
@@ -345,6 +346,7 @@
             {/if}
           </ul>
         </article>
+        </div>
 
         <article class="hub-panel">
           <h2>{i18n:reputation_hub_recognized_title}</h2>
@@ -416,6 +418,7 @@
           </ul>
         </article>
 
+        <div class="tutorial-card" data-tutorial="reputation-hub">
         <article class="hub-panel">
           <h2><a class="hub-how-link" href="/comunidad/reputation-hub/how">{i18n:reputation_hub_how_title}</a></h2>
           <ul class="hub-how-list">
@@ -433,6 +436,9 @@
             </li>
           </ul>
         </article>
+        <div class="tutorial-actions">
+          <button type="button" class="btn btn--ghost tutorial-dismiss" data-tutorial-dismiss="reputation-hub">{i18n:tutorial_dismiss}</button>
+        </div>
       </div>
     </div>
   </section>
