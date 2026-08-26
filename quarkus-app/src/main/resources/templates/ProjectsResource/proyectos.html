@@ -64,6 +64,28 @@
   </article>
 </section>
 
+<section class="page-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">{i18n:project_dashboard_team_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_team_title}</h2>
+  </div>
+  <article class="section-card project-hd-contributors-card project-hd-full">
+    {#if dashboard.topContributors.isEmpty()}
+    <p class="project-hd-empty">{i18n:project_dashboard_empty_contributors}</p>
+    {#else}
+    <div class="project-hd-contributors-grid">
+      {#for c in dashboard.topContributors}
+      <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
+        <img src="{c.avatarUrl}" alt="{c.login}">
+        <strong>{c.login}</strong>
+        <small>{c.contributions} {i18n:project_dashboard_contribs_unit}</small>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </article>
+</section>
+
 <section class="page-grid project-hd-panorama-grid">
   <article class="section-card project-hd-progress-card">
     <div class="project-hd-progress-head">
@@ -183,28 +205,6 @@
     </a>
   </article>
   {/for}
-</section>
-
-<section class="page-grid">
-  <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n:project_dashboard_team_subtitle}</p>
-    <h2 class="page-title">{i18n:project_dashboard_team_title}</h2>
-  </div>
-  <article class="section-card project-hd-contributors-card project-hd-full">
-    {#if dashboard.topContributors.isEmpty()}
-    <p class="project-hd-empty">{i18n:project_dashboard_empty_contributors}</p>
-    {#else}
-    <div class="project-hd-contributors-grid">
-      {#for c in dashboard.topContributors}
-      <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
-        <img src="{c.avatarUrl}" alt="{c.login}">
-        <strong>{c.login}</strong>
-        <small>{c.contributions} {i18n:project_dashboard_contribs_unit}</small>
-      </a>
-      {/for}
-    </div>
-    {/if}
-  </article>
 </section>
 
 <style>
