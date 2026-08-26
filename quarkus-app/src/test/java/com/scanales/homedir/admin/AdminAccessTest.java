@@ -8,7 +8,6 @@ import com.scanales.homedir.model.Scenario;
 import com.scanales.homedir.model.Talk;
 import com.scanales.homedir.service.EventService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.security.SecurityAttribute;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import java.time.LocalTime;
