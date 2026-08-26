@@ -6640,3 +6640,22 @@ button.is-loading::after {
     animation: none;
   }
 }
+
+.tutorial-card {
+  border: 1px solid rgba(var(--gold-rgb), 0.25);
+  border-radius: 8px;
+  background: rgba(var(--gold-rgb), 0.04);
+  padding: 1rem;
+}
+
+.tutorial-card[hidden] {
+  display:none !important;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(var(--white-rgb), 0.1);
+}

@@ -8823,4 +8823,12 @@ public interface AppMessages {
 
   @Message("public_profile_challenges_completed_on")
   String public_profile_challenges_completed_on();
+  @Message("Got it")
+  String tutorial_dismiss();
+
+  @Message("Replay Tutorials")
+  String tutorial_replay();
+
+  @Message("View the onboarding tutorials again on all pages.")
+  String tutorial_replay_intro();
 }
