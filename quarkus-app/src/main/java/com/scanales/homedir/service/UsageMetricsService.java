@@ -127,7 +127,6 @@ public class UsageMetricsService {
     lastFlushTime = System.currentTimeMillis();
     scheduler.scheduleWithFixedDelay(
         this::flushSafe, flushInterval.toMillis(), flushInterval.toMillis(), TimeUnit.MILLISECONDS);
-    Runtime.getRuntime().addShutdownHook(new Thread(this::flushSafe));
   }
 
   @PreDestroy

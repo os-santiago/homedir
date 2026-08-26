@@ -1,0 +1,198 @@
+# A-Dev Configuration for Homedir Project
+# Version: 1.0
+# Applies to: homedir, homedir-infra, homedir-ai-sdlc
+
+version: "1.0"
+applies_to:
+  - homedir
+  - homedir-infra
+  - homedir-ai-sdlc
+
+# Framework source (adev submodule)
+framework_source: "./adev/framework/"
+canonical_doctrine: "./adev/ADEV.md"
+quality_standards: "./adev/QUALITY.md"
+agent_guidelines: "./adev/AGENTS.md"
+
+# Local extensions per repository
+local_extensions:
+  homedir: "./local/homedir-doctrine.md"
+  homedir-infra: "./local/homedir-infra-doctrine.md"
+  homedir-ai-sdlc: "./local/homedir-ai-sdlc-doctrine.md"
+
+# Enforcement rules (applies to all repos)
+enforcement:
+  branch_protection: true
+  pr_required: true
+  conventional_commits: true
+  ci_green_before_merge: true
+  no_scope_mixing: true
+  auto_merge_when_approved: true
+  no_force_push: true
+  no_direct_commits_to_main: true
+
+# Branch workflow
+workflow:
+  main_branch: "main"
+  feature_branch_pattern: "feat/*"
+  fix_branch_pattern: "fix/*"
+  docs_branch_pattern: "docs/*"
+  chore_branch_pattern: "chore/*"
+
+# Labels standard (applies to all repos)
+labels:
+  priority:
+    - name: "P0-blocker"
+      color: "b60205"
+      description: "Blocks everything, resolve immediately"
+    - name: "P1-high"
+      color: "d93f0b"
+      description: "High priority"
+    - name: "P2-medium"
+      color: "fbca04"
+      description: "Medium priority"
+    - name: "P3-low"
+      color: "0e8a16"
+      description: "Low priority"
+
+  pr_lifecycle:
+    - name: "pr:draft"
+      color: "BFDADC"
+      description: "PR is draft / work in progress"
+    - name: "pr:checks-failed"
+      color: "D73A4A"
+      description: "CI checks are failing"
+    - name: "pr:checks-pending"
+      color: "FBCA04"
+      description: "CI checks are running"
+    - name: "pr:needs-review"
+      color: "1D76DB"
+      description: "CI green, ready for review"
+    - name: "pr:changes-requested"
+      color: "D93F0B"
+      description: "Changes requested by reviewer"
+    - name: "pr:approved"
+      color: "0E8A16"
+      description: "Approved, ready to merge"
+
+  type:
+    - name: "feature"
+      color: "a2eeef"
+      description: "New functionality"
+    - name: "bug"
+      color: "d73a4a"
+      description: "Something isn't working"
+    - name: "refactor"
+      color: "FBCA04"
+      description: "Code improvement"
+    - name: "documentation"
+      color: "0075ca"
+      description: "Documentation changes"
+    - name: "testing"
+      color: "BFD4F2"
+      description: "Test additions/improvements"
+
+  ai_sdlc:
+    - name: "ready-to-implement"
+      color: "0E8A16"
+      description: "Ready for AI-SDLC processing"
+    - name: "needs-human"
+      color: "B60205"
+      description: "Requires human intervention"
+    - name: "ai-sdlc-track"
+      color: "C5DEF5"
+      description: "AI-SDLC is tracking this PR"
+    - name: "ai-sdlc-assist"
+      color: "1D76DB"
+      description: "AI-SDLC may assist this PR"
+
+# Agent behavior constraints (from A-Dev)
+agent_constraints:
+  secrets:
+    - "Never commit API keys, passwords, tokens, credentials, connection strings"
+    - "Anonymize real names, emails, phone numbers, company names in docs"
+
+  workflow:
+    - "Branch-per-change workflow mandatory"
+    - "No direct commits to main branch"
+    - "Conventional commits format required"
+    - "Link all PRs to issues (Closes #X)"
+
+  quality:
+    - "Validate full end-user path before PR"
+    - "Run tests locally before pushing"
+    - "Build → Run → Walkthrough → Evidence (50/50 quality ritual)"
+    - "CI must be green before merge"
+
+  collaboration:
+    - "Situational awareness first: inspect branch, working tree before editing"
+    - "Never overwrite unreviewed local work"
+    - "Document all decisions in ADRs or ADEV-LOCAL.md"
+    - "Clean up temporary files after task completion"
+
+  discipline:
+    - "Search before adding (librarian principle)"
+    - "No scope mixing in PRs (feature+refactor+docs in separate PRs)"
+    - "Update doctrine when patterns emerge or failures occur"
+
+# Quality ritual (from A-Dev QUALITY.md)
+quality_ritual:
+  cycle: "50/50" # Half build, half verification
+  phases:
+    - name: "Build"
+      actions:
+        - "Local compilation"
+        - "Feature toggles for Live Alpha (not heavy staging)"
+    - name: "Run"
+      actions:
+        - "Automated tests"
+        - "Security checks"
+        - "Health endpoints verification"
+    - name: "Walkthrough"
+      actions:
+        - "Persona-based validation"
+        - "UI/UX review"
+        - "Does it meet the need?"
+    - name: "Evidence"
+      actions:
+        - "Commit with conventional format"
+        - "CI pipeline green"
+        - "Documentation updated"
+
+  target_cycle_time: "5-10 minutes for full QA loop"
+  success_metric: "Percentage of iterations completed in 1-2 hours including tests and CI"
+
+# Repository-specific settings
+repositories:
+  homedir:
+    language: "Java"
+    framework: "Quarkus"
+    deployment: "K3s"
+    quality_gates:
+      - "mvn clean test"
+      - "Integration tests"
+      - "Manual E2E on dev"
+
+  homedir-ai-sdlc:
+    language: "Bash"
+    framework: "SCC (sc-agent-cli)"
+    deployment: "K3s CronJob"
+    quality_gates:
+      - "shellcheck"
+      - "Container build"
+      - "E2E issue → PR flow"
+
+  homedir-infra:
+    language: "Documentation"
+    framework: "Markdown"
+    deployment: "N/A"
+    quality_gates:
+      - "Link validity"
+      - "Documentation completeness"
+
+# Meta-validation
+meta:
+  self_improvement: true
+  description: "This configuration itself should evolve via PRs following A-Dev doctrine"
+  update_process: "PR with evidence of why change is needed"
+  review_cycle: "Monthly review of effectiveness"

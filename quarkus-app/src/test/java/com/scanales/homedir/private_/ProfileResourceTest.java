@@ -55,6 +55,8 @@ public class ProfileResourceTest {
     challengeService.resetForTests();
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+    userProfiles.updateLocale(currentUserEmail(), "en");
     eventService.saveEvent(
         new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
     eventService.saveEvent(
@@ -568,6 +570,16 @@ public class ProfileResourceTest {
         .body(containsString("hd-catalog-compare"))
         .body(containsString("hd-catalog-compare-label"))
         .body(containsString("/private/profile#economy-panel"));
+  }
+
+  @Test
+  public void economyCatalogPageDefaultsToEnglishWithoutLocaleState() {
+    given()
+        .when()
+        .get("/private/profile/catalog")
+        .then()
+        .statusCode(200)
+        .body(containsString("Economy catalog"));
   }
 
   @Test

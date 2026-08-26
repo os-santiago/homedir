@@ -1204,7 +1204,7 @@ public class ProfileResource {
 
   private String resolveLanguage(
       String localeCookie, String userId, jakarta.ws.rs.core.HttpHeaders headers) {
-    String lang = "es";
+    String lang = "en";
     java.util.Optional<com.scanales.homedir.model.UserProfile> p = userProfiles.find(userId);
     if (p.isPresent() && p.get().getPreferredLocale() != null) {
       lang = p.get().getPreferredLocale();
@@ -1474,7 +1474,7 @@ public class ProfileResource {
   private ResourceBundle localizedChallengeBundle(String language) {
     Locale bundleLocale =
         "es".equalsIgnoreCase(language) ? Locale.forLanguageTag("es") : Locale.ROOT;
-    return ResourceBundle.getBundle("i18n", bundleLocale);
+    return ResourceBundle.getBundle("messages/i18n", bundleLocale);
   }
 
   private String formatNamed(String pattern, Object... keyValues) {

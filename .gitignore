@@ -102,3 +102,4 @@ resolve_*.json
 # Recovery and backup files
 *-RECOVERY.json
 INSTRUCCIONES-RECUPERACION-*.md
+.adev/

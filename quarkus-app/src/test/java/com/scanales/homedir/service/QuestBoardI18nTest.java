@@ -64,14 +64,7 @@ public class QuestBoardI18nTest {
   }
 
   @Test
-  @org.junit.jupiter.api.Disabled(
-      "Spanish locale not working - Quarkus not respecting .setLocale() for message bundles. "
-          + "See issue: https://github.com/os-santiago/homedir/issues/1267")
   void spanishLocaleShowsSpanishQuestContent() {
-    // TODO(issue-i18n): Re-enable once Qute message bundle locale resolution is fixed
-    // Root cause: Quarkus loads i18n.properties (English) instead of i18n_es.properties
-    // even when .setLocale(Locale.forLanguageTag("es")) is called
-    // Test validates Spanish content to preserve coverage when i18n is fixed
     given()
         .header("Accept-Language", "es")
         .when()

@@ -9,10 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.scanales.homedir.campaigns.CampaignDraftState;
-import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
-import com.scanales.homedir.campaigns.CampaignStateSnapshot;
-import com.scanales.homedir.campaigns.CampaignWorkflowState;
 import com.scanales.homedir.cfp.CfpSubmission;
 import com.scanales.homedir.cfp.CfpSubmissionStatus;
 import com.scanales.homedir.challenges.ChallengeProgress;
@@ -98,11 +94,6 @@ public class PersistenceServiceTest {
     assertEquals(
         "reputation-ga-observation-journal.json",
         service.logFileLabel(tempDir.resolve("reputation-ga-observation-journal.json")));
-    assertEquals(
-        "campaign-state.json", service.logFileLabel(tempDir.resolve("campaign-state.json")));
-    assertEquals(
-        "campaign-operations-state.json",
-        service.logFileLabel(tempDir.resolve("campaign-operations-state.json")));
   }
 
   @Test
@@ -248,100 +239,6 @@ public class PersistenceServiceTest {
     assertTrue(loaded.releaseWindowOneObserved());
     assertFalse(loaded.monthlyCycleObserved());
     assertEquals(2L, loaded.completedChecks());
-  }
-
-  @Test
-  void campaignStatePersistsAndLoads() {
-    service = newService();
-
-    CampaignStateSnapshot snapshot =
-        new CampaignStateSnapshot(
-            CampaignStateSnapshot.SCHEMA_VERSION,
-            Instant.parse("2026-03-19T13:00:00Z"),
-            java.util.List.of(
-                new CampaignDraftState(
-                    "product-pulse",
-                    "product_pulse",
-                    Instant.parse("2026-03-19T13:00:00Z"),
-                    Map.of("version", "3.489.0"),
-                    java.util.List.of("discord", "linkedin"),
-                    true,
-                    CampaignWorkflowState.APPROVED,
-                    Instant.parse("2026-03-19T13:05:00Z"),
-                    "sergio.canales.e@gmail.com",
-                    null,
-                    Instant.parse("2026-03-19T13:05:00Z"),
-                    true,
-                    Map.of("discord", Instant.parse("2026-03-19T13:10:00Z")),
-                    Instant.parse("2026-03-19T13:10:00Z"),
-                    "published")),
-            java.util.List.of(
-                new com.scanales.homedir.campaigns.CampaignActivityEntry(
-                    Instant.parse("2026-03-19T13:10:00Z"),
-                    "product-pulse",
-                    "product_pulse",
-                    "approved",
-                    "publish.channel",
-                    "discord",
-                    "published",
-                    "system")));
-
-    service.saveCampaignStateSync(snapshot);
-
-    CampaignStateSnapshot loaded = service.loadCampaignState().orElseThrow();
-    assertEquals(1, loaded.drafts().size());
-    assertEquals("product_pulse", loaded.drafts().getFirst().kind());
-    assertEquals(CampaignWorkflowState.APPROVED, loaded.drafts().getFirst().workflowState());
-    assertTrue(loaded.drafts().getFirst().publishedChannels().containsKey("discord"));
-    assertEquals(1, loaded.activity().size());
-    assertTrue(service.campaignStateLastModifiedMillis() > 0);
-  }
-
-  @Test
-  void campaignOperationsStatePersistsAndLoads() {
-    service = newService();
-
-    CampaignOperationsStateSnapshot snapshot =
-        new CampaignOperationsStateSnapshot(
-            CampaignOperationsStateSnapshot.SCHEMA_VERSION,
-            Instant.parse("2026-03-19T13:15:00Z"),
-            "sergio.canales.e@gmail.com",
-            false,
-            true,
-            Map.of("discord", false, "bluesky", true),
-            Map.of(
-                "discord",
-                new com.scanales.homedir.campaigns.CampaignGoLiveAck(
-                    true, Instant.parse("2026-03-19T13:20:00Z"), "sergio.canales.e@gmail.com")),
-            "discord",
-            Instant.parse("2026-03-19T13:30:00Z"),
-            "sergio.canales.e@gmail.com",
-            true,
-            Instant.parse("2026-03-19T13:35:00Z"),
-            "sergio.canales.e@gmail.com",
-            true,
-            Instant.parse("2026-03-19T13:40:00Z"),
-            "sergio.canales.e@gmail.com",
-            "approved",
-            Instant.parse("2026-03-19T13:45:00Z"),
-            "sergio.canales.e@gmail.com");
-
-    service.saveCampaignOperationsStateSync(snapshot);
-
-    CampaignOperationsStateSnapshot loaded = service.loadCampaignOperationsState().orElseThrow();
-    assertFalse(loaded.refreshAutomationEnabled());
-    assertTrue(loaded.publishAutomationEnabled());
-    assertEquals("sergio.canales.e@gmail.com", loaded.updatedBy());
-    assertEquals(Boolean.FALSE, loaded.channelAutomation().get("discord"));
-    assertTrue(loaded.goLiveAcknowledgement("discord").acknowledged());
-    assertEquals("discord", loaded.pilotLiveChannel());
-    assertTrue(loaded.pilotLiveArmed());
-    assertEquals("sergio.canales.e@gmail.com", loaded.pilotLiveArmedBy());
-    assertTrue(loaded.pilotVerificationAcknowledged());
-    assertEquals("sergio.canales.e@gmail.com", loaded.pilotVerificationAcknowledgedBy());
-    assertEquals("approved", loaded.pilotDecision());
-    assertEquals("sergio.canales.e@gmail.com", loaded.pilotDecisionBy());
-    assertTrue(service.campaignOperationsStateLastModifiedMillis() > 0);
   }
 
   @Test

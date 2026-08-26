@@ -8,8 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.scanales.homedir.agenda.AgendaProposalConfig;
-import com.scanales.homedir.campaigns.CampaignOperationsStateSnapshot;
-import com.scanales.homedir.campaigns.CampaignStateSnapshot;
 import com.scanales.homedir.cfp.CfpConfig;
 import com.scanales.homedir.cfp.CfpEventConfig;
 import com.scanales.homedir.cfp.CfpSubmission;
@@ -122,8 +120,6 @@ public class PersistenceService {
   private Path challengeStateFile;
   private Path reputationStateFile;
   private Path reputationGaObservationJournalFile;
-  private Path campaignStateFile;
-  private Path campaignOperationsStateFile;
   private Path communitySubmissionsFile;
   private Path communityLightningStateFile;
   private Path cfpSubmissionsFile;
@@ -230,9 +226,6 @@ public class PersistenceService {
   @ConfigProperty(name = "persistence.backups.include-challenges", defaultValue = "true")
   boolean backupChallenges = true;
 
-  @ConfigProperty(name = "persistence.backups.include-campaigns", defaultValue = "true")
-  boolean backupCampaigns = true;
-
   @ConfigProperty(name = "persistence.backups.include-community", defaultValue = "true")
   boolean backupCommunity = true;
 
@@ -245,7 +238,6 @@ public class PersistenceService {
   private Path profilesBackupsDir;
   private Path economyBackupsDir;
   private Path challengesBackupsDir;
-  private Path campaignsBackupsDir;
   private Path communityBackupsDir;
   private Path volunteersBackupsDir;
 
@@ -275,8 +267,6 @@ public class PersistenceService {
     challengeStateFile = dataDir.resolve("challenge-state.json");
     reputationStateFile = dataDir.resolve("reputation-state.json");
     reputationGaObservationJournalFile = dataDir.resolve("reputation-ga-observation-journal.json");
-    campaignStateFile = dataDir.resolve("campaign-state.json");
-    campaignOperationsStateFile = dataDir.resolve("campaign-operations-state.json");
     communitySubmissionsFile =
         dataDir.resolve("community").resolve("submissions").resolve("pending.json");
     communityLightningStateFile =
@@ -305,7 +295,6 @@ public class PersistenceService {
       profilesBackupsDir = backupsRoot.resolve("profiles");
       economyBackupsDir = backupsRoot.resolve("economy");
       challengesBackupsDir = backupsRoot.resolve("challenges");
-      campaignsBackupsDir = backupsRoot.resolve("campaigns");
       communityBackupsDir = backupsRoot.resolve("community");
       volunteersBackupsDir = backupsRoot.resolve("volunteers");
 
@@ -314,7 +303,6 @@ public class PersistenceService {
       Files.createDirectories(profilesBackupsDir);
       Files.createDirectories(economyBackupsDir);
       Files.createDirectories(challengesBackupsDir);
-      Files.createDirectories(campaignsBackupsDir);
       Files.createDirectories(communityBackupsDir);
       Files.createDirectories(volunteersBackupsDir);
 
@@ -592,85 +580,6 @@ public class PersistenceService {
     } catch (IOException e) {
       LOG.errorf(e, "Failed to read %s", logFileLabel(reputationGaObservationJournalFile));
       return java.util.Optional.empty();
-    }
-  }
-
-  /** Persists campaign state asynchronously. */
-  public void saveCampaignState(CampaignStateSnapshot state) {
-    maybeBackup("campaign-state", campaignStateFile, campaignsBackupsDir, backupCampaigns);
-    scheduleWrite(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
-  }
-
-  /** Persists campaign state synchronously. */
-  public void saveCampaignStateSync(CampaignStateSnapshot state) {
-    maybeBackup("campaign-state", campaignStateFile, campaignsBackupsDir, backupCampaigns);
-    writeSync(campaignStateFile, state == null ? CampaignStateSnapshot.empty() : state);
-  }
-
-  /** Loads campaign state from disk if present. */
-  public java.util.Optional<CampaignStateSnapshot> loadCampaignState() {
-    if (campaignStateFile == null || !Files.exists(campaignStateFile)) {
-      return java.util.Optional.empty();
-    }
-    try {
-      return java.util.Optional.ofNullable(
-          mapper.readValue(campaignStateFile.toFile(), CampaignStateSnapshot.class));
-    } catch (IOException e) {
-      LOG.errorf(e, "Failed to read %s", logFileLabel(campaignStateFile));
-      return java.util.Optional.empty();
-    }
-  }
-
-  /** Last modified timestamp for campaign state file, or -1 when unavailable. */
-  public long campaignStateLastModifiedMillis() {
-    try {
-      if (campaignStateFile == null || !Files.exists(campaignStateFile)) {
-        return -1L;
-      }
-      return Files.getLastModifiedTime(campaignStateFile).toMillis();
-    } catch (IOException e) {
-      return -1L;
-    }
-  }
-
-  /** Persists campaign operations state asynchronously. */
-  public void saveCampaignOperationsState(CampaignOperationsStateSnapshot state) {
-    scheduleWrite(
-        campaignOperationsStateFile,
-        state == null ? CampaignOperationsStateSnapshot.empty() : state);
-  }
-
-  /** Persists campaign operations state synchronously. */
-  public void saveCampaignOperationsStateSync(CampaignOperationsStateSnapshot state) {
-    writeSync(
-        campaignOperationsStateFile,
-        state == null ? CampaignOperationsStateSnapshot.empty() : state);
-  }
-
-  /** Loads campaign operations state from disk if present. */
-  public java.util.Optional<CampaignOperationsStateSnapshot> loadCampaignOperationsState() {
-    if (campaignOperationsStateFile == null || !Files.exists(campaignOperationsStateFile)) {
-      return java.util.Optional.empty();
-    }
-    try {
-      return java.util.Optional.ofNullable(
-          mapper.readValue(
-              campaignOperationsStateFile.toFile(), CampaignOperationsStateSnapshot.class));
-    } catch (IOException e) {
-      LOG.errorf(e, "Failed to read %s", logFileLabel(campaignOperationsStateFile));
-      return java.util.Optional.empty();
-    }
-  }
-
-  /** Last modified timestamp for campaign operations state file, or -1 when unavailable. */
-  public long campaignOperationsStateLastModifiedMillis() {
-    try {
-      if (campaignOperationsStateFile == null || !Files.exists(campaignOperationsStateFile)) {
-        return -1L;
-      }
-      return Files.getLastModifiedTime(campaignOperationsStateFile).toMillis();
-    } catch (IOException e) {
-      return -1L;
     }
   }
 
@@ -2396,12 +2305,6 @@ public class PersistenceService {
     }
     if (file.equals(reputationGaObservationJournalFile)) {
       return "reputation-ga-observation-journal.json";
-    }
-    if (file.equals(campaignStateFile)) {
-      return "campaign-state.json";
-    }
-    if (file.equals(campaignOperationsStateFile)) {
-      return "campaign-operations-state.json";
     }
     if (file.equals(communitySubmissionsFile)) {
       return "community-submissions.json";

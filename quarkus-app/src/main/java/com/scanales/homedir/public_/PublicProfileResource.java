@@ -463,7 +463,7 @@ public class PublicProfileResource {
   private ResourceBundle localizedChallengeBundle(String localeCode) {
     Locale bundleLocale =
         "es".equalsIgnoreCase(localeCode) ? Locale.forLanguageTag("es") : Locale.ROOT;
-    return ResourceBundle.getBundle("i18n", bundleLocale);
+    return ResourceBundle.getBundle("messages/i18n", bundleLocale);
   }
 
   private String bundleText(ResourceBundle bundle, String key) {

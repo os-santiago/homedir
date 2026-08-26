@@ -6819,247 +6819,6 @@ public interface AppMessages {
   @Message("Discord Support")
   String support_discord_footer_link();
 
-  // --- SDLC Dashboard ---
-  @Message("SDLC Dashboard · Homedir")
-  String sdlc_dash_title();
-
-  @Message("Skip to content")
-  String sdlc_dash_skip();
-
-  @Message("SDLC OBSERVATORY")
-  String sdlc_dash_brand_subtitle();
-
-  @Message("Dashboard sections")
-  String sdlc_dash_nav_aria();
-
-  @Message("Overview")
-  String sdlc_dash_nav_overview();
-
-  @Message("Pipeline flow")
-  String sdlc_dash_nav_pipeline();
-
-  @Message("Active items")
-  String sdlc_dash_nav_active();
-
-  @Message("Metrics")
-  String sdlc_dash_nav_metrics();
-
-  @Message("Anomalies")
-  String sdlc_dash_nav_anomalies();
-
-  @Message("Audit trail")
-  String sdlc_dash_nav_audit();
-
-  @Message("Configuration")
-  String sdlc_dash_nav_config();
-
-  @Message("Secure session")
-  String sdlc_dash_session_label();
-
-  @Message("Admin · localhost/VPN")
-  String sdlc_dash_session_desc();
-
-  @Message("AUTONOMOUS DELIVERY CONTROL PLANE")
-  String sdlc_dash_header_eyebrow();
-
-  @Message("System overview")
-  String sdlc_dash_header_title();
-
-  @Message("CONNECTING")
-  String sdlc_dash_connecting();
-
-  @Message("Waiting for telemetry")
-  String sdlc_dash_waiting();
-
-  @Message("Refresh dashboard")
-  String sdlc_dash_refresh_aria();
-
-  @Message("SYSTEM PULSE")
-  String sdlc_dash_hero_kicker();
-
-  @Message("Autonomy, without the blind spots.")
-  String sdlc_dash_hero_title();
-
-  @Message("Live health across the worker, infrastructure and delivery pipeline.")
-  String sdlc_dash_hero_desc();
-
-  @Message("HEALTH SCORE")
-  String sdlc_dash_health_label();
-
-  @Message("FLOW SNAPSHOT")
-  String sdlc_dash_snapshot_kicker();
-
-  @Message("Pipeline distribution")
-  String sdlc_dash_snapshot_heading();
-
-  @Message("Inspect flow")
-  String sdlc_dash_inspect_flow();
-
-  @Message("ATTENTION")
-  String sdlc_dash_attention_kicker();
-
-  @Message("Recent anomalies")
-  String sdlc_dash_attention_heading();
-
-  @Message("View all")
-  String sdlc_dash_view_all();
-
-  @Message("DELIVERY MAP")
-  String sdlc_dash_pipeline_kicker();
-
-  @Message("Pipeline flow")
-  String sdlc_dash_pipeline_heading();
-
-  @Message("Select a stage to inspect its workload and dwell time.")
-  String sdlc_dash_pipeline_desc();
-
-  @Message("Select a stage")
-  String sdlc_dash_select_stage();
-
-  @Message("No stage selected")
-  String sdlc_dash_no_stage();
-
-  @Message("WORK IN PROGRESS")
-  String sdlc_dash_active_kicker();
-
-  @Message("Active items")
-  String sdlc_dash_active_heading();
-
-  @Message("Issues")
-  String sdlc_dash_tab_issues();
-
-  @Message("Pull requests")
-  String sdlc_dash_tab_prs();
-
-  @Message("Filter by number, title or label\u2026")
-  String sdlc_dash_filter_placeholder();
-
-  @Message("Filter active items")
-  String sdlc_dash_filter_aria();
-
-  @Message("HISTORICAL SIGNAL")
-  String sdlc_dash_metrics_kicker();
-
-  @Message("Autonomy & performance")
-  String sdlc_dash_metrics_heading();
-
-  @Message("Metrics date range")
-  String sdlc_dash_range_aria();
-
-  @Message("Last 7 days")
-  String sdlc_dash_range_7();
-
-  @Message("Last 30 days")
-  String sdlc_dash_range_30();
-
-  @Message("Last 90 days")
-  String sdlc_dash_range_90();
-
-  @Message("THROUGHPUT")
-  String sdlc_dash_throughput_kicker();
-
-  @Message("Delivery trend")
-  String sdlc_dash_throughput_heading();
-
-  @Message("Issues")
-  String sdlc_dash_legend_issues();
-
-  @Message("Merged")
-  String sdlc_dash_legend_merged();
-
-  @Message("DETECTION FEED")
-  String sdlc_dash_anomalies_kicker();
-
-  @Message("Anomalies")
-  String sdlc_dash_anomalies_heading();
-
-  @Message("Prioritized conditions with an immediate recommended response.")
-  String sdlc_dash_anomalies_desc();
-
-  @Message("DECISION LEDGER")
-  String sdlc_dash_audit_kicker();
-
-  @Message("Audit trail")
-  String sdlc_dash_audit_heading();
-
-  @Message("Issue or PR number")
-  String sdlc_dash_audit_label();
-
-  @Message("e.g. 1156")
-  String sdlc_dash_audit_placeholder();
-
-  @Message("Search events")
-  String sdlc_dash_audit_button();
-
-  @Message("Enter an issue or PR number to reconstruct its autonomous decisions")
-  String sdlc_dash_audit_empty();
-
-  @Message("WORKER OPERATIONS")
-  String sdlc_dash_config_kicker();
-
-  @Message("Configuration & control")
-  String sdlc_dash_config_heading();
-
-  @Message("Administrative actions are authenticated and appended to the audit log.")
-  String sdlc_dash_config_desc();
-
-  @Message("CONTROL PLANE")
-  String sdlc_dash_control_kicker();
-
-  @Message("Operational actions")
-  String sdlc_dash_control_heading();
-
-  @Message("Every action is logged. Pause is a safe shutdown signal.")
-  String sdlc_dash_control_desc();
-
-  @Message("Pause worker")
-  String sdlc_dash_btn_pause();
-
-  @Message("Resume worker")
-  String sdlc_dash_btn_resume();
-
-  @Message("Trigger reconciliation")
-  String sdlc_dash_btn_reconcile();
-
-  @Message("Clear stale lock")
-  String sdlc_dash_btn_clear_locks();
-
-  @Message("VPS")
-  String sdlc_dash_footer_vps();
-
-  @Message("WORKER")
-  String sdlc_dash_footer_worker();
-
-  @Message("unknown")
-  String sdlc_dash_unknown();
-
-  @Message("API")
-  String sdlc_dash_footer_api();
-
-  @Message("CONNECTED")
-  String sdlc_dash_connected();
-
-  @Message("AUTO-REFRESH 3S")
-  String sdlc_dash_autorefresh();
-
-  @Message("Autonomous Decisions")
-  String sdlc_dash_nav_decisions();
-
-  @Message("AI AUTONOMY")
-  String sdlc_dash_decisions_kicker();
-
-  @Message("Autonomous Decisions")
-  String sdlc_dash_decisions_heading();
-
-  @Message("Decisions made autonomously by the AI worker based on best practices")
-  String sdlc_dash_decisions_desc();
-
-  @Message("Recent")
-  String sdlc_dash_decisions_tab_recent();
-
-  @Message("Statistics")
-  String sdlc_dash_decisions_tab_stats();
-
   // --- Profile - Speaker Talks ---
   @Message("My Talks")
   String profile_speaker_talks_title();
@@ -7406,4 +7165,1650 @@ public interface AppMessages {
 
   @Message("View all Community Picks")
   String home_community_cta();
+
+  // --- Automatically migrated methods with params for Qute validation ---
+  @Message("btn_continue")
+  String btn_continue();
+
+  @Message("campaigns_admin_approved_queue_title")
+  String campaigns_admin_approved_queue_title();
+
+  @Message("campaigns_admin_attribution_empty")
+  String campaigns_admin_attribution_empty();
+
+  @Message("campaigns_admin_attribution_intro")
+  String campaigns_admin_attribution_intro();
+
+  @Message("campaigns_admin_attribution_title")
+  String campaigns_admin_attribution_title();
+
+  @Message("campaigns_admin_attribution_total")
+  String campaigns_admin_attribution_total();
+
+  @Message("campaigns_admin_audit_actor")
+  String campaigns_admin_audit_actor();
+
+  @Message("campaigns_admin_audit_channel")
+  String campaigns_admin_audit_channel();
+
+  @Message("campaigns_admin_audit_empty")
+  String campaigns_admin_audit_empty();
+
+  @Message("campaigns_admin_audit_event")
+  String campaigns_admin_audit_event();
+
+  @Message("campaigns_admin_audit_event_publish_channel")
+  String campaigns_admin_audit_event_publish_channel();
+
+  @Message("campaigns_admin_audit_event_publish_failed")
+  String campaigns_admin_audit_event_publish_failed();
+
+  @Message("campaigns_admin_audit_event_publish_skipped")
+  String campaigns_admin_audit_event_publish_skipped();
+
+  @Message("campaigns_admin_audit_event_system_refresh")
+  String campaigns_admin_audit_event_system_refresh();
+
+  @Message("campaigns_admin_audit_event_workflow_approved")
+  String campaigns_admin_audit_event_workflow_approved();
+
+  @Message("campaigns_admin_audit_event_workflow_reset")
+  String campaigns_admin_audit_event_workflow_reset();
+
+  @Message("campaigns_admin_audit_event_workflow_scheduled")
+  String campaigns_admin_audit_event_workflow_scheduled();
+
+  @Message("campaigns_admin_audit_event_workflow_unscheduled")
+  String campaigns_admin_audit_event_workflow_unscheduled();
+
+  @Message("campaigns_admin_audit_intro")
+  String campaigns_admin_audit_intro();
+
+  @Message("campaigns_admin_audit_outcome")
+  String campaigns_admin_audit_outcome();
+
+  @Message("campaigns_admin_audit_system")
+  String campaigns_admin_audit_system();
+
+  @Message("campaigns_admin_audit_title")
+  String campaigns_admin_audit_title();
+
+  @Message("campaigns_admin_back_to_panel")
+  String campaigns_admin_back_to_panel();
+
+  @Message("campaigns_admin_best_window")
+  String campaigns_admin_best_window();
+
+  @Message("campaigns_admin_board_column_approved")
+  String campaigns_admin_board_column_approved();
+
+  @Message("campaigns_admin_board_column_approved_hint")
+  String campaigns_admin_board_column_approved_hint();
+
+  @Message("campaigns_admin_board_column_draft")
+  String campaigns_admin_board_column_draft();
+
+  @Message("campaigns_admin_board_column_draft_hint")
+  String campaigns_admin_board_column_draft_hint();
+
+  @Message("campaigns_admin_board_column_issues")
+  String campaigns_admin_board_column_issues();
+
+  @Message("campaigns_admin_board_column_issues_hint")
+  String campaigns_admin_board_column_issues_hint();
+
+  @Message("campaigns_admin_board_column_published")
+  String campaigns_admin_board_column_published();
+
+  @Message("campaigns_admin_board_column_published_hint")
+  String campaigns_admin_board_column_published_hint();
+
+  @Message("campaigns_admin_board_column_ready")
+  String campaigns_admin_board_column_ready();
+
+  @Message("campaigns_admin_board_column_ready_hint")
+  String campaigns_admin_board_column_ready_hint();
+
+  @Message("campaigns_admin_board_column_scheduled")
+  String campaigns_admin_board_column_scheduled();
+
+  @Message("campaigns_admin_board_column_scheduled_hint")
+  String campaigns_admin_board_column_scheduled_hint();
+
+  @Message("campaigns_admin_btn_approve")
+  String campaigns_admin_btn_approve();
+
+  @Message("campaigns_admin_btn_disable_channel_automation")
+  String campaigns_admin_btn_disable_channel_automation();
+
+  @Message("campaigns_admin_btn_enable_channel_automation")
+  String campaigns_admin_btn_enable_channel_automation();
+
+  @Message("campaigns_admin_btn_mark_linkedin")
+  String campaigns_admin_btn_mark_linkedin();
+
+  @Message("campaigns_admin_btn_pause_publish")
+  String campaigns_admin_btn_pause_publish();
+
+  @Message("campaigns_admin_btn_pause_refresh")
+  String campaigns_admin_btn_pause_refresh();
+
+  @Message("campaigns_admin_btn_reset")
+  String campaigns_admin_btn_reset();
+
+  @Message("campaigns_admin_btn_resume_publish")
+  String campaigns_admin_btn_resume_publish();
+
+  @Message("campaigns_admin_btn_resume_refresh")
+  String campaigns_admin_btn_resume_refresh();
+
+  @Message("campaigns_admin_btn_retry_channel")
+  String campaigns_admin_btn_retry_channel();
+
+  @Message("campaigns_admin_btn_schedule")
+  String campaigns_admin_btn_schedule();
+
+  @Message("campaigns_admin_btn_unschedule")
+  String campaigns_admin_btn_unschedule();
+
+  @Message("campaigns_admin_bulk_action_approve")
+  String campaigns_admin_bulk_action_approve();
+
+  @Message("campaigns_admin_bulk_action_label")
+  String campaigns_admin_bulk_action_label();
+
+  @Message("campaigns_admin_bulk_action_reset")
+  String campaigns_admin_bulk_action_reset();
+
+  @Message("campaigns_admin_bulk_action_unschedule")
+  String campaigns_admin_bulk_action_unschedule();
+
+  @Message("campaigns_admin_bulk_apply")
+  String campaigns_admin_bulk_apply();
+
+  @Message("campaigns_admin_bulk_intro")
+  String campaigns_admin_bulk_intro();
+
+  @Message("campaigns_admin_bulk_select_label")
+  String campaigns_admin_bulk_select_label();
+
+  @Message("campaigns_admin_bulk_title")
+  String campaigns_admin_bulk_title();
+
+  @Message("campaigns_admin_business_average_visits")
+  String campaigns_admin_business_average_visits();
+
+  @Message("campaigns_admin_business_best_channel")
+  String campaigns_admin_business_best_channel();
+
+  @Message("campaigns_admin_business_dominant_channel")
+  String campaigns_admin_business_dominant_channel();
+
+  @Message("campaigns_admin_business_drafts_with_traffic")
+  String campaigns_admin_business_drafts_with_traffic();
+
+  @Message("campaigns_admin_business_highlights")
+  String campaigns_admin_business_highlights();
+
+  @Message("campaigns_admin_business_intro")
+  String campaigns_admin_business_intro();
+
+  @Message("campaigns_admin_business_none")
+  String campaigns_admin_business_none();
+
+  @Message("campaigns_admin_business_title")
+  String campaigns_admin_business_title();
+
+  @Message("campaigns_admin_business_top_draft")
+  String campaigns_admin_business_top_draft();
+
+  @Message("campaigns_admin_business_total_visits")
+  String campaigns_admin_business_total_visits();
+
+  @Message("campaigns_admin_business_visits")
+  String campaigns_admin_business_visits();
+
+  @Message("campaigns_admin_cadence_best_window")
+  String campaigns_admin_cadence_best_window();
+
+  @Message("campaigns_admin_cadence_by_kind")
+  String campaigns_admin_cadence_by_kind();
+
+  @Message("campaigns_admin_cadence_intro")
+  String campaigns_admin_cadence_intro();
+
+  @Message("campaigns_admin_cadence_no_window")
+  String campaigns_admin_cadence_no_window();
+
+  @Message("campaigns_admin_cadence_overall")
+  String campaigns_admin_cadence_overall();
+
+  @Message("campaigns_admin_cadence_title")
+  String campaigns_admin_cadence_title();
+
+  @Message("campaigns_admin_cadence_window_slot")
+  String campaigns_admin_cadence_window_slot(Object slot);
+
+  @Message("campaigns_admin_cadence_window_support")
+  String campaigns_admin_cadence_window_support(Object score);
+
+  @Message("campaigns_admin_channels")
+  String campaigns_admin_channels();
+
+  @Message("campaigns_admin_channels_advanced_intro")
+  String campaigns_admin_channels_advanced_intro();
+
+  @Message("campaigns_admin_channels_advanced_title")
+  String campaigns_admin_channels_advanced_title();
+
+  @Message("campaigns_admin_channels_blocked_label")
+  String campaigns_admin_channels_blocked_label();
+
+  @Message("campaigns_admin_channels_choose_action")
+  String campaigns_admin_channels_choose_action();
+
+  @Message("campaigns_admin_channels_next_intro")
+  String campaigns_admin_channels_next_intro();
+
+  @Message("campaigns_admin_channels_next_title")
+  String campaigns_admin_channels_next_title();
+
+  @Message("campaigns_admin_channels_picker_intro")
+  String campaigns_admin_channels_picker_intro();
+
+  @Message("campaigns_admin_channels_picker_title")
+  String campaigns_admin_channels_picker_title();
+
+  @Message("campaigns_admin_channels_ready_label")
+  String campaigns_admin_channels_ready_label();
+
+  @Message("campaigns_admin_channels_selected_label")
+  String campaigns_admin_channels_selected_label();
+
+  @Message("campaigns_admin_channels_start_intro")
+  String campaigns_admin_channels_start_intro();
+
+  @Message("campaigns_admin_channels_start_title")
+  String campaigns_admin_channels_start_title();
+
+  @Message("campaigns_admin_content_next_intro")
+  String campaigns_admin_content_next_intro();
+
+  @Message("campaigns_admin_content_next_title")
+  String campaigns_admin_content_next_title();
+
+  @Message("campaigns_admin_content_picker_intro")
+  String campaigns_admin_content_picker_intro();
+
+  @Message("campaigns_admin_content_picker_title")
+  String campaigns_admin_content_picker_title();
+
+  @Message("campaigns_admin_content_queue_empty")
+  String campaigns_admin_content_queue_empty();
+
+  @Message("campaigns_admin_content_review_action")
+  String campaigns_admin_content_review_action();
+
+  @Message("campaigns_admin_content_select_action")
+  String campaigns_admin_content_select_action();
+
+  @Message("campaigns_admin_content_start_intro")
+  String campaigns_admin_content_start_intro();
+
+  @Message("campaigns_admin_content_start_title")
+  String campaigns_admin_content_start_title();
+
+  @Message("campaigns_admin_cta")
+  String campaigns_admin_cta();
+
+  @Message("campaigns_admin_detail_attribution")
+  String campaigns_admin_detail_attribution();
+
+  @Message("campaigns_admin_detail_audit")
+  String campaigns_admin_detail_audit();
+
+  @Message("campaigns_admin_detail_back")
+  String campaigns_admin_detail_back();
+
+  @Message("campaigns_admin_detail_empty_audit")
+  String campaigns_admin_detail_empty_audit();
+
+  @Message("campaigns_admin_detail_empty_risks")
+  String campaigns_admin_detail_empty_risks();
+
+  @Message("campaigns_admin_detail_linkedin")
+  String campaigns_admin_detail_linkedin();
+
+  @Message("campaigns_admin_detail_not_found")
+  String campaigns_admin_detail_not_found();
+
+  @Message("campaigns_admin_detail_overview")
+  String campaigns_admin_detail_overview();
+
+  @Message("campaigns_admin_detail_preview")
+  String campaigns_admin_detail_preview();
+
+  @Message("campaigns_admin_detail_risks")
+  String campaigns_admin_detail_risks();
+
+  @Message("campaigns_admin_draft_only")
+  String campaigns_admin_draft_only();
+
+  @Message("campaigns_admin_empty")
+  String campaigns_admin_empty();
+
+  @Message("campaigns_admin_error_bulk_no_selection")
+  String campaigns_admin_error_bulk_no_selection();
+
+  @Message("campaigns_admin_error_invalid_bulk_action")
+  String campaigns_admin_error_invalid_bulk_action();
+
+  @Message("campaigns_admin_error_invalid_channel")
+  String campaigns_admin_error_invalid_channel();
+
+  @Message("campaigns_admin_error_invalid_schedule")
+  String campaigns_admin_error_invalid_schedule();
+
+  @Message("campaigns_admin_error_not_ready")
+  String campaigns_admin_error_not_ready();
+
+  @Message("campaigns_admin_error_retry_not_ready")
+  String campaigns_admin_error_retry_not_ready();
+
+  @Message("campaigns_admin_evidence")
+  String campaigns_admin_evidence();
+
+  @Message("campaigns_admin_filter_all")
+  String campaigns_admin_filter_all();
+
+  @Message("campaigns_admin_filter_apply")
+  String campaigns_admin_filter_apply();
+
+  @Message("campaigns_admin_filter_channel")
+  String campaigns_admin_filter_channel();
+
+  @Message("campaigns_admin_filter_clear")
+  String campaigns_admin_filter_clear();
+
+  @Message("campaigns_admin_filter_empty")
+  String campaigns_admin_filter_empty();
+
+  @Message("campaigns_admin_filter_kind")
+  String campaigns_admin_filter_kind();
+
+  @Message("campaigns_admin_filter_query")
+  String campaigns_admin_filter_query();
+
+  @Message("campaigns_admin_filter_query_placeholder")
+  String campaigns_admin_filter_query_placeholder();
+
+  @Message("campaigns_admin_filter_results")
+  String campaigns_admin_filter_results();
+
+  @Message("campaigns_admin_filter_workflow")
+  String campaigns_admin_filter_workflow();
+
+  @Message("campaigns_admin_filters_intro")
+  String campaigns_admin_filters_intro();
+
+  @Message("campaigns_admin_filters_title")
+  String campaigns_admin_filters_title();
+
+  @Message("campaigns_admin_generated_at")
+  String campaigns_admin_generated_at();
+
+  @Message("campaigns_admin_guardrail_1")
+  String campaigns_admin_guardrail_1();
+
+  @Message("campaigns_admin_guardrail_2")
+  String campaigns_admin_guardrail_2();
+
+  @Message("campaigns_admin_guardrail_3")
+  String campaigns_admin_guardrail_3();
+
+  @Message("campaigns_admin_guardrail_4")
+  String campaigns_admin_guardrail_4();
+
+  @Message("campaigns_admin_guardrail_intro")
+  String campaigns_admin_guardrail_intro();
+
+  @Message("campaigns_admin_guardrail_title")
+  String campaigns_admin_guardrail_title();
+
+  @Message("campaigns_admin_heading")
+  String campaigns_admin_heading();
+
+  @Message("campaigns_admin_intro")
+  String campaigns_admin_intro();
+
+  @Message("campaigns_admin_linkedin_done")
+  String campaigns_admin_linkedin_done();
+
+  @Message("campaigns_admin_linkedin_empty")
+  String campaigns_admin_linkedin_empty();
+
+  @Message("campaigns_admin_linkedin_headline")
+  String campaigns_admin_linkedin_headline(Object title);
+
+  @Message("campaigns_admin_linkedin_headline_label")
+  String campaigns_admin_linkedin_headline_label();
+
+  @Message("campaigns_admin_linkedin_intro")
+  String campaigns_admin_linkedin_intro();
+
+  @Message("campaigns_admin_linkedin_landing_label")
+  String campaigns_admin_linkedin_landing_label();
+
+  @Message("campaigns_admin_linkedin_message")
+  String campaigns_admin_linkedin_message(
+      Object title, Object body, Object evidence, Object ctaLabel, Object ctaUrl);
+
+  @Message("campaigns_admin_linkedin_message_label")
+  String campaigns_admin_linkedin_message_label();
+
+  @Message("campaigns_admin_linkedin_pending")
+  String campaigns_admin_linkedin_pending();
+
+  @Message("campaigns_admin_linkedin_title")
+  String campaigns_admin_linkedin_title();
+
+  @Message("campaigns_admin_page_title")
+  String campaigns_admin_page_title();
+
+  @Message("campaigns_admin_pilot_decision_action_label")
+  String campaigns_admin_pilot_decision_action_label();
+
+  @Message("campaigns_admin_pilot_decision_approve_action")
+  String campaigns_admin_pilot_decision_approve_action();
+
+  @Message("campaigns_admin_pilot_decision_approved")
+  String campaigns_admin_pilot_decision_approved();
+
+  @Message("campaigns_admin_pilot_decision_clear_action")
+  String campaigns_admin_pilot_decision_clear_action();
+
+  @Message("campaigns_admin_pilot_decision_decided_at_label")
+  String campaigns_admin_pilot_decision_decided_at_label();
+
+  @Message("campaigns_admin_pilot_decision_decided_by_label")
+  String campaigns_admin_pilot_decision_decided_by_label();
+
+  @Message("campaigns_admin_pilot_decision_hold")
+  String campaigns_admin_pilot_decision_hold();
+
+  @Message("campaigns_admin_pilot_decision_hold_action")
+  String campaigns_admin_pilot_decision_hold_action();
+
+  @Message("campaigns_admin_pilot_decision_intro")
+  String campaigns_admin_pilot_decision_intro();
+
+  @Message("campaigns_admin_pilot_decision_pending")
+  String campaigns_admin_pilot_decision_pending();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_approved")
+  String campaigns_admin_pilot_decision_recommendation_approved();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_arm_pilot")
+  String campaigns_admin_pilot_decision_recommendation_arm_pilot();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_hold")
+  String campaigns_admin_pilot_decision_recommendation_hold();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_label")
+  String campaigns_admin_pilot_decision_recommendation_label();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_record")
+  String campaigns_admin_pilot_decision_recommendation_record();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_select_pilot")
+  String campaigns_admin_pilot_decision_recommendation_select_pilot();
+
+  @Message("campaigns_admin_pilot_decision_recommendation_verify")
+  String campaigns_admin_pilot_decision_recommendation_verify();
+
+  @Message("campaigns_admin_pilot_decision_state_label")
+  String campaigns_admin_pilot_decision_state_label();
+
+  @Message("campaigns_admin_pilot_decision_status_blocked")
+  String campaigns_admin_pilot_decision_status_blocked();
+
+  @Message("campaigns_admin_pilot_decision_status_hold")
+  String campaigns_admin_pilot_decision_status_hold();
+
+  @Message("campaigns_admin_pilot_decision_status_label")
+  String campaigns_admin_pilot_decision_status_label();
+
+  @Message("campaigns_admin_pilot_decision_status_ready")
+  String campaigns_admin_pilot_decision_status_ready();
+
+  @Message("campaigns_admin_pilot_decision_status_watch")
+  String campaigns_admin_pilot_decision_status_watch();
+
+  @Message("campaigns_admin_pilot_decision_target_label")
+  String campaigns_admin_pilot_decision_target_label();
+
+  @Message("campaigns_admin_pilot_decision_title")
+  String campaigns_admin_pilot_decision_title();
+
+  @Message("campaigns_admin_pilot_decision_verification_label")
+  String campaigns_admin_pilot_decision_verification_label();
+
+  @Message("campaigns_admin_pilot_verification_acknowledged_at_label")
+  String campaigns_admin_pilot_verification_acknowledged_at_label();
+
+  @Message("campaigns_admin_pilot_verification_acknowledged_by_label")
+  String campaigns_admin_pilot_verification_acknowledged_by_label();
+
+  @Message("campaigns_admin_pilot_verification_action_label")
+  String campaigns_admin_pilot_verification_action_label();
+
+  @Message("campaigns_admin_pilot_verification_clear_action")
+  String campaigns_admin_pilot_verification_clear_action();
+
+  @Message("campaigns_admin_pilot_verification_intro")
+  String campaigns_admin_pilot_verification_intro();
+
+  @Message("campaigns_admin_pilot_verification_last_draft_label")
+  String campaigns_admin_pilot_verification_last_draft_label();
+
+  @Message("campaigns_admin_pilot_verification_last_published_at_label")
+  String campaigns_admin_pilot_verification_last_published_at_label();
+
+  @Message("campaigns_admin_pilot_verification_mark_action")
+  String campaigns_admin_pilot_verification_mark_action();
+
+  @Message("campaigns_admin_pilot_verification_no_publish")
+  String campaigns_admin_pilot_verification_no_publish();
+
+  @Message("campaigns_admin_pilot_verification_pending")
+  String campaigns_admin_pilot_verification_pending();
+
+  @Message("campaigns_admin_pilot_verification_published_count_label")
+  String campaigns_admin_pilot_verification_published_count_label();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_acknowledge")
+  String campaigns_admin_pilot_verification_recommendation_acknowledge();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_arm_pilot")
+  String campaigns_admin_pilot_verification_recommendation_arm_pilot();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_label")
+  String campaigns_admin_pilot_verification_recommendation_label();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_select_pilot")
+  String campaigns_admin_pilot_verification_recommendation_select_pilot();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_verified")
+  String campaigns_admin_pilot_verification_recommendation_verified();
+
+  @Message("campaigns_admin_pilot_verification_recommendation_wait_publish")
+  String campaigns_admin_pilot_verification_recommendation_wait_publish();
+
+  @Message("campaigns_admin_pilot_verification_state_label")
+  String campaigns_admin_pilot_verification_state_label();
+
+  @Message("campaigns_admin_pilot_verification_status_blocked")
+  String campaigns_admin_pilot_verification_status_blocked();
+
+  @Message("campaigns_admin_pilot_verification_status_label")
+  String campaigns_admin_pilot_verification_status_label();
+
+  @Message("campaigns_admin_pilot_verification_status_ready")
+  String campaigns_admin_pilot_verification_status_ready();
+
+  @Message("campaigns_admin_pilot_verification_status_watch")
+  String campaigns_admin_pilot_verification_status_watch();
+
+  @Message("campaigns_admin_pilot_verification_target_label")
+  String campaigns_admin_pilot_verification_target_label();
+
+  @Message("campaigns_admin_pilot_verification_title")
+  String campaigns_admin_pilot_verification_title();
+
+  @Message("campaigns_admin_pilot_verification_verified")
+  String campaigns_admin_pilot_verification_verified();
+
+  @Message("campaigns_admin_preview_evidence")
+  String campaigns_admin_preview_evidence(Object evidence);
+
+  @Message("campaigns_admin_preview_headline")
+  String campaigns_admin_preview_headline();
+
+  @Message("campaigns_admin_preview_landing")
+  String campaigns_admin_preview_landing();
+
+  @Message("campaigns_admin_preview_length")
+  String campaigns_admin_preview_length(Object count, Object limit);
+
+  @Message("campaigns_admin_preview_length_label")
+  String campaigns_admin_preview_length_label();
+
+  @Message("campaigns_admin_preview_message")
+  String campaigns_admin_preview_message();
+
+  @Message("campaigns_admin_preview_packs_intro")
+  String campaigns_admin_preview_packs_intro();
+
+  @Message("campaigns_admin_preview_packs_title")
+  String campaigns_admin_preview_packs_title();
+
+  @Message("campaigns_admin_preview_status_label")
+  String campaigns_admin_preview_status_label();
+
+  @Message("campaigns_admin_preview_status_manual")
+  String campaigns_admin_preview_status_manual();
+
+  @Message("campaigns_admin_preview_status_ready")
+  String campaigns_admin_preview_status_ready();
+
+  @Message("campaigns_admin_preview_status_trim")
+  String campaigns_admin_preview_status_trim();
+
+  @Message("campaigns_admin_published_channels")
+  String campaigns_admin_published_channels();
+
+  @Message("campaigns_admin_published_queue_title")
+  String campaigns_admin_published_queue_title();
+
+  @Message("campaigns_admin_publisher_channel")
+  String campaigns_admin_publisher_channel();
+
+  @Message("campaigns_admin_publisher_dry_run")
+  String campaigns_admin_publisher_dry_run();
+
+  @Message("campaigns_admin_publisher_effective")
+  String campaigns_admin_publisher_effective();
+
+  @Message("campaigns_admin_publisher_global")
+  String campaigns_admin_publisher_global();
+
+  @Message("campaigns_admin_publisher_intro")
+  String campaigns_admin_publisher_intro();
+
+  @Message("campaigns_admin_publisher_publish_automation")
+  String campaigns_admin_publisher_publish_automation();
+
+  @Message("campaigns_admin_publisher_rate_limit")
+  String campaigns_admin_publisher_rate_limit();
+
+  @Message("campaigns_admin_publisher_refresh_automation")
+  String campaigns_admin_publisher_refresh_automation();
+
+  @Message("campaigns_admin_publisher_run")
+  String campaigns_admin_publisher_run();
+
+  @Message("campaigns_admin_publisher_runtime_channel")
+  String campaigns_admin_publisher_runtime_channel();
+
+  @Message("campaigns_admin_publisher_status")
+  String campaigns_admin_publisher_status();
+
+  @Message("campaigns_admin_publisher_updated")
+  String campaigns_admin_publisher_updated();
+
+  @Message("campaigns_admin_publisher_updated_by")
+  String campaigns_admin_publisher_updated_by();
+
+  @Message("campaigns_admin_publisher_webhook")
+  String campaigns_admin_publisher_webhook();
+
+  @Message("campaigns_admin_queue_age_overdue")
+  String campaigns_admin_queue_age_overdue(Object duration);
+
+  @Message("campaigns_admin_queue_age_updated")
+  String campaigns_admin_queue_age_updated(Object duration);
+
+  @Message("campaigns_admin_queue_health_attention")
+  String campaigns_admin_queue_health_attention();
+
+  @Message("campaigns_admin_queue_health_blocked")
+  String campaigns_admin_queue_health_blocked();
+
+  @Message("campaigns_admin_queue_health_evaluated")
+  String campaigns_admin_queue_health_evaluated();
+
+  @Message("campaigns_admin_queue_health_intro")
+  String campaigns_admin_queue_health_intro();
+
+  @Message("campaigns_admin_queue_health_linkedin")
+  String campaigns_admin_queue_health_linkedin();
+
+  @Message("campaigns_admin_queue_health_overdue_scheduled")
+  String campaigns_admin_queue_health_overdue_scheduled();
+
+  @Message("campaigns_admin_queue_health_stale_approved")
+  String campaigns_admin_queue_health_stale_approved();
+
+  @Message("campaigns_admin_queue_health_stale_drafts")
+  String campaigns_admin_queue_health_stale_drafts();
+
+  @Message("campaigns_admin_queue_health_status_healthy")
+  String campaigns_admin_queue_health_status_healthy();
+
+  @Message("campaigns_admin_queue_health_status_high")
+  String campaigns_admin_queue_health_status_high();
+
+  @Message("campaigns_admin_queue_health_status_label")
+  String campaigns_admin_queue_health_status_label();
+
+  @Message("campaigns_admin_queue_health_status_watch")
+  String campaigns_admin_queue_health_status_watch();
+
+  @Message("campaigns_admin_queue_health_title")
+  String campaigns_admin_queue_health_title();
+
+  @Message("campaigns_admin_queue_intro")
+  String campaigns_admin_queue_intro();
+
+  @Message("campaigns_admin_queue_recommend_approved_blocked")
+  String campaigns_admin_queue_recommend_approved_blocked();
+
+  @Message("campaigns_admin_queue_recommend_approved_stale")
+  String campaigns_admin_queue_recommend_approved_stale();
+
+  @Message("campaigns_admin_queue_recommend_draft_stale")
+  String campaigns_admin_queue_recommend_draft_stale();
+
+  @Message("campaigns_admin_queue_recommend_linkedin_pending")
+  String campaigns_admin_queue_recommend_linkedin_pending();
+
+  @Message("campaigns_admin_queue_recommend_publish_blocked")
+  String campaigns_admin_queue_recommend_publish_blocked();
+
+  @Message("campaigns_admin_queue_recommend_scheduled_overdue")
+  String campaigns_admin_queue_recommend_scheduled_overdue();
+
+  @Message("campaigns_admin_queue_risk_action")
+  String campaigns_admin_queue_risk_action();
+
+  @Message("campaigns_admin_queue_risk_age")
+  String campaigns_admin_queue_risk_age();
+
+  @Message("campaigns_admin_queue_risk_approved_blocked")
+  String campaigns_admin_queue_risk_approved_blocked();
+
+  @Message("campaigns_admin_queue_risk_approved_stale")
+  String campaigns_admin_queue_risk_approved_stale();
+
+  @Message("campaigns_admin_queue_risk_draft_stale")
+  String campaigns_admin_queue_risk_draft_stale();
+
+  @Message("campaigns_admin_queue_risk_linkedin_pending")
+  String campaigns_admin_queue_risk_linkedin_pending();
+
+  @Message("campaigns_admin_queue_risk_publish_blocked")
+  String campaigns_admin_queue_risk_publish_blocked();
+
+  @Message("campaigns_admin_queue_risk_scheduled_overdue")
+  String campaigns_admin_queue_risk_scheduled_overdue();
+
+  @Message("campaigns_admin_queue_risks_empty")
+  String campaigns_admin_queue_risks_empty();
+
+  @Message("campaigns_admin_queue_risks_intro")
+  String campaigns_admin_queue_risks_intro();
+
+  @Message("campaigns_admin_queue_risks_title")
+  String campaigns_admin_queue_risks_title();
+
+  @Message("campaigns_admin_recent_activity_intro")
+  String campaigns_admin_recent_activity_intro();
+
+  @Message("campaigns_admin_recent_activity_title")
+  String campaigns_admin_recent_activity_title();
+
+  @Message("campaigns_admin_recent_activity_updated")
+  String campaigns_admin_recent_activity_updated();
+
+  @Message("campaigns_admin_recovery_action")
+  String campaigns_admin_recovery_action();
+
+  @Message("campaigns_admin_recovery_action_blocked")
+  String campaigns_admin_recovery_action_blocked();
+
+  @Message("campaigns_admin_recovery_action_manual")
+  String campaigns_admin_recovery_action_manual();
+
+  @Message("campaigns_admin_recovery_action_retryable")
+  String campaigns_admin_recovery_action_retryable();
+
+  @Message("campaigns_admin_recovery_actionable")
+  String campaigns_admin_recovery_actionable();
+
+  @Message("campaigns_admin_recovery_age")
+  String campaigns_admin_recovery_age();
+
+  @Message("campaigns_admin_recovery_blocked")
+  String campaigns_admin_recovery_blocked();
+
+  @Message("campaigns_admin_recovery_channel")
+  String campaigns_admin_recovery_channel();
+
+  @Message("campaigns_admin_recovery_empty")
+  String campaigns_admin_recovery_empty();
+
+  @Message("campaigns_admin_recovery_evaluated")
+  String campaigns_admin_recovery_evaluated();
+
+  @Message("campaigns_admin_recovery_intro")
+  String campaigns_admin_recovery_intro();
+
+  @Message("campaigns_admin_recovery_manual")
+  String campaigns_admin_recovery_manual();
+
+  @Message("campaigns_admin_recovery_outcome")
+  String campaigns_admin_recovery_outcome();
+
+  @Message("campaigns_admin_recovery_recommend_blocked")
+  String campaigns_admin_recovery_recommend_blocked(Object channel);
+
+  @Message("campaigns_admin_recovery_recommend_manual")
+  String campaigns_admin_recovery_recommend_manual(Object channel);
+
+  @Message("campaigns_admin_recovery_recommend_retryable")
+  String campaigns_admin_recovery_recommend_retryable(Object channel);
+
+  @Message("campaigns_admin_recovery_recommendation")
+  String campaigns_admin_recovery_recommendation();
+
+  @Message("campaigns_admin_recovery_retryable")
+  String campaigns_admin_recovery_retryable();
+
+  @Message("campaigns_admin_recovery_state_blocked")
+  String campaigns_admin_recovery_state_blocked();
+
+  @Message("campaigns_admin_recovery_state_manual")
+  String campaigns_admin_recovery_state_manual();
+
+  @Message("campaigns_admin_recovery_state_retryable")
+  String campaigns_admin_recovery_state_retryable();
+
+  @Message("campaigns_admin_recovery_status_healthy")
+  String campaigns_admin_recovery_status_healthy();
+
+  @Message("campaigns_admin_recovery_status_high")
+  String campaigns_admin_recovery_status_high();
+
+  @Message("campaigns_admin_recovery_status_watch")
+  String campaigns_admin_recovery_status_watch();
+
+  @Message("campaigns_admin_recovery_title")
+  String campaigns_admin_recovery_title();
+
+  @Message("campaigns_admin_refresh")
+  String campaigns_admin_refresh();
+
+  @Message("campaigns_admin_refreshed")
+  String campaigns_admin_refreshed();
+
+  @Message("campaigns_admin_requires_approval")
+  String campaigns_admin_requires_approval();
+
+  @Message("campaigns_admin_review_queue_title")
+  String campaigns_admin_review_queue_title();
+
+  @Message("campaigns_admin_rollout_ack_acknowledged")
+  String campaigns_admin_rollout_ack_acknowledged();
+
+  @Message("campaigns_admin_rollout_ack_action")
+  String campaigns_admin_rollout_ack_action();
+
+  @Message("campaigns_admin_rollout_ack_at_label")
+  String campaigns_admin_rollout_ack_at_label();
+
+  @Message("campaigns_admin_rollout_ack_by_label")
+  String campaigns_admin_rollout_ack_by_label();
+
+  @Message("campaigns_admin_rollout_ack_pending")
+  String campaigns_admin_rollout_ack_pending();
+
+  @Message("campaigns_admin_rollout_ack_status_label")
+  String campaigns_admin_rollout_ack_status_label();
+
+  @Message("campaigns_admin_rollout_acknowledged_label")
+  String campaigns_admin_rollout_acknowledged_label();
+
+  @Message("campaigns_admin_rollout_activation_armed")
+  String campaigns_admin_rollout_activation_armed();
+
+  @Message("campaigns_admin_rollout_activation_disarmed")
+  String campaigns_admin_rollout_activation_disarmed();
+
+  @Message("campaigns_admin_rollout_activation_label")
+  String campaigns_admin_rollout_activation_label();
+
+  @Message("campaigns_admin_rollout_activation_updated_at_label")
+  String campaigns_admin_rollout_activation_updated_at_label();
+
+  @Message("campaigns_admin_rollout_activation_updated_by_label")
+  String campaigns_admin_rollout_activation_updated_by_label();
+
+  @Message("campaigns_admin_rollout_arm_pilot_action")
+  String campaigns_admin_rollout_arm_pilot_action();
+
+  @Message("campaigns_admin_rollout_blocked_label")
+  String campaigns_admin_rollout_blocked_label();
+
+  @Message("campaigns_admin_rollout_clear_ack_action")
+  String campaigns_admin_rollout_clear_ack_action();
+
+  @Message("campaigns_admin_rollout_clear_pilot_action")
+  String campaigns_admin_rollout_clear_pilot_action();
+
+  @Message("campaigns_admin_rollout_disarm_pilot_action")
+  String campaigns_admin_rollout_disarm_pilot_action();
+
+  @Message("campaigns_admin_rollout_dry_run_label")
+  String campaigns_admin_rollout_dry_run_label();
+
+  @Message("campaigns_admin_rollout_evaluated_label")
+  String campaigns_admin_rollout_evaluated_label();
+
+  @Message("campaigns_admin_rollout_intro")
+  String campaigns_admin_rollout_intro();
+
+  @Message("campaigns_admin_rollout_pilot_label")
+  String campaigns_admin_rollout_pilot_label();
+
+  @Message("campaigns_admin_rollout_pilot_none")
+  String campaigns_admin_rollout_pilot_none();
+
+  @Message("campaigns_admin_rollout_pilot_updated_at_label")
+  String campaigns_admin_rollout_pilot_updated_at_label();
+
+  @Message("campaigns_admin_rollout_pilot_updated_by_label")
+  String campaigns_admin_rollout_pilot_updated_by_label();
+
+  @Message("campaigns_admin_rollout_ready_label")
+  String campaigns_admin_rollout_ready_label();
+
+  @Message("campaigns_admin_rollout_recommendation_add_config")
+  String campaigns_admin_rollout_recommendation_add_config();
+
+  @Message("campaigns_admin_rollout_recommendation_arm_pilot")
+  String campaigns_admin_rollout_recommendation_arm_pilot();
+
+  @Message("campaigns_admin_rollout_recommendation_disable_dry_run")
+  String campaigns_admin_rollout_recommendation_disable_dry_run();
+
+  @Message("campaigns_admin_rollout_recommendation_enable_channel")
+  String campaigns_admin_rollout_recommendation_enable_channel();
+
+  @Message("campaigns_admin_rollout_recommendation_enable_global")
+  String campaigns_admin_rollout_recommendation_enable_global();
+
+  @Message("campaigns_admin_rollout_recommendation_label")
+  String campaigns_admin_rollout_recommendation_label();
+
+  @Message("campaigns_admin_rollout_recommendation_pilot_approved")
+  String campaigns_admin_rollout_recommendation_pilot_approved();
+
+  @Message("campaigns_admin_rollout_recommendation_pilot_hold")
+  String campaigns_admin_rollout_recommendation_pilot_hold();
+
+  @Message("campaigns_admin_rollout_recommendation_ready")
+  String campaigns_admin_rollout_recommendation_ready();
+
+  @Message("campaigns_admin_rollout_recommendation_record_pilot_decision")
+  String campaigns_admin_rollout_recommendation_record_pilot_decision();
+
+  @Message("campaigns_admin_rollout_recommendation_select_pilot")
+  String campaigns_admin_rollout_recommendation_select_pilot();
+
+  @Message("campaigns_admin_rollout_recommendation_verify_pilot")
+  String campaigns_admin_rollout_recommendation_verify_pilot();
+
+  @Message("campaigns_admin_rollout_select_pilot_action")
+  String campaigns_admin_rollout_select_pilot_action();
+
+  @Message("campaigns_admin_rollout_status_blocked")
+  String campaigns_admin_rollout_status_blocked();
+
+  @Message("campaigns_admin_rollout_status_label")
+  String campaigns_admin_rollout_status_label();
+
+  @Message("campaigns_admin_rollout_status_ready")
+  String campaigns_admin_rollout_status_ready();
+
+  @Message("campaigns_admin_rollout_status_watch")
+  String campaigns_admin_rollout_status_watch();
+
+  @Message("campaigns_admin_rollout_title")
+  String campaigns_admin_rollout_title();
+
+  @Message("campaigns_admin_runbook_completed_label")
+  String campaigns_admin_runbook_completed_label();
+
+  @Message("campaigns_admin_runbook_intro")
+  String campaigns_admin_runbook_intro();
+
+  @Message("campaigns_admin_runbook_pending_label")
+  String campaigns_admin_runbook_pending_label();
+
+  @Message("campaigns_admin_runbook_ready")
+  String campaigns_admin_runbook_ready();
+
+  @Message("campaigns_admin_runbook_recommendation_label")
+  String campaigns_admin_runbook_recommendation_label();
+
+  @Message("campaigns_admin_runbook_status_blocked")
+  String campaigns_admin_runbook_status_blocked();
+
+  @Message("campaigns_admin_runbook_status_in_progress")
+  String campaigns_admin_runbook_status_in_progress();
+
+  @Message("campaigns_admin_runbook_status_label")
+  String campaigns_admin_runbook_status_label();
+
+  @Message("campaigns_admin_runbook_status_ready")
+  String campaigns_admin_runbook_status_ready();
+
+  @Message("campaigns_admin_runbook_step_ack_done")
+  String campaigns_admin_runbook_step_ack_done(Object channel);
+
+  @Message("campaigns_admin_runbook_step_ack_pending")
+  String campaigns_admin_runbook_step_ack_pending();
+
+  @Message("campaigns_admin_runbook_step_ack_title")
+  String campaigns_admin_runbook_step_ack_title();
+
+  @Message("campaigns_admin_runbook_step_arm_done")
+  String campaigns_admin_runbook_step_arm_done();
+
+  @Message("campaigns_admin_runbook_step_arm_pending")
+  String campaigns_admin_runbook_step_arm_pending();
+
+  @Message("campaigns_admin_runbook_step_arm_title")
+  String campaigns_admin_runbook_step_arm_title();
+
+  @Message("campaigns_admin_runbook_step_blocked")
+  String campaigns_admin_runbook_step_blocked();
+
+  @Message("campaigns_admin_runbook_step_channel_done")
+  String campaigns_admin_runbook_step_channel_done(Object channel);
+
+  @Message("campaigns_admin_runbook_step_channel_pending")
+  String campaigns_admin_runbook_step_channel_pending(Object channel);
+
+  @Message("campaigns_admin_runbook_step_channel_title")
+  String campaigns_admin_runbook_step_channel_title();
+
+  @Message("campaigns_admin_runbook_step_config_done")
+  String campaigns_admin_runbook_step_config_done(Object channel);
+
+  @Message("campaigns_admin_runbook_step_config_pending")
+  String campaigns_admin_runbook_step_config_pending(Object channel);
+
+  @Message("campaigns_admin_runbook_step_config_title")
+  String campaigns_admin_runbook_step_config_title();
+
+  @Message("campaigns_admin_runbook_step_done")
+  String campaigns_admin_runbook_step_done();
+
+  @Message("campaigns_admin_runbook_step_dry_run_done")
+  String campaigns_admin_runbook_step_dry_run_done();
+
+  @Message("campaigns_admin_runbook_step_dry_run_pending")
+  String campaigns_admin_runbook_step_dry_run_pending();
+
+  @Message("campaigns_admin_runbook_step_dry_run_title")
+  String campaigns_admin_runbook_step_dry_run_title();
+
+  @Message("campaigns_admin_runbook_step_global_done")
+  String campaigns_admin_runbook_step_global_done();
+
+  @Message("campaigns_admin_runbook_step_global_pending")
+  String campaigns_admin_runbook_step_global_pending();
+
+  @Message("campaigns_admin_runbook_step_global_title")
+  String campaigns_admin_runbook_step_global_title();
+
+  @Message("campaigns_admin_runbook_step_pending")
+  String campaigns_admin_runbook_step_pending();
+
+  @Message("campaigns_admin_runbook_step_requires_pilot")
+  String campaigns_admin_runbook_step_requires_pilot();
+
+  @Message("campaigns_admin_runbook_step_select_pilot_done")
+  String campaigns_admin_runbook_step_select_pilot_done(Object channel);
+
+  @Message("campaigns_admin_runbook_step_select_pilot_pending")
+  String campaigns_admin_runbook_step_select_pilot_pending();
+
+  @Message("campaigns_admin_runbook_step_select_pilot_title")
+  String campaigns_admin_runbook_step_select_pilot_title();
+
+  @Message("campaigns_admin_runbook_step_status_label")
+  String campaigns_admin_runbook_step_status_label();
+
+  @Message("campaigns_admin_runbook_target_label")
+  String campaigns_admin_runbook_target_label();
+
+  @Message("campaigns_admin_runbook_title")
+  String campaigns_admin_runbook_title();
+
+  @Message("campaigns_admin_schedule_blocker_channel_cooldown")
+  String campaigns_admin_schedule_blocker_channel_cooldown();
+
+  @Message("campaigns_admin_schedule_blocker_channel_disabled")
+  String campaigns_admin_schedule_blocker_channel_disabled();
+
+  @Message("campaigns_admin_schedule_blocker_channel_paused")
+  String campaigns_admin_schedule_blocker_channel_paused();
+
+  @Message("campaigns_admin_schedule_blocker_dry_run")
+  String campaigns_admin_schedule_blocker_dry_run();
+
+  @Message("campaigns_admin_schedule_blocker_duplicate_recent")
+  String campaigns_admin_schedule_blocker_duplicate_recent();
+
+  @Message("campaigns_admin_schedule_blocker_global_disabled")
+  String campaigns_admin_schedule_blocker_global_disabled();
+
+  @Message("campaigns_admin_schedule_blocker_none")
+  String campaigns_admin_schedule_blocker_none();
+
+  @Message("campaigns_admin_schedule_blocker_not_configured")
+  String campaigns_admin_schedule_blocker_not_configured();
+
+  @Message("campaigns_admin_schedule_blocker_pilot_gate_closed")
+  String campaigns_admin_schedule_blocker_pilot_gate_closed();
+
+  @Message("campaigns_admin_schedule_blocker_pilot_locked")
+  String campaigns_admin_schedule_blocker_pilot_locked();
+
+  @Message("campaigns_admin_schedule_blocker_pilot_not_selected")
+  String campaigns_admin_schedule_blocker_pilot_not_selected();
+
+  @Message("campaigns_admin_schedule_blocker_publish_paused")
+  String campaigns_admin_schedule_blocker_publish_paused();
+
+  @Message("campaigns_admin_schedule_blocker_unsupported")
+  String campaigns_admin_schedule_blocker_unsupported();
+
+  @Message("campaigns_admin_schedule_for")
+  String campaigns_admin_schedule_for();
+
+  @Message("campaigns_admin_schedule_readiness")
+  String campaigns_admin_schedule_readiness();
+
+  @Message("campaigns_admin_schedule_readiness_blocked")
+  String campaigns_admin_schedule_readiness_blocked();
+
+  @Message("campaigns_admin_schedule_readiness_ready")
+  String campaigns_admin_schedule_readiness_ready();
+
+  @Message("campaigns_admin_schedule_ready_channels")
+  String campaigns_admin_schedule_ready_channels(Object channels);
+
+  @Message("campaigns_admin_scheduled_queue_title")
+  String campaigns_admin_scheduled_queue_title();
+
+  @Message("campaigns_admin_source")
+  String campaigns_admin_source();
+
+  @Message("campaigns_admin_source_live")
+  String campaigns_admin_source_live();
+
+  @Message("campaigns_admin_source_stale")
+  String campaigns_admin_source_stale();
+
+  @Message("campaigns_admin_subtitle")
+  String campaigns_admin_subtitle();
+
+  @Message("campaigns_admin_summary_approved")
+  String campaigns_admin_summary_approved();
+
+  @Message("campaigns_admin_summary_draft")
+  String campaigns_admin_summary_draft();
+
+  @Message("campaigns_admin_summary_intro")
+  String campaigns_admin_summary_intro();
+
+  @Message("campaigns_admin_summary_last_published")
+  String campaigns_admin_summary_last_published();
+
+  @Message("campaigns_admin_summary_linkedin_done")
+  String campaigns_admin_summary_linkedin_done();
+
+  @Message("campaigns_admin_summary_linkedin_pending")
+  String campaigns_admin_summary_linkedin_pending();
+
+  @Message("campaigns_admin_summary_published")
+  String campaigns_admin_summary_published();
+
+  @Message("campaigns_admin_summary_scheduled")
+  String campaigns_admin_summary_scheduled();
+
+  @Message("campaigns_admin_summary_title")
+  String campaigns_admin_summary_title();
+
+  @Message("campaigns_admin_summary_total")
+  String campaigns_admin_summary_total();
+
+  @Message("campaigns_admin_unknown_challenge")
+  String campaigns_admin_unknown_challenge();
+
+  @Message("campaigns_admin_unknown_cta")
+  String campaigns_admin_unknown_cta();
+
+  @Message("campaigns_admin_updated_approved")
+  String campaigns_admin_updated_approved();
+
+  @Message("campaigns_admin_updated_bulk")
+  String campaigns_admin_updated_bulk();
+
+  @Message("campaigns_admin_updated_channel_automation")
+  String campaigns_admin_updated_channel_automation();
+
+  @Message("campaigns_admin_updated_linkedin")
+  String campaigns_admin_updated_linkedin();
+
+  @Message("campaigns_admin_updated_pilot_approved")
+  String campaigns_admin_updated_pilot_approved();
+
+  @Message("campaigns_admin_updated_pilot_armed")
+  String campaigns_admin_updated_pilot_armed();
+
+  @Message("campaigns_admin_updated_pilot_cleared")
+  String campaigns_admin_updated_pilot_cleared();
+
+  @Message("campaigns_admin_updated_pilot_decision_cleared")
+  String campaigns_admin_updated_pilot_decision_cleared();
+
+  @Message("campaigns_admin_updated_pilot_disarmed")
+  String campaigns_admin_updated_pilot_disarmed();
+
+  @Message("campaigns_admin_updated_pilot_hold")
+  String campaigns_admin_updated_pilot_hold();
+
+  @Message("campaigns_admin_updated_pilot_selected")
+  String campaigns_admin_updated_pilot_selected();
+
+  @Message("campaigns_admin_updated_pilot_verification_cleared")
+  String campaigns_admin_updated_pilot_verification_cleared();
+
+  @Message("campaigns_admin_updated_pilot_verified")
+  String campaigns_admin_updated_pilot_verified();
+
+  @Message("campaigns_admin_updated_publish_automation")
+  String campaigns_admin_updated_publish_automation();
+
+  @Message("campaigns_admin_updated_publishscan")
+  String campaigns_admin_updated_publishscan();
+
+  @Message("campaigns_admin_updated_refresh_automation")
+  String campaigns_admin_updated_refresh_automation();
+
+  @Message("campaigns_admin_updated_reset")
+  String campaigns_admin_updated_reset();
+
+  @Message("campaigns_admin_updated_retry")
+  String campaigns_admin_updated_retry();
+
+  @Message("campaigns_admin_updated_rollout_ack")
+  String campaigns_admin_updated_rollout_ack();
+
+  @Message("campaigns_admin_updated_scheduled")
+  String campaigns_admin_updated_scheduled();
+
+  @Message("campaigns_admin_updated_unscheduled")
+  String campaigns_admin_updated_unscheduled();
+
+  @Message("campaigns_admin_workflow")
+  String campaigns_admin_workflow();
+
+  @Message("campaigns_challenge_body")
+  String campaigns_challenge_body(Object completions);
+
+  @Message("campaigns_challenge_cta")
+  String campaigns_challenge_cta();
+
+  @Message("campaigns_challenge_evidence_1")
+  String campaigns_challenge_evidence_1(Object completions);
+
+  @Message("campaigns_challenge_evidence_2")
+  String campaigns_challenge_evidence_2(Object rewardHcoin);
+
+  @Message("campaigns_challenge_title")
+  String campaigns_challenge_title(Object challengeTitle);
+
+  @Message("campaigns_channel_bluesky")
+  String campaigns_channel_bluesky();
+
+  @Message("campaigns_channel_discord")
+  String campaigns_channel_discord();
+
+  @Message("campaigns_channel_linkedin")
+  String campaigns_channel_linkedin();
+
+  @Message("campaigns_channel_mastodon")
+  String campaigns_channel_mastodon();
+
+  @Message("campaigns_community_body")
+  String campaigns_community_body();
+
+  @Message("campaigns_community_cta")
+  String campaigns_community_cta();
+
+  @Message("campaigns_community_evidence_1")
+  String campaigns_community_evidence_1(Object source);
+
+  @Message("campaigns_community_evidence_2")
+  String campaigns_community_evidence_2(Object publishedAt);
+
+  @Message("campaigns_community_title")
+  String campaigns_community_title(Object title);
+
+  @Message("campaigns_event_body")
+  String campaigns_event_body();
+
+  @Message("campaigns_event_cta")
+  String campaigns_event_cta();
+
+  @Message("campaigns_event_evidence_1")
+  String campaigns_event_evidence_1(Object eventDate);
+
+  @Message("campaigns_event_evidence_2")
+  String campaigns_event_evidence_2(Object eventType);
+
+  @Message("campaigns_event_title")
+  String campaigns_event_title(Object eventTitle);
+
+  @Message("campaigns_kind_challenge_spotlight")
+  String campaigns_kind_challenge_spotlight();
+
+  @Message("campaigns_kind_community_spotlight")
+  String campaigns_kind_community_spotlight();
+
+  @Message("campaigns_kind_event_spotlight")
+  String campaigns_kind_event_spotlight();
+
+  @Message("campaigns_kind_product_pulse")
+  String campaigns_kind_product_pulse();
+
+  @Message("campaigns_product_pulse_body")
+  String campaigns_product_pulse_body(Object events24, Object initiatives24);
+
+  @Message("campaigns_product_pulse_cta")
+  String campaigns_product_pulse_cta();
+
+  @Message("campaigns_product_pulse_evidence_1")
+  String campaigns_product_pulse_evidence_1(Object prSuccess7d);
+
+  @Message("campaigns_product_pulse_evidence_2")
+  String campaigns_product_pulse_evidence_2(Object prodSuccess7d);
+
+  @Message("campaigns_product_pulse_evidence_3")
+  String campaigns_product_pulse_evidence_3(Object challengeCompleted);
+
+  @Message("campaigns_product_pulse_title")
+  String campaigns_product_pulse_title(Object version);
+
+  @Message("campaigns_publish_outcome_bluesky_disabled")
+  String campaigns_publish_outcome_bluesky_disabled();
+
+  @Message("campaigns_publish_outcome_bluesky_error")
+  String campaigns_publish_outcome_bluesky_error();
+
+  @Message("campaigns_publish_outcome_bluesky_failed")
+  String campaigns_publish_outcome_bluesky_failed();
+
+  @Message("campaigns_publish_outcome_bluesky_not_configured")
+  String campaigns_publish_outcome_bluesky_not_configured();
+
+  @Message("campaigns_publish_outcome_channel_cooldown")
+  String campaigns_publish_outcome_channel_cooldown();
+
+  @Message("campaigns_publish_outcome_channel_disabled")
+  String campaigns_publish_outcome_channel_disabled();
+
+  @Message("campaigns_publish_outcome_channel_not_supported")
+  String campaigns_publish_outcome_channel_not_supported();
+
+  @Message("campaigns_publish_outcome_channel_paused")
+  String campaigns_publish_outcome_channel_paused();
+
+  @Message("campaigns_publish_outcome_discord_disabled")
+  String campaigns_publish_outcome_discord_disabled();
+
+  @Message("campaigns_publish_outcome_discord_error")
+  String campaigns_publish_outcome_discord_error();
+
+  @Message("campaigns_publish_outcome_discord_failed")
+  String campaigns_publish_outcome_discord_failed();
+
+  @Message("campaigns_publish_outcome_discord_not_configured")
+  String campaigns_publish_outcome_discord_not_configured();
+
+  @Message("campaigns_publish_outcome_dry_run")
+  String campaigns_publish_outcome_dry_run();
+
+  @Message("campaigns_publish_outcome_duplicate_recent")
+  String campaigns_publish_outcome_duplicate_recent();
+
+  @Message("campaigns_publish_outcome_global_disabled")
+  String campaigns_publish_outcome_global_disabled();
+
+  @Message("campaigns_publish_outcome_mastodon_disabled")
+  String campaigns_publish_outcome_mastodon_disabled();
+
+  @Message("campaigns_publish_outcome_mastodon_error")
+  String campaigns_publish_outcome_mastodon_error();
+
+  @Message("campaigns_publish_outcome_mastodon_failed")
+  String campaigns_publish_outcome_mastodon_failed();
+
+  @Message("campaigns_publish_outcome_mastodon_not_configured")
+  String campaigns_publish_outcome_mastodon_not_configured();
+
+  @Message("campaigns_publish_outcome_not_configured")
+  String campaigns_publish_outcome_not_configured();
+
+  @Message("campaigns_publish_outcome_pilot_gate_closed")
+  String campaigns_publish_outcome_pilot_gate_closed();
+
+  @Message("campaigns_publish_outcome_pilot_locked")
+  String campaigns_publish_outcome_pilot_locked();
+
+  @Message("campaigns_publish_outcome_pilot_not_selected")
+  String campaigns_publish_outcome_pilot_not_selected();
+
+  @Message("campaigns_publish_outcome_publish_error")
+  String campaigns_publish_outcome_publish_error();
+
+  @Message("campaigns_publish_outcome_publish_failed")
+  String campaigns_publish_outcome_publish_failed();
+
+  @Message("campaigns_publish_outcome_publish_paused")
+  String campaigns_publish_outcome_publish_paused();
+
+  @Message("campaigns_publish_outcome_published")
+  String campaigns_publish_outcome_published();
+
+  @Message("campaigns_publish_outcome_published_bluesky")
+  String campaigns_publish_outcome_published_bluesky();
+
+  @Message("campaigns_publish_outcome_published_linkedin_manual")
+  String campaigns_publish_outcome_published_linkedin_manual();
+
+  @Message("campaigns_publish_outcome_published_mastodon")
+  String campaigns_publish_outcome_published_mastodon();
+
+  @Message("campaigns_workflow_approved")
+  String campaigns_workflow_approved();
+
+  @Message("campaigns_workflow_draft")
+  String campaigns_workflow_draft();
+
+  @Message("campaigns_workflow_published")
+  String campaigns_workflow_published();
+
+  @Message("campaigns_workflow_scheduled")
+  String campaigns_workflow_scheduled();
+
+  @Message("challenge_community_scout_cta")
+  String challenge_community_scout_cta();
+
+  @Message("challenge_community_scout_desc")
+  String challenge_community_scout_desc();
+
+  @Message("challenge_community_scout_title")
+  String challenge_community_scout_title();
+
+  @Message("challenge_event_explorer_cta")
+  String challenge_event_explorer_cta();
+
+  @Message("challenge_event_explorer_desc")
+  String challenge_event_explorer_desc();
+
+  @Message("challenge_event_explorer_title")
+  String challenge_event_explorer_title();
+
+  @Message("challenge_notification_message")
+  String challenge_notification_message(Object title);
+
+  @Message("challenge_notification_title")
+  String challenge_notification_title();
+
+  @Message("challenge_open_source_identity_cta")
+  String challenge_open_source_identity_cta();
+
+  @Message("challenge_open_source_identity_desc")
+  String challenge_open_source_identity_desc();
+
+  @Message("challenge_open_source_identity_title")
+  String challenge_open_source_identity_title();
+
+  @Message("challenge_progress_steps")
+  String challenge_progress_steps(Object completed, Object total);
+
+  @Message("challenge_reward_hcoin")
+  String challenge_reward_hcoin(Object reward);
+
+  @Message("challenge_status_completed")
+  String challenge_status_completed();
+
+  @Message("challenge_status_in_progress")
+  String challenge_status_in_progress();
+
+  @Message("challenge_status_ready")
+  String challenge_status_ready();
+
+  @Message("home_challenges_cta")
+  String home_challenges_cta();
+
+  @Message("home_challenges_eyebrow")
+  String home_challenges_eyebrow();
+
+  @Message("home_challenges_intro")
+  String home_challenges_intro();
+
+  @Message("home_challenges_summary_completed")
+  String home_challenges_summary_completed();
+
+  @Message("home_challenges_summary_in_progress")
+  String home_challenges_summary_in_progress();
+
+  @Message("home_challenges_summary_ready")
+  String home_challenges_summary_ready();
+
+  @Message("home_challenges_title")
+  String home_challenges_title();
+
+  @Message("home_focus_event_participate_title")
+  String home_focus_event_participate_title();
+
+  @Message("home_hero_learn_more")
+  String home_hero_learn_more();
+
+  @Message("home_hero_start")
+  String home_hero_start();
+
+  @Message("home_p4_leaderboard_cta")
+  String home_p4_leaderboard_cta();
+
+  @Message("home_p4_leaderboard_empty_desc")
+  String home_p4_leaderboard_empty_desc();
+
+  @Message("home_p4_leaderboard_empty_title")
+  String home_p4_leaderboard_empty_title();
+
+  @Message("home_p4_leaderboard_eyebrow")
+  String home_p4_leaderboard_eyebrow();
+
+  @Message("home_p4_leaderboard_intro")
+  String home_p4_leaderboard_intro();
+
+  @Message("home_p4_leaderboard_population")
+  String home_p4_leaderboard_population(Object active);
+
+  @Message("home_p4_leaderboard_rank")
+  String home_p4_leaderboard_rank(Object rank);
+
+  @Message("home_p4_leaderboard_summary")
+  String home_p4_leaderboard_summary(Object completed);
+
+  @Message("home_p4_leaderboard_title")
+  String home_p4_leaderboard_title();
+
+  @Message("home_p4_trending_count")
+  String home_p4_trending_count(Object count);
+
+  @Message("home_p4_trending_cta")
+  String home_p4_trending_cta();
+
+  @Message("home_p4_trending_empty_desc")
+  String home_p4_trending_empty_desc();
+
+  @Message("home_p4_trending_empty_title")
+  String home_p4_trending_empty_title();
+
+  @Message("home_p4_trending_eyebrow")
+  String home_p4_trending_eyebrow();
+
+  @Message("home_p4_trending_intro")
+  String home_p4_trending_intro();
+
+  @Message("home_p4_trending_title")
+  String home_p4_trending_title();
+
+  @Message("profile_challenges_completed")
+  String profile_challenges_completed();
+
+  @Message("profile_challenges_eyebrow")
+  String profile_challenges_eyebrow();
+
+  @Message("profile_challenges_home_cta")
+  String profile_challenges_home_cta();
+
+  @Message("profile_challenges_in_progress")
+  String profile_challenges_in_progress();
+
+  @Message("profile_challenges_intro")
+  String profile_challenges_intro();
+
+  @Message("profile_challenges_progress_label")
+  String profile_challenges_progress_label();
+
+  @Message("profile_challenges_progress_percent")
+  String profile_challenges_progress_percent();
+
+  @Message("profile_challenges_ready")
+  String profile_challenges_ready();
+
+  @Message("profile_challenges_rewards")
+  String profile_challenges_rewards();
+
+  @Message("profile_challenges_title")
+  String profile_challenges_title();
+
+  @Message("profile_challenges_total")
+  String profile_challenges_total();
+
+  @Message("public_profile_challenge_share_description")
+  String public_profile_challenge_share_description(Object title, Object reward);
+
+  @Message("public_profile_challenges_completed_on")
+  String public_profile_challenges_completed_on();
 }
