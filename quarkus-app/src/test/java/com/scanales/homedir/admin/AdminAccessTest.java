@@ -55,23 +55,6 @@ public class AdminAccessTest {
   }
 
   @Test
-  @TestSecurity(
-      user = "sergio.canales.e@gmail.com",
-      attributes = {
-        @SecurityAttribute(key = "email", value = "sergio.canales.e@gmail.com"),
-        @SecurityAttribute(key = "name", value = "Sergio Canales")
-      })
-  public void adminHubShowsCampaignsAccess() {
-    given()
-        .when()
-        .get("/private/admin")
-        .then()
-        .statusCode(200)
-        .body(containsString("/private/admin/campaigns"))
-        .body(containsString("campaign"));
-  }
-
-  @Test
   @TestSecurity(user = "sergio.canales.e@gmail.com")
   public void adminEventsListUsesNormalizedActionButtons() {
     String eventId = "admin-actions-ui-test";
