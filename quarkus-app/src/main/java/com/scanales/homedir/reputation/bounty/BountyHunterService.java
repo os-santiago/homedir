@@ -32,6 +32,10 @@ public class BountyHunterService {
           "User '" + validatedByUserId + "' is not authorized to validate issues");
     }
 
+    if (repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_LABEL_APPROVED)) {
+      return repository.findScoreByUserId(userId).orElse(null);
+    }
+
     BountyHunterScore current =
         repository
             .findScoreByUserId(userId)
@@ -66,6 +70,10 @@ public class BountyHunterService {
     long points = configService.getPointsForLabel(label);
     if (points <= 0) {
       throw new IllegalArgumentException("Label '" + label + "' is not eligible for points");
+    }
+
+    if (repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_RESOLVED_BY_PR)) {
+      return repository.findScoreByUserId(userId).orElse(null);
     }
 
     BountyHunterScore current =
