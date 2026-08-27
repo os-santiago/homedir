@@ -17,10 +17,9 @@ public class BountyHunterService {
   @Inject BountyHunterRepository repository;
   @Inject BountyHunterConfigService configService;
 
-  /** Award points for issue creation when validated by an administrator. */
   public BountyHunterScore awardIssueCreationPoints(
       String userId, String issueNumber, String label, String validatedByUserId) {
-    userId = normalizeUserId(userId);
+    String normalizedUserId = normalizeUserId(userId);
 
     long points = configService.getPointsForLabel(label);
     if (points <= 0) {
@@ -32,74 +31,52 @@ public class BountyHunterService {
           "User '" + validatedByUserId + "' is not authorized to validate issues");
     }
 
-    if (repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_LABEL_APPROVED)) {
-      return repository.findScoreByUserId(userId).orElse(null);
-    }
-
-    BountyHunterScore current =
-        repository
-            .findScoreByUserId(userId)
-            .orElse(
-                new BountyHunterScore(
-                    userId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()));
-
-    BountyHunterScore updated = current.withAddedIssueCreationPoints(points, issueNumber);
-    repository.saveScore(updated);
-
-    BountyHunterEvent event =
-        new BountyHunterEvent(
+    return repository.awardAtomically(
+        normalizedUserId,
+        issueNumber,
+        BountyHunterEventType.ISSUE_LABEL_APPROVED,
+        optScore -> optScore.orElse(new BountyHunterScore(normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
+                            .withAddedIssueCreationPoints(points, issueNumber),
+        () -> new BountyHunterEvent(
             generateEventId(),
-            userId,
+            normalizedUserId,
             BountyHunterEventType.ISSUE_LABEL_APPROVED,
             issueNumber,
             null,
             points,
             label,
             validatedByUserId,
-            Instant.now());
-    repository.appendEvent(event);
-
-    return updated;
+            Instant.now())
+    );
   }
 
   /** Award points for issue resolution via approved PR. */
   public BountyHunterScore awardIssueResolutionPoints(
       String userId, String issueNumber, String prNumber, String label) {
-    userId = normalizeUserId(userId);
+    String normalizedUserId = normalizeUserId(userId);
 
     long points = configService.getPointsForLabel(label);
     if (points <= 0) {
       throw new IllegalArgumentException("Label '" + label + "' is not eligible for points");
     }
 
-    if (repository.hasEventForIssue(userId, issueNumber, BountyHunterEventType.ISSUE_RESOLVED_BY_PR)) {
-      return repository.findScoreByUserId(userId).orElse(null);
-    }
-
-    BountyHunterScore current =
-        repository
-            .findScoreByUserId(userId)
-            .orElse(
-                new BountyHunterScore(
-                    userId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()));
-
-    BountyHunterScore updated = current.withAddedIssueResolutionPoints(points, issueNumber);
-    repository.saveScore(updated);
-
-    BountyHunterEvent event =
-        new BountyHunterEvent(
+    return repository.awardAtomically(
+        normalizedUserId,
+        issueNumber,
+        BountyHunterEventType.ISSUE_RESOLVED_BY_PR,
+        optScore -> optScore.orElse(new BountyHunterScore(normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
+                            .withAddedIssueResolutionPoints(points, issueNumber),
+        () -> new BountyHunterEvent(
             generateEventId(),
-            userId,
+            normalizedUserId,
             BountyHunterEventType.ISSUE_RESOLVED_BY_PR,
             issueNumber,
             prNumber,
             points,
             label,
             null,
-            Instant.now());
-    repository.appendEvent(event);
-
-    return updated;
+            Instant.now())
+    );
   }
 
   public Optional<BountyHunterScore> getScoreForUser(String userId) {
