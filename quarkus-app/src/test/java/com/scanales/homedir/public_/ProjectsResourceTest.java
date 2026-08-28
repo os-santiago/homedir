@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.endsWith;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -33,6 +34,36 @@ public class ProjectsResourceTest {
         .body(containsString("Gamification: Levels"))
         .body(containsString("Rewards Catalog Preview"))
         .body(containsString("/notifications/center"));
+  }
+
+  @Test
+  public void proyectosMetaDescriptionIsLocalizedToDefaultLocale() {
+    given()
+        .accept("text/html")
+        .when()
+        .get("/proyectos")
+        .then()
+        .statusCode(200)
+        .body(
+            containsString(
+                "Explore open-source projects and community initiatives from OpenSource Santiago."));
+  }
+
+  @Test
+  @Disabled(
+      "Spanish locale not rendering via i18n bundle (Quarkus not respecting setLocale for message "
+          + "bundles). Mirrors QuestBoardI18nTest. See https://github.com/os-santiago/homedir/issues/1267")
+  public void proyectosMetaDescriptionIsLocalizedToSpanish() {
+    given()
+        .accept("text/html")
+        .header("Accept-Language", "es")
+        .when()
+        .get("/proyectos")
+        .then()
+        .statusCode(200)
+        .body(
+            containsString(
+                "Explora proyectos open-source e iniciativas comunitarias de OpenSource Santiago."));
   }
 
   @Test
