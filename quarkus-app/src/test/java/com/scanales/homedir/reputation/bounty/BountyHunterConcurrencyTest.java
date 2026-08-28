@@ -33,22 +33,25 @@ class BountyHunterConcurrencyTest {
     
     int threads = 10;
     ExecutorService executor = Executors.newFixedThreadPool(threads);
-    List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
-    
-    for (int i = 0; i < threads; i++) {
-      tasks.add(() -> service.awardIssueCreationPoints(userId, issueNumber, label, "admin"));
+    try {
+      List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
+      
+      for (int i = 0; i < threads; i++) {
+        tasks.add(() -> service.awardIssueCreationPoints(userId, issueNumber, label, "admin"));
+      }
+      
+      List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
+      
+      for (Future<BountyHunterScore> result : results) {
+        result.get();
+      }
+      
+      BountyHunterScore finalScore = service.getScoreForUser(userId).get();
+      // Only one award should happen, so total points should be 50
+      assertEquals(50L, finalScore.totalPoints());
+    } finally {
+      executor.shutdownNow();
     }
-    
-    List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
-    
-    for (Future<BountyHunterScore> result : results) {
-      result.get();
-    }
-    
-    BountyHunterScore finalScore = service.getScoreForUser(userId).get();
-    // Only one award should happen, so total points should be 50
-    assertEquals(50L, finalScore.totalPoints());
-    executor.shutdown();
   }
 
   @Test
@@ -62,21 +65,24 @@ class BountyHunterConcurrencyTest {
     
     int threads = 10;
     ExecutorService executor = Executors.newFixedThreadPool(threads);
-    List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
-    
-    for (int i = 0; i < threads; i++) {
-      tasks.add(() -> service.awardIssueResolutionPoints(userId, issueNumber, prNumber, label));
+    try {
+      List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
+      
+      for (int i = 0; i < threads; i++) {
+        tasks.add(() -> service.awardIssueResolutionPoints(userId, issueNumber, prNumber, label));
+      }
+      
+      List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
+      
+      for (Future<BountyHunterScore> result : results) {
+        result.get();
+      }
+      
+      BountyHunterScore finalScore = service.getScoreForUser(userId).get();
+      // Only one award should happen, so total points should be 100
+      assertEquals(100L, finalScore.totalPoints());
+    } finally {
+      executor.shutdownNow();
     }
-    
-    List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
-    
-    for (Future<BountyHunterScore> result : results) {
-      result.get();
-    }
-    
-    BountyHunterScore finalScore = service.getScoreForUser(userId).get();
-    // Only one award should happen, so total points should be 100
-    assertEquals(100L, finalScore.totalPoints());
-    executor.shutdown();
   }
 }
