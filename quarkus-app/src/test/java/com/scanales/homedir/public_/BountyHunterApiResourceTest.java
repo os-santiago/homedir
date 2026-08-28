@@ -253,5 +253,7 @@ class BountyHunterApiResourceTest {
         .post("/api/bounty-hunters/resolve-issue")
         .then()
         .statusCode(401);
+
+    verify(service, never()).recordIssueResolution(any(), any(), any(), any());
   }
 }
