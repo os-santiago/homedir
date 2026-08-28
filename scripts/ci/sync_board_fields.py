@@ -29,6 +29,7 @@ FIELD_STATUS = "PVTSSF_lADOCUy_bM4Be7xdzhZSW7o"
 FIELD_SIZE = "PVTSSF_lADOCUy_bM4Be7xdzhZSYPg"
 FIELD_PRIORITY = "PVTSSF_lADOCUy_bM4Be7xdzhZcEeE"
 FIELD_TARGET_DATE = "PVTF_lADOCUy_bM4Be7xdzhZSYPw"
+ISSUE_FIELD_TARGET_DATE_FALLBACK = "IFD_kgDOAaOmIA"
 
 # Single-select option IDs
 STATUS_TODO = "f75ad846"
@@ -223,21 +224,62 @@ def update_single_select_field(item_id, field_id, option_id):
     graphql_query(mutation, variables)
 
 
-def update_date_field(item_id, field_id, date_str):
-    """Update a date field on a project item."""
+_issue_field_ids_cache = {}
+
+
+def get_issue_field_id(field_name, fallback_id):
+    """Retrieve the repository-level IssueField ID dynamically, with a fallback."""
+    if field_name in _issue_field_ids_cache:
+        return _issue_field_ids_cache[field_name]
+
+    owner_repo = REPOSITORY or os.environ.get("GITHUB_REPOSITORY", "")
+    if owner_repo and "/" in owner_repo:
+        owner, name = owner_repo.split("/")
+        query = """
+        query($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            issueFields(first: 50) {
+              nodes {
+                __typename
+                ... on IssueFieldDate { id name }
+                ... on IssueFieldText { id name }
+                ... on IssueFieldSingleSelect { id name }
+              }
+            }
+          }
+        }
+        """
+        try:
+            data = graphql_query(query, {"owner": owner, "name": name})
+            nodes = data.get("repository", {}).get("issueFields", {}).get("nodes", [])
+            for node in nodes:
+                if node.get("name") == field_name:
+                    _issue_field_ids_cache[field_name] = node["id"]
+                    return node["id"]
+        except Exception as e:
+            print(f"WARNING: Failed to dynamically query issue field {field_name}: {e}")
+
+    _issue_field_ids_cache[field_name] = fallback_id
+    return fallback_id
+
+
+def update_date_field(issue_node_id, field_name, fallback_field_id, date_str):
+    """Update a date field on an issue using updateIssueFieldValue."""
+    field_id = get_issue_field_id(field_name, fallback_field_id)
     mutation = """
-    mutation($input: UpdateProjectV2ItemFieldValueInput!) {
-      updateProjectV2ItemFieldValue(input: $input) {
-        projectV2Item { id }
+    mutation($input: UpdateIssueFieldValueInput!) {
+      updateIssueFieldValue(input: $input) {
+        issue { id }
       }
     }
     """
     variables = {
         "input": {
-            "projectId": PROJECT_NODE_ID,
-            "itemId": item_id,
-            "fieldId": field_id,
-            "value": {"date": date_str},
+            "issueId": issue_node_id,
+            "issueField": {
+                "fieldId": field_id,
+                "dateValue": date_str,
+            },
         }
     }
     graphql_query(mutation, variables)
@@ -399,7 +441,7 @@ def sync_issue(issue_number, issue_node_id, labels, is_closed, is_new, assignees
         days = SLA_DAYS[priority_label]
         target = (date.today() + timedelta(days=days)).isoformat()
         print(f"INFO: Setting Target date → {target} ({priority_label} SLA +{days}d)")
-        update_date_field(item_id, FIELD_TARGET_DATE, target)
+        update_date_field(issue_node_id, "Target date", ISSUE_FIELD_TARGET_DATE_FALLBACK, target)
 
     print(f"INFO: Sync complete for issue #{issue_number}")
 
