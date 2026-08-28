@@ -4862,6 +4862,18 @@ public interface AppMessages {
   @Message("Agenda")
   String events_detail_agenda_title();
 
+  @Message("Official Agenda")
+  String events_detail_agenda_external_title();
+
+  @Message("Check the updated agenda on the official DevOpsDays Santiago website")
+  String events_detail_agenda_external_description();
+
+  @Message("View Official Agenda")
+  String events_detail_agenda_external_button();
+
+  @Message("opens in a new tab")
+  String events_detail_agenda_external_new_tab();
+
   @Message("Proposed")
   String events_agenda_proposed_badge();
 
