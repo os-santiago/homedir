@@ -9,14 +9,16 @@ function readSource(file) {
   return fs.readFileSync(path.join(JS_DIR, file), 'utf8');
 }
 
+const UTILS_SRC = readSource('utils.js');
+const CORE_BUNDLE = readSource('core-bundle.js');
 function loadEscapeHtml(src) {
-  const match = src.match(/function escapeHtml\(value\) \{[\s\S]*?\n\}/);
-  assert.ok(match, 'escapeHtml helper not found in bundle');
-  return new Function('return ' + match[0] + ';')();
+  const windowMock = {};
+  const fn = new Function('window', UTILS_SRC + '\nreturn window.HomeDirUtils.escapeHtml;');
+  return fn(windowMock);
 }
 
-const CORE_BUNDLE = readSource('core-bundle.js');
-const escapeHtml = loadEscapeHtml(CORE_BUNDLE);
+const escapeHtml = loadEscapeHtml();
+const escapeAttr = escapeHtml;
 
 test('escapeHtml neutralizes classic DOM XSS payloads', () => {
   const payloads = [
@@ -56,7 +58,7 @@ test('escapeHtml handles Unicode/emoji mixed with markup', () => {
 test('escapeHtml handles long strings with mixed special characters', () => {
   const long = '&'.repeat(200) + '<>"\''.repeat(100) + ' ✅ '.repeat(50);
   const out = escapeHtml(long);
-  assert.strictEqual(out, '&amp;'.repeat(200) + '&lt;&gt;&quot;&#39;'.repeat(100) + ' ✅ '.repeat(50));
+  assert.strictEqual(out, '&amp;'.repeat(200) + '&lt;&gt;&quot;&#039;'.repeat(100) + ' ✅ '.repeat(50));
   assert.ok(out.length > long.length, 'escaped output should be longer than raw input');
 });
 
@@ -105,4 +107,108 @@ test('handleNotificationsFromUrl feeds raw params but sink sanitizes end-to-end'
   );
   const sink = CORE_BUNDLE.match(/note\.innerHTML\s*=\s*([^;]+);/);
   assert.ok(sink[1].includes('escapeHtml'), 'sink must escape before DOM injection');
+});
+
+test('bounty-hunters.js escapes dynamic fields to prevent DOM XSS', async () => {
+  const bountyHuntersPath = path.join(__dirname, '..', '..', 'src', 'main', 'resources', 'META-INF', 'resources', 'js', 'bounty-hunters.js');
+  const BOUNTY_HUNTERS_SRC = fs.readFileSync(bountyHuntersPath, 'utf8');
+
+  // Set up DOM mocks
+  const leaderboardTable = { innerHTML: '' };
+  const documentMock = {
+    getElementById: (id) => id === 'bounty-leaderboard-body' ? leaderboardTable : null,
+    addEventListener: (event, cb) => {
+      if (event === 'DOMContentLoaded') {
+        cb();
+      }
+    }
+  };
+
+  // Mock global fetch
+  const mockHunters = [
+    {
+      userId: '<img src=x onerror=alert(1)>',
+      totalPoints: '<img src=x onerror=alert(2)>',
+      level: '<img src=x onerror=alert(3)>'
+    }
+  ];
+  const globalMock = {
+    fetch: () => Promise.resolve({
+      json: () => Promise.resolve(mockHunters)
+    }),
+    console: console,
+    HomeDirUtils: { escapeHtml, escapeAttr }
+  };
+
+  // Run the script
+  const fn = new Function('window', 'document', 'fetch', 'HomeDirUtils', 'console', BOUNTY_HUNTERS_SRC);
+  fn(globalMock, documentMock, globalMock.fetch, globalMock.HomeDirUtils, globalMock.console);
+
+  // Wait for promise resolution
+  await new Promise(resolve => setTimeout(resolve, 10));
+
+  // Assertions
+  const html = leaderboardTable.innerHTML;
+  assert.ok(html, 'leaderboard innerHTML should not be empty');
+  assert.ok(!html.includes('<img src=x onerror='), 'XSS payload image tags must be escaped');
+  assert.ok(html.includes('&lt;img src=x onerror='), 'XSS payload image tags must be HTML-escaped');
+});
+
+test('bounty-hunters.js safely extracts and escapes nested object properties to prevent DOM XSS', async () => {
+  const bountyHuntersPath = path.join(__dirname, '..', '..', 'src', 'main', 'resources', 'META-INF', 'resources', 'js', 'bounty-hunters.js');
+  const BOUNTY_HUNTERS_SRC = fs.readFileSync(bountyHuntersPath, 'utf8');
+
+  // Set up DOM mocks
+  const leaderboardTable = { innerHTML: '' };
+  const documentMock = {
+    getElementById: (id) => id === 'bounty-leaderboard-body' ? leaderboardTable : null,
+    addEventListener: (event, cb) => {
+      if (event === 'DOMContentLoaded') {
+        cb();
+      }
+    }
+  };
+
+  // Mock global fetch returning nested objects with XSS payloads
+  const mockHunters = [
+    {
+      userId: 'nested-user',
+      totalPoints: {
+        value: '<img src=x onerror=alert(points_nested_value_xss)>',
+        amount: '<img src=x onerror=alert(points_nested_amount_xss)>'
+      },
+      level: {
+        displayName: '<img src=x onerror=alert(level_nested_display_xss)>',
+        rewardFrameId: '<img src=x onerror=alert(level_nested_frame_xss)>'
+      }
+    }
+  ];
+  const globalMock = {
+    fetch: () => Promise.resolve({
+      json: () => Promise.resolve(mockHunters)
+    }),
+    console: console,
+    HomeDirUtils: { escapeHtml, escapeAttr }
+  };
+
+  // Run the script
+  const fn = new Function('window', 'document', 'fetch', 'HomeDirUtils', 'console', BOUNTY_HUNTERS_SRC);
+  fn(globalMock, documentMock, globalMock.fetch, globalMock.HomeDirUtils, globalMock.console);
+
+  // Wait for promise resolution
+  await new Promise(resolve => setTimeout(resolve, 10));
+
+  // Assertions
+  const html = leaderboardTable.innerHTML;
+  assert.ok(html, 'leaderboard innerHTML should not be empty');
+
+  // Verify that no unescaped tags exist from the nested XSS payloads
+  assert.ok(!html.includes('<img src=x onerror=alert(points_nested_value_xss)>'), 'nested points XSS payload must be escaped');
+  assert.ok(!html.includes('<img src=x onerror=alert(level_nested_display_xss)>'), 'nested level display XSS payload must be escaped');
+  assert.ok(!html.includes('<img src=x onerror=alert(level_nested_frame_xss)>'), 'nested level frame XSS payload must be escaped');
+
+  // Verify HTML-escaped representations are present
+  assert.ok(html.includes('&lt;img src=x onerror=alert(points_nested_value_xss)&gt;'), 'nested points HTML-escaped');
+  assert.ok(html.includes('&lt;img src=x onerror=alert(level_nested_display_xss)&gt;'), 'nested level display HTML-escaped');
+  assert.ok(html.includes('&lt;img src=x onerror=alert(level_nested_frame_xss)'), 'nested level frame attribute escaped');
 });
