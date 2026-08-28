@@ -10,9 +10,11 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -33,17 +35,24 @@ class BountyHunterConcurrencyTest {
     
     int threads = 10;
     ExecutorService executor = Executors.newFixedThreadPool(threads);
+    CountDownLatch readyLatch = new CountDownLatch(threads);
+    CountDownLatch startLatch = new CountDownLatch(1);
     try {
-      List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
+      List<Future<BountyHunterScore>> results = new ArrayList<>();
       
       for (int i = 0; i < threads; i++) {
-        tasks.add(() -> service.awardIssueCreationPoints(userId, issueNumber, label, "admin"));
+        results.add(executor.submit(() -> {
+          readyLatch.countDown();
+          startLatch.await(5, TimeUnit.SECONDS);
+          return service.awardIssueCreationPoints(userId, issueNumber, label, "admin");
+        }));
       }
       
-      List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
+      readyLatch.await(5, TimeUnit.SECONDS);
+      startLatch.countDown();
       
       for (Future<BountyHunterScore> result : results) {
-        result.get();
+        result.get(5, TimeUnit.SECONDS);
       }
       
       BountyHunterScore finalScore = service.getScoreForUser(userId).get();
@@ -65,17 +74,24 @@ class BountyHunterConcurrencyTest {
     
     int threads = 10;
     ExecutorService executor = Executors.newFixedThreadPool(threads);
+    CountDownLatch readyLatch = new CountDownLatch(threads);
+    CountDownLatch startLatch = new CountDownLatch(1);
     try {
-      List<Callable<BountyHunterScore>> tasks = new ArrayList<>();
+      List<Future<BountyHunterScore>> results = new ArrayList<>();
       
       for (int i = 0; i < threads; i++) {
-        tasks.add(() -> service.awardIssueResolutionPoints(userId, issueNumber, prNumber, label));
+        results.add(executor.submit(() -> {
+          readyLatch.countDown();
+          startLatch.await(5, TimeUnit.SECONDS);
+          return service.awardIssueResolutionPoints(userId, issueNumber, prNumber, label);
+        }));
       }
       
-      List<Future<BountyHunterScore>> results = executor.invokeAll(tasks);
+      readyLatch.await(5, TimeUnit.SECONDS);
+      startLatch.countDown();
       
       for (Future<BountyHunterScore> result : results) {
-        result.get();
+        result.get(5, TimeUnit.SECONDS);
       }
       
       BountyHunterScore finalScore = service.getScoreForUser(userId).get();
