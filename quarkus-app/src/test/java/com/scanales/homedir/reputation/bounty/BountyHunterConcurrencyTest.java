@@ -1,6 +1,7 @@
 package com.scanales.homedir.reputation.bounty;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -43,12 +44,12 @@ class BountyHunterConcurrencyTest {
       for (int i = 0; i < threads; i++) {
         results.add(executor.submit(() -> {
           readyLatch.countDown();
-          startLatch.await(5, TimeUnit.SECONDS);
+          assertTrue(startLatch.await(5, TimeUnit.SECONDS), "Timeout waiting for start");
           return service.awardIssueCreationPoints(userId, issueNumber, label, "admin");
         }));
       }
       
-      readyLatch.await(5, TimeUnit.SECONDS);
+      assertTrue(readyLatch.await(5, TimeUnit.SECONDS), "Timeout waiting for workers to be ready");
       startLatch.countDown();
       
       for (Future<BountyHunterScore> result : results) {
@@ -56,7 +57,6 @@ class BountyHunterConcurrencyTest {
       }
       
       BountyHunterScore finalScore = service.getScoreForUser(userId).get();
-      // Only one award should happen, so total points should be 50
       assertEquals(50L, finalScore.totalPoints());
     } finally {
       executor.shutdownNow();
@@ -82,12 +82,12 @@ class BountyHunterConcurrencyTest {
       for (int i = 0; i < threads; i++) {
         results.add(executor.submit(() -> {
           readyLatch.countDown();
-          startLatch.await(5, TimeUnit.SECONDS);
+          assertTrue(startLatch.await(5, TimeUnit.SECONDS), "Timeout waiting for start");
           return service.awardIssueResolutionPoints(userId, issueNumber, prNumber, label);
         }));
       }
       
-      readyLatch.await(5, TimeUnit.SECONDS);
+      assertTrue(readyLatch.await(5, TimeUnit.SECONDS), "Timeout waiting for workers to be ready");
       startLatch.countDown();
       
       for (Future<BountyHunterScore> result : results) {
@@ -95,7 +95,6 @@ class BountyHunterConcurrencyTest {
       }
       
       BountyHunterScore finalScore = service.getScoreForUser(userId).get();
-      // Only one award should happen, so total points should be 100
       assertEquals(100L, finalScore.totalPoints());
     } finally {
       executor.shutdownNow();
