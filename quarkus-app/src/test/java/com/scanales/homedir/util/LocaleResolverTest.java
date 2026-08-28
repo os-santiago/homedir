@@ -11,32 +11,32 @@ class LocaleResolverTest {
 
   @Test
   void explicitParamWinsOverEverything() {
-    assertEquals("en",
-        LocaleResolver.resolve("es", "en", "es", "es", List.of(Locale.forLanguageTag("es"))));
+    assertEquals(
+        "en", LocaleResolver.resolve("es", "en", "es", "es", List.of(Locale.forLanguageTag("es"))));
   }
 
   @Test
   void pathPrefixWinsOverProfileCookieHeader() {
-    assertEquals("es",
-        LocaleResolver.resolve("en", null, "es", "en", List.of(Locale.forLanguageTag("en"))));
+    assertEquals(
+        "es", LocaleResolver.resolve("en", null, "es", "en", List.of(Locale.forLanguageTag("en"))));
   }
 
   @Test
   void profileWinsOverCookieAndHeader() {
-    assertEquals("es",
-        LocaleResolver.resolve("es", null, null, "en", List.of(Locale.forLanguageTag("en"))));
+    assertEquals(
+        "es", LocaleResolver.resolve("es", null, null, "en", List.of(Locale.forLanguageTag("en"))));
   }
 
   @Test
   void cookieWinsOverHeader() {
-    assertEquals("en",
-        LocaleResolver.resolve(null, null, null, "en", List.of(Locale.forLanguageTag("es"))));
+    assertEquals(
+        "en", LocaleResolver.resolve(null, null, null, "en", List.of(Locale.forLanguageTag("es"))));
   }
 
   @Test
   void headerUsedWhenNoStrongerSource() {
-    assertEquals("es",
-        LocaleResolver.resolve(null, null, null, null, List.of(Locale.forLanguageTag("es"))));
+    assertEquals(
+        "es", LocaleResolver.resolve(null, null, null, null, List.of(Locale.forLanguageTag("es"))));
   }
 
   @Test

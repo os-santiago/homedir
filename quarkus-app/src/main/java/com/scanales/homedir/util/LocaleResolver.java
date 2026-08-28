@@ -2,8 +2,8 @@ package com.scanales.homedir.util;
 
 import com.scanales.homedir.service.UserProfileService;
 import io.quarkus.arc.Arc;
-import io.vertx.ext.web.RoutingContext;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -14,18 +14,19 @@ import java.util.Set;
 /**
  * Single source of truth for resolving the active UI locale.
  *
- * <p>Replaces the previously duplicated logic in {@link TemplateLocaleUtil} and
- * {@code LocaleResponseFilter}. Both must now resolve through this class so they
- * can never disagree (see epic #1267 — "duplicate locale resolution").
+ * <p>Replaces the previously duplicated logic in {@link TemplateLocaleUtil} and {@code
+ * LocaleResponseFilter}. Both must now resolve through this class so they can never disagree (see
+ * epic #1267 — "duplicate locale resolution").
  *
  * <p>Precedence (highest first):
+ *
  * <ol>
- *   <li>explicit request parameter {@code ?lang=}</li>
- *   <li>URL path prefix {@code /en/} or {@code /es/}</li>
- *   <li>authenticated user profile preference</li>
- *   <li>the {@code QP_LOCALE} cookie</li>
- *   <li>the {@code Accept-Language} header</li>
- *   <li>default locale {@code en}</li>
+ *   <li>explicit request parameter {@code ?lang=}
+ *   <li>URL path prefix {@code /en/} or {@code /es/}
+ *   <li>authenticated user profile preference
+ *   <li>the {@code QP_LOCALE} cookie
+ *   <li>the {@code Accept-Language} header
+ *   <li>default locale {@code en}
  * </ol>
  */
 public final class LocaleResolver {

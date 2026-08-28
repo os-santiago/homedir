@@ -36,8 +36,8 @@ public class LocaleResponseFilter {
     String cookieLang = LocaleResolver.cookieFromRequest(requestContext);
     String pathLang = LocaleResolver.pathFromRequest(requestContext);
     String paramLang = LocaleResolver.paramFromRequest(requestContext);
-    return LocaleResolver.resolve(profileLang, paramLang, pathLang, cookieLang,
-        requestContext.getAcceptableLanguages());
+    return LocaleResolver.resolve(
+        profileLang, paramLang, pathLang, cookieLang, requestContext.getAcceptableLanguages());
   }
 
   private String resolveProfileLocale() {
