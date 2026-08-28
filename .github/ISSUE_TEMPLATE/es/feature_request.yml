@@ -109,10 +109,16 @@ body:
       label: Definition of Ready
       options:
         - label: Problema claramente definido
+          required: true
         - label: Criterios de aceptación definidos (máx 2 para AI-SDLC)
+          required: true
         - label: Archivos afectados identificados
+          required: true
         - label: Comando de validación especificado
+          required: true
         - label: No existe issue duplicado
+          required: true
         - label: Area identificada
+          required: true
     validations:
       required: true

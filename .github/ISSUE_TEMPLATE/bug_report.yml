@@ -138,11 +138,20 @@ body:
       label: Definition of Ready
       options:
         - label: Impact and severity assessed
+          required: true
         - label: Steps to reproduce are clear
+          required: true
         - label: Expected vs actual behavior defined
+          required: true
+        - label: Technical context provided
+          required: true
         - label: Affected files identified
+          required: true
         - label: Acceptance criteria defined (max 2 for AI-SDLC)
+          required: true
         - label: Validation command specified
+          required: true
         - label: No duplicate issue exists
+          required: true
     validations:
       required: true

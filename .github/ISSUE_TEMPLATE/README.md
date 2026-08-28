@@ -48,6 +48,9 @@ mvn test -Dtest=LoginControllerTest::testInvalidCredentials
 
 ## Complexity
 Simple
+
+## Notes (Optional)
+Additional context or dependencies.
 ```
 
 **Why this works:**
@@ -122,6 +125,9 @@ mvn test -Dtest=OAuth2ConfigTest
 
 ## Complexity
 Simple
+
+## Notes (Optional)
+Additional context or dependencies.
 ```
 
 ## 🤖 AI-SDLC Workflow Triggers

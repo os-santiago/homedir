@@ -29,13 +29,16 @@ mvn test -Dtest=TestClassName
 curl http://localhost:8080/api/endpoint | jq
 ```
 
-## Complexity Estimation
-**[Required]** Select one:
-- [ ] **Simple**: 1 file, <50 lines, obvious implementation
-- [ ] **Medium**: 2-3 files, <200 lines, clear scope
-- [ ] **Complex**: >3 files or architectural decision needed
+## Complexity
+**[Required]** Set the complexity of this issue (choose exactly one of: Simple, Medium, Complex):
+Complexity: Simple
 
-## Context (Optional)
+* **Simple**: 1 file, <50 lines, obvious implementation
+* **Medium**: 2-3 files, <200 lines, clear scope
+* **Complex**: >3 files or architectural decision needed
+
+
+## Notes (Optional)
 Additional background, constraints, or related issues.
 
 ---
