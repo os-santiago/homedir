@@ -3,6 +3,9 @@
 // consume from any page script regardless of document order.
 (function () {
   function escapeHtml(s) {
+    if (s === null || s === undefined) {
+      return '';
+    }
     return String(s).replace(/[&<>"']/g, m => ({
       "&": "&amp;",
       "<": "&lt;",
@@ -42,5 +45,5 @@
       return '';
     }
   }
-  window.HomeDirUtils = { escapeHtml, escapeAttr, formatDate };
+  window.HomeDirUtils = { escapeHtml, escapeAttr, formatDate, formatDateTime: formatDate };
 })();
