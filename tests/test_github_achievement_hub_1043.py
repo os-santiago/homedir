@@ -301,11 +301,27 @@ def test_i18n_messages_defined() -> None:
 
 
 def test_i18n_spanish_translations_exist() -> None:
-    """Spanish translations must exist in i18n_es.properties."""
-    props = (ROOT / "quarkus-app/src/main/resources/i18n_es.properties").read_text()
-    assert "nav_achievements=" in props, "Spanish nav_achievements missing"
-    assert "achievements_heading=" in props, "Spanish achievements_heading missing"
-    assert "achievements_claim_xp=" in props, "Spanish achievements_claim_xp missing"
+    """Spanish translations must exist in i18n_es.properties with actual Spanish values."""
+    base = ROOT / "quarkus-app/src/main/resources/messages"
+
+    def load(path: Path) -> dict:
+        entries = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith(("#", "!")) or "=" not in stripped:
+                continue
+            name, _, value = stripped.partition("=")
+            entries[name.strip()] = value.strip()
+        return entries
+
+    en = load(base / "i18n.properties")
+    es = load(base / "i18n_es.properties")
+    for key in ("nav_achievements", "achievements_heading", "achievements_claim_xp"):
+        assert key in es, f"Spanish {key} missing"
+        assert es[key], f"Spanish {key} has empty value"
+        assert es[key] != key, f"Spanish {key} is a placeholder: '{es[key]}'"
+        assert es[key] != en.get(key), f"Spanish {key} is untranslated: '{es[key]}'"
+
 
 
 def test_nav_link_added_to_header() -> None:
