@@ -13,12 +13,7 @@ public class DocsPageSmokeTest {
 
   @Test
   void docsPageDoesNotExposeTodoPlaceholders() {
-    given()
-        .when()
-        .get("/docs")
-        .then()
-        .statusCode(200)
-        .body(not(containsString("@-- TODO")));
+    given().when().get("/docs").then().statusCode(200).body(not(containsString("@-- TODO")));
   }
 
   @Test
@@ -28,10 +23,7 @@ public class DocsPageSmokeTest {
         .get("/docs")
         .then()
         .statusCode(200)
-        .body(
-            anyOf(
-                containsString("GitHub repository"),
-                containsString("Repositorio en GitHub")))
+        .body(anyOf(containsString("GitHub repository"), containsString("Repositorio en GitHub")))
         .body(containsString("https://github.com/os-santiago/homedir"));
   }
 }
