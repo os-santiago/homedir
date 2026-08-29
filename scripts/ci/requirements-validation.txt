@@ -1,0 +1,3 @@
+# Python dependencies for issue metadata validation
+PyGithub>=2.1.1
+PyYAML>=6.0.1
