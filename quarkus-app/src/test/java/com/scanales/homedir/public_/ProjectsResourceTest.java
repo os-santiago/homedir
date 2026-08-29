@@ -40,7 +40,6 @@ public class ProjectsResourceTest {
   public void proyectosMetaDescriptionIsLocalizedToDefaultLocale() {
     given()
         .accept("text/html")
-        .header("Accept-Language", "en")
         .when()
         .get("/proyectos")
         .then()
