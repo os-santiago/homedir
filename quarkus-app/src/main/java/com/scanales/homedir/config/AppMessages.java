@@ -2860,6 +2860,21 @@ public interface AppMessages {
   @Message("Login")
   String nav_login();
 
+  @Message("Documentation · Homedir")
+  String docs_page_title();
+
+  @Message("Documentation and resources")
+  String docs_title();
+
+  @Message("Learn how to install, configure, and extend Homedir for your events.")
+  String docs_intro();
+
+  @Message("GitHub repository")
+  String docs_link_github();
+
+  @Message("Technical documentation")
+  String docs_link_technical();
+
   @Message("Contact")
   String contacto_title();
 

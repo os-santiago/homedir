@@ -1,38 +1,32 @@
 {#include layout/main}
 
-{#title}Documentación · Homedir{/title}
+{#title}{i18n:docs_page_title}{/title}
 
 {#body}
 
 <section class="hd-section hd-section-page-header">
   <div class="hd-page">
-    <h1 class="hd-page-title">Documentación y recursos</h1>
-    <p class="hd-page-intro">
-      @-- TODO --
-      Aprende cómo instalar, configurar y extender Homedir para tus eventos.
-    </p>
+    <h1 class="hd-page-title">{i18n:docs_title}</h1>
+    <p class="hd-page-intro">{i18n:docs_intro}</p>
   </div>
 </section>
 
 <section class="hd-section hd-section-page-content">
   <div class="hd-page">
     <ul class="hd-link-list">
+      <!-- TODO: add more official links as official content becomes available -->
       <li class="hd-link-item">
-        @-- TODO: enlaza a README principal en GitHub --
         <a href="https://github.com/os-santiago/homedir" target="_blank" rel="noopener" class="hd-link">
           <img src="https://cdn.simpleicons.org/github/white" alt="" width="16" height="16"
-            style="vertical-align: text-bottom; margin-right: 4px;"> Repositorio en GitHub
+            style="vertical-align: text-bottom; margin-right: 4px;"> {i18n:docs_link_github}
         </a>
       </li>
       <li class="hd-link-item">
-        @-- TODO: enlaza a documentación técnica si existe --
         <a href="https://github.com/os-santiago/homedir/tree/main/docs" target="_blank" rel="noopener" class="hd-link">
           <span class="material-symbols-outlined"
-            style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">menu_book</span> Documentación
-          técnica
+            style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">menu_book</span> {i18n:docs_link_technical}
         </a>
       </li>
-      @-- TODO: agrega más enlaces oficiales según exista contenido --
     </ul>
   </div>
 </section>
