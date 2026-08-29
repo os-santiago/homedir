@@ -46,7 +46,7 @@ public class ProjectsResourceTest {
         .statusCode(200)
         .body(
             containsString(
-                "Explore open-source projects and community initiatives from OpenSource Santiago."));
+                "<meta name=\"description\" content=\"Explore open-source projects and community initiatives from OpenSource Santiago.\""));
   }
 
   @Test
