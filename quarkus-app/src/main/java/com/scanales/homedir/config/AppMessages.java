@@ -1878,7 +1878,8 @@ public interface AppMessages {
   @Message("Project · Homedir")
   String project_dashboard_title();
 
-  @Message("Explore open-source projects and community initiatives from OpenSource Santiago.")
+  @Message(
+      "Explore open-source projects and community initiatives from OpenSource Santiago.")
   String project_dashboard_meta_description();
 
   @Message("Product delivery overview")
