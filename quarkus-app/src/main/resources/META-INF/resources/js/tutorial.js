@@ -1,7 +1,13 @@
 (function() {
     'use strict';
 
-    var LS = window.localStorage;
+    var LS;
+    try {
+        LS = window.localStorage;
+    } catch (e) {
+        // Storage can be blocked by browser privacy settings or third-party context.
+        LS = null;
+    }
     var LS_KEY = 'homedir_tutorial_seen';
 
     function readSeenTutorials() {
@@ -81,6 +87,16 @@
 
     function init() {
         hideSeenTutorials();
+        // Cards render hidden by default (template) to avoid a flash of already-seen
+        // content; reveal the ones this user has not dismissed yet.
+        var cards = document.querySelectorAll('[data-tutorial]');
+        var seen = readSeenTutorials();
+        for (var i = 0; i < cards.length; i++) {
+            var id = cards[i].getAttribute('data-tutorial');
+            if (!seen[id]) {
+                cards[i].removeAttribute('hidden');
+            }
+        }
         setupDismissButtons();
         setupReplayButton();
     }
@@ -95,6 +111,7 @@
             isTutorialSeen: isTutorialSeen,
             hideSeenTutorials: hideSeenTutorials,
             setupDismissButtons: setupDismissButtons,
+            setupReplayButton: setupReplayButton,
             _LS_KEY: LS_KEY,
             _resetLS: function () { try { LS.removeItem(LS_KEY); } catch (_) {} }
         };

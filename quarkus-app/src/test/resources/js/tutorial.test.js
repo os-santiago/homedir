@@ -39,11 +39,17 @@ function createContext() {
         querySelector(sel) { return this.querySelectorAll(sel)[0] || null; },
         addEventListener() {},
         createElement() {
-            const el = { dataset: {}, attributes: {}, style: {} };
+            const el = { dataset: {}, attributes: {}, style: {}, _listeners: {} };
             el.setAttribute = function(k, v) { this.attributes[k] = v; };
             el.removeAttribute = function(k) { delete this.attributes[k]; };
             el.getAttribute = function(k) { return this.attributes[k]; };
-            el.addEventListener = function() {};
+            el.addEventListener = function(type, fn) {
+                (this._listeners[type] = this._listeners[type] || []).push(fn);
+            };
+            el.click = function() {
+                const list = this._listeners['click'] || [];
+                for (let i = 0; i < list.length; i++) list[i].call(this);
+            };
             return el;
         }
     };
@@ -136,14 +142,33 @@ describe('tutorial.js state transitions', () => {
         assert.ok(card2.attributes.hidden === undefined);
     });
     it('setupDismissButtons marks seen and hides on click', () => {
+        const card = doc.createElement();
+        card.dataset.tutorial = 'hub';
+        card.setAttribute('data-tutorial', 'hub');
+        doc._elements.card = card;
+        const btn = doc.createElement();
+        btn.dataset.tutorialDismiss = 'hub';
+        btn.setAttribute('data-tutorial-dismiss', 'hub');
+        doc._elements.btn = btn;
         ctx.module.exports.setupDismissButtons();
-        ctx.module.exports.markTutorialSeen('hub');
+        btn.click();
         assert.strictEqual(JSON.parse(ls.getItem('homedir_tutorial_seen')).hub, true);
+        assert.ok(card.attributes.hidden !== undefined);
     });
-    it('setupReplayButton clears localStorage and shows all cards', () => {
+    it('setupReplayButton clears localStorage and shows all cards on click', () => {
         ls.setItem('homedir_tutorial_seen', JSON.stringify({ hub: true }));
-        ctx.module.exports.clearSeenTutorials();
+        const card = doc.createElement();
+        card.setAttribute('data-tutorial', 'hub');
+        card.setAttribute('hidden', '');
+        doc._elements.card = card;
+        const btn = doc.createElement();
+        btn.dataset.replayTutorials = '1';
+        btn.setAttribute('data-replay-tutorials', '1');
+        doc._elements.btn = btn;
+        ctx.module.exports.setupReplayButton();
+        btn.click();
         assert.strictEqual(ls.getItem('homedir_tutorial_seen'), null);
+        assert.ok(card.attributes.hidden === undefined);
     });
     it('handles localStorage quota exceeded gracefully', () => {
         const orig = ls.setItem;
