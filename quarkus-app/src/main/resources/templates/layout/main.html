@@ -99,6 +99,9 @@
   </script>
   <script src="/js/utils.js?v={app:version()}" defer></script>
   <script src="/js/core-bundle.js?v={app:version()}" defer></script>
+  <!-- Tutorial onboarding (tutorial.js): shows each [data-tutorial] card once.
+       Dismissal persists in localStorage (homedir_tutorial_seen); returning
+       visitors with a seen id get their card hidden. Replay from profile clears it. -->
   <script src="/js/tutorial.js?v={app:version()}" defer></script>
 </body>
 
