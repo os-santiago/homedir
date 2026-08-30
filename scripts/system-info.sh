@@ -5,10 +5,10 @@
 set -euo pipefail
 
 # Print hostname
-echo "Hostname: \scanales-p16v"
+printf 'Hostname: %s\n' "$(hostname)"
 
 # Print current date
-echo "Date: \Sun Aug 30 05:09:00 AM -04 2026"
+printf 'Date: %s\n' "$(date)"
 
 # Exit successfully
 exit 0
