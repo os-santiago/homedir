@@ -164,7 +164,7 @@ jobs:
 
       - name: Build with Maven (production build)
         working-directory: quarkus-app
-        run: ./mvnw package -B -Drevision=${{ steps.release_meta.outputs.new_version }}
+        run: ./mvnw package cyclonedx:makeAggregateBom -B -Drevision=${{ steps.release_meta.outputs.new_version }}
 
       - name: Resolve registry image names
         id: registry_meta
@@ -404,6 +404,19 @@ jobs:
             gh release edit "$TAG" --repo "$REPO" --title "$TITLE" --notes-file release_notes.txt
           else
             gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes-file release_notes.txt
+          fi
+
+      - name: Upload SBOM to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag_version.outputs.new_tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -f quarkus-app/target/bom.json ]; then
+            gh release upload "$TAG" quarkus-app/target/bom.json --repo "$REPO" --clobber
+          else
+            echo "::warning::bom.json not found, skipping release asset upload."
           fi
 
       - name: Resolve deploy configuration
