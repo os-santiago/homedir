@@ -24,6 +24,7 @@ public class DocsPageSmokeTest {
         .then()
         .statusCode(200)
         .body(anyOf(containsString("GitHub repository"), containsString("Repositorio en GitHub")))
-        .body(containsString("https://github.com/os-santiago/homedir"));
+        .body(containsString("href=\"https://github.com/os-santiago/homedir\""))
+        .body(containsString("href=\"https://github.com/os-santiago/homedir/tree/main/docs\""));
   }
 }
