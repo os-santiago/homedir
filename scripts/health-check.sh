@@ -7,6 +7,7 @@ set -euo pipefail
 # Configuration
 NAMESPACE="${NAMESPACE:-homedir}"
 SERVICE_NAME="${SERVICE_NAME:-homedir}"
+POD_SELECTOR="${POD_SELECTOR:-app=homedir}"
 HEALTH_ENDPOINT_LIVE="/q/health/live"
 HEALTH_ENDPOINT_READY="/health/ready"
 PORT="${PORT:-8080}"
@@ -42,7 +43,7 @@ log_error() {
 check_kubectl() {
     if ! command -v kubectl &> /dev/null; then
         log_error "kubectl is not installed or not in PATH"
-        return 1
+        return 2
     fi
     log_info "kubectl found: $(kubectl version --client --short 2>/dev/null || kubectl version --client 2>/dev/null | head -1)"
     return 0
@@ -52,7 +53,7 @@ check_kubectl() {
 check_namespace() {
     if ! kubectl get namespace "$NAMESPACE" &> /dev/null; then
         log_error "Namespace '$NAMESPACE' does not exist"
-        return 1
+        return 2
     fi
     log_info "Namespace '$NAMESPACE' exists"
     return 0
@@ -88,7 +89,7 @@ check_endpoint() {
             return 0
         else
             log_warning "$description check failed (attempt $((retries + 1))/$MAX_RETRIES)"
-            ((retries++))
+            retries=$((retries + 1))
             if [[ $retries -lt $MAX_RETRIES ]]; then
                 sleep "$RETRY_DELAY"
             fi
@@ -104,25 +105,35 @@ check_pod_status() {
     log_info "Checking pod status in namespace '$NAMESPACE'..."
 
     local pods
-    pods=$(kubectl get pods -n "$NAMESPACE" -l app=homedir -o jsonpath='{range .items[*]}{.metadata.name} {.status.phase} {.status.containerStatuses[0].ready}{"\n"}{end}' 2>/dev/null)
+    pods=$(kubectl get pods -n "$NAMESPACE" -l "$POD_SELECTOR" -o jsonpath='{range .items[*]}{.metadata.name} {.status.phase} {range .status.containerStatuses[*]}{.ready}{","}{end}{"\n"}{end}' 2>/dev/null)
 
     if [[ -z "$pods" ]]; then
-        log_error "No pods found with label app=homedir in namespace '$NAMESPACE'"
+        log_error "No pods found with label '$POD_SELECTOR' in namespace '$NAMESPACE'"
         return 1
     fi
 
     local all_ready=true
     while IFS= read -r line; do
         if [[ -n "$line" ]]; then
-            local pod_name phase ready
+            local pod_name phase ready_str
             pod_name=$(echo "$line" | awk '{print $1}')
             phase=$(echo "$line" | awk '{print $2}')
-            ready=$(echo "$line" | awk '{print $3}')
+            ready_str=$(echo "$line" | awk '{print $3}')
 
-            if [[ "$phase" == "Running" && "$ready" == "true" ]]; then
+            # Check all container readiness statuses
+            local pod_ready=true
+            IFS=',' read -ra ready_array <<< "$ready_str"
+            for r in "${ready_array[@]}"; do
+                if [[ "$r" == "false" ]]; then
+                    pod_ready=false
+                    break
+                fi
+            done
+
+            if [[ "$phase" == "Running" && "$pod_ready" == "true" ]]; then
                 log_success "Pod '$pod_name' is Running and Ready"
             else
-                log_error "Pod '$pod_name' is not healthy (Phase: $phase, Ready: $ready)"
+                log_error "Pod '$pod_name' is not healthy (Phase: $phase, Ready: $ready_str)"
                 all_ready=false
             fi
         fi
@@ -142,11 +153,11 @@ main() {
 
     # Check prerequisites
     if ! check_kubectl; then
-        exit 1
+        exit 2
     fi
 
     if ! check_namespace; then
-        exit 1
+        exit 2
     fi
 
     # Check pod status
@@ -191,6 +202,7 @@ Usage: $0 [OPTIONS]
 Environment Variables:
     NAMESPACE       Kubernetes namespace (default: homedir)
     SERVICE_NAME    Service name (default: homedir)
+    POD_SELECTOR    Pod label selector (default: app=homedir)
     PORT            Service port (default: 8080)
     TIMEOUT         Curl timeout in seconds (default: 10)
     MAX_RETRIES     Maximum retry attempts (default: 3)
@@ -216,16 +228,51 @@ EOF
         exit 0
         ;;
     --live-only)
-        check_kubectl && check_namespace && base_url=$(get_service_endpoint) && check_endpoint "$base_url" "$HEALTH_ENDPOINT_LIVE" "Liveness"
-        exit $?
+        if ! check_kubectl; then
+            exit 2
+        fi
+        if ! check_namespace; then
+            exit 2
+        fi
+        if ! base_url=$(get_service_endpoint); then
+            log_error "Failed to get service endpoint"
+            exit 1
+        fi
+        if ! check_endpoint "$base_url" "$HEALTH_ENDPOINT_LIVE" "Liveness"; then
+            log_error "Liveness check failed"
+            exit 1
+        fi
+        exit 0
         ;;
     --ready-only)
-        check_kubectl && check_namespace && base_url=$(get_service_endpoint) && check_endpoint "$base_url" "$HEALTH_ENDPOINT_READY" "Readiness"
-        exit $?
+        if ! check_kubectl; then
+            exit 2
+        fi
+        if ! check_namespace; then
+            exit 2
+        fi
+        if ! base_url=$(get_service_endpoint); then
+            log_error "Failed to get service endpoint"
+            exit 1
+        fi
+        if ! check_endpoint "$base_url" "$HEALTH_ENDPOINT_READY" "Readiness"; then
+            log_error "Readiness check failed"
+            exit 1
+        fi
+        exit 0
         ;;
     --pods-only)
-        check_kubectl && check_namespace && check_pod_status
-        exit $?
+        if ! check_kubectl; then
+            exit 2
+        fi
+        if ! check_namespace; then
+            exit 2
+        fi
+        if ! check_pod_status; then
+            log_error "Pod health check failed"
+            exit 1
+        fi
+        exit 0
         ;;
     *)
         main
