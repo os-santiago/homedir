@@ -392,6 +392,14 @@ jobs:
 
           cat release_notes.txt
 
+      - name: Validate SBOM Artifact
+        run: |
+          set -euo pipefail
+          if [ ! -f quarkus-app/target/bom.json ]; then
+            echo "::error::bom.json not found in quarkus-app/target/! Release build failed to generate SBOM."
+            exit 1
+          fi
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -405,19 +413,7 @@ jobs:
           else
             gh release create "$TAG" --repo "$REPO" --title "$TITLE" --notes-file release_notes.txt
           fi
-
-      - name: Upload SBOM to GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.tag_version.outputs.new_tag }}
-          REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          if [ -f quarkus-app/target/bom.json ]; then
-            gh release upload "$TAG" quarkus-app/target/bom.json --repo "$REPO" --clobber
-          else
-            echo "::warning::bom.json not found, skipping release asset upload."
-          fi
+          gh release upload "$TAG" quarkus-app/target/bom.json --repo "$REPO" --clobber
 
       - name: Resolve deploy configuration
         id: deploy_config
