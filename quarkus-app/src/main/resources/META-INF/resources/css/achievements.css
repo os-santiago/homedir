@@ -15,7 +15,8 @@
 }
 
 .achievements-subtitle {
-  color: rgba(var(--white-rgb), 0.8);
+  /* WCAG AA: 0.88 ensures 6.11:1 vs section bg */
+  color: rgba(var(--white-rgb), 0.88);
   margin-bottom: 2rem;
   font-size: 1.1rem;
   text-align: center;
@@ -155,7 +156,8 @@
 
 .achievement-icon-fallback {
   font-size: 48px;
-  color: rgba(var(--white-rgb), 0.4);
+  /* WCAG: fallback icon needs visible contrast 0.75 */
+  color: rgba(var(--white-rgb), 0.75);
   flex-shrink: 0;
 }
 
@@ -194,12 +196,14 @@
 }
 
 .status-locked {
-  color: rgba(var(--white-rgb), 0.5);
+  /* WCAG AA: 0.78 ensures 5.18:1 - includes lock icon for color-blind support */
+  color: rgba(var(--white-rgb), 0.78);
 }
 
 .achievement-description {
   font-size: 0.9rem;
-  color: rgba(var(--white-rgb), 0.8);
+  /* WCAG AA: 0.85 ensures 5.79:1 */
+  color: rgba(var(--white-rgb), 0.85);
   margin-bottom: 0.75rem;
   line-height: 1.5;
   text-align: center;
@@ -234,7 +238,8 @@
 .achievement-guide summary {
   cursor: pointer;
   font-size: 0.85rem;
-  color: rgba(var(--white-rgb), 0.7);
+  /* WCAG AA: 0.85 */
+  color: rgba(var(--white-rgb), 0.85);
   padding: 0.5rem 0;
   text-align: center;
 }
@@ -247,7 +252,8 @@
   padding-left: 1.5rem;
   margin: 0.75rem 0;
   font-size: 0.85rem;
-  color: rgba(var(--white-rgb), 0.75);
+  /* WCAG AA: 0.85 */
+  color: rgba(var(--white-rgb), 0.85);
 }
 
 .achievement-steps li {
@@ -332,7 +338,8 @@
 
 .org-repo-usage {
   font-size: 0.8rem;
-  color: rgba(var(--white-rgb), 0.6);
+  /* WCAG AA: 0.85 */
+  color: rgba(var(--white-rgb), 0.85);
   line-height: 1.4;
 }
 
@@ -407,7 +414,8 @@
 
 .highlight-description {
   font-size: 0.85rem;
-  color: rgba(var(--white-rgb), 0.7);
+  /* WCAG AA: 0.85 */
+  color: rgba(var(--white-rgb), 0.85);
   line-height: 1.5;
   margin-bottom: 0.75rem;
 }
@@ -449,7 +457,8 @@
   text-align: left;
   padding: 0.75rem;
   font-size: 0.85rem;
-  color: rgba(var(--white-rgb), 0.6);
+  /* WCAG AA: header text 0.80 */
+  color: rgba(var(--white-rgb), 0.8);
   border-bottom: 1px solid rgba(var(--white-rgb), 0.15);
 }
 
@@ -483,7 +492,8 @@
 
 .leaderboard-handle {
   font-size: 0.8rem;
-  color: rgba(var(--white-rgb), 0.5);
+  /* WCAG AA: 0.78 */
+  color: rgba(var(--white-rgb), 0.78);
 }
 
 .leaderboard-count {
@@ -497,14 +507,16 @@
 }
 
 .achievements-leaderboard-empty {
-  color: rgba(var(--white-rgb), 0.6);
+  /* WCAG AA: 0.80 */
+  color: rgba(var(--white-rgb), 0.8);
   font-style: italic;
   padding: 1rem 0;
 }
 
 .leaderboard-total {
   font-size: 0.85rem;
-  color: rgba(var(--white-rgb), 0.6);
+  /* WCAG AA: 0.80 */
+  color: rgba(var(--white-rgb), 0.8);
   margin-top: 0.75rem;
 }
 
