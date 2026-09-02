@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -65,5 +66,25 @@ public class ProjectsResourceTest {
         .then()
         .statusCode(303)
         .header("Location", endsWith("/proyectos"));
+  }
+
+  @Test
+  public void topContributorsSectionRendersBeforeDeliveryVelocity() {
+    String html =
+        given()
+            .accept("text/html")
+            .when()
+            .get("/proyectos")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    int contributorsIndex = html.indexOf("project-hd-contributors-card");
+    int velocityIndex = html.indexOf("project-hd-velocity-grid");
+    assertTrue(contributorsIndex >= 0, "Top Contributors section should be rendered");
+    assertTrue(velocityIndex >= 0, "Delivery Velocity section should be rendered");
+    assertTrue(
+        contributorsIndex < velocityIndex,
+        "Top Contributors section should appear before Delivery Velocity");
   }
 }
