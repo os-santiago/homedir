@@ -11,6 +11,14 @@ This guide helps AI agents (like Claude Code, Devin, etc.) understand how to col
 - **License**: Apache 2.0
 - **Philosophy**: Educational, community-driven, open source
 
+### SCC (Autonomous SDLC Automation)
+
+**SCC** is an autonomous SDLC automation owned and maintained by `scanalesespinoza` (Sergio Canales). It drives the autonomous issue → PR → merge pipeline for Homedir.
+
+- **Do NOT modify, remove, or break** SCC scripts, workflows, labels (`scc-*`), or related automation unless it is **100% necessary** and explicitly approved by Sergio.
+- SCC-related files include (non-exhaustive): `platform/scripts/pipeline-orchestrator.sh`, `platform/scripts/homedir-github-webhook.py`, `scripts/ci/label_pr_state.py`, `platform/scripts/split-multi-criteria-issue.sh`, `tests/test_webhook_validation.py`, and the `scc-*` labels on issues/PRs.
+- When in doubt about whether a change affects SCC, leave it alone and escalate to Sergio.
+
 ## Labels Guide for AI Agents
 
 Understanding and using labels correctly is crucial for effective contribution. Here's the complete label system:
