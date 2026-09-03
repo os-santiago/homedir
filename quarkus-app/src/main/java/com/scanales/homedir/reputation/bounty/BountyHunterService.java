@@ -35,19 +35,23 @@ public class BountyHunterService {
         normalizedUserId,
         issueNumber,
         BountyHunterEventType.ISSUE_LABEL_APPROVED,
-        optScore -> optScore.orElse(new BountyHunterScore(normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
-                            .withAddedIssueCreationPoints(points, issueNumber),
-        () -> new BountyHunterEvent(
-            generateEventId(),
-            normalizedUserId,
-            BountyHunterEventType.ISSUE_LABEL_APPROVED,
-            issueNumber,
-            null,
-            points,
-            label,
-            validatedByUserId,
-            Instant.now())
-    );
+        optScore ->
+            optScore
+                .orElse(
+                    new BountyHunterScore(
+                        normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
+                .withAddedIssueCreationPoints(points, issueNumber),
+        () ->
+            new BountyHunterEvent(
+                generateEventId(),
+                normalizedUserId,
+                BountyHunterEventType.ISSUE_LABEL_APPROVED,
+                issueNumber,
+                null,
+                points,
+                label,
+                validatedByUserId,
+                Instant.now()));
   }
 
   /** Award points for issue resolution via approved PR. */
@@ -64,19 +68,23 @@ public class BountyHunterService {
         normalizedUserId,
         issueNumber,
         BountyHunterEventType.ISSUE_RESOLVED_BY_PR,
-        optScore -> optScore.orElse(new BountyHunterScore(normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
-                            .withAddedIssueResolutionPoints(points, issueNumber),
-        () -> new BountyHunterEvent(
-            generateEventId(),
-            normalizedUserId,
-            BountyHunterEventType.ISSUE_RESOLVED_BY_PR,
-            issueNumber,
-            prNumber,
-            points,
-            label,
-            null,
-            Instant.now())
-    );
+        optScore ->
+            optScore
+                .orElse(
+                    new BountyHunterScore(
+                        normalizedUserId, 0L, 0L, 0L, BountyHunterLevel.NONE, 0, 0, Instant.now()))
+                .withAddedIssueResolutionPoints(points, issueNumber),
+        () ->
+            new BountyHunterEvent(
+                generateEventId(),
+                normalizedUserId,
+                BountyHunterEventType.ISSUE_RESOLVED_BY_PR,
+                issueNumber,
+                prNumber,
+                points,
+                label,
+                null,
+                Instant.now()));
   }
 
   public Optional<BountyHunterScore> getScoreForUser(String userId) {

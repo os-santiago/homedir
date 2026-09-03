@@ -9,7 +9,6 @@ import com.scanales.homedir.reputation.bounty.*;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
-
 import io.restassured.http.ContentType;
 import java.time.Instant;
 import java.util.List;
@@ -236,6 +235,7 @@ class BountyHunterApiResourceTest {
         .body("[1].name", equalTo("NOVICE"))
         .body("[1].requiredPoints", equalTo(50));
   }
+
   @Test
   void resolveIssue_unauthorized_returns401() {
     given()

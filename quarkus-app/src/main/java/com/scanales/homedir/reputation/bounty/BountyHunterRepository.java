@@ -55,7 +55,11 @@ public class BountyHunterRepository {
   public boolean hasEventForIssue(String userId, String issueNumber, BountyHunterEventType type) {
     synchronized (events) {
       return events.stream()
-          .anyMatch(e -> e.userId().equals(userId) && e.issueNumber().equals(issueNumber) && e.eventType() == type);
+          .anyMatch(
+              e ->
+                  e.userId().equals(userId)
+                      && e.issueNumber().equals(issueNumber)
+                      && e.eventType() == type);
     }
   }
 
@@ -66,7 +70,12 @@ public class BountyHunterRepository {
       java.util.function.Function<Optional<BountyHunterScore>, BountyHunterScore> scoreUpdater,
       java.util.function.Supplier<BountyHunterEvent> eventSupplier) {
     synchronized (events) {
-      if (events.stream().anyMatch(e -> e.userId().equals(userId) && e.issueNumber().equals(issueNumber) && e.eventType() == type)) {
+      if (events.stream()
+          .anyMatch(
+              e ->
+                  e.userId().equals(userId)
+                      && e.issueNumber().equals(issueNumber)
+                      && e.eventType() == type)) {
         return scores.get(userId);
       }
       BountyHunterScore updated = scoreUpdater.apply(Optional.ofNullable(scores.get(userId)));
