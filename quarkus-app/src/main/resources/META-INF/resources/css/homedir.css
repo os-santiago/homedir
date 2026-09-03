@@ -292,6 +292,7 @@ footer {
   flex-direction: column;
   line-height: 1.2;
   min-width: 0;
+  max-width: 100%;
 }
 
 .hd-logo-title {
@@ -309,9 +310,9 @@ footer {
   letter-spacing: 2px;
   min-width: 0;
   max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .hd-main-nav {
