@@ -1,6 +1,10 @@
 # Security Documentation
 
-This directory contains security analysis and audit reports for the Quarkus application.
+This directory contains security analysis, vulnerability scanning specifications, and audit reports for the Quarkus application.
+
+## Vulnerability Scanning
+
+* **[vulnerability-scanning.md](vulnerability-scanning.md)** - Scheduled daily vulnerability scanning strategy using OSV.dev and CycloneDX SBOM release assets.
 
 > **Snapshot**: This endpoint authorization audit was generated on **2026-06-22** (issue #854). The repository has evolved since then (now 83 `*Resource.java` files / 337 `@Path` routes), so the raw counts below are historical. Findings that were remediated are noted inline.
 
