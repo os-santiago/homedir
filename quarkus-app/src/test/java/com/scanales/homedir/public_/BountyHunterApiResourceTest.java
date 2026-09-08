@@ -201,6 +201,49 @@ class BountyHunterApiResourceTest {
   }
 
   @Test
+  void resolveIssue_nonAdminUser_returnsForbidden() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+        {
+          "userId": "testuser",
+          "issueNumber": "123",
+          "prNumber": "456",
+          "labelName": "feature-request",
+          "validatedBy": "non-admin"
+        }
+        """)
+        .when()
+        .post("/api/bounty-hunters/resolve-issue")
+        .then()
+        .statusCode(403)
+        .body("success", equalTo(false))
+        .body("error", equalTo("Only admin users may resolve issues"));
+  }
+
+  @Test
+  void resolveIssue_missingValidatedBy_returnsForbidden() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+        {
+          "userId": "testuser",
+          "issueNumber": "123",
+          "prNumber": "456",
+          "labelName": "feature-request"
+        }
+        """)
+        .when()
+        .post("/api/bounty-hunters/resolve-issue")
+        .then()
+        .statusCode(403)
+        .body("success", equalTo(false))
+        .body("error", equalTo("Only admin users may resolve issues"));
+  }
+
+  @Test
   void getEligibleLabels_returnsLabelList() {
     List<IssueImpactLabel> labels =
         List.of(
