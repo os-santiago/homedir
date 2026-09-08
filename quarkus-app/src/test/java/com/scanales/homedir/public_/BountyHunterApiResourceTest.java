@@ -174,6 +174,7 @@ class BountyHunterApiResourceTest {
         new BountyHunterScore(
             "testuser", 20L, 0L, 20L, BountyHunterLevel.NONE, 0, 1, Instant.now());
 
+    when(configService.isAdminUser("admin")).thenReturn(true);
     when(service.recordIssueResolution("testuser", "123", "456", "feature-request"))
         .thenReturn(score);
 
@@ -185,7 +186,8 @@ class BountyHunterApiResourceTest {
           "userId": "testuser",
           "issueNumber": "123",
           "prNumber": "456",
-          "labelName": "feature-request"
+          "labelName": "feature-request",
+          "validatedBy": "admin"
         }
         """)
         .when()
