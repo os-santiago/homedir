@@ -15,7 +15,8 @@
 
 /* WCAG 2.4.7 / 1.4.11 — Global focus-visible baseline (3:1 contrast minimum).
    Ensures every interactive element has a visible focus indicator for keyboard users.
-   Specific component styles below override this with tailored indicators. */
+   Double-ring technique (accent + dark halo) guarantees 3:1 against both light/dark
+   backgrounds. Specific component styles below may extend this. */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -26,6 +27,7 @@ summary:focus-visible {
   outline: 2px solid var(--color-accent, #ffd700);
   outline-offset: 2px;
   border-radius: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
 .text-nowrap {
@@ -1316,10 +1318,14 @@ footer {
 
 .hd-profile-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
   gap: 0.45rem;
   margin: 0 0 0.9rem;
   padding: 0.35rem;
+  padding-bottom: 0.45rem;
   border: 1px solid rgba(var(--white-rgb), 0.12);
   border-radius: 12px;
   background: rgba(10, 18, 22, 0.4);
@@ -1329,6 +1335,8 @@ footer {
   appearance: none;
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
   border: 1px solid rgba(var(--white-rgb), 0.18);
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
@@ -2369,16 +2377,6 @@ footer {
   .admin-reputation-routes {
     grid-template-columns: 1fr;
   }
-
-  .hd-profile-nav {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 0.45rem;
-  }
-
-  .hd-profile-nav-btn {
-    white-space: nowrap;
-  }
 }
 
 @media (max-width: 720px) {
@@ -3111,10 +3109,27 @@ footer {
   align-items: center;
 }
 
+.hd-panel.centered > .hd-panel-title {
+  text-align: center;
+}
+
 .hd-panel.centered .hd-dashboard-header {
   justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.hd-panel.centered .hd-dashboard-header .hd-eyebrow,
+.hd-panel.centered .hd-dashboard-header .hd-panel-title,
+.hd-panel.centered .hd-dashboard-header .hd-page-intro {
+  text-align: center;
+}
+
+.hd-panel.centered .hd-dashboard-header .hd-page-intro {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hd-panel.centered .hd-panel-actions {
@@ -6639,4 +6654,23 @@ button.is-loading::after {
   button.is-loading::after {
     animation: none;
   }
+}
+
+.tutorial-card {
+  border: 1px solid rgba(var(--gold-rgb), 0.25);
+  border-radius: 8px;
+  background: rgba(var(--gold-rgb), 0.04);
+  padding: 1rem;
+}
+
+.tutorial-card[hidden] {
+  display:none !important;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(var(--white-rgb), 0.1);
 }

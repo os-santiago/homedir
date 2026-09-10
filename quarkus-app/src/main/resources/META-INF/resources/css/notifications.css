@@ -70,6 +70,7 @@
 #ef-toast-close-all:focus {
   outline: 2px solid var(--toast-text);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
 #ef-toast-close-all {
@@ -118,12 +119,13 @@
 
 #empty .material-symbols-outlined {
   font-size: 3rem;
-  opacity: 0.5;
+  opacity: 0.75;
   margin-bottom: 1rem;
 }
 
 #empty p {
-  color: rgba(var(--white-rgb), 0.7);
+  /* WCAG AA: 0.90 ensures 6.28:1 vs section bg (was 0.70 ~4.52 borderline) */
+  color: rgba(var(--white-rgb), 0.9);
 }
 
 .notifications-empty-hint {
@@ -158,7 +160,8 @@
 .notifications-sample-list {
   margin: 0;
   padding-left: 1.15rem;
-  color: rgba(var(--white-rgb), 0.72);
+  /* WCAG AA: 0.85 ensures 5.79:1 vs section bg (was 0.72 ~4.70 borderline) */
+  color: rgba(var(--white-rgb), 0.85);
   font-size: 0.88rem;
   display: grid;
   gap: 0.3rem;
@@ -171,8 +174,9 @@
 .notifications-center .notif .meta {
   margin-top: var(--space-sm);
   font-size: 0.875rem;
-  color: var(--color-text);
-  opacity: 0.7;
+  /* WCAG AA: use 0.85 opacity on white for 5.79:1; remove separate opacity to keep contrast */
+  color: rgba(var(--white-rgb), 0.85);
+  opacity: 1;
 }
 
 .notifications-center .actions {
@@ -205,7 +209,8 @@
    the same visual language regardless of active state. */
 .notifications-center .quest-tabs .btn--filter {
   background: rgba(var(--white-rgb), 0.06);
-  color: rgba(var(--white-rgb), 0.7);
+  /* WCAG AA: 0.85 for inactive filter tab */
+  color: rgba(var(--white-rgb), 0.85);
   border: 1px solid rgba(var(--white-rgb), 0.15);
   border-radius: 6px;
   padding: 0.5rem 1.1rem;
@@ -267,16 +272,18 @@
   outline-offset: 2px;
 }
 
-/* Filter buttons focus styles */
+/* Filter buttons focus styles - WCAG 2.4.7: 3:1 contrast via double ring */
 .notifications-center .filter-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
-/* Checkbox focus styles */
+/* Checkbox focus styles - double ring for contrast on both light/dark */
 .notifications-center .js-select:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
 /* Ensure checkbox has proper focus ring for keyboard navigation */
@@ -343,6 +350,7 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
 .notifications-bell .badge {

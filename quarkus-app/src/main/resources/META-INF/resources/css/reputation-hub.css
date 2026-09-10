@@ -254,8 +254,19 @@
   color: #bbf7d0;
 }
 
+.hub-recognition-feedback.is-ok::before {
+  content: "OK ";
+  font-weight: 700;
+}
+
 .hub-recognition-feedback.is-error {
+  /* WCAG 1.4.1: error uses color + text prefix (not color alone) */
   color: #fecaca;
+}
+
+.hub-recognition-feedback.is-error::before {
+  content: "Error: ";
+  font-weight: 700;
 }
 
 .hub-how-list strong {

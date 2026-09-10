@@ -147,6 +147,25 @@
     border-radius: 8px;
     border: 1px solid rgba(var(--white-rgb), 0.2);
     background: rgba(255, 80, 80, 0.12);
+    /* WCAG 1.4.1: error state uses color + icon (not color alone) */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .community-feedback::before {
+    content: "!";
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ff8a80;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
   }
 
   .community-feedback.hidden {
