@@ -64,6 +64,28 @@
   </article>
 </section>
 
+<section class="page-grid">
+  <div class="section-header project-hd-full">
+    <p class="section-subtitle">{i18n:project_dashboard_team_subtitle}</p>
+    <h2 class="page-title">{i18n:project_dashboard_team_title}</h2>
+  </div>
+  <article class="section-card project-hd-contributors-card project-hd-full">
+    {#if dashboard.topContributors.isEmpty()}
+    <p class="project-hd-empty">{i18n:project_dashboard_empty_contributors}</p>
+    {#else}
+    <div class="project-hd-contributors-grid">
+      {#for c in dashboard.topContributors}
+      <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
+        <img src="{c.avatarUrl}" alt="{c.login}">
+        <strong>{c.login}</strong>
+        <small>{c.contributions} {i18n:project_dashboard_contribs_unit}</small>
+      </a>
+      {/for}
+    </div>
+    {/if}
+  </article>
+</section>
+
 <section class="page-grid project-hd-panorama-grid">
   <article class="section-card project-hd-progress-card">
     <div class="project-hd-progress-head">
@@ -183,28 +205,6 @@
     </a>
   </article>
   {/for}
-</section>
-
-<section class="page-grid">
-  <div class="section-header project-hd-full">
-    <p class="section-subtitle">{i18n:project_dashboard_team_subtitle}</p>
-    <h2 class="page-title">{i18n:project_dashboard_team_title}</h2>
-  </div>
-  <article class="section-card project-hd-contributors-card project-hd-full">
-    {#if dashboard.topContributors.isEmpty()}
-    <p class="project-hd-empty">{i18n:project_dashboard_empty_contributors}</p>
-    {#else}
-    <div class="project-hd-contributors-grid">
-      {#for c in dashboard.topContributors}
-      <a href="{c.htmlUrl}" target="_blank" rel="noopener" class="project-hd-contributor-item" title="{c.login}">
-        <img src="{c.avatarUrl}" alt="{c.login}">
-        <strong>{c.login}</strong>
-        <small>{c.contributions} {i18n:project_dashboard_contribs_unit}</small>
-      </a>
-      {/for}
-    </div>
-    {/if}
-  </article>
 </section>
 
 <style>
@@ -442,20 +442,28 @@
   .project-hd-velocity-card {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.5rem;
   }
 
   .project-hd-velocity-card h3 {
     margin: 0;
-    font-size: 1.35rem;
-    line-height: 1.2;
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--color-accent, #ffd700);
+    letter-spacing: -0.02em;
   }
 
   .project-hd-velocity-kpis {
     display: grid;
-    gap: 0.3rem;
-    font-size: 0.76rem;
-    opacity: 0.92;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    margin-top: 0.1rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.74rem;
+    line-height: 1.35;
+    opacity: 0.85;
   }
 
   .project-hd-full {

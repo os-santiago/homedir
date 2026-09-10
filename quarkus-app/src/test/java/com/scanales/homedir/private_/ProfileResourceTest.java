@@ -679,6 +679,27 @@ public class ProfileResourceTest {
         .body(containsString("hd-avatar-fallback-hidden"));
   }
 
+  @Test
+  public void headerActionsUseCanonicalButtonStyles() {
+    // Refresh and logout must use the standard button system (issue #1466),
+    // not the legacy hd-btn classes.
+    String html =
+        given()
+            .header("Accept-Language", "en")
+            .when()
+            .get("/private/profile")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    assertTrue(
+        html.contains("class=\"btn btn--primary\" href=\"/private/profile\""),
+        "Refresh button should use btn btn--primary");
+    assertTrue(
+        html.contains("class=\"btn btn--secondary\" href=\"/logout\""),
+        "Logout button should use btn btn--secondary");
+  }
+
   private String currentUserEmail() {
     Object emailAttr = securityIdentity.getAttribute("email");
     if (emailAttr != null && !emailAttr.toString().isBlank()) {
