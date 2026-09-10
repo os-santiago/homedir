@@ -20,7 +20,7 @@ needed). The community page already had a page-specific skeleton.
 from pathlib import Path
 import re
 
-HOMEDIR_CSS = Path("quarkus-app/src/main/resources/META-INF/resources/css/homedir.css").read_text()
+HOMEDIR_CSS = Path("quarkus-app/src/main/resources/META-INF/resources/css/homedir.css").read_text(encoding="utf-8")
 COMMUNITY_PAGE_CSS = Path(
     "quarkus-app/src/main/resources/META-INF/resources/css/community-page.css"
 ).read_text()
@@ -259,12 +259,8 @@ def test_notification_center_has_no_error_state() -> None:
 def test_no_unused_notification_error_i18n() -> None:
     """The notifications_center_error i18n key should NOT exist since the
     error state element was removed."""
-    en = Path(
-        "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages.properties"
-    ).read_text()
-    es = Path(
-        "quarkus-app/src/main/resources/com/scanales/homedir/config/AppMessages_es.properties"
-    ).read_text()
+    en = Path("quarkus-app/src/main/resources/messages/i18n.properties").read_text(encoding="utf-8")
+    es = Path("quarkus-app/src/main/resources/messages/i18n_es.properties").read_text(encoding="utf-8")
     assert "notifications_center_error=" not in en
     assert "notifications_center_error=" not in es
 

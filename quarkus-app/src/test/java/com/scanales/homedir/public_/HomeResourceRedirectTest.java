@@ -32,14 +32,14 @@ public class HomeResourceRedirectTest {
   }
 
   @Test
-  public void homeFallsBackToSpanishWhenBrowserLocaleUnsupported() {
+  public void homeFallsBackToEnglishWhenBrowserLocaleUnsupported() {
     given()
         .header("Accept-Language", "fr-FR,fr;q=0.9")
         .when()
         .get("/")
         .then()
         .statusCode(200)
-        .body(containsString("option value=\"es\" selected"));
+        .body(containsString("option value=\"en\" selected"));
   }
 
   @Test

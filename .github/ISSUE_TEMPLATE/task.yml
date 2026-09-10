@@ -64,11 +64,50 @@ body:
     id: acceptance
     attributes:
       label: Acceptance Criteria
-      description: Measurable completion criteria
+      description: |
+        Measurable completion criteria
+        **⚠️ AI-SDLC Requirement: Maximum 2 criteria for autonomous implementation**
       placeholder: |
-        - [ ] Feature X implemented
-        - [ ] Tests added
-        - [ ] Documentation updated
+        - [ ] Feature X implemented and working
+        - [ ] Tests pass (validation command below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_files
+    attributes:
+      label: Affected Files (Best Guess)
+      description: Which files will need changes? (Helps AI-SDLC scope the work)
+      placeholder: |
+        - src/main/java/com/scanales/homedir/FeatureService.java
+        - src/test/java/com/scanales/homedir/FeatureServiceTest.java
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation Command
+      description: How can the work be validated? (Required for AI-SDLC)
+      placeholder: |
+        mvn test -Dtest=FeatureServiceTest
+        or
+        ./gradlew test --tests FeatureServiceTest
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: |
+        **Simple**: 1 file, <50 lines, obvious implementation
+        **Medium**: 2-3 files, <200 lines, clear scope
+        **Complex**: >3 files or requires architectural decision (consider decomposition)
+      options:
+        - Simple
+        - Medium
+        - Complex
     validations:
       required: true
 
@@ -85,7 +124,9 @@ body:
       label: Definition of Ready
       options:
         - label: Objective clearly defined
-        - label: Acceptance criteria defined and measurable
+        - label: Acceptance criteria defined (max 2 for AI-SDLC)
+        - label: Affected files identified
+        - label: Validation command specified
         - label: Scope defined (in/out)
         - label: No duplicate issue exists
     validations:

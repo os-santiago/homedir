@@ -227,7 +227,31 @@
     {/if}
 
     <!-- Agenda Section -->
-    {#if !event.agenda.isEmpty()}
+    {#if event.id.equals('devopsdays-santiago-2026')}
+    <!-- External agenda redirect for DevOpsDays Santiago -->
+    <div id="agenda" style="grid-column: 1 / -1; margin-top: 3rem;">
+        <div class="section-card" style="text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, var(--event-theme-surface) 0%, rgba(var(--event-theme-surface-rgb), 0.8) 100%);">
+            <span class="material-symbols-outlined" aria-hidden="true" style="font-size: 4rem; color: var(--event-theme-primary); margin-bottom: 1.5rem; display: block;">
+                calendar_month
+            </span>
+            <h2 style="margin-bottom: 1rem; color: var(--event-theme-text);">{i18n:events_detail_agenda_external_title}</h2>
+            <p style="margin-bottom: 2rem; font-size: 1.1rem; color: var(--event-theme-text); opacity: 0.9; max-width: 600px; margin-left: auto; margin-right: auto;">
+                {i18n:events_detail_agenda_external_description}
+            </p>
+            <a href="https://santiago.devopsdayschile.cl/agenda"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="{i18n:events_detail_agenda_external_button} ({i18n:events_detail_agenda_external_new_tab})"
+               class="btn primary"
+               style="background: var(--event-theme-primary); color: var(--event-theme-surface); padding: 0.875rem 2rem; font-size: 1.1rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 4px; transition: transform 0.2s, box-shadow 0.2s;"
+               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <span>{i18n:events_detail_agenda_external_button}</span>
+                <span class="material-symbols-outlined" aria-hidden="true" style="font-size: 1.2em;">open_in_new</span>
+            </a>
+        </div>
+    </div>
+    {#else if !event.agenda.isEmpty()}
     <div id="agenda" style="grid-column: 1 / -1; margin-top: 3rem;">
         {#if agendaProposalNoticeEnabled}
         <div class="section-card" role="note" aria-label="{i18n:events_agenda_proposed_aria}" style="margin-bottom: 1rem; border: 1px dashed rgba(255, 215, 0, 0.6); background: rgba(255, 215, 0, 0.08);">

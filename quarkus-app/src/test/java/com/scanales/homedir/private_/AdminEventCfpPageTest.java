@@ -38,6 +38,7 @@ public class AdminEventCfpPageTest {
     eventService.saveEvent(new Event(EVENT_ID, "CFP Admin Event", "desc"));
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp")
         .then()
@@ -86,6 +87,7 @@ public class AdminEventCfpPageTest {
                 List.of("https://example.org/talk")));
 
     given()
+        .header("Accept-Language", "en")
         .when()
         .get("/private/admin/events/" + EVENT_ID + "/cfp/submissions/" + submission.id())
         .then()

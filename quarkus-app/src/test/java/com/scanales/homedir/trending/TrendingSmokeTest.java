@@ -15,7 +15,14 @@ public class TrendingSmokeTest {
   @Test
   public void checkTrendingPageContent() {
     String body =
-        RestAssured.given().when().get("/trending").then().statusCode(200).extract().asString();
+        RestAssured.given()
+            .header("Accept-Language", "en")
+            .when()
+            .get("/trending")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
 
     // Always present: page structure
     assertTrue(body.contains("Trending Repositories"), "should have heading");

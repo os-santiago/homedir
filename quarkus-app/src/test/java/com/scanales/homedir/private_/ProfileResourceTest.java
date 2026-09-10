@@ -55,6 +55,8 @@ public class ProfileResourceTest {
     challengeService.resetForTests();
     cfpSubmissionService.clearAllForTests();
     volunteerApplicationService.clearAllForTests();
+    userProfiles.upsert(currentUserEmail(), currentUserEmail(), currentUserEmail());
+    userProfiles.updateLocale(currentUserEmail(), "en");
     eventService.saveEvent(
         new Event(CFP_EVENT_ID, "Profile CFP Event", "CFP profile integration test"));
     eventService.saveEvent(
@@ -571,6 +573,16 @@ public class ProfileResourceTest {
   }
 
   @Test
+  public void economyCatalogPageDefaultsToEnglishWithoutLocaleState() {
+    given()
+        .when()
+        .get("/private/profile/catalog")
+        .then()
+        .statusCode(200)
+        .body(containsString("Economy catalog"));
+  }
+
+  @Test
   public void economyStoreScriptKnowsAboutOwnedItems() {
     given()
         .header("Accept-Language", "en")
@@ -665,6 +677,27 @@ public class ProfileResourceTest {
         .body(containsString("data-hd-avatar-img"))
         .body(containsString("hd-profile-avatar-fallback"))
         .body(containsString("hd-avatar-fallback-hidden"));
+  }
+
+  @Test
+  public void headerActionsUseCanonicalButtonStyles() {
+    // Refresh and logout must use the standard button system (issue #1466),
+    // not the legacy hd-btn classes.
+    String html =
+        given()
+            .header("Accept-Language", "en")
+            .when()
+            .get("/private/profile")
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    assertTrue(
+        html.contains("class=\"btn btn--primary\" href=\"/private/profile\""),
+        "Refresh button should use btn btn--primary");
+    assertTrue(
+        html.contains("class=\"btn btn--secondary\" href=\"/logout\""),
+        "Logout button should use btn btn--secondary");
   }
 
   private String currentUserEmail() {

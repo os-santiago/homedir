@@ -3,7 +3,13 @@ name: I18n Validation
 on:
   pull_request:
     paths:
-      - 'quarkus-app/src/main/resources/i18n*.properties'
+      - 'quarkus-app/src/main/java/com/scanales/homedir/config/AppMessages.java'
+      - 'quarkus-app/src/main/resources/messages/i18n*.properties'
+      - 'quarkus-app/src/main/resources/i18n.properties'
+      - 'quarkus-app/src/main/resources/i18n_en.properties'
+      - 'quarkus-app/src/main/resources/i18n_es.properties'
+      - 'quarkus-app/src/main/resources/messages.properties'
+      - 'quarkus-app/src/main/resources/messages_es.properties'
       - 'quarkus-app/src/main/resources/templates/**'
       - 'scripts/validate_i18n.py'
       - '.github/workflows/i18n-validation.yml'
@@ -11,7 +17,13 @@ on:
     branches:
       - main
     paths:
-      - 'quarkus-app/src/main/resources/i18n*.properties'
+      - 'quarkus-app/src/main/java/com/scanales/homedir/config/AppMessages.java'
+      - 'quarkus-app/src/main/resources/messages/i18n*.properties'
+      - 'quarkus-app/src/main/resources/i18n.properties'
+      - 'quarkus-app/src/main/resources/i18n_en.properties'
+      - 'quarkus-app/src/main/resources/i18n_es.properties'
+      - 'quarkus-app/src/main/resources/messages.properties'
+      - 'quarkus-app/src/main/resources/messages_es.properties'
       - 'quarkus-app/src/main/resources/templates/**'
       - 'scripts/validate_i18n.py'
       - '.github/workflows/i18n-validation.yml'
