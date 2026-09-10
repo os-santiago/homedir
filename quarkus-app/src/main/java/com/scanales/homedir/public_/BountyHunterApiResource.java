@@ -6,6 +6,7 @@ import com.scanales.homedir.reputation.bounty.BountyHunterLevel;
 import com.scanales.homedir.reputation.bounty.BountyHunterScore;
 import com.scanales.homedir.reputation.bounty.BountyHunterService;
 import com.scanales.homedir.reputation.bounty.IssueImpactLabel;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -79,6 +80,7 @@ public class BountyHunterApiResource {
 
   @POST
   @Path("/resolve-issue")
+  @RolesAllowed("admin")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response resolveIssue(ResolveIssueRequest request) {
     BountyHunterScore score =
