@@ -15,7 +15,8 @@
 
 /* WCAG 2.4.7 / 1.4.11 — Global focus-visible baseline (3:1 contrast minimum).
    Ensures every interactive element has a visible focus indicator for keyboard users.
-   Specific component styles below override this with tailored indicators. */
+   Double-ring technique (accent + dark halo) guarantees 3:1 against both light/dark
+   backgrounds. Specific component styles below may extend this. */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -26,6 +27,7 @@ summary:focus-visible {
   outline: 2px solid var(--color-accent, #ffd700);
   outline-offset: 2px;
   border-radius: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--black-rgb), 0.85);
 }
 
 .text-nowrap {
