@@ -287,6 +287,32 @@ class ReputationHubResourceTest {
   }
 
   @Test
+  void reputationHubPreservesAndEscapesFullLinkedNameInTitle() {
+    String name = "Long Community Member ".repeat(6) + "\"Builder\" & <Helper>";
+    userProfileService.linkGithub(
+        "hub.long.name@example.com",
+        name,
+        "hub.long.name@example.com",
+        new UserProfile.GithubAccount(
+            "hub-long-name",
+            "https://github.com/hub-long-name",
+            null,
+            "7004",
+            Instant.parse("2026-03-01T00:00:00Z")));
+    assertTrue(reputationEngineService.trackQuestCompleted("hub.long.name@example.com", "long-name"));
+
+    String escaped = "Long Community Member ".repeat(6) + "&quot;Builder&quot; &amp; &lt;Helper&gt;";
+    given()
+        .header("Accept-Language", "en")
+        .when()
+        .get("/comunidad/reputation-hub")
+        .then()
+        .statusCode(200)
+        .body(containsString("class=\"hub-member-link\" title=\"" + escaped + "\">" + escaped + "</a>"))
+        .body(not(containsString("<Helper>")));
+  }
+
+  @Test
   void reputationHubRendersPlaceholderAvatarWhenUserHasNoAvatarOrHandle() {
     assertTrue(
         reputationEngineService.trackQuestCompleted("noavatar@example.com", "quest-noavatar"));
@@ -298,6 +324,7 @@ class ReputationHubResourceTest {
         .then()
         .statusCode(200)
         .body(containsString("noavatar@example.com"))
+        .body(containsString("class=\"hub-member-name\" title=\"noavatar@example.com\">noavatar@example.com</span>"))
         .body(containsString("hub-avatar-fallback"));
   }
 }
