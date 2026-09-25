@@ -134,7 +134,7 @@
   display: grid;
   gap: 0.55rem;
   align-items: center;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   background: rgba(0, 0, 0, 0.26);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -180,17 +180,27 @@
   display: grid;
   gap: 0.15rem;
   min-width: 0;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.hub-member-link {
+.hub-member-link,
+.hub-member-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .hub-handle {
   opacity: 0.78;
   font-size: 0.8rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hub-score {
@@ -307,7 +317,7 @@
   }
 
   .hub-list-item {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .hub-avatar {
