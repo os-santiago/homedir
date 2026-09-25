@@ -35,7 +35,18 @@ class BountyHunterServiceTest {
 
     when(configService.getPointsForLabel(label)).thenReturn(points);
     when(configService.isAdminUser(validatedBy)).thenReturn(true);
-    when(repository.findScoreByUserId(userId)).thenReturn(Optional.empty());
+    when(repository.awardAtomically(
+            eq(userId),
+            eq(issueNumber),
+            eq(BountyHunterEventType.ISSUE_LABEL_APPROVED),
+            any(),
+            any()))
+        .thenAnswer(
+            invocation -> {
+              java.util.function.Function<Optional<BountyHunterScore>, BountyHunterScore> updater =
+                  invocation.getArgument(3);
+              return updater.apply(Optional.empty());
+            });
 
     BountyHunterScore result =
         service.awardIssueCreationPoints(userId, issueNumber, label, validatedBy);
@@ -47,9 +58,6 @@ class BountyHunterServiceTest {
     assertEquals(0L, result.issueResolutionPoints());
     assertEquals(1, result.issuesCreatedCount());
     assertEquals(0, result.issuesResolvedCount());
-
-    verify(repository).saveScore(any(BountyHunterScore.class));
-    verify(repository).appendEvent(any(BountyHunterEvent.class));
   }
 
   @Test
@@ -58,7 +66,6 @@ class BountyHunterServiceTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> service.awardIssueCreationPoints("user", "123", "invalid", "admin"));
-    verify(repository, never()).saveScore(any());
   }
 
   @Test
@@ -75,7 +82,14 @@ class BountyHunterServiceTest {
     String userId = "testuser";
     long points = 20L;
     when(configService.getPointsForLabel("feature-request")).thenReturn(points);
-    when(repository.findScoreByUserId(userId)).thenReturn(Optional.empty());
+    when(repository.awardAtomically(
+            eq(userId), eq("127"), eq(BountyHunterEventType.ISSUE_RESOLVED_BY_PR), any(), any()))
+        .thenAnswer(
+            invocation -> {
+              java.util.function.Function<Optional<BountyHunterScore>, BountyHunterScore> updater =
+                  invocation.getArgument(3);
+              return updater.apply(Optional.empty());
+            });
 
     BountyHunterScore result =
         service.awardIssueResolutionPoints(userId, "127", "45", "feature-request");
@@ -83,7 +97,6 @@ class BountyHunterServiceTest {
     assertEquals(points, result.totalPoints());
     assertEquals(points, result.issueResolutionPoints());
     assertEquals(1, result.issuesResolvedCount());
-    verify(repository).saveScore(any(BountyHunterScore.class));
   }
 
   @Test
@@ -108,5 +121,57 @@ class BountyHunterServiceTest {
     when(repository.findTopScores(10)).thenReturn(expected);
     List<BountyHunterScore> result = service.getLeaderboard(10);
     assertEquals(2, result.size());
+  }
+
+  @Test
+  void awardIssueCreationPoints_duplicate_returnsExistingScore() {
+    String userId = "testuser";
+    String issueNumber = "123";
+    String label = "bug-impact-medium";
+    String validatedBy = "admin";
+    long points = 15L;
+
+    when(configService.getPointsForLabel(label)).thenReturn(points);
+    when(configService.isAdminUser(validatedBy)).thenReturn(true);
+
+    BountyHunterScore existingScore =
+        new BountyHunterScore(userId, 50L, 50L, 0L, BountyHunterLevel.NOVICE, 3, 0, Instant.now());
+    when(repository.awardAtomically(
+            eq(userId),
+            eq(issueNumber),
+            eq(BountyHunterEventType.ISSUE_LABEL_APPROVED),
+            any(),
+            any()))
+        .thenReturn(existingScore);
+
+    BountyHunterScore result =
+        service.awardIssueCreationPoints(userId, issueNumber, label, validatedBy);
+
+    assertEquals(50L, result.totalPoints()); // Points did not increase
+  }
+
+  @Test
+  void awardIssueResolutionPoints_duplicate_returnsExistingScore() {
+    String userId = "testuser";
+    String issueNumber = "127";
+    String label = "feature-request";
+    long points = 20L;
+
+    when(configService.getPointsForLabel(label)).thenReturn(points);
+
+    BountyHunterScore existingScore =
+        new BountyHunterScore(
+            userId, 100L, 0L, 100L, BountyHunterLevel.EXPERIENCED, 0, 2, Instant.now());
+    when(repository.awardAtomically(
+            eq(userId),
+            eq(issueNumber),
+            eq(BountyHunterEventType.ISSUE_RESOLVED_BY_PR),
+            any(),
+            any()))
+        .thenReturn(existingScore);
+
+    BountyHunterScore result = service.awardIssueResolutionPoints(userId, issueNumber, "45", label);
+
+    assertEquals(100L, result.totalPoints()); // Points did not increase
   }
 }
