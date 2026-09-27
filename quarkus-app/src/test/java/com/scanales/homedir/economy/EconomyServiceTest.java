@@ -91,8 +91,7 @@ public class EconomyServiceTest {
   }
 
   @Test
-  void progressionGatesHighTierCatalogAndUnlocksAfterAdvancing() {
-    String userId = "progression@example.com";
+  void progressionGatesHighTierCatalogAndUnlocksAfterAdvancing() {    String userId = "progression@example.com";
     economyService.rewardFromGamification(userId, "bootstrap", 3000, "seed", EconomyService.RewardDeduplication.NONE);
 
     List<EconomyService.CatalogOffer> initial = economyService.listCatalogForUser(userId);
@@ -111,5 +110,93 @@ public class EconomyServiceTest {
     assertThrows(
         EconomyService.ValidationException.class,
         () -> economyService.purchase(userId, "architect-badge"));
+  }
+
+  @Test
+  void perReferenceGamificationRewardIsIdempotent() {
+    String userId = "vote.farmer@example.com";
+    String reference = "community_vote:content-42";
+    EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
+
+    EconomyService.RewardResult first =
+        economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
+    assertTrue(first.awarded());
+    long balanceAfterFirst = economyService.getWallet(userId).balanceHcoin();
+
+    for (int replay = 0; replay < 50; replay++) {
+      EconomyService.RewardResult repeated =
+          economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
+      assertFalse(repeated.awarded(), "replaying the same reference must never award again");
+    }
+
+    assertEquals(balanceAfterFirst, economyService.getWallet(userId).balanceHcoin());
+    long rewardsForReference =
+        economyService.listTransactions(userId, 100, 0).items().stream()
+            .filter(tx -> tx.type() == EconomyTransactionType.REWARD)
+            .filter(tx -> reference.equals(tx.reference()))
+            .count();
+    assertEquals(1, rewardsForReference, "ledger must hold exactly one reward per reference");
+  }
+
+  @Test
+  void perReferenceDeduplicationIsScopedPerUserAndPerReference() {
+    String userA = "vote.a@example.com";
+    String userB = "vote.b@example.com";
+    String content42 = "community_vote:content-42";
+    String content43 = "community_vote:content-43";
+    EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
+
+    assertTrue(
+        economyService.rewardFromGamification(userA, "community_vote", 5, content42, dedup)
+            .awarded());
+    assertTrue(
+        economyService.rewardFromGamification(userA, "community_vote", 5, content43, dedup)
+            .awarded());
+    assertTrue(
+        economyService.rewardFromGamification(userB, "community_vote", 5, content42, dedup)
+            .awarded());
+    assertFalse(
+        economyService.rewardFromGamification(userB, "community_vote", 5, content42, dedup)
+            .awarded());
+
+    long unit = economyService.previewGamificationReward(5);
+    assertEquals(2 * unit, economyService.getWallet(userA).balanceHcoin());
+    assertEquals(1 * unit, economyService.getWallet(userB).balanceHcoin());
+  }
+
+  @Test
+  void nonDeduplicatedGamificationRewardStillAwardsEveryTime() {
+    String userId = "event.viewer@example.com";
+    EconomyService.RewardDeduplication noDedup = EconomyService.RewardDeduplication.NONE;
+
+    // Once-per-day activities legitimately reuse the same reference on a later day, so NONE must
+    // keep awarding for a reference that was already used.
+    assertTrue(
+        economyService.rewardFromGamification(userId, "event_view", 3, "event-1", noDedup)
+            .awarded());
+    assertTrue(
+        economyService.rewardFromGamification(userId, "event_view", 3, "event-1", noDedup)
+            .awarded());
+
+    long unit = economyService.previewGamificationReward(3);
+    assertEquals(2 * unit, economyService.getWallet(userId).balanceHcoin());
+  }
+
+  @Test
+  void perReferenceDeduplicationIsSkippedWhenReferenceIsAbsent() {
+    String userId = "daily.checkin@example.com";
+    EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
+
+    assertTrue(
+        economyService.rewardFromGamification(userId, "daily_checkin", 10, null, dedup).awarded());
+    assertTrue(
+        economyService.rewardFromGamification(userId, "daily_checkin", 10, "   ", dedup).awarded());
+
+    long unit = economyService.previewGamificationReward(10);
+    assertEquals(2 * unit, economyService.getWallet(userId).balanceHcoin());
+    assertTrue(
+        economyService.listTransactions(userId, 10, 0).items().stream()
+            .noneMatch(tx -> tx.reference() != null),
+        "a blank reference must be stored as null rather than as empty text");
   }
 }

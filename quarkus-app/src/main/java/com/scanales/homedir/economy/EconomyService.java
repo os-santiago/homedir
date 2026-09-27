@@ -390,13 +390,22 @@ public class EconomyService {
       return RewardResult.notAwarded();
     }
     String normalizedReference = normalizeReference(reference);
+    RewardDeduplication scope =
+        deduplication == null ? RewardDeduplication.NONE : deduplication;
     int rewardAmount = Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
     synchronized (stateLock) {
       refreshFromDisk(false);
+      List<EconomyTransaction> history = loadFullTransactions();
+      // Read, check and write all happen while holding stateLock, so concurrent submissions of the
+      // same reference can only ever produce a single reward.
+      if (scope == RewardDeduplication.PER_REFERENCE
+          && normalizedReference != null
+          && hasRewardForReference(history, normalizedUserId, normalizedReference)) {
+        return RewardResult.notAwarded();
+      }
       if (persistenceService.isLowDiskSpace()) {
         guardrail("low_disk_space", normalizedUserId, "persistent storage low disk space");
       }
-      List<EconomyTransaction> history = loadFullTransactions();
       if (history.size() >= Math.max(1, transactionsPersistedMax)) {
         guardrail(
             "transaction_history_limit_reached",
@@ -453,14 +462,7 @@ public class EconomyService {
     synchronized (stateLock) {
       refreshFromDisk(false);
       List<EconomyTransaction> history = loadFullTransactions();
-      boolean alreadyAwarded =
-          history.stream()
-              .anyMatch(
-                  tx ->
-                      normalizedUserId.equals(tx.userId())
-                          && tx.type() == EconomyTransactionType.REWARD
-                          && reference.equals(safeText(tx.reference(), "")));
-      if (alreadyAwarded) {
+      if (hasRewardForReference(history, normalizedUserId, reference)) {
         return RewardResult.notAwarded();
       }
       if (persistenceService.isLowDiskSpace()) {
@@ -860,6 +862,27 @@ public class EconomyService {
     }
     String normalized = raw.trim();
     return normalized.isBlank() ? null : normalized;
+  }
+
+  /**
+   * Returns true when the user already holds a REWARD transaction for the given reference. Only
+   * REWARD rows are inspected so a PURCHASE that happens to reuse a reference can never mask a
+   * missing reward.
+   */
+  private static boolean hasRewardForReference(
+      List<EconomyTransaction> history, String userId, String reference) {
+    if (history == null || history.isEmpty() || userId == null || reference == null) {
+      return false;
+    }
+    for (EconomyTransaction tx : history) {
+      if (tx == null || tx.type() != EconomyTransactionType.REWARD) {
+        continue;
+      }
+      if (userId.equals(tx.userId()) && reference.equals(safeText(tx.reference(), ""))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static String safeLogCode(String value) {

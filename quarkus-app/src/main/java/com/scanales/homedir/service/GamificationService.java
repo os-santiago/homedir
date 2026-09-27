@@ -65,7 +65,9 @@ public class GamificationService {
           activity.key(),
           activity.xp(),
           reference,
-          EconomyService.RewardDeduplication.NONE);
+          activity.referenceScoped()
+              ? EconomyService.RewardDeduplication.PER_REFERENCE
+              : EconomyService.RewardDeduplication.NONE);
     } catch (EconomyService.CapacityException e) {
       LOG.warnf("gamification_reward_blocked user=%s code=%s", profile.getUserId(), e.getMessage());
     } catch (Exception e) {
