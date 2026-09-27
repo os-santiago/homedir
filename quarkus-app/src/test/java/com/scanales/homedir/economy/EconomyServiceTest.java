@@ -225,8 +225,7 @@ public class EconomyServiceTest {
 
   private EconomyService.RewardResult voteReward(
       String userId, String reference, EconomyService.RewardDeduplication dedup) {
-    return economyService.rewardFromGamification(
-        userId, "community_vote", 5, reference, dedup);
+    return economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
   }
 
   private EconomyService.RewardResult eventViewReward(
