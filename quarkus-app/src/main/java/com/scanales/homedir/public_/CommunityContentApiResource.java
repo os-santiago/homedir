@@ -247,7 +247,8 @@ public class CommunityContentApiResource {
     return "community_vote:" + contentId.trim().toLowerCase(Locale.ROOT);
   }
 
-  private String normalizeView(String raw) {    if (raw == null || raw.isBlank()) {
+  private String normalizeView(String raw) {
+    if (raw == null || raw.isBlank()) {
       return "featured";
     }
     String normalized = raw.trim().toLowerCase(Locale.ROOT);

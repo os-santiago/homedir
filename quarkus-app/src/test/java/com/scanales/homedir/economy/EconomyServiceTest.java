@@ -24,7 +24,8 @@ public class EconomyServiceTest {
   @Test
   void purchaseUpdatesWalletInventoryAndTransactions() {
     String userId = "user@example.com";
-    economyService.rewardFromGamification(userId, "test_reward", 1000, "seed", EconomyService.RewardDeduplication.NONE);
+    economyService.rewardFromGamification(
+        userId, "test_reward", 1000, "seed", EconomyService.RewardDeduplication.NONE);
 
     EconomyWallet walletBefore = economyService.getWallet(userId);
     assertTrue(walletBefore.balanceHcoin() >= 120);
@@ -54,7 +55,8 @@ public class EconomyServiceTest {
   void transactionsOffsetLoadsHistoricalPageOnDemand() {
     String userId = "history@example.com";
     for (int i = 0; i < 60; i++) {
-      economyService.rewardFromGamification(userId, "history_" + i, 5, "seed_" + i, EconomyService.RewardDeduplication.NONE);
+      economyService.rewardFromGamification(
+          userId, "history_" + i, 5, "seed_" + i, EconomyService.RewardDeduplication.NONE);
     }
 
     EconomyService.TransactionPage firstPage = economyService.listTransactions(userId, 10, 0);
@@ -75,7 +77,8 @@ public class EconomyServiceTest {
     for (int i = 0; i < 400; i++) {
       try {
         EconomyService.RewardResult reward =
-            economyService.rewardFromGamification(userId, "limit_" + i, 10, "seed_" + i, EconomyService.RewardDeduplication.NONE);
+            economyService.rewardFromGamification(
+                userId, "limit_" + i, 10, "seed_" + i, EconomyService.RewardDeduplication.NONE);
         assertTrue(reward.awarded());
         awarded++;
       } catch (EconomyService.CapacityException expected) {
@@ -86,13 +89,18 @@ public class EconomyServiceTest {
     assertTrue(blocked, "economy guardrail should block when transaction history reaches limit");
     assertThrows(
         EconomyService.CapacityException.class,
-        () -> economyService.rewardFromGamification(userId, "limit_blocked", 10, "seed_blocked", EconomyService.RewardDeduplication.NONE));
+        () ->
+            economyService.rewardFromGamification(
+                userId, "limit_blocked", 10, "seed_blocked",
+                EconomyService.RewardDeduplication.NONE));
     assertTrue(awarded > 0);
   }
 
   @Test
-  void progressionGatesHighTierCatalogAndUnlocksAfterAdvancing() {    String userId = "progression@example.com";
-    economyService.rewardFromGamification(userId, "bootstrap", 3000, "seed", EconomyService.RewardDeduplication.NONE);
+  void progressionGatesHighTierCatalogAndUnlocksAfterAdvancing() {
+    String userId = "progression@example.com";
+    economyService.rewardFromGamification(
+        userId, "bootstrap", 3000, "seed", EconomyService.RewardDeduplication.NONE);
 
     List<EconomyService.CatalogOffer> initial = economyService.listCatalogForUser(userId);
     EconomyService.CatalogOffer architect =

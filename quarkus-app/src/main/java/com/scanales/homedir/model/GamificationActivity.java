@@ -188,10 +188,10 @@ public enum GamificationActivity {
   }
 
   /**
-   * Returns true when the activity may only be rewarded once per distinct reference for the lifetime
-   * of the account. Use it for repeatable actions bound to a specific entity, where re-submitting
-   * the same target is not new activity. Do not use it for once-per-day activities that carry a
-   * per-target reference, since those are expected to reward again on a later day.
+   * Returns true when the activity may only be rewarded once per distinct reference, for the
+   * lifetime of the account. Use it for repeatable actions bound to a specific entity, where
+   * re-submitting the same target is not new activity. Do not use it for once-per-day activities
+   * carrying a per-target reference, since those should reward again on a later day.
    */
   public boolean referenceScoped() {
     return referenceScoped;

@@ -390,8 +390,7 @@ public class EconomyService {
       return RewardResult.notAwarded();
     }
     String normalizedReference = normalizeReference(reference);
-    RewardDeduplication scope =
-        deduplication == null ? RewardDeduplication.NONE : deduplication;
+    RewardDeduplication scope = deduplication == null ? RewardDeduplication.NONE : deduplication;
     int rewardAmount = Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -948,7 +947,7 @@ public class EconomyService {
       long stateSizeBytes,
       long stateLastModifiedMillis) {}
 
-  /** Controls whether a gamification reward may be granted more than once for the same reference. */
+  /** Controls whether a gamification reward may repeat for the same reference. */
   public enum RewardDeduplication {
     /** Always awards. Correct for once-per-day and once-ever activities. */
     NONE,
