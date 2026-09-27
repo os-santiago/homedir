@@ -81,6 +81,14 @@ public class BountyHunterApiResource {
   @Path("/resolve-issue")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response resolveIssue(ResolveIssueRequest request) {
+    // Authorization: only an admin may record a resolution, matching the
+    // /validate-issue path. Without this check anyone can mint points for any
+    // userId, causing unbounded leaderboard inflation.
+    if (request.validatedBy() == null || !configService.isAdminUser(request.validatedBy())) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .entity(Map.of("success", false, "error", "Only admin users may resolve issues"))
+          .build();
+    }
     BountyHunterScore score =
         service.recordIssueResolution(
             request.userId(), request.issueNumber(), request.prNumber(), request.labelName());
@@ -156,5 +164,6 @@ public class BountyHunterApiResource {
       String userId, String issueNumber, String labelName, String validatedBy) {}
 
   public record ResolveIssueRequest(
-      String userId, String issueNumber, String prNumber, String labelName) {}
+      String userId, String issueNumber, String prNumber, String labelName,
+      String validatedBy) {}
 }
