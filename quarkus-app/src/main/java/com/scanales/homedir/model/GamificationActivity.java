@@ -30,7 +30,7 @@ public enum GamificationActivity {
       true,
       false,
       "Community members review"),
-  COMMUNITY_VOTE("community_vote", 5, QuestClass.SCIENTIST, false, false, "Community vote"),
+  COMMUNITY_VOTE("community_vote", 5, QuestClass.SCIENTIST, false, false, true, "Community vote"),
   COMMUNITY_REVIEW(
       "community_review", 2, QuestClass.SCIENTIST, true, false, "Community feed review"),
   COMMUNITY_SUBMISSION(
@@ -136,6 +136,7 @@ public enum GamificationActivity {
   private final QuestClass questClass;
   private final boolean oncePerDay;
   private final boolean onceEver;
+  private final boolean referenceScoped;
   private final String title;
 
   GamificationActivity(
@@ -145,11 +146,23 @@ public enum GamificationActivity {
       boolean oncePerDay,
       boolean onceEver,
       String title) {
+    this(key, xp, questClass, oncePerDay, onceEver, false, title);
+  }
+
+  GamificationActivity(
+      String key,
+      int xp,
+      QuestClass questClass,
+      boolean oncePerDay,
+      boolean onceEver,
+      boolean referenceScoped,
+      String title) {
     this.key = key;
     this.xp = xp;
     this.questClass = questClass;
     this.oncePerDay = oncePerDay;
     this.onceEver = onceEver;
+    this.referenceScoped = referenceScoped;
     this.title = title;
   }
 
@@ -171,6 +184,16 @@ public enum GamificationActivity {
 
   public boolean onceEver() {
     return onceEver;
+  }
+
+  /**
+   * Returns true when the activity may only be rewarded once per distinct reference, for the
+   * lifetime of the account. Use it for repeatable actions bound to a specific entity, where
+   * re-submitting the same target is not new activity. Do not use it for once-per-day activities
+   * carrying a per-target reference, since those should reward again on a later day.
+   */
+  public boolean referenceScoped() {
+    return referenceScoped;
   }
 
   public String title() {
