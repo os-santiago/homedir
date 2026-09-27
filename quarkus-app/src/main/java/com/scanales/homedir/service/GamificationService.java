@@ -44,6 +44,13 @@ public class GamificationService {
     if (activity.onceEver() && profile.hasHistoryTitle(title)) {
       return false;
     }
+    // Reference-scoped activities repeat but target a specific entity, so voting or submitting the
+    // same target again is not new activity. The history title already embeds the reference, which
+    // is what makes the check exact rather than heuristic. Returning here also stops the challenge
+    // and reputation side effects from being replayed.
+    if (activity.referenceScoped() && profile.hasHistoryTitle(title)) {
+      return false;
+    }
 
     String today = LocalDate.now().toString();
     if (activity.oncePerDay()) {
