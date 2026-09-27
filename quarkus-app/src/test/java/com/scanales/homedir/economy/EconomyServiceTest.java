@@ -91,7 +91,10 @@ public class EconomyServiceTest {
         EconomyService.CapacityException.class,
         () ->
             economyService.rewardFromGamification(
-                userId, "limit_blocked", 10, "seed_blocked",
+                userId,
+                "limit_blocked",
+                10,
+                "seed_blocked",
                 EconomyService.RewardDeduplication.NONE));
     assertTrue(awarded > 0);
   }
@@ -126,14 +129,12 @@ public class EconomyServiceTest {
     String reference = "community_vote:content-42";
     EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
 
-    EconomyService.RewardResult first =
-        economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
+    EconomyService.RewardResult first = voteReward(userId, reference, dedup);
     assertTrue(first.awarded());
     long balanceAfterFirst = economyService.getWallet(userId).balanceHcoin();
 
     for (int replay = 0; replay < 50; replay++) {
-      EconomyService.RewardResult repeated =
-          economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
+      EconomyService.RewardResult repeated = voteReward(userId, reference, dedup);
       assertFalse(repeated.awarded(), "replaying the same reference must never award again");
     }
 
@@ -154,18 +155,10 @@ public class EconomyServiceTest {
     String content43 = "community_vote:content-43";
     EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
 
-    assertTrue(
-        economyService.rewardFromGamification(userA, "community_vote", 5, content42, dedup)
-            .awarded());
-    assertTrue(
-        economyService.rewardFromGamification(userA, "community_vote", 5, content43, dedup)
-            .awarded());
-    assertTrue(
-        economyService.rewardFromGamification(userB, "community_vote", 5, content42, dedup)
-            .awarded());
-    assertFalse(
-        economyService.rewardFromGamification(userB, "community_vote", 5, content42, dedup)
-            .awarded());
+    assertTrue(voteReward(userA, content42, dedup).awarded());
+    assertTrue(voteReward(userA, content43, dedup).awarded());
+    assertTrue(voteReward(userB, content42, dedup).awarded());
+    assertFalse(voteReward(userB, content42, dedup).awarded());
 
     long unit = economyService.previewGamificationReward(5);
     assertEquals(2 * unit, economyService.getWallet(userA).balanceHcoin());
@@ -179,15 +172,38 @@ public class EconomyServiceTest {
 
     // Once-per-day activities legitimately reuse the same reference on a later day, so NONE must
     // keep awarding for a reference that was already used.
-    assertTrue(
-        economyService.rewardFromGamification(userId, "event_view", 3, "event-1", noDedup)
-            .awarded());
-    assertTrue(
-        economyService.rewardFromGamification(userId, "event_view", 3, "event-1", noDedup)
-            .awarded());
+    assertTrue(eventViewReward(userId, "event-1", noDedup).awarded());
+    assertTrue(eventViewReward(userId, "event-1", noDedup).awarded());
 
     long unit = economyService.previewGamificationReward(3);
     assertEquals(2 * unit, economyService.getWallet(userId).balanceHcoin());
+  }
+
+  @Test
+  void purchaseWithTheSameReferenceDoesNotMaskAPendingReward() {
+    String userId = "shop.reuse@example.com";
+    EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
+
+    economyService.rewardFromGamification(
+        userId, "bootstrap", 1000, "seed", EconomyService.RewardDeduplication.NONE);
+    // purchase() writes reference "shop:<itemId>", so a reward reusing that reference must still
+    // be granted: only a REWARD row may satisfy the deduplication.
+    economyService.purchase(userId, "profile-glow");
+
+    assertTrue(voteReward(userId, "shop:profile-glow", dedup).awarded());
+    assertFalse(voteReward(userId, "shop:profile-glow", dedup).awarded());
+  }
+
+  @Test
+  void gamificationRewardIsRejectedWhenDeduplicationScopeIsMissing() {
+    String userId = "no.scope@example.com";
+
+    EconomyService.RewardResult result =
+        economyService.rewardFromGamification(
+            userId, "community_vote", 5, "community_vote:content-1", null);
+
+    assertFalse(result.awarded());
+    assertEquals(0, economyService.getWallet(userId).balanceHcoin());
   }
 
   @Test
@@ -195,16 +211,31 @@ public class EconomyServiceTest {
     String userId = "daily.checkin@example.com";
     EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
 
-    assertTrue(
-        economyService.rewardFromGamification(userId, "daily_checkin", 10, null, dedup).awarded());
-    assertTrue(
-        economyService.rewardFromGamification(userId, "daily_checkin", 10, "   ", dedup).awarded());
+    assertTrue(checkinReward(userId, null, dedup).awarded());
+    assertTrue(checkinReward(userId, "   ", dedup).awarded());
 
     long unit = economyService.previewGamificationReward(10);
     assertEquals(2 * unit, economyService.getWallet(userId).balanceHcoin());
+
+    List<EconomyTransaction> transactions = economyService.listTransactions(userId, 10, 0).items();
     assertTrue(
-        economyService.listTransactions(userId, 10, 0).items().stream()
-            .noneMatch(tx -> tx.reference() != null),
+        transactions.stream().noneMatch(tx -> tx.reference() != null),
         "a blank reference must be stored as null rather than as empty text");
+  }
+
+  private EconomyService.RewardResult voteReward(
+      String userId, String reference, EconomyService.RewardDeduplication dedup) {
+    return economyService.rewardFromGamification(
+        userId, "community_vote", 5, reference, dedup);
+  }
+
+  private EconomyService.RewardResult eventViewReward(
+      String userId, String reference, EconomyService.RewardDeduplication dedup) {
+    return economyService.rewardFromGamification(userId, "event_view", 3, reference, dedup);
+  }
+
+  private EconomyService.RewardResult checkinReward(
+      String userId, String reference, EconomyService.RewardDeduplication dedup) {
+    return economyService.rewardFromGamification(userId, "daily_checkin", 10, reference, dedup);
   }
 }

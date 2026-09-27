@@ -386,18 +386,17 @@ public class EconomyService {
       String reference,
       RewardDeduplication deduplication) {
     String normalizedUserId = normalizeUserId(userId);
-    if (normalizedUserId == null || xp <= 0) {
+    if (normalizedUserId == null || xp <= 0 || deduplication == null) {
       return RewardResult.notAwarded();
     }
     String normalizedReference = normalizeReference(reference);
-    RewardDeduplication scope = deduplication == null ? RewardDeduplication.NONE : deduplication;
     int rewardAmount = Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
     synchronized (stateLock) {
       refreshFromDisk(false);
       List<EconomyTransaction> history = loadFullTransactions();
       // Read, check and write all happen while holding stateLock, so concurrent submissions of the
       // same reference can only ever produce a single reward.
-      if (scope == RewardDeduplication.PER_REFERENCE
+      if (deduplication == RewardDeduplication.PER_REFERENCE
           && normalizedReference != null
           && hasRewardForReference(history, normalizedUserId, normalizedReference)) {
         return RewardResult.notAwarded();
@@ -867,17 +866,16 @@ public class EconomyService {
    * Returns true when the user already holds a REWARD transaction for the given reference. Only
    * REWARD rows are inspected so a PURCHASE that happens to reuse a reference can never mask a
    * missing reward.
+   *
+   * <p>Callers guarantee a non-null user and reference, and {@link #loadFullTransactions()} always
+   * yields a list, so no defensive null checks are needed here.
    */
   private static boolean hasRewardForReference(
       List<EconomyTransaction> history, String userId, String reference) {
-    if (history == null || history.isEmpty() || userId == null || reference == null) {
-      return false;
-    }
     for (EconomyTransaction tx : history) {
-      if (tx == null || tx.type() != EconomyTransactionType.REWARD) {
-        continue;
-      }
-      if (userId.equals(tx.userId()) && reference.equals(safeText(tx.reference(), ""))) {
+      if (tx.type() == EconomyTransactionType.REWARD
+          && userId.equals(tx.userId())
+          && reference.equals(safeText(tx.reference(), ""))) {
         return true;
       }
     }
