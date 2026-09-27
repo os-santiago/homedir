@@ -372,12 +372,24 @@ public class EconomyService {
     }
   }
 
+  /**
+   * Awards the hcoin equivalent of a gamification XP grant.
+   *
+   * <p>{@code deduplication} is mandatory on purpose: whether a grant may repeat is a property of
+   * the activity, not something that can be inferred from the reference alone, so every caller has
+   * to state it.
+   */
   public RewardResult rewardFromGamification(
-      String userId, String activityKey, int xp, String reference) {
+      String userId,
+      String activityKey,
+      int xp,
+      String reference,
+      RewardDeduplication deduplication) {
     String normalizedUserId = normalizeUserId(userId);
     if (normalizedUserId == null || xp <= 0) {
       return RewardResult.notAwarded();
     }
+    String normalizedReference = normalizeReference(reference);
     int rewardAmount = Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
     synchronized (stateLock) {
       refreshFromDisk(false);
@@ -414,7 +426,7 @@ public class EconomyService {
               rewardAmount,
               updatedBalance,
               now,
-              reference));
+              normalizedReference));
       EconomyStateSnapshot candidate = toSnapshot(walletCopy, inventoryByUser, history, now);
       enforceStorageBudget(candidate, normalizedUserId);
       persistSync(candidate);
@@ -841,6 +853,15 @@ public class EconomyService {
     return value;
   }
 
+  /** Returns a trimmed reference, or {@code null} when there is nothing to deduplicate on. */
+  private static String normalizeReference(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String normalized = raw.trim();
+    return normalized.isBlank() ? null : normalized;
+  }
+
   private static String safeLogCode(String value) {
     if (value == null || value.isBlank()) {
       return "unknown";
@@ -903,6 +924,17 @@ public class EconomyService {
       String statePath,
       long stateSizeBytes,
       long stateLastModifiedMillis) {}
+
+  /** Controls whether a gamification reward may be granted more than once for the same reference. */
+  public enum RewardDeduplication {
+    /** Always awards. Correct for once-per-day and once-ever activities. */
+    NONE,
+    /**
+     * Awards at most once per (user, reference) pair. Correct for repeatable activities bound to a
+     * specific target, such as voting on a content item.
+     */
+    PER_REFERENCE
+  }
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {

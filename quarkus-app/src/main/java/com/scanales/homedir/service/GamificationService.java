@@ -61,7 +61,11 @@ public class GamificationService {
     userProfiles.addXp(profile.getUserId(), activity.xp(), title, activity.questClass());
     try {
       economyService.rewardFromGamification(
-          profile.getUserId(), activity.key(), activity.xp(), reference);
+          profile.getUserId(),
+          activity.key(),
+          activity.xp(),
+          reference,
+          EconomyService.RewardDeduplication.NONE);
     } catch (EconomyService.CapacityException e) {
       LOG.warnf("gamification_reward_blocked user=%s code=%s", profile.getUserId(), e.getMessage());
     } catch (Exception e) {
