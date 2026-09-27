@@ -223,6 +223,16 @@ public class EconomyServiceTest {
         "a blank reference must be stored as null rather than as empty text");
   }
 
+  @Test
+  void gamificationRewardIsRejectedForInvalidInput() {
+    EconomyService.RewardDeduplication dedup = EconomyService.RewardDeduplication.PER_REFERENCE;
+
+    assertFalse(probeReward(null, 5, dedup).awarded());
+    assertFalse(probeReward("  ", 5, dedup).awarded());
+    assertFalse(probeReward("valid@example.com", 0, dedup).awarded());
+    assertFalse(probeReward("valid@example.com", -3, dedup).awarded());
+  }
+
   private EconomyService.RewardResult voteReward(
       String userId, String reference, EconomyService.RewardDeduplication dedup) {
     return economyService.rewardFromGamification(userId, "community_vote", 5, reference, dedup);
@@ -236,5 +246,10 @@ public class EconomyServiceTest {
   private EconomyService.RewardResult checkinReward(
       String userId, String reference, EconomyService.RewardDeduplication dedup) {
     return economyService.rewardFromGamification(userId, "daily_checkin", 10, reference, dedup);
+  }
+
+  private EconomyService.RewardResult probeReward(
+      String userId, int xp, EconomyService.RewardDeduplication dedup) {
+    return economyService.rewardFromGamification(userId, "vote", xp, "ref", dedup);
   }
 }
