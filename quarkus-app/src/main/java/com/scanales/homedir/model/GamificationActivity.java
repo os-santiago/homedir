@@ -30,8 +30,7 @@ public enum GamificationActivity {
       true,
       false,
       "Community members review"),
-  COMMUNITY_VOTE(
-      "community_vote", 5, QuestClass.SCIENTIST, false, false, true, "Community vote"),
+  COMMUNITY_VOTE("community_vote", 5, QuestClass.SCIENTIST, false, false, true, "Community vote"),
   COMMUNITY_REVIEW(
       "community_review", 2, QuestClass.SCIENTIST, true, false, "Community feed review"),
   COMMUNITY_SUBMISSION(
