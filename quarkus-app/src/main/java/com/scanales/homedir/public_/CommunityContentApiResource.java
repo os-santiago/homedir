@@ -217,7 +217,10 @@ public class CommunityContentApiResource {
       metrics.recordFunnelStep("community.vote");
       metrics.recordFunnelStep("community_vote");
       metrics.recordFunnelStep("community.vote." + parsedVote.get().apiValue());
-      gamificationService.award(userId.get(), GamificationActivity.COMMUNITY_VOTE);
+      gamificationService.award(
+          userId.get(),
+          GamificationActivity.COMMUNITY_VOTE,
+          communityVoteReference(content.get().id()));
     } catch (CommunityVoteService.RateLimitExceededException e) {
       return Response.status(429).entity(Map.of("error", "daily_vote_limit_reached")).build();
     } catch (Exception e) {
@@ -234,8 +237,17 @@ public class CommunityContentApiResource {
     return Response.ok(new VoteResponse(toResponse(content.get(), aggregate, score))).build();
   }
 
-  private String normalizeView(String raw) {
-    if (raw == null || raw.isBlank()) {
+  /**
+   * Stable reward reference for a vote on a content item. The user is deliberately not part of the
+   * reference: reward deduplication is already scoped per user and every EconomyTransaction row
+   * stores user_id, so embedding it would only make the ledger noisier. The reference also excludes
+   * the vote type on purpose, so switching an upvote to a downvote never grants a second reward.
+   */
+  private static String communityVoteReference(String contentId) {
+    return "community_vote:" + contentId.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private String normalizeView(String raw) {    if (raw == null || raw.isBlank()) {
       return "featured";
     }
     String normalized = raw.trim().toLowerCase(Locale.ROOT);
