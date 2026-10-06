@@ -45,4 +45,7 @@ jobs:
     with:
       repo: ${{ github.repository }}
       pr_number: ${{ github.event.pull_request.number }}
+      # Explicit model: pre-contract PRs resolve runtime defaults
+      # (auto/* OmniRoute routes are unreachable from GHA — ADR-0001).
+      model: nvidia/nemotron-3-super-120b-a12b
     secrets: inherit
