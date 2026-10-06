@@ -1,0 +1,51 @@
+# Thin consumer caller: dispatches the reusable runtime at os-santiago/ai-sdlc@main.
+# An issue labeled `ready-to-implement` → DoR intake → implement → PR.
+# Every pull_request open/sync → AI review + bounded review-fix convergence.
+# Engine inference defaults to GitHub Models (GITHUB_TOKEN, `models: read`);
+# repo secret MODEL_API_KEY switches to a direct provider — opt-in by label.
+name: ai-sdlc
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  models: read
+
+jobs:
+  intake:
+    if: github.event.label.name == 'ready-to-implement'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-intake.yml@main
+    with:
+      repo: ${{ github.repository }}
+      issue_number: ${{ github.event.issue.number }}
+    secrets: inherit
+
+  implement:
+    needs: intake
+    if: needs.intake.outputs.dispatch == 'true'
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-implement.yml@main
+    with:
+      repo: ${{ github.repository }}
+      issue_number: ${{ github.event.issue.number }}
+    secrets: inherit
+
+  review:
+    # Fork heads carry no secrets — the called workflow would fail its auth
+    # check rather than skip cleanly, so the event filter lives here.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    uses: os-santiago/ai-sdlc/.github/workflows/ai-sdlc-review.yml@main
+    with:
+      repo: ${{ github.repository }}
+      pr_number: ${{ github.event.pull_request.number }}
+      # Explicit model: pre-contract PRs resolve runtime defaults
+      # (auto/* OmniRoute routes are unreachable from GHA — ADR-0001).
+      model: nvidia/nemotron-3-super-120b-a12b
+    secrets: inherit
