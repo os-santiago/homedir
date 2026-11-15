@@ -63,7 +63,7 @@ Understanding and using labels correctly is crucial for effective contribution. 
 
 **PR State Labels** (managed by `pr-state-labeler.yml` automation — do NOT apply manually):
 
-These labels track the PR lifecycle state. They are mutually exclusive and auto-assigned based on CI checks + human review status:
+These labels track the PR lifecycle state. They are mutually exclusive and auto-assigned based on CI checks + the legacy labeler's human review status. Labels are informational; the [review policy](config/docs/governance/PR_REVIEW_POLICY.md) also permits a separately authenticated low-risk agent-audit path:
 
 - `pr:draft` - PR is draft / work in progress
 - `pr:checks-pending` - CI checks are running
@@ -76,9 +76,9 @@ These labels track the PR lifecycle state. They are mutually exclusive and auto-
 
 **PR Risk Labels** (applied by contributor/AI, exactly one required):
 
-These labels determine the required number of human approvals:
+These labels declare risk; reviewed scope must support the declaration. Human thresholds remain the default, with the separately verified low-risk alternative in the review policy:
 
-- `pr:risk-low` - Docs, typos, config tweaks (min 1 approval)
+- `pr:risk-low` - Docs, typos, config tweaks (1 human approval or verified independent agent audit)
 - `pr:risk-medium` - Features, refactors, new dependencies (min 2 approvals, 1 code owner)
 - `pr:risk-high` - Security, breaking changes, data migration (min 2 approvals, all code owners + security)
 - `pr:risk-critical` - Auth, encryption, financial, compliance (min 3 approvals, all code owners + security)
@@ -149,7 +149,7 @@ This section defines **mandatory** rules for any AI agent (Claude, Devin, Copilo
 2. **MUST** verify the issue has priority + type labels. If not, add them or request the author to add.
 3. **MUST** verify all relevant CI checks pass per the [Status Check Matrix](config/docs/governance/STATUS_CHECK_MATRIX.md) for the change type.
 4. **MUST** verify the PR actually addresses the issue's acceptance criteria. If not, request changes and remove `pr:acceptance-ok` if present.
-5. **MUST** only approve if: checks green + traceability verified + acceptance criteria met. The `pr:approved` label is auto-assigned by automation when human approval count meets the risk-level threshold.
+5. **MUST** only approve if: checks green + traceability verified + acceptance criteria met. The `pr:approved` label is auto-assigned by the legacy human-counting labeler; it is not approval authority. A low-risk agent audit requires authenticated current-head evidence under the review policy, never self-approval or model prose.
 6. **SHOULD** follow the [Reviewer Checklist](config/docs/governance/REVIEWER_CHECKLIST.md) for the change type.
 7. **SHOULD** follow the [PR Review Policy](config/docs/governance/PR_REVIEW_POLICY.md) for approval requirements by risk level.
 

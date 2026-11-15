@@ -1,0 +1,31 @@
+{
+  "version": "homedir.review-policy/v1",
+  "repository": "os-santiago/homedir",
+  "defaultDecision": "needs-human",
+  "approvalLabelsAreEvidence": false,
+  "requiredGates": {
+    "currentIssueEligible": true,
+    "currentHeadAndBase": true,
+    "requiredChecksSuccessful": true,
+    "unresolvedReviewThreads": 0,
+    "outstandingChangeRequests": 0,
+    "actionableCommentsAddressed": true
+  },
+  "risks": {
+    "low": {"humanApprovals": 1, "agentAuditAlternative": true},
+    "medium": {"humanApprovals": 2, "agentAuditAlternative": false, "codeOwners": "at-least-one"},
+    "high": {"humanApprovals": 2, "agentAuditAlternative": false, "codeOwners": "all", "securityReview": "when-applicable"},
+    "critical": {"humanApprovals": 3, "agentAuditAlternative": false, "codeOwners": "all", "securityReview": "required"}
+  },
+  "agentAudit": {
+    "independentOfImplementation": true,
+    "trustedVerifierAuthenticationRequired": true,
+    "outcome": "approved",
+    "boundFields": ["repository", "pullRequest", "issueRevision", "headSHA", "baseSHA", "candidateDigest", "policyRevision", "auditorIdentity"],
+    "invalidatedByAnyBoundFieldChange": true,
+    "riskMustBeVerifiedBeyondLabels": true,
+    "scopeMustBeReviewed": true,
+    "missingOrAmbiguousEvidence": "needs-human",
+    "rawModelTextIsApproval": false
+  }
+}

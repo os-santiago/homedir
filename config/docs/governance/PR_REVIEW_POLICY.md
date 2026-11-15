@@ -38,16 +38,32 @@ If a conversation cannot be resolved:
 
 ### Minimum Approvals by Change Risk
 
-The risk level is determined by the `pr:risk-*` label applied by the contributor at PR creation. The `pr-state-labeler.yml` workflow enforces the **approval count** threshold automatically — `pr:approved` is only assigned when the human approval count meets the requirement from `RISK_APPROVALS`. Code owner membership and security-team approval are **not** verified by the automation; they remain manual review checks or are enforced through GitHub branch protection rules.
+The contributor must apply exactly one `pr:risk-*` label. The reviewed change scope must support that classification; the label alone is not authority to use the low-risk alternative. The authenticated AI-SDLC consumer must block automated approval for missing or conflicting risk labels; the legacy informational labeler does not establish that guarantee. The `pr-state-labeler.yml` workflow enforces the **approval count** threshold automatically — `pr:approved` is assigned by that legacy labeler only when the human approval count meets `RISK_APPROVALS`. It does not authenticate independent AI-SDLC audit evidence; its labels are informational, never merge capabilities. Code owner membership and security-team approval are **not** verified by the automation; they remain manual review checks or are enforced through GitHub branch protection rules.
 
 | Risk Label | Criteria | Min Approvals | Additional Requirements |
 |------------|----------|---------------|------------------------|
-| `pr:risk-low` | Docs only, typos, config tweaks | 1 | - |
+| `pr:risk-low` | Docs only, typos, config tweaks | 1 human **or** the independent agent-audit alternative below | Required checks and resolved feedback in either path |
 | `pr:risk-medium` | Feature additions, refactors, new dependencies | 2 | At least 1 from code owners |
 | `pr:risk-high` | Security changes, API breaking changes, data migrations | 2 | All from code owners + security review if applicable |
 | `pr:risk-critical` | Auth/authz, encryption, financial logic, compliance | 3 | All from code owners + security team approval |
 
-**Bot reviews do NOT count toward approval.** Only human reviews are counted by the automation. Bot reviewers (copilot-pull-request-reviewer, coderabbitai, etc.) are automatically excluded.
+**Ordinary bot reviews do not count as human approvals.** The existing labeler continues to exclude bot reviews. A model comment, an author-applied label or an arbitrary bot approval is not the independent audit evidence defined below.
+
+### Independent agent audit for low risk
+
+A maintainer-authorized alternative permits low-risk changes to complete review through an agent independent of implementation. The canonical machine-readable contract is [review-policy.json](../../ai-sdlc/review-policy.json). This alternative does not reduce medium/high/critical human, code-owner or security requirements, and does not reclassify higher-risk work as low risk.
+
+All of the following are mandatory:
+
+1. Trusted policy verifies low-risk scope independently of contributor labels. Governance, authorization, secrets, dependencies, breaking changes and deployment-permission changes cannot use this alternative merely by adding `pr:risk-low`.
+2. A separate audit context reviews the actual candidate against the issue's acceptance criteria, tests, security and maintainability requirements. The implementation agent cannot approve its own output.
+3. Authenticated evidence from the trusted verifier binds repository, PR, issue revision, exact head/base SHAs, candidate digest, policy revision and auditor identity. Raw model text and a supervising session's assertion are not a runtime capability.
+4. The audit outcome is approved, all actionable comments are addressed, review threads are resolved, and no outstanding request for changes remains. Required checks must pass for the current revision; stale, missing or ambiguous evidence stops the flow.
+5. Any change to a bound field invalidates the audit and requires a new independent review. A previously approved candidate cannot authorize a different commit.
+6. Publication, merge, artifact promotion and deployment retain their separate component authorities and gates. This policy does not grant access to public production.
+
+The Kubernetes AI-SDLC consumer must enforce this contract before using the alternative. Until that authenticated consumer is installed and validated, the existing human-counting labeler remains on its human-review path. Its threshold must not be changed to zero as a shortcut. No new GitHub Actions workflow orchestrates AI-SDLC delivery.
+
 
 ### Code Owner Requirements
 
@@ -97,7 +113,7 @@ When reviews become stale:
 Before merging any PR, verify:
 
 - [ ] All conversations resolved
-- [ ] Minimum required approvals obtained
+- [ ] Required human approvals or the fully verified low-risk agent-audit alternative obtained
 - [ ] No stale reviews (or re-approved)
 - [ ] CI/CD pipeline passes all checks
 - [ ] Branch is up to date with target branch
@@ -137,7 +153,7 @@ Every exception must log:
 ### Audit Criteria
 
 Regular audits should verify:
-- [ ] All merged PRs had required approvals
+- [ ] All merged PRs had required human approvals or verified low-risk independent audit evidence
 - [ ] All conversations were resolved before merge
 - [ ] Exception protocol was followed for emergency merges
 - [ ] Stale reviews were re-approved appropriately
@@ -160,7 +176,7 @@ If non-compliant merge detected:
 
 ## GitHub Branch Protection Rules
 
-Required branch protection settings for `main` and release branches:
+The following is a reference for repositories enforcing the human-review path directly in GitHub. A fixed approval count cannot encode the alternative above. The observed Homedir rules use zero required GitHub approvals and mandatory checks/thread resolution; zero alone never authorizes merge. Higher-risk human requirements and the low-risk alternative must be enforced by the trusted delivery consumer. Do not reduce checks, conversation resolution or other protections to implement this policy.
 
 ```yaml
 required_pull_request_reviews:

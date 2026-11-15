@@ -21,7 +21,7 @@ Closes #N
 
 ## PR Risk Label (required — apply exactly one)
 
-- [ ] `pr:risk-low` — Docs, typos, config tweaks (min 1 approval)
+- [ ] `pr:risk-low` — Docs, typos, config tweaks (1 human or verified independent agent audit per review policy)
 - [ ] `pr:risk-medium` — Features, refactors, new dependencies (min 2 approvals, 1 code owner)
 - [ ] `pr:risk-high` — Security, breaking changes, data migration (min 2 approvals, code owners + security)
 - [ ] `pr:risk-critical` — Auth, encryption, financial, compliance (min 3 approvals, code owners + security)
