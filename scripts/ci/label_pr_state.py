@@ -52,7 +52,6 @@ RISK_APPROVALS = {
     "pr:risk-high": 2,
     "pr:risk-critical": 3,
 }
-DEFAULT_REQUIRED_APPROVALS = 2  # Fallback when no risk label is set
 
 # Bot users whose reviews do NOT count toward approval
 BOT_REVIEWERS = {
@@ -71,19 +70,16 @@ def is_bot_reviewer(login: str) -> bool:
     return login.endswith("[bot]") or login.endswith("-bot") or login.endswith("-ai")
 
 
-def valid_risk_label(pr) -> bool:
-    """A contributor cannot lower review requirements with conflicting labels."""
+def get_required_approvals(pr):
+    """Validate risk and derive its threshold from one label observation.
+
+    None blocks missing, unknown or conflicting risk declarations. Labels are
+    informational; they never constitute authenticated agent-audit evidence.
+    """
     risks = [label.name for label in pr.get_labels() if label.name.startswith("pr:risk-")]
-    return len(risks) == 1 and risks[0] in RISK_APPROVALS
-
-
-def get_required_approvals(pr) -> int:
-    """Determine required human approvals based on pr:risk-* label."""
-    current_labels = [label.name for label in pr.get_labels()]
-    for risk_label, count in RISK_APPROVALS.items():
-        if risk_label in current_labels:
-            return count
-    return DEFAULT_REQUIRED_APPROVALS
+    if len(risks) != 1:
+        return None
+    return RISK_APPROVALS.get(risks[0])
 
 
 def count_human_approvals(pr) -> tuple:
@@ -168,12 +164,6 @@ def get_pr_state_label(pr) -> tuple:
     if pr.draft:
         return LABEL_DRAFT, 0, 0, False
 
-    # This legacy labeler recognizes human approvals only. The independent
-    # agent alternative needs the authenticated AI-SDLC verifier, not a label
-    # or a zero human threshold. Ambiguous risk cannot select the low floor.
-    if not valid_risk_label(pr):
-        return LABEL_BLOCKED, 0, 0, False
-
     # Check for merge conflicts — GitHub may return None while computing
     mergeable = pr.mergeable
     if mergeable is None:
@@ -181,6 +171,12 @@ def get_pr_state_label(pr) -> tuple:
         pr = pr.base.repo.get_pull(pr.number)
         mergeable = pr.mergeable
     if mergeable is False:
+        return LABEL_BLOCKED, 0, 0, False
+
+    # Observe labels only after the possible PR refresh. Keep validation and
+    # the threshold together even if labels change during later API calls.
+    required = get_required_approvals(pr)
+    if required is None:
         return LABEL_BLOCKED, 0, 0, False
 
     # Check CI status
@@ -196,7 +192,6 @@ def get_pr_state_label(pr) -> tuple:
     if has_changes_requested:
         return LABEL_CHANGES_REQUESTED, approval_count, 0, True
 
-    required = get_required_approvals(pr)
     if approval_count >= required:
         return LABEL_APPROVED, approval_count, required, False
 
