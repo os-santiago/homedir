@@ -94,11 +94,11 @@ Mutually exclusive labels tracking the PR lifecycle. Managed by `pr-state-labele
 
 ### 7. PR Risk (Contributor-applied — exactly one required)
 
-Determines required human approval count. Applied by contributor/AI at PR creation.
+Declares change risk; reviewed scope must support the declaration. Applied by contributor/AI at PR creation. The legacy labeler counts human approvals; labels do not authenticate the [independent low-risk agent-audit alternative](PR_REVIEW_POLICY.md#independent-agent-audit-for-low-risk).
 
 | Label | Color | Risk Criteria | Min Approvals |
 |-------|-------|---------------|---------------|
-| `pr:risk-low` | `#0e8a16` | Docs, typos, config tweaks | 1 |
+| `pr:risk-low` | `#0e8a16` | Docs, typos, config tweaks | 1 human or verified independent agent audit |
 | `pr:risk-medium` | `#fbca04` | Features, refactors, new deps | 2 (1 code owner) |
 | `pr:risk-high` | `#d93f0b` | Security, breaking changes, data migration | 2 (code owners + security) |
 | `pr:risk-critical` | `#b60205` | Auth, encryption, financial, compliance | 3 (code owners + security) |

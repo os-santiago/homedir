@@ -71,6 +71,12 @@ def is_bot_reviewer(login: str) -> bool:
     return login.endswith("[bot]") or login.endswith("-bot") or login.endswith("-ai")
 
 
+def valid_risk_label(pr) -> bool:
+    """A contributor cannot lower review requirements with conflicting labels."""
+    risks = [label.name for label in pr.get_labels() if label.name.startswith("pr:risk-")]
+    return len(risks) == 1 and risks[0] in RISK_APPROVALS
+
+
 def get_required_approvals(pr) -> int:
     """Determine required human approvals based on pr:risk-* label."""
     current_labels = [label.name for label in pr.get_labels()]
@@ -161,6 +167,12 @@ def get_pr_state_label(pr) -> tuple:
     # PR is draft
     if pr.draft:
         return LABEL_DRAFT, 0, 0, False
+
+    # This legacy labeler recognizes human approvals only. The independent
+    # agent alternative needs the authenticated AI-SDLC verifier, not a label
+    # or a zero human threshold. Ambiguous risk cannot select the low floor.
+    if not valid_risk_label(pr):
+        return LABEL_BLOCKED, 0, 0, False
 
     # Check for merge conflicts — GitHub may return None while computing
     mergeable = pr.mergeable

@@ -58,7 +58,7 @@ Each stage must pass **all hard blocks** before proceeding. Warnings are advisor
 ### Branch Protection Requirements
 
 **Required for merge to `main`:**
-- ✅ At least 1 approving review from maintainer
+- ✅ Risk-based human approvals or the [verified independent low-risk agent-audit alternative](PR_REVIEW_POLICY.md#independent-agent-audit-for-low-risk); higher-risk human requirements remain unchanged
 - ✅ All PR Validation checks passing
 - ✅ Conversation resolution required
 - ✅ No force-push allowed after approval

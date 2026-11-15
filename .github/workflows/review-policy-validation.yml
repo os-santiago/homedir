@@ -1,0 +1,33 @@
+name: Review Policy Validation
+
+on:
+  pull_request:
+    paths:
+      - 'config/ai-sdlc/review-policy.json'
+      - 'config/docs/governance/**'
+      - 'scripts/ci/label_pr_state.py'
+      - 'tests/test_agent_review_policy.py'
+      - '.github/workflows/review-policy-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'config/ai-sdlc/review-policy.json'
+      - 'config/docs/governance/**'
+      - 'scripts/ci/label_pr_state.py'
+      - 'tests/test_agent_review_policy.py'
+      - '.github/workflows/review-policy-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-policy:
+    name: Review Policy Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate policy floors and reject label-only approval
+        run: python3 -m unittest discover -s tests -p test_agent_review_policy.py -v
