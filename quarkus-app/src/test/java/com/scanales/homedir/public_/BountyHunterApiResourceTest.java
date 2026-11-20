@@ -174,9 +174,56 @@ class BountyHunterApiResourceTest {
         new BountyHunterScore(
             "testuser", 20L, 0L, 20L, BountyHunterLevel.NONE, 0, 1, Instant.now());
 
+    when(configService.isAdminUser("admin")).thenReturn(true);
     when(service.recordIssueResolution("testuser", "123", "456", "feature-request"))
         .thenReturn(score);
 
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+        {
+          "userId": "testuser",
+          "issueNumber": "123",
+          "prNumber": "456",
+          "labelName": "feature-request",
+          "validatedBy": "admin"
+        }
+        """)
+        .when()
+        .post("/api/bounty-hunters/resolve-issue")
+        .then()
+        .statusCode(200)
+        .body("success", equalTo(true))
+        .body("score.userId", equalTo("testuser"))
+        .body("score.totalPoints", equalTo(20))
+        .body("score.issueResolutionPoints", equalTo(20));
+  }
+
+  @Test
+  void resolveIssue_nonAdminUser_returnsForbidden() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            """
+        {
+          "userId": "testuser",
+          "issueNumber": "123",
+          "prNumber": "456",
+          "labelName": "feature-request",
+          "validatedBy": "non-admin"
+        }
+        """)
+        .when()
+        .post("/api/bounty-hunters/resolve-issue")
+        .then()
+        .statusCode(403)
+        .body("success", equalTo(false))
+        .body("error", equalTo("Only admin users may resolve issues"));
+  }
+
+  @Test
+  void resolveIssue_missingValidatedBy_returnsForbidden() {
     given()
         .contentType(ContentType.JSON)
         .body(
@@ -191,11 +238,9 @@ class BountyHunterApiResourceTest {
         .when()
         .post("/api/bounty-hunters/resolve-issue")
         .then()
-        .statusCode(200)
-        .body("success", equalTo(true))
-        .body("score.userId", equalTo("testuser"))
-        .body("score.totalPoints", equalTo(20))
-        .body("score.issueResolutionPoints", equalTo(20));
+        .statusCode(403)
+        .body("success", equalTo(false))
+        .body("error", equalTo("Only admin users may resolve issues"));
   }
 
   @Test
