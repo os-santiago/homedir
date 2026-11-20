@@ -79,9 +79,9 @@
                 {/if}
                 <div class="hub-member">
                   {#if standing.leader.profilePath}
-                    <a href="{standing.leader.profilePath}" class="hub-member-link">{standing.leader.displayName}</a>
+                    <a href="{standing.leader.profilePath}" class="hub-member-link" title="{standing.leader.displayName}">{standing.leader.displayName}</a>
                   {#else}
-                    <span>{standing.leader.displayName}</span>
+                    <span class="hub-member-name" title="{standing.leader.displayName}">{standing.leader.displayName}</span>
                   {/if}
                   {#if standing.leader.handle}<span class="hub-handle">{standing.leader.handle}</span>{/if}
                 </div>
@@ -134,9 +134,9 @@
                   {/if}
                   <div class="hub-member">
                     {#if entry.profilePath}
-                      <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                      <a href="{entry.profilePath}" class="hub-member-link" title="{entry.displayName}">{entry.displayName}</a>
                     {#else}
-                      <span>{entry.displayName}</span>
+                      <span class="hub-member-name" title="{entry.displayName}">{entry.displayName}</span>
                     {/if}
                     {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
                   </div>
@@ -164,9 +164,9 @@
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
-                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                    <a href="{entry.profilePath}" class="hub-member-link" title="{entry.displayName}">{entry.displayName}</a>
                   {#else}
-                    <span>{entry.displayName}</span>
+                    <span class="hub-member-name" title="{entry.displayName}">{entry.displayName}</span>
                   {/if}
                   {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
                 </div>
@@ -191,9 +191,9 @@
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
-                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                    <a href="{entry.profilePath}" class="hub-member-link" title="{entry.displayName}">{entry.displayName}</a>
                   {#else}
-                    <span>{entry.displayName}</span>
+                    <span class="hub-member-name" title="{entry.displayName}">{entry.displayName}</span>
                   {/if}
                   {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
                 </div>
@@ -218,9 +218,9 @@
                 {/if}
                 <div class="hub-member">
                   {#if entry.profilePath}
-                    <a href="{entry.profilePath}" class="hub-member-link">{entry.displayName}</a>
+                    <a href="{entry.profilePath}" class="hub-member-link" title="{entry.displayName}">{entry.displayName}</a>
                   {#else}
-                    <span>{entry.displayName}</span>
+                    <span class="hub-member-name" title="{entry.displayName}">{entry.displayName}</span>
                   {/if}
                   {#if entry.handle}<span class="hub-handle">{entry.handle}</span>{/if}
                 </div>
