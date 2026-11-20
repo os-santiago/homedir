@@ -141,6 +141,28 @@ public class GamificationServiceTest {
   }
 
   @Test
+  void communityVoteAwardsXpOnlyOncePerContent() {
+    String userId = "vote.dedupe@example.com";
+
+    assertTrue(
+        gamificationService.award(
+            userId, GamificationActivity.COMMUNITY_VOTE, "community_vote:content-1"));
+    assertFalse(
+        gamificationService.award(
+            userId, GamificationActivity.COMMUNITY_VOTE, "community_vote:content-1"));
+    assertFalse(
+        gamificationService.award(
+            userId, GamificationActivity.COMMUNITY_VOTE, "community_vote:content-1"));
+    assertTrue(
+        gamificationService.award(
+            userId, GamificationActivity.COMMUNITY_VOTE, "community_vote:content-2"));
+
+    var profile = userProfileService.find(userId).orElseThrow();
+    assertEquals(10, profile.getCurrentXp());
+    assertEquals(10, profile.getClassXp(QuestClass.SCIENTIST));
+  }
+
+  @Test
   void mappedSiteActivitiesWriteReputationEvents() {
     String userId = "reputation.mapping@example.com";
     reputationEngineService.resetForTests();

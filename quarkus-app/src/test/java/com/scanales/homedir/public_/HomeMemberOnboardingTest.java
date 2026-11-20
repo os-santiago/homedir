@@ -133,7 +133,8 @@ class HomeMemberOnboardingTest {
     challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_VOTE);
     challengeService.recordActivity(userId, GamificationActivity.COMMUNITY_BOARD_MEMBERS_VIEW);
     challengeService.recordActivity(userId, GamificationActivity.BOARD_PROFILE_OPEN);
-    economyService.rewardFromGamification(userId, "home-test", 600, "home-test");
+    economyService.rewardFromGamification(
+        userId, "home-test", 600, "home-test", EconomyService.RewardDeduplication.NONE);
   }
 
   private Notification notification(String userId, String title, String message) {

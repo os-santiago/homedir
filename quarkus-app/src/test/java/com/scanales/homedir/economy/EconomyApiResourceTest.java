@@ -43,7 +43,8 @@ public class EconomyApiResourceTest {
   @Test
   @TestSecurity(user = "user@example.com")
   void authenticatedUserCanPurchaseAndQueryState() {
-    economyService.rewardFromGamification("user@example.com", "seed", 1000, "seed");
+    economyService.rewardFromGamification(
+        "user@example.com", "seed", 1000, "seed", EconomyService.RewardDeduplication.NONE);
 
     given()
         .accept("application/json")

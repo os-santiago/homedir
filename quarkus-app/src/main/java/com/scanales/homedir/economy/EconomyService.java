@@ -372,19 +372,38 @@ public class EconomyService {
     }
   }
 
+  /**
+   * Awards the hcoin equivalent of a gamification XP grant.
+   *
+   * <p>{@code deduplication} is mandatory on purpose: whether a grant may repeat is a property of
+   * the activity, not something that can be inferred from the reference alone, so every caller has
+   * to state it.
+   */
   public RewardResult rewardFromGamification(
-      String userId, String activityKey, int xp, String reference) {
+      String userId,
+      String activityKey,
+      int xp,
+      String reference,
+      RewardDeduplication deduplication) {
     String normalizedUserId = normalizeUserId(userId);
-    if (normalizedUserId == null || xp <= 0) {
+    if (normalizedUserId == null || xp <= 0 || deduplication == null) {
       return RewardResult.notAwarded();
     }
+    String normalizedReference = normalizeReference(reference);
     int rewardAmount = Math.max(Math.max(1, minRewardHcoin), (int) Math.round(xp * xpToHcoinRatio));
     synchronized (stateLock) {
       refreshFromDisk(false);
+      List<EconomyTransaction> history = loadFullTransactions();
+      // Read, check and write all happen while holding stateLock, so concurrent submissions of the
+      // same reference can only ever produce a single reward.
+      if (deduplication == RewardDeduplication.PER_REFERENCE
+          && normalizedReference != null
+          && hasRewardForReference(history, normalizedUserId, normalizedReference)) {
+        return RewardResult.notAwarded();
+      }
       if (persistenceService.isLowDiskSpace()) {
         guardrail("low_disk_space", normalizedUserId, "persistent storage low disk space");
       }
-      List<EconomyTransaction> history = loadFullTransactions();
       if (history.size() >= Math.max(1, transactionsPersistedMax)) {
         guardrail(
             "transaction_history_limit_reached",
@@ -414,7 +433,7 @@ public class EconomyService {
               rewardAmount,
               updatedBalance,
               now,
-              reference));
+              normalizedReference));
       EconomyStateSnapshot candidate = toSnapshot(walletCopy, inventoryByUser, history, now);
       enforceStorageBudget(candidate, normalizedUserId);
       persistSync(candidate);
@@ -441,14 +460,7 @@ public class EconomyService {
     synchronized (stateLock) {
       refreshFromDisk(false);
       List<EconomyTransaction> history = loadFullTransactions();
-      boolean alreadyAwarded =
-          history.stream()
-              .anyMatch(
-                  tx ->
-                      normalizedUserId.equals(tx.userId())
-                          && tx.type() == EconomyTransactionType.REWARD
-                          && reference.equals(safeText(tx.reference(), "")));
-      if (alreadyAwarded) {
+      if (hasRewardForReference(history, normalizedUserId, reference)) {
         return RewardResult.notAwarded();
       }
       if (persistenceService.isLowDiskSpace()) {
@@ -841,6 +853,35 @@ public class EconomyService {
     return value;
   }
 
+  /** Returns a trimmed reference, or {@code null} when there is nothing to deduplicate on. */
+  private static String normalizeReference(String raw) {
+    if (raw == null) {
+      return null;
+    }
+    String normalized = raw.trim();
+    return normalized.isBlank() ? null : normalized;
+  }
+
+  /**
+   * Returns true when the user already holds a REWARD transaction for the given reference. Only
+   * REWARD rows are inspected so a PURCHASE that happens to reuse a reference can never mask a
+   * missing reward.
+   *
+   * <p>Callers guarantee a non-null user and reference, and {@link #loadFullTransactions()} always
+   * yields a list, so no defensive null checks are needed here.
+   */
+  private static boolean hasRewardForReference(
+      List<EconomyTransaction> history, String userId, String reference) {
+    for (EconomyTransaction tx : history) {
+      if (tx.type() == EconomyTransactionType.REWARD
+          && userId.equals(tx.userId())
+          && reference.equals(safeText(tx.reference(), ""))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static String safeLogCode(String value) {
     if (value == null || value.isBlank()) {
       return "unknown";
@@ -903,6 +944,17 @@ public class EconomyService {
       String statePath,
       long stateSizeBytes,
       long stateLastModifiedMillis) {}
+
+  /** Controls whether a gamification reward may repeat for the same reference. */
+  public enum RewardDeduplication {
+    /** Always awards. Correct for once-per-day and once-ever activities. */
+    NONE,
+    /**
+     * Awards at most once per (user, reference) pair. Correct for repeatable activities bound to a
+     * specific target, such as voting on a content item.
+     */
+    PER_REFERENCE
+  }
 
   public static class ValidationException extends RuntimeException {
     public ValidationException(String message) {
