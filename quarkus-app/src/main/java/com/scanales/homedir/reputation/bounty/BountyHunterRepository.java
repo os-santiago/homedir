@@ -51,4 +51,37 @@ public class BountyHunterRepository {
   public long countScores() {
     return scores.size();
   }
+
+  public boolean hasEventForIssue(String userId, String issueNumber, BountyHunterEventType type) {
+    synchronized (events) {
+      return events.stream()
+          .anyMatch(
+              e ->
+                  e.userId().equals(userId)
+                      && e.issueNumber().equals(issueNumber)
+                      && e.eventType() == type);
+    }
+  }
+
+  public BountyHunterScore awardAtomically(
+      String userId,
+      String issueNumber,
+      BountyHunterEventType type,
+      java.util.function.Function<Optional<BountyHunterScore>, BountyHunterScore> scoreUpdater,
+      java.util.function.Supplier<BountyHunterEvent> eventSupplier) {
+    synchronized (events) {
+      if (events.stream()
+          .anyMatch(
+              e ->
+                  e.userId().equals(userId)
+                      && e.issueNumber().equals(issueNumber)
+                      && e.eventType() == type)) {
+        return scores.get(userId);
+      }
+      BountyHunterScore updated = scoreUpdater.apply(Optional.ofNullable(scores.get(userId)));
+      scores.put(userId, updated);
+      events.add(eventSupplier.get());
+      return updated;
+    }
+  }
 }
