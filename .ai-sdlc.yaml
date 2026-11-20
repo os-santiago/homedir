@@ -1,0 +1,125 @@
+# .ai-sdlc.yaml — homedir consumer contract for the AI-SDLC GHA-native
+# runtime (pilot, issue #1573 / epic Axel-DaMage/hermes#34).
+# Runtime stages live at os-santiago/ai-sdlc/.github/workflows/*@main.
+spec: "1.0.0"
+
+repo:
+  archetype: app
+  primary_language: java
+  deploys_to: none
+
+autonomy:
+  level: auto-merge-low
+  merge_requires_checks: true
+  freeze_env: AI_SDLC_FREEZE
+
+triggers:
+  issue_label: ready-to-implement
+  skip_labels:
+    - epic
+    - wontfix
+    - "no solucionar"
+    - invalid
+    - "no valido"
+    - duplicate
+    - question
+    - pregunta
+    - dependencies
+    - needs-human
+    - good first issue
+  authorized_labelers:
+    - Axel-DaMage
+    - scanalesespinoza
+
+verify:
+  commands:
+    # Light gate for the pilot — the repo's own CI (pr-check, spotless,
+    # coverage) remains the heavy gate; this runs i18n validation only.
+    - python3 scripts/validate_i18n.py
+  required_checks: []
+  timeout_seconds: 300
+
+review:
+  mode: ai
+  ai_reviewer:
+    # Provider-native model for the GHA review stage — OmniRoute route
+    # names (auto/*, devin/*) are Hermes control-plane only (ADR-0001)
+    # and fall back to model.primary during contract resolution.
+    model: nvidia/nemotron-3-super-120b-a12b
+    inline_comments: true
+    incremental: true
+  max_fix_iterations: 3        # bounded review→fix convergence (issue #28)
+  wait_max_minutes: 15         # merge-gate cap on a pending verdict → review_timeout
+  external_reviewer: ""        # e.g. coderabbit — empty = AI-only path
+  risk_labels:
+    - pr:risk-low
+    - pr:risk-medium
+    - pr:risk-high
+    - pr:risk-critical
+    - pr:risk-accepted
+  critical_requires_acceptance: true
+
+merge:
+  method: squash
+  delete_branch: true
+  max_repairs: 3
+  pending_max_minutes: 60
+  grace_minutes: 10
+  skip_labels:
+    - needs-human
+    - hold
+    - do-not-merge
+    - wip
+
+labels:
+  queued: scc:queued
+  in-progress: scc:in-progress
+  pr-opened: scc:pr-opened
+  failed: scc:failed
+  not-ready: scc:not-ready     # refinement-hold binding (canonical: needs-refinement)
+  no-changes: scc:no-changes
+  # Issue-label state machine — machine-checkable matrix (normative:
+  # spec/labels.md). The effective forbidden set is veto_pairs ∪ every
+  # triggers.skip_labels entry vetoing triggers.issue_label; an observed
+  # pair is a pipeline defect — veto + repair + log, never a silent skip.
+  state_machine:
+    veto_pairs:
+      - {winner: needs-human, loser: ready-to-implement}
+      - {winner: scc:not-ready, loser: ready-to-implement}
+      - {winner: needs-human, loser: scc:not-ready}
+      - {winner: scc:queued, loser: ready-to-implement}
+      - {winner: scc:in-progress, loser: ready-to-implement}
+      - {winner: scc:pr-opened, loser: ready-to-implement}
+    owners:
+      ready-to-implement: {set_by: [authorized-labeler, refiner], cleared_by: [dispatch, human]}
+      scc:not-ready: {set_by: [refiner], cleared_by: [refiner, human]}
+      needs-human: {set_by: [admission-gate, escalation, human], cleared_by: [human], clear_guard: policy:accepted}
+      scc:in-progress: {set_by: [dispatch], cleared_by: [dispatch]}
+      epic: {set_by: [triage, human]}
+      duplicate: {set_by: [dedup, human]}
+      umbrella: {set_by: [triage, human]}
+      scc:child: {set_by: [decomposer]}
+
+model:
+  # GHA-native runtime resolves provider_base_url → vars.AI_SDLC_PROVIDER_URL
+  # (GitHub Models retired 2026-07-30; current: NVIDIA NIM via MODEL_API_KEY).
+  # OmniRoute route names (auto/*, devin/*) are Hermes control-plane only —
+  # unreachable from GHA runners by design (ADR-0001).
+  primary: nvidia/nemotron-3-super-120b-a12b
+  fallback: nvidia/nemotron-3-ultra-550b-a55b
+
+engine:
+  name: scc
+  max_steps: 200
+  max_seconds: 900
+  flags:
+    - --no-commit
+    - --audit-log
+    - --summary-file
+    - --prompt-file
+
+escalation:
+  label: needs-human
+  contacts:
+    - "@Axel-DaMage"
+  notify_channels: []
